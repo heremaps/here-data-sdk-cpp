@@ -44,18 +44,13 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
   // with cancel mock.
   auto callback_placeholder = std::make_shared<http::Network::Callback>();
 
-  auto mocked_send =
-      [request_id, completed, pre_signal, wait_for_signal, response_information,
-       post_signal, callback_placeholder](
-          http::NetworkRequest request, http::Network::Payload payload,
-          http::Network::Callback callback,
-          http::Network::HeaderCallback header_callback,
-          http::Network::DataCallback /*data_callback*/) -> http::SendOutcome {
+  auto mocked_send = [=](http::NetworkRequest, http::Network::Payload payload,
+                         http::Network::Callback callback,
+                         http::Network::HeaderCallback header_callback,
+                         http::Network::DataCallback) {
     *callback_placeholder = callback;
 
-    auto mocked_network_block = [request, pre_signal, wait_for_signal,
-                                 completed, header_callback, callback,
-                                 response_information, post_signal, payload]() {
+    auto mocked_network_block = [=]() {
       // emulate a small response delay
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
@@ -69,11 +64,14 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
       if (!completed->exchange(true)) {
         const auto data_len = strlen(response_information.data);
         payload->write(response_information.data, data_len);
+
         for (const auto& header : response_information.headers) {
           header_callback(header.first, header.second);
         }
-        callback(
-            http::NetworkResponse().WithStatus(response_information.status));
+
+        callback(http::NetworkResponse()
+                     .WithStatus(response_information.status)
+                     .WithRequestId(request_id));
       }
 
       // notify that request finished
@@ -86,13 +84,17 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
     return http::SendOutcome(request_id);
   };
 
-  auto mocked_cancel = [completed,
-                        callback_placeholder](http::RequestId /*id*/) {
+  auto mocked_cancel = [=](http::RequestId id) {
     if (!completed->exchange(true)) {
-      auto cancel_code = static_cast<int>(http::ErrorCode::CANCELLED_ERROR);
-      (*callback_placeholder)(http::NetworkResponse()
-                                  .WithError("Cancelled")
-                                  .WithStatus(cancel_code));
+      // simulate that network code is actually running in the background.
+      std::thread([=]() {
+        auto cancel_code = static_cast<int>(http::ErrorCode::CANCELLED_ERROR);
+        (*callback_placeholder)(http::NetworkResponse()
+                                    .WithError("Cancelled")
+                                    .WithStatus(cancel_code)
+                                    .WithRequestId(id));
+      })
+          .detach();
     }
   };
 
@@ -107,23 +109,23 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
 NetworkCallback ReturnHttpResponse(http::NetworkResponse response,
                                    const std::string& response_body,
                                    const http::Headers& headers,
-                                   std::chrono::nanoseconds delay) {
-  return
-      [=](http::NetworkRequest /*request*/, http::Network::Payload payload,
-          http::Network::Callback callback,
-          http::Network::HeaderCallback header_callback,
-          http::Network::DataCallback /*data_callback*/) -> http::SendOutcome {
-        std::thread([=]() {
-          for (const auto& header : headers) {
-            header_callback(header.first, header.second);
-          }
-          *payload << response_body;
-          std::this_thread::sleep_for(delay);
-          callback(response);
-        })
-            .detach();
+                                   std::chrono::nanoseconds delay,
+                                   http::RequestId request_id) {
+  response.WithRequestId(request_id);
+  return [=](http::NetworkRequest, http::Network::Payload payload,
+             http::Network::Callback callback,
+             http::Network::HeaderCallback header_callback,
+             http::Network::DataCallback) mutable {
+    std::thread([=]() {
+      for (const auto& header : headers) {
+        header_callback(header.first, header.second);
+      }
+      *payload << response_body;
+      std::this_thread::sleep_for(delay);
+      callback(response);
+    })
+        .detach();
 
-        constexpr auto unused_request_id = 5;
-        return http::SendOutcome(unused_request_id);
-      };
+    return http::SendOutcome(request_id);
+  };
 }
