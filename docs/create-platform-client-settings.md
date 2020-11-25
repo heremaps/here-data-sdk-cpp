@@ -21,7 +21,7 @@ You need to create the `OlpClientSettings` object to get catalog and partition m
    > #### Note
    > The `Network` client is designed and intended to be shared.
 
-3. <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/authenticate.md" target="_blank">Authenticate</a> to the HERE platform.
+3. [Authenticate](authenticate.md) to the HERE platform.
 
 4. (Optional) For data that is stored in the cache, to add expiration limit, set the `default_cache_expiration` to the needed expiration time.
 

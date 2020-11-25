@@ -187,7 +187,7 @@ Catalog metadata contains a list of configurations that describe the catalog and
 
 1. Create the `OlpClientSettings` object.
 
-   For instructions, see <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/create-platform-client-settings.md" target="_blank">Create platform client settings</a>.
+   For instructions, see [Create platform client settings](create-platform-client-settings.md).
 
 2. Create the `CatalogClient` object with the catalog HRN and platform client settings from step 1.
 
@@ -276,7 +276,7 @@ Partition metadata consists of the following information about the partition:
 
 1. Create the `OlpClientSettings` object.
 
-   For instructions, see <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/create-platform-client-settings.md" target="_blank">Create platform client settings</a>.
+   For instructions, see [Create platform client settings](create-platform-client-settings.md).
 
 2. Depending on the layer type, create a versioned or volatile layer client with the HERE Resource Name (HRN), layer ID, layer version, and platform client settings from step 1.
 
@@ -348,7 +348,7 @@ The `Partition` class contains partition metadata and exposes the following memb
 - `GetPartition` – returns the partition ID.
 - `GetVersion` – returns the latest catalog version for the partition.
 
-### Get partition data from a versioned layer
+### Get data from a versioned layer
 
 You can request any data version from a [versioned layer](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/layers.html#versioned-layers). When you request a particular version of data from the versioned layer, the partition you receive in the response may have a lower version number than you requested. The version of a layer or partition represents the catalog version in which the layer or partition was last updated.
 
@@ -356,7 +356,7 @@ You can request any data version from a [versioned layer](https://developer.here
 
 1. Create the `OlpClientSettings` object.
 
-   For instructions, see <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/create-platform-client-settings.md" target="_blank">Create platform client settings</a>.
+   For instructions, see [Create platform client settings](create-platform-client-settings.md).
 
 2. Create the `VersionedLayerClient` object with the HERE Resource Name (HRN) of the catalog that contains the layer, the layer ID, catalog version, and the platform client settings from step 1.
 

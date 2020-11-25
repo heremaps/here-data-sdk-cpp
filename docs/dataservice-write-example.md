@@ -174,7 +174,7 @@ You can create a queue that streams data to data consumers in real time using a 
 
 1. Create the `OlpClientSettings` object.
 
-   For instructions, see <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/create-platform-client-settings.md" target="_blank">Create platform client settings</a>.
+   For instructions, see [Create platform client settings](create-platform-client-settings.md).
 
 2. Create the `StreamLayerClientSettings` object.
 
