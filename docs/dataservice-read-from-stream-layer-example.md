@@ -1,25 +1,27 @@
-# Read from a Stream Layer (Example)
+# Read from a stream layer (example)
 
-On this page, you can find instructions on how to build and run the example project on different platforms and get catalog and partition metadata, as well as partition data using the HERE Data SDK for C++.
+On this page, you can find instructions on how to build and run the cache example project on different platforms and get catalog and partition metadata, as well as partition data using HERE Data SDK for C++.
 
-Before you run the example project, authorize to the HERE platform:
+**Before you run the example project, authorize to the HERE platform:**
 
 1. On the [Apps & keys](https://platform.here.com/admin/apps) page, copy your application access key ID and access key secret.
 
-   For instructions on how to get the access key ID and access key secret, see the [Register Your Application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
+   For instructions on how to get the access key ID and access key secret, see the [Register your application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
 
-2. In `examples/main.cpp`, replace the placeholders with your access key ID, access key secret, and Here Resource Name (HRN) of the catalog.
-   **Note:**  You can also specify these values using the command line options.
+2. In <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/examples/main.cpp" target="_blank">examples/main.cpp</a>, replace the placeholders with your access key ID, access key secret, and Here Resource Name (HRN) of the catalog.
+
+   > #### Note
+   > You can also specify these values using the command line options.
 
    ```cpp
    AccessKey access_key{"here.access.key.id", "here.access.key.secret"};
    ```
 
-## Build and Run on Linux
+## Build and run on Linux
 
-To build and run the example project on Linux:
+**To build and run the example project on Linux:**
 
-1. Enable examples of the `CMake` targets.
+1. Enable examples of the CMake targets.
 
    ```bash
    mkdir build && cd build
@@ -46,8 +48,8 @@ To build and run the example project on Linux:
 
 After building and running the example project, you see the following information:
 
-- `./dataservice-example` &ndash; a catalog and layer description
-- `read-stream-layer-example - Poll data - Success, messages size - 6` - a success message that displays the size of data retrieved from the layer.
+- `./dataservice-example` – a catalog and layer description.
+- `read-stream-layer-example - Poll data - Success, messages size - 6` – a success message that displays the size of data retrieved from the layer.
 
 ```bash
 ./dataservice-example --example read --key_id "here.access.key.id" --key_secret "here.access.key.secret" --catalog "catalog" --layer_id "layer_id" --type-of-subscription "subscription_type"
@@ -58,88 +60,17 @@ After building and running the example project, you see the following informatio
 
 ## How it works
 
-### <a name="authenticate-to-here-olp-using-client-credentials"></a>Authenticate to the HERE Platform Using Client Credentials
-
-To authenticate with the HERE platform, you must get platform credentials that contain the access key ID and access key secret.
-
-**To authenticate using client credentials:**
-
-1. Get your platform credentials.
-
-   For instructions, see the [Register Your Application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
-
-   You get the `credentials.properties` file.
-
-2. Initialize the authentification settings using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `kKeyId` and `kKeySecret` respectively.
-
-   ```cpp
-   olp::authentication::Settings settings({kKeyId, kKeySecret});
-   settings.task_scheduler = task_scheduler;
-   settings.network_request_handler = http_client;
-   ```
-
-3. To get the OAuth 2.0 token from the HERE platform, set up the `AuthenticationSettings` object with a default token provider.
-
-   ```cpp
-   olp::client::AuthenticationSettings auth_settings;
-   auth_settings.provider =
-     olp::authentication::TokenProviderDefault(std::move(settings));
-   ```
-
-You can use the `TokenProvider` object to create the `OlpClientSettings` object. For more information, see [Create OlpClientSettings](#create-olpclientsettings).
-
-### <a name="create-olpclientsettings"></a>Create `OlpClientSettings`
-
-You need to create the `OlpClientSettings` object to get catalog and partition metadata, retrieve versioned, volatile, and stream layer data, and publish data to the HERE platform.
-
-**To create `OlpClientSettings` object:**
-
-1. To perform requests asynchronously, create the `TaskScheduler` object.
-
-   ```cpp
-   std::shared_ptr<olp::thread::TaskScheduler> task_scheduler =
-         olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
-   ```
-
-2. To internally operate with the HERE platform Services, create the `Network` client.
-
-   ```cpp
-   std::shared_ptr<olp::http::Network> http_client = olp::client::
-        OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
-   ```
-
-   > Note: The `Network` client is designed and intended to be shared.
-
-3. [Authenticate](#authenticate-to-here-olp-using-client-credentials) to the HERE platform.
-
-4. Set up the `OlpClientSettings` object.
-
-   ```cpp
-   olp::client::OlpClientSettings client_settings;
-   client_settings.authentication_settings = auth_settings;
-   client_settings.task_scheduler = std::move(task_scheduler);
-   client_settings.network_request_handler = std::move(http_client);
-   client_settings.cache =
-       olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
-   ```
-
-The `OlpClientSettings` class pulls together all the settings for customization of the client library behavior.
-
-### Get Data from a Stream Layer
+### Get data from a stream layer
 
 You can read messages from a [stream layer](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/layers.html#stream-layers) if you subscribe to it.
 
 **To get data from the stream layer:**
 
-1. Get an access key ID and access key secret.
+1. Create the `OlpClientSettings` object.
 
-   For instructions, see [Authenticate to the HERE Platform Using Client Credentials](#authenticate-to-here-olp-using-client-credentials).
+   For instructions, see <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/create-platform-client-settings.md" target="_blank">Create platform client settings</a>.
 
-2. Create the `OlpClientSettings` object.
-
-   For instructions, see [Create `OlpClientSettings`](#create-olpclientsettings).
-
-3. Create the `StreamLayerClient` object with the HERE Resource Name (HRN) of the catalog that contains the layer, layer ID, and platform client settings from step 2.
+2. Create the `StreamLayerClient` object with the HERE Resource Name (HRN) of the catalog that contains the layer, layer ID, and platform client settings from step 1.
 
    ```cpp
    olp::dataservice::read::StreamLayerClient client(
@@ -147,7 +78,7 @@ You can read messages from a [stream layer](https://developer.here.com/olp/docum
         client::OlpClientSettings settings);
    ```
 
-4. Create the `SubscribeRequest` object with the `serial` or `parallel` subscription type.
+3. Create the `SubscribeRequest` object with the `serial` or `parallel` subscription type.
 
    - If your application should read smaller volumes of data using a single subscription, use the `serial` subscription type.
 
@@ -158,7 +89,7 @@ You can read messages from a [stream layer](https://developer.here.com/olp/docum
                      .WithSubscriptionMode(olp::dataservice::read::SubscribeRequest::SubscriptionMode::kSerial));
    ```
 
-5. Call the `Subscribe` method with the `SubscribeRequest` parameter.
+4. Call the `Subscribe` method with the `SubscribeRequest` parameter.
 
    ```cpp
    client::CancellableFuture<SubscribeResponse> Subscribe(
@@ -167,7 +98,7 @@ You can read messages from a [stream layer](https://developer.here.com/olp/docum
 
    You receive a subscription ID from the requested subscription to the selected layer.
 
-6. Call the `Poll` method.
+5. Call the `Poll` method.
 
    ```cpp
    client::CancellableFuture<PollResponse> Poll();
@@ -175,9 +106,9 @@ You can read messages from a [stream layer](https://developer.here.com/olp/docum
 
    You get messages with the layer data and partition metadata. The `Poll` method also commits the offsets, so you can continue polling new messages.
 
-   If the data size is less than 1 MB, the `data` field is populated. If the data size is greater than 1 MB, you get a data handle that points to the object stored in the blob store.
+   If the data size is less than 1 MB, the data field is populated. If the data size is greater than 1 MB, you get a data handle that points to the object stored in the blob store.
 
-7. If the data size is greater than 1 MB, call the `GetData` method with the `Messages` instance.
+6. If the data size is greater than 1 MB, call the `GetData` method with the `Messages` instance.
 
    ```cpp
     client::CancellableFuture<DataResponse> GetData(
@@ -186,7 +117,7 @@ You can read messages from a [stream layer](https://developer.here.com/olp/docum
 
 You get data from the requested partition.
 
-### Delete Your Subscription to a Stream Layer
+### Delete your subscription to a stream layer
 
 If you want to stop message consumption, delete your subscription to a stream layer:
 

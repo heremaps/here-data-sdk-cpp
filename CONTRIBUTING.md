@@ -2,24 +2,24 @@
 
 ## Contributing to HERE Data SDK for C++
 
-First off, thanks for taking the time to contribute! The team behind the [HERE Data SDK for C++](https://github.com/heremaps/here-data-sdk-cpp) gratefully accepts contributions via [pull requests](https://help.github.com/articles/about-pull-requests/) filed against the [GitHub project](https://github.com/heremaps/here-data-sdk-cpp/pulls). As part of filing a pull request, we ask you to sign off the [Developer Certificate of Origin](https://developercertificate.org/) (DCO).
+First off, thanks for taking the time to contribute! The team behind [HERE Data SDK for C++](https://github.com/heremaps/here-data-sdk-cpp) gratefully accepts contributions via [pull requests](https://help.github.com/articles/about-pull-requests/) filed against the [GitHub project](https://github.com/heremaps/here-data-sdk-cpp/pulls). As part of filling a pull request, we ask you to add the [Developer Certificate of Origin](https://developercertificate.org/) (DCO) sign-off.
 
 ## Development
 
-### Code Style
+### Code style
 
 This SDK follows the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html). In case we differ from the Google C++ Style Guide in any way or are more specific on a given point, the following document reflects such differences.
 
 #### Differences from the Google C++ Style Guide
 
-##### File Names
+##### File names
 
 - Name files in CamelCase. For example, `MyClassName.cpp`.
 - End C++ files with `.cpp` and header files with `.h`.
 - You can move inline functions into a separate `.inl` file to neatly arrange `.h` files.
 - End files that contain a test code with `Test`. For example, `MyClassNameTest.cpp`.
 
-##### Enumerator Names
+##### Enumerator names
 
 - Use CamelCase for enumeration names, as an enumeration name is a type.
 - Use CamelCase for individual enumerators.
@@ -35,7 +35,7 @@ enum class FetchOption {
 };
 ```
 
-### File Headers
+### File headers
 
 Every `.cpp`, `.h`, and `.inl` file must contain the following header at the very top:
 
@@ -81,7 +81,7 @@ CMake files or bash scripts must contain the following header at the very top:
 # License-Filename: LICENSE
 ```
 
-### Code Formatting
+### Code formatting
 
 The SDK uses `clang-format` to automatically format all source code before submission. The SDK follows the standard Google `clang-format` style, as seen in the [.clang-format](./.clang-format) file at the root of this project.
 
@@ -104,7 +104,7 @@ If you need to format all `.cpp` and `.h` files in a directory recursively, you 
 find foo/bar/ -iname *.h -o -iname *.cpp | xargs clang-format -i --style=file
 ```
 
-### Style Guidelines for Commit Messages
+### Style guidelines for commit messages
 
 We strive to maintain a high software quality standard and strongly encourage contributions to keep up with the the guidelines.
 In general, we share the view on how a commit message should be written with the [Git project itself](https://github.com/git/git/blob/master/Documentation/SubmittingPatches).
@@ -125,7 +125,7 @@ When you create a commit message, follow these guidelines:
 - If you are unfamiliar with how to fix up the existing commits, please read about [rewriting history](https://git-scm.com/book/id/v2/Git-Tools-Rewriting-History) and `git rebase --interactive` in particular.
 - To resolve conflicts, rebase pull request branches onto their target branch instead of merging the target branch into the pull request branch—such approach results in a cleaner history without "criss-cross" merges.
 
-### Design Guidelines
+### Design guidelines
 
 - Follow the **SOLID** design principles:
 
@@ -143,7 +143,7 @@ When you create a commit message, follow these guidelines:
 
 > "Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away." – Antoine de Saint-Exupery
 
-### Implementation Guidelines
+### Implementation guidelines
 
 - Use the [C++11 standard](http://www.stroustrup.com/C++11FAQ.html).
 - Use [RAII](https://en.cppreference.com/w/cpp/language/raii). Avoid explicit use of new and delete unless there is a good reason to do so.
@@ -158,28 +158,28 @@ When you create a commit message, follow these guidelines:
 - Use `#pragma once` to include guards.
 - Use `nullptr` instead of `NULL` or `0`.
 
-### Testing Guidelines
+### Testing guidelines
 
 - Use [Google Test](https://github.com/google/googletest) as a test framework.
 - Each unit test endeavors to test one function only.
 - Good tests serve as a good example of how to use the code under test.
 - [Design](#design-guidelines) and [implementation](#implementation-guidelines) Guidelines apply to tests as well.
 
-### Component Guidelines
+### Component guidelines
 
-#### Component Name
+#### Component name
 
 The SDK uses the following pattern for component names: **olp-cpp-sdk**-_component-name_. For example, `olp-cpp-sdk-dataservice-read`.
 
-#### API Namespace
+#### API namespace
 
 The SDK uses the following pattern for namespace names: **olp**::_component::subcomponent_. For example, `olp::authentication`,`olp::dataservice::write`.
 
-#### API Class Name
+#### API class name
 
 The SDK uses the following pattern for API class names: \*Api**\*Client**. For example, `StreamLayerClient`.
 
-#### API Method Signature
+#### API method signature
 
 The SDK provides a set of common classes that are used to define the APIs.
 These classes are located in the **olp-cpp-sdk-core/include/olp/core/client** folder.
@@ -232,7 +232,7 @@ olp::client::CancellableFuture<CatalogResponse> GetCatalog(const CatalogRequest&
 olp::client::CancellationToken GetCatalog(const CatalogRequest& request, const CatalogResponseCallback& callback);
 ```
 
-#### API Setters and Getters
+#### API setters and getters
 
 The SDK uses the following pattern for getters and setters:
 
@@ -255,7 +255,7 @@ inline PublishDataRequest& WithLayerId(std::string&& layer_id) {
 }
 ```
 
-#### API Optional Parameters
+#### API optional parameters
 
 The SDK uses `boost::optional` for optional members, parameters, or return types. Also, function comments should indicate whether the parameter is optional or required.
 
@@ -277,7 +277,7 @@ inline PublishDataRequest& WithBillingTag(std::string&& billing_tag) {
 }
 ```
 
-#### API Binary Data
+#### API binary data
 
 The SDK uses the `std::vector<unsigned char>` type to represent binary data.
 Using `shared_ptr<std::vector<unsigned char>>` ensures that no data copy is required to transfer or process data.
@@ -300,7 +300,7 @@ inline PublishDataRequest& WithData(std::shared_ptr<std::vector<unsigned char>>&
 }
 ```
 
-### REST Client
+### REST client
 
 The SDK provides a unified way of performing REST requests by exposing a set of utility classes in the **olp-cpp-sdk-core/include/olp/core/client** folder.
 
@@ -335,7 +335,7 @@ class DATASERVICE_READ_API CatalogClient final {
 }
 ```
 
-#### Components Build Script
+#### Components build script
 
 The SDK uses CMake as a build tool and provides a set of utility scripts to build components, export component targets, as well as create and install component configuration files. These scripts are located in the **cmake** folder.
 Make sure that each component has it's own CMake script or scripts that define the project and unit test targets. The component can use the **export_config()** method (from **cmake/common.cmake**) to export a component so that it can be used by a client application that uses **find_package()** to retrieve the component.
@@ -353,7 +353,7 @@ if(EOLP_SDK_ENABLE_TESTING)
 endif()
 ```
 
-#### Component Documentation
+#### Component documentation
 
 The SDK uses [Doxygen](http://www.doxygen.nl/) to generate its documentation from the code.
 Make sure to properly document each header file that is exposed by the component with the use of Doxygen format.
