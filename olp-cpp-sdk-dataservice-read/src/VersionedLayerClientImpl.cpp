@@ -83,34 +83,33 @@ bool VersionedLayerClientImpl::CancelPendingRequests() {
 
 client::CancellationToken VersionedLayerClientImpl::GetPartitions(
     PartitionsRequest request, PartitionsResponseCallback callback) {
-  auto catalog = catalog_;
-  auto layer_id = layer_id_;
-  auto settings = settings_;
-  auto lookup_client = lookup_client_;
-
   auto partitions_task =
-      [=](client::CancellationContext context) mutable -> PartitionsResponse {
-    if (request.GetFetchOption() == CacheWithUpdate) {
-      return {{client::ErrorCode::InvalidArgument,
-               "CacheWithUpdate option can not be used for versioned "
-               "layer"}};
+      [this](PartitionsRequest partitions_request,
+             client::CancellationContext context) -> PartitionsResponse {
+    const auto fetch_option = partitions_request.GetFetchOption();
+    if (fetch_option == CacheWithUpdate) {
+      return client::ApiError(
+          client::ErrorCode::InvalidArgument,
+          "CacheWithUpdate option can not be used for versioned layer");
     }
 
     auto version_response =
-        GetVersion(request.GetBillingTag(), request.GetFetchOption(), context);
+        GetVersion(partitions_request.GetBillingTag(), fetch_option, context);
     if (!version_response.IsSuccessful()) {
       return version_response.GetError();
     }
+
     const auto version = version_response.GetResult().GetVersion();
 
-    repository::PartitionsRepository repository(std::move(catalog), layer_id,
-                                                std::move(settings),
-                                                std::move(lookup_client));
-    return repository.GetVersionedPartitions(request, version, context);
+    repository::PartitionsRepository repository(catalog_, layer_id_, settings_,
+                                                lookup_client_);
+    return repository.GetVersionedPartitionsExtendedResponse(
+        std::move(partitions_request), version, context);
   };
 
-  return task_sink_.AddTask(std::move(partitions_task), std::move(callback),
-                            thread::NORMAL);
+  return task_sink_.AddTask(
+      std::bind(partitions_task, std::move(request), std::placeholders::_1),
+      std::move(callback), thread::NORMAL);
 }
 
 client::CancellableFuture<PartitionsResponse>

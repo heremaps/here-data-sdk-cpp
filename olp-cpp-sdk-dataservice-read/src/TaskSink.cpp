@@ -34,10 +34,14 @@ TaskSink::TaskSink(std::shared_ptr<thread::TaskScheduler> task_scheduler)
       closed_(false) {}
 
 TaskSink::~TaskSink() {
-  OLP_SDK_LOG_INFO(kLogTag, "Finishing, canceling all current tasks.");
   {
     std::lock_guard<std::mutex> lock(mutex_);
     closed_ = true;
+    const auto task_count = pending_requests_->GetTaskCount();
+    if (task_count > 0) {
+      OLP_SDK_LOG_INFO_F(kLogTag, "Finishing, canceling %" PRIu64 " tasks.",
+                         static_cast<std::uint64_t>(task_count));
+    }
   }
   // CancelAllAndWait method should be called without mutex, since potentially
   // there might be new added tasks, it may result in deadlock.
