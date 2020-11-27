@@ -34,7 +34,7 @@ To authenticate to the HERE platform and start working with HERE Data SDK for C+
 
 You get an access token.
 
-You can use the `AuthenticationSettings` object to create the `OlpClientSettings` object. For more information, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/create-platform-client-settings.md" target="_blank">related section</a> in the Developer Guide.
+You can use the `AuthenticationSettings` object to create the `OlpClientSettings` object. For more information, see the [related section](create-platform-client-settings.md) in the Developer Guide.
 
 ## Authenticate using project authentication
 
@@ -77,7 +77,7 @@ You can use the `AuthenticationSettings` object to create the `OlpClientSettings
 
 You get an access token.
 
-You can use the `AuthenticationSettings` object to create the `OlpClientSettings` object. For more information, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/create-platform-client-settings.md" target="_blank">related section</a> in the Developer Guide.
+You can use the `AuthenticationSettings` object to create the `OlpClientSettings` object. For more information, see the [related section](create-platform-client-settings.md) in the Developer Guide.
 
 ## Authenticate using federated credentials
 
@@ -146,4 +146,4 @@ You can use the `AuthenticationSettings` object to create the `OlpClientSettings
 
 You get an access token. By default, it expires in 24 hours. To continue working with the HERE platform after your token expires, generate a new access token.
 
-You can use the `AuthenticationSettings` object to create the `OlpClientSettings` object. For more information, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/create-platform-client-settings.md" target="_blank">related section</a> in the Developer Guide.
+You can use the `AuthenticationSettings` object to create the `OlpClientSettings` object. For more information, see the [related section](create-platform-client-settings.md) in the Developer Guide.

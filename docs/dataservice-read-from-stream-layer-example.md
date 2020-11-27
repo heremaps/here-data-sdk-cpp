@@ -68,7 +68,7 @@ You can read messages from a [stream layer](https://developer.here.com/olp/docum
 
 1. Create the `OlpClientSettings` object.
 
-   For instructions, see <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/create-platform-client-settings.md" target="_blank">Create platform client settings</a>.
+   For instructions, see [Create platform client settings](create-platform-client-settings.md).
 
 2. Create the `StreamLayerClient` object with the HERE Resource Name (HRN) of the catalog that contains the layer, layer ID, and platform client settings from step 1.
 

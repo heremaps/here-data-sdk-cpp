@@ -6,8 +6,8 @@ To start using HERE Data SDK for C++, you need a platform user account.
 
 Working with the Data SDK requires knowledge of the following subjects:
 
-- Basic understanding of the core [HERE platform concepts](#concepts)
-- Basic proficiency with C++11 and CMake
+- Basic understanding of the core [HERE platform concepts](#concepts).
+- Basic proficiency with C++11 and CMake.
 
 ## Concepts
 

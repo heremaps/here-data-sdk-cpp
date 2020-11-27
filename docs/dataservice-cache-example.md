@@ -70,7 +70,7 @@ You can get data from a [versioned layer](https://developer.here.com/olp/documen
 
 1. Create the `OlpClientSettings` object with the path to the needed cache settings properties (disk space, runtime memory limit, maximum file size, in-memory data cache size, options, and paths).
 
-   For instructions, see <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/create-platform-client-settings.md" target="_blank">Create platform client settings</a>.
+   For instructions, see [Create platform client settings](create-platform-client-settings.md).
 
    > #### Note
    > Perform the first call with the valid mutable cache path, and the second call – with the protected cache path.
