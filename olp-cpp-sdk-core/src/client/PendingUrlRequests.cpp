@@ -239,6 +239,26 @@ PendingUrlRequests::PendingUrlRequestPtr PendingUrlRequests::operator[](
   return result_ptr;
 }
 
+size_t PendingUrlRequests::Append(const std::string& url,
+                                  NetworkAsyncCallback callback,
+                                  PendingUrlRequestPtr& out) {
+  out = nullptr;
+
+  // Keep mutex lock to avoid request finishes before we add out callback if
+  // there is already a request pending and it is close to completion
+  std::lock_guard<std::mutex> lock(mutex_);
+
+  auto it = pending_requests_.find(url);
+  if (it != pending_requests_.end()) {
+    out = it->second;
+  } else {
+    out = std::make_shared<PendingUrlRequest>();
+    pending_requests_.emplace(url, out);
+  }
+
+  return out->Append(std::move(callback));
+}
+
 void PendingUrlRequests::OnRequestCompleted(http::RequestId request_id,
                                             const std::string& url,
                                             HttpResponse response) {

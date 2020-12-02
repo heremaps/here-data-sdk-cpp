@@ -25,6 +25,7 @@
 #include <sstream>
 #include <thread>
 
+#include "PendingUrlRequests.h"
 #include "olp/core/client/Condition.h"
 #include "olp/core/client/ErrorCode.h"
 #include "olp/core/http/HttpStatusCode.h"
@@ -37,12 +38,32 @@
 namespace {
 constexpr auto kLogTag = "OlpClient";
 constexpr auto kApiKeyParam = "apiKey=";
+
+struct RequestSettings {
+  explicit RequestSettings(const int initial_backdown_period_ms,
+                           const int timeout_s)
+      : current_backdown_period{initial_backdown_period_ms},
+        max_wait_time{std::chrono::seconds(timeout_s)} {}
+
+  int current_try{0};
+  std::chrono::milliseconds accumulated_wait_time{0};
+  std::chrono::milliseconds current_backdown_period{0};
+  const std::chrono::milliseconds max_wait_time{0};
+};
 }  // namespace
 
 namespace olp {
 namespace client {
-
 namespace {
+
+using PendingUrlRequestsPtr = std::shared_ptr<PendingUrlRequests>;
+using PendingUrlRequestPtr = PendingUrlRequests::PendingUrlRequestPtr;
+using NetworkRequestPtr = std::shared_ptr<http::NetworkRequest>;
+using RequestSettingsPtr = std::shared_ptr<RequestSettings>;
+
+using NetworkCallbackType = std::function<void(const http::RequestId request_id,
+                                               HttpResponse response)>;
+
 static const auto kCancelledErrorResponse =
     http::NetworkResponse()
         .WithStatus(static_cast<int>(http::ErrorCode::CANCELLED_ERROR))
@@ -82,49 +103,130 @@ bool CaseInsensitiveCompare(const std::string& str1, const std::string& str2) {
                     });
 }
 
-CancellationToken ExecuteSingleRequest(
-    std::weak_ptr<http::Network> weak_network,
-    const http::NetworkRequest& request, const NetworkAsyncCallback& callback) {
+RequestSettingsPtr GetRequestSettings(const RetrySettings& retry_settings) {
+  return std::make_shared<RequestSettings>(
+      retry_settings.initial_backdown_period, retry_settings.timeout);
+}
+
+bool CheckRetryCondition(const RequestSettings& request,
+                         const RetrySettings& settings,
+                         HttpResponse& response) {
+  return (request.current_try > settings.max_attempts ||
+          !settings.retry_condition(response) ||
+          request.accumulated_wait_time >= request.max_wait_time);
+}
+
+std::chrono::milliseconds CalculateNextWaitTime(const RetrySettings& settings,
+                                                size_t current_try) {
+  return settings.backdown_strategy
+             ? settings.backdown_strategy(
+                   std::chrono::milliseconds(settings.initial_backdown_period),
+                   current_try)
+             : std::chrono::milliseconds::zero();
+}
+
+void ExecuteSingleRequest(const std::shared_ptr<http::Network>& network,
+                          const PendingUrlRequestPtr& pending_request,
+                          const http::NetworkRequest& request,
+                          const NetworkCallbackType& callback) {
   auto response_body = std::make_shared<std::stringstream>();
   auto headers = std::make_shared<http::Headers>();
-  auto network = weak_network.lock();
 
-  if (!network) {
-    callback({static_cast<int>(http::ErrorCode::OFFLINE_ERROR),
-              "Network layer offline or missing."});
-    return CancellationToken();
-  }
+  auto make_request = [&](http::RequestId& id) {
+    auto send_outcome = network->Send(
+        request, response_body,
+        [=](const http::NetworkResponse& response) {
+          auto status = response.GetStatus();
+          if (!StatusSuccess(status)) {
+            response_body->str(
+                response.GetError().empty()
+                    ? "Error occurred, please check HTTP status code"
+                    : response.GetError());
+          }
 
-  auto send_outcome = network->Send(
-      request, response_body,
-      [=](const http::NetworkResponse& response) {
-        int status = response.GetStatus();
-        if (!StatusSuccess(status)) {
-          response_body->str(
-              response.GetError().empty()
-                  ? "Error occurred. Please check HTTP status code"
-                  : response.GetError());
-        }
+          callback(response.GetRequestId(),
+                   {status, std::move(*response_body), std::move(*headers)});
+        },
+        [=](std::string key, std::string value) {
+          headers->emplace_back(std::move(key), std::move(value));
+        });
 
-        callback({status, std::move(*response_body), std::move(*headers)});
-      },
-      [headers](std::string key, std::string value) {
-        headers->emplace_back(std::move(key), std::move(value));
-      });
-
-  if (!send_outcome.IsSuccessful()) {
-    callback(ToHttpResponse(send_outcome));
-    return CancellationToken();
-  }
-
-  auto request_id = send_outcome.GetRequestId();
-
-  return CancellationToken([weak_network, request_id]() {
-    auto network = weak_network.lock();
-    if (network) {
-      network->Cancel(request_id);
+    if (!send_outcome.IsSuccessful()) {
+      callback(PendingUrlRequest::kInvalidRequestId,
+               ToHttpResponse(send_outcome));
+      return CancellationToken();
     }
+
+    id = send_outcome.GetRequestId();
+    return CancellationToken([=] { network->Cancel(id); });
+  };
+
+  pending_request->ExecuteOrCancelled(make_request, [&]() {
+    OLP_SDK_LOG_DEBUG_F(kLogTag,
+                        "ExecuteSingleRequest - already cancelled, url='%s'",
+                        request.GetUrl().c_str());
+    callback(PendingUrlRequest::kInvalidRequestId,
+             ToHttpResponse(kCancelledErrorResponse));
   });
+}
+
+NetworkCallbackType GetRetryCallback(
+    bool merge, const RequestSettingsPtr& settings,
+    const RetrySettings& retry_settings,
+    const std::shared_ptr<http::Network>& network,
+    const PendingUrlRequestsPtr& pending_requests,
+    const PendingUrlRequestPtr& pending_request,
+    const NetworkRequestPtr& request) {
+  return [=](const http::RequestId request_id, HttpResponse response) mutable {
+    ++settings->current_try;
+
+    if (CheckRetryCondition(*settings, retry_settings, response)) {
+      // Response is either successull or retries count/time expired
+      if (pending_request->GetRequestId() != request_id) {
+        OLP_SDK_LOG_WARNING_F(
+            kLogTag,
+            "Wrong response received, pending_request=%" PRIu64
+            ", request_id=%" PRIu64,
+            pending_request->GetRequestId(), request_id);
+        return;
+      }
+
+      if (merge) {
+        const auto& url = request->GetUrl();
+        pending_requests->OnRequestCompleted(request_id, url,
+                                             std::move(response));
+      } else {
+        pending_request->OnRequestCompleted(std::move(response));
+      }
+      return;
+    }
+
+    const auto start = std::chrono::steady_clock::now();
+
+    // TODO: Do not block thread but instead implement an event queue that will
+    // trigger next retry once the time expired!
+    const auto actual_wait_time =
+        std::min(settings->current_backdown_period,
+                 settings->max_wait_time - settings->accumulated_wait_time);
+    std::this_thread::sleep_for(actual_wait_time);
+
+    settings->accumulated_wait_time += actual_wait_time;
+    settings->current_backdown_period =
+        CalculateNextWaitTime(retry_settings, settings->current_try);
+
+    OLP_SDK_LOG_DEBUG(
+        kLogTag, "retry_callback - retrigger after sleep, actual_wait_time="
+                     << actual_wait_time.count() << "ms, slept="
+                     << std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::steady_clock::now() - start)
+                            .count()
+                     << "ms");
+
+    ExecuteSingleRequest(
+        network, pending_request, *request,
+        GetRetryCallback(merge, settings, retry_settings, network,
+                         pending_requests, pending_request, request));
+  };
 }
 
 http::NetworkRequest::HttpVerb GetHttpVerb(const std::string& verb) {
@@ -138,6 +240,10 @@ http::NetworkRequest::HttpVerb GetHttpVerb(const std::string& verb) {
     return http::NetworkRequest::HttpVerb::DEL;
   } else if (verb.compare("OPTIONS") == 0) {
     return http::NetworkRequest::HttpVerb::OPTIONS;
+  } else if (verb.compare("HEAD") == 0) {
+    return http::NetworkRequest::HttpVerb::HEAD;
+  } else if (verb.compare("PATCH") == 0) {
+    return http::NetworkRequest::HttpVerb::PATCH;
   }
 
   return http::NetworkRequest::HttpVerb::GET;
@@ -212,69 +318,18 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
   return response;
 }
 
-std::chrono::milliseconds CalculateNextWaitTime(const RetrySettings& settings,
-                                                size_t current_try) {
-  if (auto backdown_strategy = settings.backdown_strategy) {
-    return backdown_strategy(
-        std::chrono::milliseconds(settings.initial_backdown_period),
-        current_try);
-  }
-  return std::chrono::milliseconds::zero();
-}
-
-NetworkAsyncCallback GetRetryCallback(
-    int current_try, std::chrono::milliseconds current_backdown_period,
-    std::chrono::milliseconds accumulated_wait_time,
-    const RetrySettings& settings, const NetworkAsyncCallback& callback,
-    const std::shared_ptr<http::NetworkRequest>& network_request,
-    std::weak_ptr<http::Network> network,
-    const std::weak_ptr<CancellationContext>& weak_cancel_context) {
-  ++current_try;
-  return [=](HttpResponse response) {
-    const auto max_wait_time =
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::seconds(settings.timeout));
-
-    if (current_try > settings.max_attempts ||
-        !settings.retry_condition(response) ||
-        accumulated_wait_time >= max_wait_time) {
-      // Response is either successull or retries count/time expired
-      callback(std::move(response));
-      return;
-    }
-
-    // TODO there must be a better way
-    const auto actual_wait_time = std::min(
-        current_backdown_period, max_wait_time - accumulated_wait_time);
-    std::this_thread::sleep_for(actual_wait_time);
-
-    const auto next_wait_time = CalculateNextWaitTime(settings, current_try);
-
-    auto cancel_context = weak_cancel_context.lock();
-    if (cancel_context) {
-      cancel_context->ExecuteOrCancelled(
-          [&]() -> CancellationToken {
-            return ExecuteSingleRequest(
-                network, *network_request,
-                GetRetryCallback(current_try, next_wait_time,
-                                 accumulated_wait_time + actual_wait_time,
-                                 settings, callback, network_request, network,
-                                 weak_cancel_context));
-          },
-          [callback] { callback(ToHttpResponse(kCancelledErrorResponse)); });
-    } else {
-      // Last (and only) strong reference lives in cancellation
-      // token, which is reset on CancelOperation.
-      callback(ToHttpResponse(kCancelledErrorResponse));
-    }
-  };
+bool IsPending(const PendingUrlRequestPtr& request) {
+  // A request is pending when it already triggered a Network call
+  return request &&
+         request->GetRequestId() != PendingUrlRequest::kInvalidRequestId;
 }
 
 }  // namespace
 
 class OlpClient::OlpClientImpl {
  public:
-  OlpClientImpl() = default;
+  OlpClientImpl();
+  OlpClientImpl(const OlpClientSettings& settings, std::string base_url);
   ~OlpClientImpl() = default;
 
   void SetBaseUrl(const std::string& base_url);
@@ -307,11 +362,21 @@ class OlpClient::OlpClientImpl {
  private:
   using MutexType = std::shared_mutex;
   using ReadLock = std::shared_lock<MutexType>;
-  thread::Atomic<std::string, MutexType, ReadLock> base_url_;
 
+  thread::Atomic<std::string, MutexType, ReadLock> base_url_;
   ParametersType default_headers_;
   OlpClientSettings settings_;
+  PendingUrlRequestsPtr pending_requests_;
 };
+
+OlpClient::OlpClientImpl::OlpClientImpl()
+    : pending_requests_{std::make_shared<PendingUrlRequests>()} {}
+
+OlpClient::OlpClientImpl::OlpClientImpl(const OlpClientSettings& settings,
+                                        std::string base_url)
+    : base_url_{std::move(base_url)},
+      settings_{settings},
+      pending_requests_{std::make_shared<PendingUrlRequests>()} {}
 
 void OlpClient::OlpClientImpl::SetBaseUrl(const std::string& base_url) {
   base_url_.lockedAssign(base_url);
@@ -327,6 +392,7 @@ OlpClient::OlpClientImpl::GetMutableDefaultHeaders() {
 }
 
 void OlpClient::OlpClientImpl::SetSettings(const OlpClientSettings& settings) {
+  // I would not expect that settings change during lifetime of the instance.
   settings_ = settings;
 }
 
@@ -387,9 +453,6 @@ std::shared_ptr<http::NetworkRequest> OlpClient::OlpClientImpl::CreateRequest(
   }
 
   network_request->WithBody(post_body);
-
-  AddBearer(query_params.empty(), *network_request);
-
   return network_request;
 }
 
@@ -401,37 +464,71 @@ CancellationToken OlpClient::OlpClientImpl::CallApi(
     const OlpClient::RequestBodyType& post_body,
     const std::string& content_type,
     const NetworkAsyncCallback& callback) const {
+  if (!settings_.network_request_handler) {
+    callback({static_cast<int>(http::ErrorCode::OFFLINE_ERROR),
+              "Network layer offline or missing."});
+    return CancellationToken();
+  }
+
   auto network_request = CreateRequest(path, method, query_params,
                                        header_params, post_body, content_type);
 
-  const auto& retry_settings = settings_.retry_settings;
+  AddBearer(query_params.empty(), *network_request);
 
-  auto network_settings =
+  PendingUrlRequestPtr request_ptr = nullptr;
+  auto& pending_requests = pending_requests_;
+  const auto& url = network_request->GetUrl();
+  CancellationToken cancellation_token;
+
+  // Only merge same request in case there is no body as a body can alter the
+  // outcome of the request and may not match the response of a request with a
+  // different body.
+  bool merge = (!post_body || post_body->empty());
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "CallApi: url='%s', merge='%s'", url.c_str(),
+                      merge ? "true" : "false");
+
+  if (merge) {
+    // Add callback and prepare CancellationToken
+    auto call_id =
+        pending_requests->Append(url, std::move(callback), request_ptr);
+    cancellation_token =
+        CancellationToken([=] { pending_requests->Cancel(url, call_id); });
+
+    if (IsPending(request_ptr)) {
+      // Network call is already triggered, we only need to append our
+      // callback Cancels this callback; internally once all pending callbacks
+      // are cancelled the Network call will be automatically cancelled also
+      return cancellation_token;
+    }
+  } else {
+    // In case we do not merge same requests create a single PendingUrlRequest
+    // as it is handling the cancellation the same as we would do normally
+    request_ptr = std::make_shared<PendingUrlRequest>();
+
+    // Add callback and prepare CancellationToken
+    auto call_id = request_ptr->Append(std::move(callback));
+    cancellation_token =
+        CancellationToken([=] { request_ptr->Cancel(call_id); });
+  }
+
+  const auto& retry_settings = settings_.retry_settings;
+  auto proxy = settings_.proxy_settings.value_or(http::NetworkProxySettings());
+  network_request->WithSettings(
       http::NetworkSettings()
           .WithConnectionTimeout(retry_settings.timeout)
           .WithTransferTimeout(retry_settings.timeout)
           .WithRetries(retry_settings.max_attempts)
-          .WithProxySettings(
-              settings_.proxy_settings.value_or(http::NetworkProxySettings()));
+          .WithProxySettings(std::move(proxy)));
 
-  network_request->WithSettings(std::move(network_settings));
+  auto network = settings_.network_request_handler;
+  auto request_settings = GetRequestSettings(retry_settings);
 
-  auto cancel_context = std::make_shared<CancellationContext>();
-  std::weak_ptr<olp::http::Network> network = settings_.network_request_handler;
+  ExecuteSingleRequest(
+      network, request_ptr, *network_request,
+      GetRetryCallback(merge, request_settings, retry_settings, network,
+                       pending_requests, request_ptr, network_request));
 
-  auto retry_callback = GetRetryCallback(
-      0, std::chrono::milliseconds(retry_settings.initial_backdown_period),
-      std::chrono::milliseconds::zero(), retry_settings, callback,
-      network_request, network, cancel_context);
-
-  cancel_context->ExecuteOrCancelled(
-      [=]() -> CancellationToken {
-        return ExecuteSingleRequest(network, *network_request, retry_callback);
-      },
-      [callback] { callback(ToHttpResponse(kCancelledErrorResponse)); });
-
-  return CancellationToken(
-      [cancel_context]() { cancel_context->CancelOperation(); });
+  return cancellation_token;
 }
 
 HttpResponse OlpClient::OlpClientImpl::CallApi(
@@ -537,8 +634,9 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
 }
 
 OlpClient::OlpClient() : impl_(std::make_shared<OlpClientImpl>()){};
+OlpClient::OlpClient(const OlpClientSettings& settings, std::string base_url)
+    : impl_(std::make_shared<OlpClientImpl>(settings, std::move(base_url))) {}
 OlpClient::~OlpClient() = default;
-
 OlpClient::OlpClient(const OlpClient&) = default;
 OlpClient& OlpClient::operator=(const OlpClient&) = default;
 OlpClient::OlpClient(OlpClient&&) noexcept = default;
