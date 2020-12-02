@@ -242,13 +242,12 @@ boost::optional<OlpClient> ApiLookupClientImpl::GetCachedClient(
     std::lock_guard<std::mutex> lock(cached_clients_mutex_);
     const auto client_it = cached_clients_.find(key);
     if (client_it != cached_clients_.end()) {
-      const ClientWithExpiration& client_with_expirtation = client_it->second;
-      if (client_with_expirtation.expire_at >
-          std::chrono::steady_clock::now()) {
+      const ClientWithExpiration& client_with_expiration = client_it->second;
+      if (client_with_expiration.expire_at > std::chrono::steady_clock::now()) {
         OLP_SDK_LOG_DEBUG_F(
             kLogTag, "LookupApi(%s/%s) found in client cache, hrn='%s'",
             service.c_str(), service_version.c_str(), catalog_string_.c_str());
-        return client_with_expirtation.client;
+        return client_with_expiration.client;
       }
     }
   }

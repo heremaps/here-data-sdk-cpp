@@ -22,6 +22,8 @@
 #include <algorithm>
 #include <utility>
 
+#include <boost/functional/hash.hpp>
+
 #include <olp/core/client/Condition.h>
 #include <olp/core/logging/Log.h>
 #include "CatalogRepository.h"
@@ -91,6 +93,16 @@ repository::PartitionResponse FindPartition(
 
   return std::move(aggregated_partition);
 }
+
+std::string HashPartitions(
+    const read::PartitionsRequest::PartitionIds& partitions) {
+  size_t seed = 0;
+  for (const auto& partition : partitions) {
+    boost::hash_combine(seed, partition);
+  }
+  return std::to_string(seed);
+}
+
 }  // namespace
 
 namespace olp {
@@ -152,24 +164,39 @@ PartitionsRepository::GetPartitionsExtendedResponse(
   auto fetch_option = request.GetFetchOption();
   const auto key = request.CreateKey(layer_id_);
 
+  const auto catalog_str = catalog_.ToCatalogHRNString();
+
+  const auto& partition_ids = request.GetPartitionIds();
+
+  // Temporary workaround for merging the same requests. Should be removed after
+  // OlpClient could handle that.
+  const auto detail =
+      partition_ids.empty() ? "" : HashPartitions(partition_ids);
+  NamedMutex mutex(catalog_str + layer_id_ + detail);
+  std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);
+
+  // If we are not planning to go online or access the cache, do not lock.
+  if (fetch_option != CacheOnly && fetch_option != OnlineOnly) {
+    lock.lock();
+  }
+
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_partitions = cache_.Get(request, version);
     if (cached_partitions) {
       OLP_SDK_LOG_DEBUG_F(kLogTag,
                           "GetPartitions found in cache, hrn='%s', key='%s'",
-                          catalog_.ToCatalogHRNString().c_str(), key.c_str());
+                          catalog_str.c_str(), key.c_str());
       return cached_partitions.get();
     } else if (fetch_option == CacheOnly) {
       OLP_SDK_LOG_INFO_F(kLogTag,
                          "GetPartitions not found in cache, hrn='%s', key='%s'",
-                         catalog_.ToCatalogHRNString().c_str(), key.c_str());
+                         catalog_str.c_str(), key.c_str());
       return {{client::ErrorCode::NotFound,
                "CacheOnly: resource not found in cache"}};
     }
   }
 
   QueryApi::PartitionsExtendedResponse response;
-  const auto& partition_ids = request.GetPartitionIds();
 
   if (partition_ids.empty()) {
     auto metadata_api = lookup_client_.LookupApi(
@@ -202,7 +229,7 @@ PartitionsRepository::GetPartitionsExtendedResponse(
   if (response.IsSuccessful() && fetch_option != OnlineOnly) {
     OLP_SDK_LOG_DEBUG_F(kLogTag,
                         "GetPartitions put to cache, hrn='%s', key='%s'",
-                        catalog_.ToCatalogHRNString().c_str(), key.c_str());
+                        catalog_str.c_str(), key.c_str());
     cache_.Put(response.GetResult(), version, expiry, is_layer_metadata);
   }
   if (!response.IsSuccessful()) {
@@ -211,7 +238,7 @@ PartitionsRepository::GetPartitionsExtendedResponse(
       OLP_SDK_LOG_WARNING_F(
           kLogTag,
           "GetPartitions 403 received, remove from cache, hrn='%s', key='%s'",
-          catalog_.ToCatalogHRNString().c_str(), key.c_str());
+          catalog_str.c_str(), key.c_str());
       cache_.Clear();
     }
   }

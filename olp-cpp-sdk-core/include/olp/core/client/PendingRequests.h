@@ -68,10 +68,17 @@ class CORE_API PendingRequests final {
    */
   void Remove(TaskContext task_context);
 
+  /**
+   * @brief Gets the number of tasks.
+   *
+   * @return The number of tasks pending.
+   */
+  size_t GetTaskCount() const;
+
  private:
   using ContextMap = std::unordered_set<TaskContext, TaskContextHash>;
   ContextMap task_contexts_;
-  std::mutex task_contexts_lock_;
+  mutable std::mutex task_contexts_lock_;
 };
 
 }  // namespace client

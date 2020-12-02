@@ -71,5 +71,10 @@ void PendingRequests::Remove(TaskContext task_context) {
   task_contexts_.erase(task_context);
 }
 
+size_t PendingRequests::GetTaskCount() const {
+  std::lock_guard<std::mutex> lock(task_contexts_lock_);
+  return task_contexts_.size();
+}
+
 }  // namespace client
 }  // namespace olp
