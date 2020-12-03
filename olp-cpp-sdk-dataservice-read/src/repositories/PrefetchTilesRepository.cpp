@@ -378,9 +378,9 @@ PrefetchTilesRepository::DownloadVersionedQuadTree(
 
   auto tile_key = tile.ToHereTile();
 
-  OLP_SDK_LOG_INFO_F(kLogTag,
-                     "GetSubQuads execute(%s, %" PRId64 ", %" PRId32 ")",
-                     tile_key.c_str(), version, depth);
+  OLP_SDK_LOG_DEBUG_F(kLogTag,
+                      "GetSubQuads execute(%s, %" PRId64 ", %" PRId32 ")",
+                      tile_key.c_str(), version, depth);
 
   auto quad_tree = QueryApi::QuadTreeIndex(query_api.GetResult(), layer_id_,
                                            tile_key, version, depth,

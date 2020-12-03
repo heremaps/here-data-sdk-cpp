@@ -358,7 +358,8 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         auto version = response.GetResult().GetVersion();
 
         const auto key = request.CreateKey(layer_id);
-        OLP_SDK_LOG_INFO_F(kLogTag, "PrefetchTiles: using key=%s", key.c_str());
+        OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles: using key=%s",
+                            key.c_str());
 
         // Calculate the minimal set of Tile keys and depth to
         // cover tree.
