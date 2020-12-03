@@ -24,6 +24,7 @@
 #include <olp/authentication/AuthenticationError.h>
 #include <olp/authentication/AuthorizeResult.h>
 #include <olp/authentication/IntrospectAppResult.h>
+#include <olp/authentication/UserAccountInfoResponse.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 
@@ -49,5 +50,11 @@ using AuthorizeResponse = Response<AuthorizeResult>;
 
 /// Called when the user decision request is completed.
 using AuthorizeCallback = Callback<AuthorizeResult>;
+
+/// The UserAccountInfoResponse response alias.
+using UserAccountInfoResponse = Response<model::UserAccountInfoResponse>;
+
+/// Called when the get user account request is completed.
+using UserAccountInfoCallback = Callback<model::UserAccountInfoResponse>;
 }  // namespace authentication
 }  // namespace olp

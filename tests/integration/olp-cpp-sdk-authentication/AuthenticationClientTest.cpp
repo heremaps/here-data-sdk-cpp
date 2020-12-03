@@ -38,11 +38,12 @@ namespace client = olp::client;
 using testing::_;
 
 namespace {
-constexpr auto kTimestampUrl =
-    R"(https://authentication.server.url/timestamp)";
+constexpr auto kTimestampUrl = R"(https://authentication.server.url/timestamp)";
 
-constexpr auto kIntrospectUrl =
-    R"(https://authentication.server.url/app/me)";
+constexpr auto kIntrospectUrl = R"(https://authentication.server.url/app/me)";
+
+constexpr auto kGetMyAccountUrl =
+    R"(https://authentication.server.url/user/me)";
 
 constexpr auto kTokenEndpointUrl = "https://authentication.server.url";
 
@@ -1505,6 +1506,98 @@ TEST_F(AuthenticationClientTest, Authorize) {
               "double-quote to start field name\n at [Source: "
               "(akka.util.ByteIterator$ByteArrayIterator$$anon$1); line: 1, "
               "column: 3])");
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+}
+
+TEST_F(AuthenticationClientTest, GetMyAccount) {
+  {
+    SCOPED_TRACE("Successful request");
+
+    EXPECT_CALL(*network_, Send(IsGetRequest(kGetMyAccountUrl), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                                     kGetMyAccountResponse));
+
+    std::promise<auth::UserAccountInfoResponse> request;
+
+    client_->GetMyAccount(kResponseToken,
+                          [&](const auth::UserAccountInfoResponse& response) {
+                            request.set_value(response);
+                          });
+
+    auto future = request.get_future();
+    auto response = future.get();
+    auto result = response.GetResult();
+    auto error = response.GetError();
+
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_FALSE(result.GetUserId().empty());
+    EXPECT_FALSE(result.GetRealm().empty());
+    EXPECT_FALSE(result.GetFacebookId().empty());
+    EXPECT_FALSE(result.GetFirstname().empty());
+    EXPECT_FALSE(result.GetLastname().empty());
+    EXPECT_FALSE(result.GetEmail().empty());
+    EXPECT_FALSE(result.GetRecoveryEmail().empty());
+    EXPECT_FALSE(result.GetDob().empty());
+    EXPECT_FALSE(result.GetCountryCode().empty());
+    EXPECT_FALSE(result.GetLanguage().empty());
+    EXPECT_TRUE(result.GetEmailVerified());
+    EXPECT_FALSE(result.GetPhoneNumber().empty());
+    EXPECT_TRUE(result.GetPhoneNumberVerified());
+    EXPECT_TRUE(result.GetMarketingEnabled());
+    EXPECT_TRUE(result.GetCreatedTime() > 0);
+    EXPECT_TRUE(result.GetUpdatedTime() > 0);
+    EXPECT_FALSE(result.GetState().empty());
+    EXPECT_FALSE(result.GetHrn().empty());
+    EXPECT_FALSE(result.GetAccountType().empty());
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+  {
+    SCOPED_TRACE("Invalid access token");
+
+    EXPECT_CALL(*network_, Send(IsGetRequest(kGetMyAccountUrl), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            GetResponse(olp::http::HttpStatusCode::UNAUTHORIZED),
+            kInvalidAccessTokenResponse));
+
+    std::promise<auth::UserAccountInfoResponse> request;
+
+    client_->GetMyAccount(kResponseToken,
+                          [&](const auth::UserAccountInfoResponse& response) {
+                            request.set_value(response);
+                          });
+
+    auto future = request.get_future();
+    auto response = future.get();
+    auto error = response.GetError();
+
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(error.GetErrorCode(), client::ErrorCode::AccessDenied);
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+  {
+    SCOPED_TRACE("Invalid response");
+
+    EXPECT_CALL(*network_, Send(IsGetRequest(kGetMyAccountUrl), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                                     "Invalid response"));
+
+    std::promise<auth::UserAccountInfoResponse> request;
+
+    client_->GetMyAccount(kResponseToken,
+                          [&](const auth::UserAccountInfoResponse& response) {
+                            request.set_value(response);
+                          });
+
+    auto future = request.get_future();
+    auto response = future.get();
+    auto error = response.GetError();
+
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(error.GetErrorCode(), olp::client::ErrorCode::Unknown);
 
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }

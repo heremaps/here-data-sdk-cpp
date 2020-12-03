@@ -61,6 +61,21 @@ const char* Constants::ACTION = "action";
 const char* Constants::RESOURCE = "resource";
 const char* Constants::PERMISSIONS = "permissions";
 const char* Constants::DIAGNOSTICS = "diagnostics";
+const char* Constants::FACEBOOK_ID = "facebookId";
+const char* Constants::FIRSTNAME = "firstname";
+const char* Constants::LASTNAME = "lastname";
+const char* Constants::EMAIL = "email";
+const char* Constants::RECOVERY_EMAIL = "recoveryEmail";
+const char* Constants::DOB = "dob";
+const char* Constants::COUNTRY_CODE = "countryCode";
+const char* Constants::LANGUAGE = "language";
+const char* Constants::EMAIL_VERIFIED = "emailVerified";
+const char* Constants::PHONE_NUMBER = "phoneNumber";
+const char* Constants::PHONE_NUMBER_VERIFIED = "phoneNumberVerified";
+const char* Constants::MARKETING_ENABLED = "marketingEnabled";
+const char* Constants::UPDATED_TIME = "updatedTime";
+const char* Constants::STATE = "state";
+const char* Constants::ACCOUNT_TYPE = "accountType";
 
 }  // namespace authentication
 }  // namespace olp

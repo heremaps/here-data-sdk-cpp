@@ -23,6 +23,7 @@
 
 namespace olp {
 namespace authentication {
+namespace model {
 /**
  * @brief An account information.
  */
@@ -358,5 +359,6 @@ class AUTHENTICATION_API UserAccountInfoResponse {
   std::string hrn_;
   std::string account_type_;
 };
+}  // namespace model
 }  // namespace authentication
 }  // namespace olp

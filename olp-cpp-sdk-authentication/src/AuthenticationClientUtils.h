@@ -27,9 +27,8 @@
 
 #include "olp/authentication/AuthenticationCredentials.h"
 #include "olp/authentication/AuthenticationSettings.h"
-#include "olp/authentication/AuthorizeResult.h"
 #include "olp/authentication/ErrorResponse.h"
-#include "olp/authentication/IntrospectAppResult.h"
+#include "olp/authentication/Types.h"
 #include "olp/core/client/OlpClient.h"
 #include "olp/core/client/PendingRequests.h"
 #include "olp/core/thread/TaskScheduler.h"
@@ -110,6 +109,14 @@ std::vector<ActionResult> GetDiagnostics(rapidjson::Document& doc);
  * @return result for authorize.
  */
 AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc);
+
+/*
+ * @brief Parse HTTP response to UserAccountInfoResponse type or error message.
+ * @param http_response The HTTP response.
+ * @return Response of model::UserAccountInfoResponse.
+ */
+UserAccountInfoResponse GetUserAccountInfoResponse(
+    client::HttpResponse& http_response);
 
 /*
  * @brief Convert string representation of date header .
