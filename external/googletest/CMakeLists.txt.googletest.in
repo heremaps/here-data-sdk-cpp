@@ -23,6 +23,7 @@ include(ExternalProject)
 ExternalProject_Add(googletest
   GIT_REPOSITORY    @OLP_SDK_CPP_GOOGLETEST_URL@
   GIT_TAG           @OLP_SDK_CPP_GOOGLETEST_TAG@
+  GIT_SHALLOW       1
   SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/googletest-src"
   BINARY_DIR        "${CMAKE_CURRENT_BINARY_DIR}/googletest-build"
   CONFIGURE_COMMAND ""
