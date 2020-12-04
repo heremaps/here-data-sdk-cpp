@@ -33,7 +33,7 @@
 
 namespace {
 namespace read = olp::dataservice::read;
-constexpr auto kWaitTimeout = std::chrono::seconds(10);
+constexpr auto kWaitTimeout = std::chrono::seconds(20);
 using VersionedLayerClientPrefetchTest = VersionedLayerTestBase;
 
 TEST_F(VersionedLayerClientPrefetchTest, PrefetchTiles) {
