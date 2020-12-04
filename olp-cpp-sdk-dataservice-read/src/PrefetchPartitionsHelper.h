@@ -59,7 +59,10 @@ class PrefetchPartitionsHelper {
         priority);
 
     auto query_size = roots.size() / query_max_size;
-    query_size += (roots.size() % query_max_size > 0) ? 1 : 0;
+    if ((roots.size() % query_max_size > 0) &&
+        query_size < std::numeric_limits<decltype(query_size)>::max()) {
+      ++query_size;
+    }
 
     query_job->Initialize(query_size);
 

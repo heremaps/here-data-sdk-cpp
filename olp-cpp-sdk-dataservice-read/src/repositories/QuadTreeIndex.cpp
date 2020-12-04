@@ -199,9 +199,22 @@ void QuadTreeIndex::CreateBlob(olp::geo::TileKey root, int depth,
   }
 
   // calculate and allocate size
-  size_ = sizeof(DataHeader) - sizeof(SubEntry) +
-          (subs.size() * sizeof(SubEntry)) +
-          (parents.size() * sizeof(ParentEntry)) + additional_data_size;
+  auto header_size = sizeof(DataHeader) - sizeof(SubEntry);
+  auto sub_entry_size = subs.size() * sizeof(SubEntry);
+  auto parent_entry_size = parents.size() * sizeof(ParentEntry);
+  auto total =
+      header_size + sub_entry_size + parent_entry_size + additional_data_size;
+
+  // check total size that it is not become a small number
+  if (total < header_size || total < sub_entry_size ||
+      total < parent_entry_size || total < additional_data_size) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Size overflow");
+    raw_data_ = nullptr;
+    data_ = nullptr;
+    return;
+  }
+
+  size_ = total;
 
   raw_data_ = std::make_shared<cache::KeyValueCache::ValueType>(size_);
   data_ = reinterpret_cast<DataHeader*>(&(raw_data_->front()));
