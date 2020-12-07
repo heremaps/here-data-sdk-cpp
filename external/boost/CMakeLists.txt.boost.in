@@ -23,7 +23,7 @@ include(ExternalProject)
 
 ExternalProject_Add(boost-download
     GIT_REPOSITORY      @OLP_SDK_CPP_BOOST_URL@
-    GIT_TAG             @OLP_SDK_CPP_BOOST_TAG@ 
+    GIT_TAG             @OLP_SDK_CPP_BOOST_TAG@
     GIT_SUBMODULES      libs/any
                         libs/assert
                         libs/config
@@ -55,6 +55,7 @@ ExternalProject_Add(boost-download
                         libs/winapi
                         tools/build
                         tools/boost_install
+    GIT_SHALLOW         1
     SOURCE_DIR          "@CMAKE_CURRENT_BINARY_DIR@/external_boost"
     UPDATE_COMMAND      ""
     CONFIGURE_COMMAND   cd "@CMAKE_CURRENT_BINARY_DIR@/external_boost" && @BOOTSTRAP_CMD@ && cd "@CMAKE_CURRENT_BINARY_DIR@/external_boost" && @B2_CMD@ headers

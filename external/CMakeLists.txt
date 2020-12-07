@@ -35,7 +35,7 @@ endif()
 set(COMMON_PLATFORM_FLAGS)
 
 if(ANDROID)
-  set(COMMON_PLATFORM_FLAGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} 
+  set(COMMON_PLATFORM_FLAGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                             -DANDROID_PLATFORM=${ANDROID_PLATFORM}
                             -DANDROID_STL=${ANDROID_STL}
                             -DANDROID_ABI=${ANDROID_ABI})
@@ -45,7 +45,7 @@ elseif(IOS)
                             -DSIMULATOR=${SIMULATOR})
 endif()
 
-# Setup versions for external project 
+# Setup versions for external project
 set(OLP_SDK_CPP_GOOGLETEST_URL "https://github.com/google/googletest.git")
 set(OLP_SDK_CPP_GOOGLETEST_TAG "release-1.10.0")
 
