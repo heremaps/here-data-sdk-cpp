@@ -67,6 +67,23 @@ class Constants {
   static const char* RESOURCE;
   static const char* PERMISSIONS;
   static const char* DIAGNOSTICS;
+
+  // user info strings
+  static const char* FACEBOOK_ID;
+  static const char* FIRSTNAME;
+  static const char* LASTNAME;
+  static const char* EMAIL;
+  static const char* RECOVERY_EMAIL;
+  static const char* DOB;
+  static const char* COUNTRY_CODE;
+  static const char* LANGUAGE;
+  static const char* EMAIL_VERIFIED;
+  static const char* PHONE_NUMBER;
+  static const char* PHONE_NUMBER_VERIFIED;
+  static const char* MARKETING_ENABLED;
+  static const char* UPDATED_TIME;
+  static const char* STATE;
+  static const char* ACCOUNT_TYPE;
 };
 
 }  // namespace authentication

@@ -23,13 +23,14 @@
 #include <iomanip>
 #include <sstream>
 
+#include <olp/authentication/Crypto.h>
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
-
 #include "Constants.h"
-#include <olp/authentication/Crypto.h>
+#include "ResponseFromJsonBuilder.h"
+#include "olp/core/http/NetworkResponse.h"
 #include "olp/core/http/NetworkUtils.h"
 #include "olp/core/utils/Base64.h"
 #include "olp/core/utils/Url.h"
@@ -60,11 +61,33 @@ std::string Base64Encode(const Crypto::Sha256Digest& digest) {
   // Base64 encode sometimes return multiline with garbage at the end
   if (!ret.empty()) {
     auto loc = ret.find(kLineFeed);
-    if (loc != std::string::npos) ret = ret.substr(0, loc);
+    if (loc != std::string::npos) {
+      ret = ret.substr(0, loc);
+    }
   }
   return ret;
 }
 
+Response<rapidjson::Document> Parse(client::HttpResponse& http_response) {
+  rapidjson::IStreamWrapper stream(http_response.response);
+  rapidjson::Document document;
+  document.ParseStream(stream);
+  if (http_response.status != http::HttpStatusCode::OK) {
+    // HttpResult response can be error message or valid json with it.
+    std::string msg = http_response.response.str();
+    if (!document.HasParseError() && document.HasMember(Constants::MESSAGE)) {
+      msg = document[Constants::MESSAGE].GetString();
+    }
+    return client::ApiError({http_response.status, msg});
+  }
+
+  if (document.HasParseError()) {
+    return client::ApiError({static_cast<int>(http::ErrorCode::UNKNOWN_ERROR),
+                             "Failed to parse response"});
+  }
+
+  return std::move(document);
+}
 }  // namespace
 
 namespace client = olp::client;
@@ -109,88 +132,29 @@ void ExecuteOrSchedule(
 }
 
 IntrospectAppResult GetIntrospectAppResult(const rapidjson::Document& doc) {
-  IntrospectAppResult result;
-  if (doc.HasMember(Constants::CLIENT_ID)) {
-    result.SetClientId(doc[Constants::CLIENT_ID].GetString());
-  }
-  if (doc.HasMember(Constants::NAME)) {
-    result.SetName(doc[Constants::NAME].GetString());
-  }
-  if (doc.HasMember(Constants::DESCRIPTION)) {
-    result.SetDescription(doc[Constants::DESCRIPTION].GetString());
-  }
-  if (doc.HasMember(Constants::REDIRECT_URIS)) {
-    auto uris = doc[Constants::REDIRECT_URIS].GetArray();
-    std::vector<std::string> value_array;
-    value_array.reserve(uris.Size());
-    for (auto& value : uris) {
-      value_array.push_back(value.GetString());
-    }
-    result.SetReditectUris(std::move(value_array));
-  }
-  if (doc.HasMember(Constants::ALLOWED_SCOPES)) {
-    auto scopes = doc[Constants::ALLOWED_SCOPES].GetArray();
-    std::vector<std::string> value_array;
-    value_array.reserve(scopes.Size());
-    for (auto& value : scopes) {
-      value_array.push_back(value.GetString());
-    }
-    result.SetAllowedScopes(std::move(value_array));
-  }
-  if (doc.HasMember(Constants::TOKEN_ENDPOINT_AUTH_METHOD)) {
-    result.SetTokenEndpointAuthMethod(
-        doc[Constants::TOKEN_ENDPOINT_AUTH_METHOD].GetString());
-  }
-  if (doc.HasMember(Constants::TOKEN_ENDPOINT_AUTH_METHOD_REASON)) {
-    result.SetTokenEndpointAuthMethodReason(
-        doc[Constants::TOKEN_ENDPOINT_AUTH_METHOD_REASON].GetString());
-  }
-  if (doc.HasMember(Constants::DOB_REQUIRED)) {
-    result.SetDobRequired(doc[Constants::DOB_REQUIRED].GetBool());
-  }
-  if (doc.HasMember(Constants::TOKEN_DURATION)) {
-    result.SetTokenDuration(doc[Constants::TOKEN_DURATION].GetInt());
-  }
-  if (doc.HasMember(Constants::REFERRERS)) {
-    auto uris = doc[Constants::REFERRERS].GetArray();
-    std::vector<std::string> value_array;
-    value_array.reserve(uris.Size());
-    for (auto& value : uris) {
-      value_array.push_back(value.GetString());
-    }
-    result.SetReferrers(std::move(value_array));
-  }
-  if (doc.HasMember(Constants::STATUS)) {
-    result.SetStatus(doc[Constants::STATUS].GetString());
-  }
-  if (doc.HasMember(Constants::APP_CODE_ENABLED)) {
-    result.SetAppCodeEnabled(doc[Constants::APP_CODE_ENABLED].GetBool());
-  }
-  if (doc.HasMember(Constants::CREATED_TIME)) {
-    result.SetCreatedTime(doc[Constants::CREATED_TIME].GetInt64());
-  }
-  if (doc.HasMember(Constants::REALM)) {
-    result.SetRealm(doc[Constants::REALM].GetString());
-  }
-  if (doc.HasMember(Constants::TYPE)) {
-    result.SetType(doc[Constants::TYPE].GetString());
-  }
-  if (doc.HasMember(Constants::RESPONSE_TYPES)) {
-    auto types = doc[Constants::RESPONSE_TYPES].GetArray();
-    std::vector<std::string> value_array;
-    value_array.reserve(types.Size());
-    for (auto& value : types) {
-      value_array.push_back(value.GetString());
-    }
-    result.SetResponseTypes(std::move(value_array));
-  }
-  if (doc.HasMember(Constants::TIER)) {
-    result.SetTier(doc[Constants::TIER].GetString());
-  }
-  if (doc.HasMember(Constants::HRN)) {
-    result.SetHrn(doc[Constants::HRN].GetString());
-  }
-  return result;
+  return ResponseFromJsonBuilder<IntrospectAppResult>::Build(doc)
+      .Value(Constants::CLIENT_ID, &IntrospectAppResult::SetClientId)
+      .Value(Constants::NAME, &IntrospectAppResult::SetName)
+      .Value(Constants::DESCRIPTION, &IntrospectAppResult::SetDescription)
+      .Array(Constants::REDIRECT_URIS, &IntrospectAppResult::SetReditectUris)
+      .Array(Constants::ALLOWED_SCOPES, &IntrospectAppResult::SetAllowedScopes)
+      .Value(Constants::TOKEN_ENDPOINT_AUTH_METHOD,
+             &IntrospectAppResult::SetTokenEndpointAuthMethod)
+      .Value(Constants::TOKEN_ENDPOINT_AUTH_METHOD_REASON,
+             &IntrospectAppResult::SetTokenEndpointAuthMethodReason)
+      .Value(Constants::DOB_REQUIRED, &IntrospectAppResult::SetDobRequired)
+      .Value(Constants::TOKEN_DURATION, &IntrospectAppResult::SetTokenDuration)
+      .Array(Constants::REFERRERS, &IntrospectAppResult::SetReferrers)
+      .Value(Constants::STATUS, &IntrospectAppResult::SetStatus)
+      .Value(Constants::APP_CODE_ENABLED,
+             &IntrospectAppResult::SetAppCodeEnabled)
+      .Value(Constants::CREATED_TIME, &IntrospectAppResult::SetCreatedTime)
+      .Value(Constants::REALM, &IntrospectAppResult::SetRealm)
+      .Value(Constants::TYPE, &IntrospectAppResult::SetType)
+      .Array(Constants::RESPONSE_TYPES, &IntrospectAppResult::SetResponseTypes)
+      .Value(Constants::TIER, &IntrospectAppResult::SetTier)
+      .Value(Constants::HRN, &IntrospectAppResult::SetHrn)
+      .Finish();
 }
 
 DecisionType GetDecision(const std::string& str) {
@@ -204,8 +168,7 @@ std::vector<ActionResult> GetDiagnostics(rapidjson::Document& doc) {
   for (auto& element : array) {
     ActionResult action;
     if (element.HasMember(Constants::DECISION)) {
-      action.SetDecision(
-          GetDecision(element[Constants::DECISION].GetString()));
+      action.SetDecision(GetDecision(element[Constants::DECISION].GetString()));
       // get permissions if avialible
       if (element.HasMember(Constants::PERMISSIONS) &&
           element[Constants::PERMISSIONS].IsArray()) {
@@ -213,19 +176,13 @@ std::vector<ActionResult> GetDiagnostics(rapidjson::Document& doc) {
         const auto& permissions_array =
             element[Constants::PERMISSIONS].GetArray();
         for (auto& permission_element : permissions_array) {
-          Permission permission;
-          if (permission_element.HasMember(Constants::ACTION)) {
-            permission.SetAction(
-                permission_element[Constants::ACTION].GetString());
-          }
-          if (permission_element.HasMember(Constants::DECISION)) {
-            permission.SetDecision(GetDecision(
-                permission_element[Constants::DECISION].GetString()));
-          }
-          if (permission_element.HasMember(Constants::RESOURCE)) {
-            permission.SetResource(
-                permission_element[Constants::RESOURCE].GetString());
-          }
+          Permission permission =
+              ResponseFromJsonBuilder<Permission>::Build(permission_element)
+                  .Value(Constants::ACTION, &Permission::SetAction)
+                  .Value(Constants::DECISION, &Permission::SetDecision,
+                         &GetDecision)
+                  .Value(Constants::RESOURCE, &Permission::SetResource)
+                  .Finish();
           permissions.push_back(std::move(permission));
         }
 
@@ -262,6 +219,42 @@ AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
   return result;
 }
 
+UserAccountInfoResponse GetUserAccountInfoResponse(
+    client::HttpResponse& http_response) {
+  using UserAccountInfo = model::UserAccountInfoResponse;
+
+  const auto parse_response = Parse(http_response);
+  if (!parse_response.IsSuccessful()) {
+    return parse_response.GetError();
+  }
+
+  const auto& document = parse_response.GetResult();
+
+  return ResponseFromJsonBuilder<UserAccountInfo>::Build(document)
+      .Value(Constants::USER_ID, &UserAccountInfo::SetUserId)
+      .Value(Constants::REALM, &UserAccountInfo::SetRealm)
+      .Value(Constants::FACEBOOK_ID, &UserAccountInfo::SetFacebookId)
+      .Value(Constants::FIRSTNAME, &UserAccountInfo::SetFirstname)
+      .Value(Constants::LASTNAME, &UserAccountInfo::SetLastname)
+      .Value(Constants::EMAIL, &UserAccountInfo::SetEmail)
+      .Value(Constants::RECOVERY_EMAIL, &UserAccountInfo::SetRecoveryEmail)
+      .Value(Constants::DOB, &UserAccountInfo::SetDob)
+      .Value(Constants::COUNTRY_CODE, &UserAccountInfo::SetCountryCode)
+      .Value(Constants::LANGUAGE, &UserAccountInfo::SetLanguage)
+      .Value(Constants::EMAIL_VERIFIED, &UserAccountInfo::SetEmailVerified)
+      .Value(Constants::PHONE_NUMBER, &UserAccountInfo::SetPhoneNumber)
+      .Value(Constants::PHONE_NUMBER_VERIFIED,
+             &UserAccountInfo::SetPhoneNumberVerified)
+      .Value(Constants::MARKETING_ENABLED,
+             &UserAccountInfo::SetMarketingEnabled)
+      .Value(Constants::CREATED_TIME, &UserAccountInfo::SetCreatedTime)
+      .Value(Constants::UPDATED_TIME, &UserAccountInfo::SetUpdatedTime)
+      .Value(Constants::STATE, &UserAccountInfo::SetState)
+      .Value(Constants::HRN, &UserAccountInfo::SetHrn)
+      .Value(Constants::ACCOUNT_TYPE, &UserAccountInfo::SetAccountType)
+      .Finish();
+}
+
 client::OlpClient CreateOlpClient(
     const AuthenticationSettings& auth_settings,
     boost::optional<client::AuthenticationSettings> authentication_settings) {
@@ -286,17 +279,17 @@ std::string GenerateAuthorizationHeader(
   std::stringstream query;
 
   query << kOauthConsumerKey << kParamEquals << credentials.GetKey()
-         << kParamAdd << kOauthNonce << kParamEquals << nonce << kParamAdd
-         << kOauthSignatureMethod << kParamEquals << kHmac << kParamAdd
-         << kOauthTimestamp << kParamEquals << timestamp_str << kParamAdd
-         << kOauthVersion << kParamEquals << kVersion;
+        << kParamAdd << kOauthNonce << kParamEquals << nonce << kParamAdd
+        << kOauthSignatureMethod << kParamEquals << kHmac << kParamAdd
+        << kOauthTimestamp << kParamEquals << timestamp_str << kParamAdd
+        << kOauthVersion << kParamEquals << kVersion;
 
   const auto encoded_query = utils::Url::Encode(query.str());
 
   std::stringstream signature_base;
 
-  signature_base << kOauthPost << kParamAdd << utils::Url::Encode(url) << kParamAdd
-         << encoded_query;
+  signature_base << kOauthPost << kParamAdd << utils::Url::Encode(url)
+                 << kParamAdd << encoded_query;
 
   const std::string encode_key = credentials.GetSecret() + kParamAdd;
   auto hmac_result = Crypto::HmacSha256(encode_key, signature_base.str());

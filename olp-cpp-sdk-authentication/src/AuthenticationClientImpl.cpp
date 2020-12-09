@@ -54,6 +54,7 @@ const std::string kOauthEndpoint = "/oauth2/token";
 const std::string kSignoutEndpoint = "/logout";
 const std::string kTermsEndpoint = "/terms";
 const std::string kUserEndpoint = "/user";
+const std::string kMyAccountEndpoint = "/user/me";
 constexpr auto kTimestampEndpoint = "/timestamp";
 constexpr auto kIntrospectAppEndpoint = "/app/me";
 constexpr auto kDecisionEndpoint = "/decision/authorize";
@@ -677,6 +678,30 @@ client::CancellationToken AuthenticationClientImpl::Authorize(
     }
 
     return GetAuthorizeResult(document);
+  };
+
+  return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
+                 std::move(callback));
+}
+
+client::CancellationToken AuthenticationClientImpl::GetMyAccount(
+    std::string access_token, UserAccountInfoCallback callback) {
+  auto task =
+      [=](client::CancellationContext context) -> UserAccountInfoResponse {
+    if (!settings_.network_request_handler) {
+      return client::ApiError({static_cast<int>(http::ErrorCode::IO_ERROR),
+                               "Can not send request while offline"});
+    }
+
+    client::AuthenticationSettings auth_settings;
+    auth_settings.provider = [&access_token]() { return access_token; };
+
+    client::OlpClient client = CreateOlpClient(settings_, auth_settings);
+
+    auto http_result =
+        client.CallApi(kMyAccountEndpoint, "GET", {}, {}, {}, {}, {}, context);
+
+    return GetUserAccountInfoResponse(http_result);
   };
 
   return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),

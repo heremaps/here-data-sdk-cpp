@@ -119,5 +119,10 @@ client::CancellationToken AuthenticationClient::Authorize(
                           std::move(callback));
 }
 
+client::CancellationToken AuthenticationClient::GetMyAccount(
+    std::string access_token, UserAccountInfoCallback callback) {
+  return impl_->GetMyAccount(std::move(access_token), std::move(callback));
+}
+
 }  // namespace authentication
 }  // namespace olp

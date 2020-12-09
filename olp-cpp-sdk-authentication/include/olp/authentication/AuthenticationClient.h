@@ -568,6 +568,30 @@ class AUTHENTICATION_API AuthenticationClient {
                                       AuthorizeRequest request,
                                       AuthorizeCallback callback);
 
+  /**
+   * @brief Retrieves the account information associated with the user access
+   * token.
+   *
+   * @note The user information will be filtered based on the scopes in
+   * the token:
+   * email - 'email', 'emailVerified', 'recoveryEmail';
+   * openid - 'userId', 'state';
+   * phone - 'phoneNumber', 'phoneNumberVerified';
+   * profile - 'realm', 'facebookId', 'firstname', 'lastname', 'dob',
+   * 'language', 'countryCode', 'marketingEnabled', 'createdTime',
+   * 'updatedTime'.
+   *
+   * @param access_token A valid access token that is associated with the
+   * user.
+   * @param callback The`UserAccountInfoCallback` method that is called when
+   * the user information request is completed.
+   *
+   * @return The `CancellationToken` instance that can be used to cancel
+   * the request.
+   */
+  client::CancellationToken GetMyAccount(std::string access_token,
+                                         UserAccountInfoCallback callback);
+
  private:
   std::unique_ptr<AuthenticationClientImpl> impl_;
 };

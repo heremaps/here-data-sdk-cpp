@@ -212,6 +212,32 @@ class AuthenticationClientTest : public AuthenticationCommonTestFixture {
     return *response;
   }
 
+  UserAccountInfoResponse GetMyAccount(const std::string& access_token) {
+    std::shared_ptr<UserAccountInfoResponse> response;
+    unsigned int retry = 0u;
+    do {
+      if (retry > 0u) {
+        OLP_SDK_LOG_WARNING(__func__,
+                            "Request retry attempted (" << retry << ")");
+        std::this_thread::sleep_for(
+            std::chrono::seconds(retry * kRetryDelayInSecs));
+      }
+
+      std::promise<UserAccountInfoResponse> request;
+      auto request_future = request.get_future();
+
+      auto cancel_token = client_->GetMyAccount(
+          access_token, [&](const UserAccountInfoResponse& resp) {
+            request.set_value(resp);
+          });
+
+      response =
+          std::make_shared<UserAccountInfoResponse>(request_future.get());
+    } while ((!response->IsSuccessful()) && (++retry < kMaxRetryCount));
+
+    return *response;
+  }
+
   std::string GetErrorId(
       const AuthenticationClient::SignInUserResponse& response) const {
     return response.GetResult().GetErrorResponse().error_id;
@@ -673,5 +699,65 @@ TEST_F(AuthenticationClientTest, IntrospectAppInvalidAccessToken) {
   auto result = response.GetResult();
 
   EXPECT_FALSE(response.IsSuccessful());
+}
+
+TEST_F(AuthenticationClientTest, GetMyAccount) {
+  {
+    SCOPED_TRACE("Successful request");
+
+    const std::string email = GetEmail();
+
+    const auto signup_response = SignUpUser(email);
+    EXPECT_TRUE(signup_response.IsSuccessful());
+
+    auto signin_response = SignInUser(email);
+    auto signin_result = signin_response.GetResult();
+    EXPECT_TRUE(signin_response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::PRECONDITION_FAILED,
+              signin_result.GetStatus());
+
+    signin_response = AcceptTerms(signin_response);
+    signin_response = SignInUser(email);
+    signin_result = signin_response.GetResult();
+    EXPECT_TRUE(signin_response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::OK, signin_result.GetStatus());
+
+    const auto token = signin_result.GetAccessToken();
+    const auto my_account_response = GetMyAccount(token);
+    const auto& my_account_result = my_account_response.GetResult();
+
+    EXPECT_TRUE(my_account_response.IsSuccessful());
+    // check information provided during signing up
+    EXPECT_FALSE(my_account_result.GetUserId().empty());
+    EXPECT_FALSE(my_account_result.GetFirstname().empty());
+    EXPECT_FALSE(my_account_result.GetLastname().empty());
+    EXPECT_FALSE(my_account_result.GetEmail().empty());
+    EXPECT_FALSE(my_account_result.GetCountryCode().empty());
+    EXPECT_FALSE(my_account_result.GetLanguage().empty());
+    EXPECT_FALSE(my_account_result.GetPhoneNumber().empty());
+    EXPECT_FALSE(my_account_result.GetDob().empty());
+  }
+
+  {
+    SCOPED_TRACE("Client access token");
+
+    AuthenticationCredentials credentials(id_, secret_);
+
+    std::time_t now;
+    const auto signin_response = SignInClient(credentials, now, kExpiryTime);
+    const auto& signin_result = signin_response.GetResult();
+    EXPECT_TRUE(signin_response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::OK, signin_result.GetStatus());
+
+    const auto response = GetMyAccount(signin_result.GetAccessToken());
+    EXPECT_FALSE(response.IsSuccessful());
+  }
+
+  {
+    SCOPED_TRACE("Invalid access token");
+
+    const auto response = GetMyAccount(kAccessToken);
+    EXPECT_FALSE(response.IsSuccessful());
+  }
 }
 }  // namespace

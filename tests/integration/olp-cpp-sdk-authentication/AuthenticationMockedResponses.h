@@ -122,3 +122,6 @@ const std::string kAuthorizeResponseErrorField = R"JSON(
     )JSON";
 const std::string kAuthorizeResponseErrorInvalidRequest = R"JSON(
     {"errorId": "ERROR-dc127765-7f03-4cd3-9497-2dd04c3849e7","httpStatus": 400, "errorCode": 400002, "message": "Received invalid request. Invalid Json: Unexpected character ('[' (code 91)): was expecting double-quote to start field name\n at [Source: (akka.util.ByteIterator$ByteArrayIterator$$anon$1); line: 1, column: 3]"})JSON";
+const std::string kGetMyAccountResponse = R"JSON(
+    {"userId": "HERE-5fa10eda-39ff-4cbc-9b0c-5acba4685649", "realm": "olp-here-test", "facebookId": "qwerty1234567890", "firstname": "Jack", "lastname": "Sparrow", "email": "jsparrow@example.com", "recoveryEmail": "eswann@example.com", "dob": "31/01/1980", "countryCode": "USA", "language": "de", "emailVerified": true, "phoneNumber": "+11234567890", "phoneNumberVerified": true, "marketingEnabled": true, "createdTime": 1432216394712, "updatedTime": 1432216394712, "state": "enabled", "hrn": "hrn:here:account::HERE:user/HERE-5fa10eda-39ff-4cbc-9b0c-5acba4685649", "accountType": "saml_heread" }
+    )JSON";

@@ -120,6 +120,9 @@ class AuthenticationClientImpl final {
                                       AuthorizeRequest request,
                                       AuthorizeCallback callback);
 
+  client::CancellationToken GetMyAccount(std::string access_token,
+                                         UserAccountInfoCallback callback);
+
  private:
   TimeResponse GetTimeFromServer(client::CancellationContext context,
                                  const client::OlpClient& client);
