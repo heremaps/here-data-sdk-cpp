@@ -105,7 +105,6 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
 ///
 /// NetworkMock Actions
 ///
-
 NetworkCallback ReturnHttpResponse(http::NetworkResponse response,
                                    const std::string& response_body,
                                    const http::Headers& headers,
@@ -117,11 +116,15 @@ NetworkCallback ReturnHttpResponse(http::NetworkResponse response,
              http::Network::HeaderCallback header_callback,
              http::Network::DataCallback) mutable {
     std::thread([=]() {
+      std::this_thread::sleep_for(delay);
+
       for (const auto& header : headers) {
         header_callback(header.first, header.second);
       }
-      *payload << response_body;
-      std::this_thread::sleep_for(delay);
+
+      payload->seekp(0, std::ios_base::end);
+      payload->write(response_body.c_str(), response_body.size());
+      payload->seekp(0);
       callback(response);
     })
         .detach();

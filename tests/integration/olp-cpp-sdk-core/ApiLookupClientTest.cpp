@@ -27,6 +27,7 @@
 
 namespace {
 namespace client = olp::client;
+namespace http = olp::http;
 using testing::_;
 using testing::Return;
 
@@ -88,9 +89,9 @@ TEST_F(ApiLookupClientTest, LookupApi) {
     SCOPED_TRACE("Fetch from network");
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
         .Times(1)
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupResource));
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kResponseLookupResource));
 
     client::CancellationContext context;
     client::ApiLookupClient client(catalog_hrn, settings_);
@@ -120,15 +121,15 @@ TEST_F(ApiLookupClientTest, LookupApi) {
     SCOPED_TRACE("Expiry from headers, resource");
 
     const time_t expiry = 1;
-    const olp::http::Header header = {"Cache-Control",
-                                      "max-age=" + std::to_string(expiry)};
+    const http::Header header = {"Cache-Control",
+                                 "max-age=" + std::to_string(expiry)};
     settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
 
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
         .Times(1)
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupResource, {header}));
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kResponseLookupResource, {header}));
 
     client::CancellationContext context;
     client::ApiLookupClient client(catalog_hrn, settings_);
@@ -146,8 +147,7 @@ TEST_F(ApiLookupClientTest, LookupApi) {
                                 client::FetchOptions::CacheOnly, context);
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::NotFound);
+    EXPECT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::NotFound);
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }
 
@@ -155,14 +155,14 @@ TEST_F(ApiLookupClientTest, LookupApi) {
     SCOPED_TRACE("Expiry from headers, platform");
 
     const time_t expiry = 1;
-    const olp::http::Header header = {"Cache-Control",
-                                      "max-age=" + std::to_string(expiry)};
+    const http::Header header = {"Cache-Control",
+                                 "max-age=" + std::to_string(expiry)};
 
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url_platform), _, _, _, _))
         .Times(1)
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupPlatform, {header}));
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kResponseLookupPlatform, {header}));
 
     client::CancellationContext context;
     client::ApiLookupClient client(catalog_hrn, settings_);
@@ -179,8 +179,7 @@ TEST_F(ApiLookupClientTest, LookupApi) {
                                 client::FetchOptions::CacheOnly, context);
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::NotFound);
+    EXPECT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::NotFound);
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }
 
@@ -189,9 +188,9 @@ TEST_F(ApiLookupClientTest, LookupApi) {
 
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
         .Times(1)
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupResource));
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kResponseLookupResource));
 
     client::CancellationContext context;
     client::ApiLookupClient client(catalog_hrn, settings_);
@@ -210,9 +209,9 @@ TEST_F(ApiLookupClientTest, LookupApi) {
 
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
         .Times(1)
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupResource));
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kResponseLookupResource));
 
     client::CancellationContext context;
     client::ApiLookupClient client(catalog_hrn, settings_);
@@ -230,10 +229,9 @@ TEST_F(ApiLookupClientTest, LookupApi) {
     SCOPED_TRACE("Network error propagated to the user");
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
         .Times(1)
-        .WillOnce(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::UNAUTHORIZED),
-                               "Inappropriate"));
+        .WillOnce(ReturnHttpResponse(http::NetworkResponse().WithStatus(
+                                         http::HttpStatusCode::UNAUTHORIZED),
+                                     "Inappropriate"));
 
     client::CancellationContext context;
     client::ApiLookupClient client(catalog_hrn, settings_);
@@ -251,13 +249,13 @@ TEST_F(ApiLookupClientTest, LookupApi) {
     client::CancellationContext context;
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
         .Times(1)
-        .WillOnce([=](olp::http::NetworkRequest /*request*/,
-                      olp::http::Network::Payload /*payload*/,
-                      olp::http::Network::Callback /*callback*/,
-                      olp::http::Network::HeaderCallback /*header_callback*/,
-                      olp::http::Network::DataCallback /*data_callback*/)
-                      -> olp::http::SendOutcome {
-          return olp::http::SendOutcome(olp::http::ErrorCode::CANCELLED_ERROR);
+        .WillOnce([=](http::NetworkRequest /*request*/,
+                      http::Network::Payload /*payload*/,
+                      http::Network::Callback /*callback*/,
+                      http::Network::HeaderCallback /*header_callback*/,
+                      http::Network::DataCallback /*data_callback*/)
+                      -> http::SendOutcome {
+          return http::SendOutcome(http::ErrorCode::CANCELLED_ERROR);
         });
 
     client::ApiLookupClient client(catalog_hrn, settings_);
@@ -274,15 +272,15 @@ TEST_F(ApiLookupClientTest, LookupApi) {
     client::CancellationContext context;
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
         .Times(1)
-        .WillOnce([=](olp::http::NetworkRequest /*request*/,
-                      olp::http::Network::Payload /*payload*/,
-                      olp::http::Network::Callback /*callback*/,
-                      olp::http::Network::HeaderCallback /*header_callback*/,
-                      olp::http::Network::DataCallback /*data_callback*/)
-                      -> olp::http::SendOutcome {
+        .WillOnce([=](http::NetworkRequest /*request*/,
+                      http::Network::Payload /*payload*/,
+                      http::Network::Callback /*callback*/,
+                      http::Network::HeaderCallback /*header_callback*/,
+                      http::Network::DataCallback /*data_callback*/)
+                      -> http::SendOutcome {
           // note no network response thread spawns
           constexpr auto unused_request_id = 12;
-          return olp::http::SendOutcome(unused_request_id);
+          return http::SendOutcome(unused_request_id);
         });
     EXPECT_CALL(*network_, Cancel(_)).Times(1).WillOnce(Return());
 
@@ -301,21 +299,21 @@ TEST_F(ApiLookupClientTest, LookupApi) {
     client::CancellationContext context;
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
         .Times(1)
-        .WillOnce([=, &context](
-                      olp::http::NetworkRequest /*request*/,
-                      olp::http::Network::Payload /*payload*/,
-                      olp::http::Network::Callback /*callback*/,
-                      olp::http::Network::HeaderCallback /*header_callback*/,
-                      olp::http::Network::DataCallback /*data_callback*/)
-                      -> olp::http::SendOutcome {
-          // spawn a 'user' response of cancelling
-          std::thread([&context]() { context.CancelOperation(); }).detach();
+        .WillOnce(
+            [=, &context](http::NetworkRequest /*request*/,
+                          http::Network::Payload /*payload*/,
+                          http::Network::Callback /*callback*/,
+                          http::Network::HeaderCallback /*header_callback*/,
+                          http::Network::DataCallback /*data_callback*/)
+                -> http::SendOutcome {
+              // spawn a 'user' response of cancelling
+              std::thread([&context]() { context.CancelOperation(); }).detach();
 
-          // note no network response thread spawns
+              // note no network response thread spawns
 
-          constexpr auto unused_request_id = 12;
-          return olp::http::SendOutcome(unused_request_id);
-        });
+              constexpr auto unused_request_id = 12;
+              return http::SendOutcome(unused_request_id);
+            });
     EXPECT_CALL(*network_, Cancel(_)).Times(1).WillOnce(Return());
 
     client::ApiLookupClient client(catalog_hrn, settings_);
@@ -358,22 +356,25 @@ TEST_F(ApiLookupClientTest, LookupApiAsync) {
   const std::string lookup_url_platform =
       "https://api-lookup.data.api.platform.here.com/lookup/v1/platform/apis";
 
+  using LookupApiResponse = client::ApiLookupClient::LookupApiResponse;
+
   {
     SCOPED_TRACE("Fetch from cache [CacheOnly] negative");
 
-    std::promise<client::ApiLookupClient::LookupApiResponse> promise;
-    auto future = promise.get_future();
-    client::ApiLookupClient client(catalog_hrn, settings_);
-    client.LookupApi(
-        service_name, service_version, client::FetchOptions::CacheOnly,
-        [&promise](client::ApiLookupClient::LookupApiResponse response) {
-          promise.set_value(std::move(response));
-        });
+    std::promise<LookupApiResponse> promise;
 
-    auto response = future.get();
+    client::ApiLookupClient client(catalog_hrn, settings_);
+    client.LookupApi(service_name, service_version,
+                     client::FetchOptions::CacheOnly,
+                     [&](LookupApiResponse response) {
+                       promise.set_value(std::move(response));
+                     });
+
+    auto response = promise.get_future().get();
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::NotFound);
+
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }
 
@@ -381,43 +382,44 @@ TEST_F(ApiLookupClientTest, LookupApiAsync) {
     SCOPED_TRACE("Fetch from network");
 
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
-        .Times(1)
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupResource));
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kResponseLookupResource));
 
-    std::promise<client::ApiLookupClient::LookupApiResponse> promise;
-    auto future = promise.get_future();
+    std::promise<LookupApiResponse> promise;
+
     client::ApiLookupClient client(catalog_hrn, settings_);
-    client.LookupApi(
-        service_name, service_version, client::FetchOptions::OnlineIfNotFound,
-        [&promise](client::ApiLookupClient::LookupApiResponse response) {
-          promise.set_value(std::move(response));
-        });
+    client.LookupApi(service_name, service_version,
+                     client::FetchOptions::OnlineIfNotFound,
+                     [&](LookupApiResponse response) {
+                       promise.set_value(std::move(response));
+                     });
 
-    auto response = future.get();
+    auto response = promise.get_future().get();
 
     EXPECT_TRUE(response.IsSuccessful());
     EXPECT_EQ(response.GetResult().GetBaseUrl(), kConfigBaseUrl);
+
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }
 
   {
     SCOPED_TRACE("Fetch from cache [CacheOnly] positive");
 
-    std::promise<client::ApiLookupClient::LookupApiResponse> promise;
-    auto future = promise.get_future();
-    client::ApiLookupClient client(catalog_hrn, settings_);
-    client.LookupApi(
-        service_name, service_version, client::FetchOptions::CacheOnly,
-        [&promise](client::ApiLookupClient::LookupApiResponse response) {
-          promise.set_value(std::move(response));
-        });
+    std::promise<LookupApiResponse> promise;
 
-    auto response = future.get();
+    client::ApiLookupClient client(catalog_hrn, settings_);
+    client.LookupApi(service_name, service_version,
+                     client::FetchOptions::CacheOnly,
+                     [&](LookupApiResponse response) {
+                       promise.set_value(std::move(response));
+                     });
+
+    auto response = promise.get_future().get();
 
     EXPECT_TRUE(response.IsSuccessful());
     EXPECT_EQ(response.GetResult().GetBaseUrl(), config_url);
+
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }
 
@@ -425,21 +427,25 @@ TEST_F(ApiLookupClientTest, LookupApiAsync) {
     SCOPED_TRACE("Expiry from headers, resource");
 
     const time_t expiry = 1;
-    const olp::http::Header header = {"Cache-Control",
-                                      "max-age=" + std::to_string(expiry)};
+    const http::Header header = {"Cache-Control",
+                                 "max-age=" + std::to_string(expiry)};
     settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
 
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
-        .Times(1)
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupResource, {header}));
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kResponseLookupResource, {header}));
 
-    client::CancellationContext context;
+    std::promise<LookupApiResponse> promise;
+
     client::ApiLookupClient client(catalog_hrn, settings_);
-    auto response =
-        client.LookupApi(service_name, service_version,
-                         client::FetchOptions::OnlineIfNotFound, context);
+    client.LookupApi(service_name, service_version,
+                     client::FetchOptions::OnlineIfNotFound,
+                     [&](LookupApiResponse response) {
+                       promise.set_value(std::move(response));
+                     });
+
+    auto response = promise.get_future().get();
 
     EXPECT_TRUE(response.IsSuccessful());
     EXPECT_EQ(response.GetResult().GetBaseUrl(), kConfigBaseUrl);
@@ -447,12 +453,19 @@ TEST_F(ApiLookupClientTest, LookupApiAsync) {
     // check cache is expired
     std::this_thread::sleep_for(std::chrono::seconds(expiry + 1));
 
-    response = client.LookupApi(service_name, service_version,
-                                client::FetchOptions::CacheOnly, context);
+    std::promise<LookupApiResponse> promise2;
+
+    client.LookupApi(service_name, service_version,
+                     client::FetchOptions::CacheOnly,
+                     [&](LookupApiResponse response) {
+                       promise2.set_value(std::move(response));
+                     });
+
+    response = promise2.get_future().get();
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::NotFound);
+    EXPECT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::NotFound);
+
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }
 
@@ -460,19 +473,23 @@ TEST_F(ApiLookupClientTest, LookupApiAsync) {
     SCOPED_TRACE("Expiry from headers, platform");
 
     const time_t expiry = 1;
-    const olp::http::Header header = {"Cache-Control",
-                                      "max-age=" + std::to_string(expiry)};
+    const http::Header header = {"Cache-Control",
+                                 "max-age=" + std::to_string(expiry)};
 
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url_platform), _, _, _, _))
-        .Times(1)
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupPlatform, {header}));
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kResponseLookupPlatform, {header}));
 
-    client::CancellationContext context;
+    std::promise<LookupApiResponse> promise;
+
     client::ApiLookupClient client(catalog_hrn, settings_);
-    auto response = client.LookupApi(
-        "config", "v1", client::FetchOptions::OnlineIfNotFound, context);
+    client.LookupApi("config", "v1", client::FetchOptions::OnlineIfNotFound,
+                     [&](LookupApiResponse response) {
+                       promise.set_value(std::move(response));
+                     });
+
+    auto response = promise.get_future().get();
 
     EXPECT_TRUE(response.IsSuccessful());
     EXPECT_EQ(response.GetResult().GetBaseUrl(), kConfigBaseUrl);
@@ -480,12 +497,17 @@ TEST_F(ApiLookupClientTest, LookupApiAsync) {
     // check cache is expired
     std::this_thread::sleep_for(std::chrono::seconds(expiry + 1));
 
-    response = client.LookupApi(service_name, service_version,
-                                client::FetchOptions::CacheOnly, context);
+    std::promise<LookupApiResponse> promise2;
+
+    client.LookupApi("config", "v1", client::FetchOptions::CacheOnly,
+                     [&](LookupApiResponse response) {
+                       promise2.set_value(std::move(response));
+                     });
+
+    response = promise2.get_future().get();
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::NotFound);
+    EXPECT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::NotFound);
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }
 
@@ -493,20 +515,25 @@ TEST_F(ApiLookupClientTest, LookupApiAsync) {
     SCOPED_TRACE("Unknown service name");
 
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
-        .Times(1)
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupResource));
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kResponseLookupResource));
 
-    client::CancellationContext context;
+    std::promise<LookupApiResponse> promise;
+
     client::ApiLookupClient client(catalog_hrn, settings_);
-    auto response = client.LookupApi("unknown_service", service_version,
-                                     client::FetchOptions::OnlineOnly, context);
+    client.LookupApi("unknown_service", service_version,
+                     client::FetchOptions::OnlineOnly,
+                     [&](LookupApiResponse response) {
+                       promise.set_value(std::move(response));
+                     });
+
+    auto response = promise.get_future().get();
 
     const auto& error = response.GetError();
-
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(error.GetErrorCode(), client::ErrorCode::ServiceUnavailable);
+
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }
 
@@ -514,15 +541,19 @@ TEST_F(ApiLookupClientTest, LookupApiAsync) {
     SCOPED_TRACE("Unknown service version");
 
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
-        .Times(1)
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupResource));
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kResponseLookupResource));
 
-    client::CancellationContext context;
+    std::promise<LookupApiResponse> promise;
+
     client::ApiLookupClient client(catalog_hrn, settings_);
-    auto response = client.LookupApi(service_name, "123",
-                                     client::FetchOptions::OnlineOnly, context);
+    client.LookupApi(service_name, "123", client::FetchOptions::OnlineOnly,
+                     [&](LookupApiResponse response) {
+                       promise.set_value(std::move(response));
+                     });
+
+    auto response = promise.get_future().get();
 
     const auto& error = response.GetError();
 
@@ -535,26 +566,25 @@ TEST_F(ApiLookupClientTest, LookupApiAsync) {
     SCOPED_TRACE("Network error propagated to the user");
 
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
-        .Times(1)
-        .WillOnce(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::UNAUTHORIZED),
-                               "Inappropriate"));
+        .WillOnce(ReturnHttpResponse(http::NetworkResponse().WithStatus(
+                                         http::HttpStatusCode::UNAUTHORIZED),
+                                     "Inappropriate"));
 
-    std::promise<client::ApiLookupClient::LookupApiResponse> promise;
-    auto future = promise.get_future();
+    std::promise<LookupApiResponse> promise;
+
     client::ApiLookupClient client(catalog_hrn, settings_);
-    client.LookupApi(
-        service_name, service_version, client::FetchOptions::OnlineOnly,
-        [&promise](client::ApiLookupClient::LookupApiResponse response) {
-          promise.set_value(std::move(response));
-        });
+    client.LookupApi(service_name, service_version,
+                     client::FetchOptions::OnlineOnly,
+                     [&](LookupApiResponse response) {
+                       promise.set_value(std::move(response));
+                     });
 
-    auto response = future.get();
+    auto response = promise.get_future().get();
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
               client::ErrorCode::AccessDenied);
+
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }
 
@@ -562,14 +592,13 @@ TEST_F(ApiLookupClientTest, LookupApiAsync) {
     SCOPED_TRACE("Network request cancelled by network internally");
 
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
-        .Times(1)
-        .WillOnce([](olp::http::NetworkRequest /*request*/,
-                     olp::http::Network::Payload /*payload*/,
-                     olp::http::Network::Callback /*callback*/,
-                     olp::http::Network::HeaderCallback /*header_callback*/,
-                     olp::http::Network::DataCallback /*data_callback*/)
-                      -> olp::http::SendOutcome {
-          return olp::http::SendOutcome(olp::http::ErrorCode::CANCELLED_ERROR);
+        .WillOnce([](http::NetworkRequest /*request*/,
+                     http::Network::Payload /*payload*/,
+                     http::Network::Callback /*callback*/,
+                     http::Network::HeaderCallback /*header_callback*/,
+                     http::Network::DataCallback /*data_callback*/)
+                      -> http::SendOutcome {
+          return http::SendOutcome(http::ErrorCode::CANCELLED_ERROR);
         });
 
     std::promise<client::ApiLookupClient::LookupApiResponse> promise;
@@ -626,9 +655,9 @@ TEST_F(ApiLookupClientTest, CustomCatalogProvider) {
 
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
         .Times(1)
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupResource));
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kResponseLookupResource));
 
     client::ApiLookupSettings lookup_settings;
     lookup_settings.catalog_endpoint_provider = [](const client::HRN&) {
@@ -690,9 +719,9 @@ TEST_F(ApiLookupClientTest, CustomCatalogProviderAsync) {
 
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
         .Times(1)
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kResponseLookupResource));
+        .WillOnce(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kResponseLookupResource));
 
     client::ApiLookupSettings lookup_settings;
     lookup_settings.catalog_endpoint_provider = [](const client::HRN&) {

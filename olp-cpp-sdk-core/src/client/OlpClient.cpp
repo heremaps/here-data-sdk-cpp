@@ -161,13 +161,15 @@ void ExecuteSingleRequest(const std::shared_ptr<http::Network>& network,
     return CancellationToken([=] { network->Cancel(id); });
   };
 
-  pending_request->ExecuteOrCancelled(make_request, [&]() {
+  auto cancelled_func = [&]() {
     OLP_SDK_LOG_DEBUG_F(kLogTag,
                         "ExecuteSingleRequest - already cancelled, url='%s'",
                         request.GetUrl().c_str());
     callback(PendingUrlRequest::kInvalidRequestId,
              ToHttpResponse(kCancelledErrorResponse));
-  });
+  };
+
+  pending_request->ExecuteOrCancelled(make_request, cancelled_func);
 }
 
 NetworkCallbackType GetRetryCallback(

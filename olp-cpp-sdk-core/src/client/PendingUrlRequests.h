@@ -79,6 +79,7 @@ class PendingUrlRequest {
   bool IsCancelled() const { return context_.IsCancelled(); }
 
   /// Cancels current network request and waits for response.
+  /// Default wait time is 60 seconds.
   bool CancelAndWait(
       std::chrono::milliseconds timeout = std::chrono::seconds(60)) {
     // Cancel Network call, wait for the Network callback

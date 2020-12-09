@@ -19,17 +19,23 @@
 
 #include "VersionedLayerTestBase.h"
 
+#include <atomic>
+#include <chrono>
+
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/core/http/NetworkTypes.h>
 #include <olp/core/utils/Dir.h>
-
 #include "ResponseGenerator.h"
 #include "matchers/NetworkUrlMatchers.h"
 
 namespace {
 const auto kCachePathMutable = "./tmp_cache";
-}
+
+static std::atomic<olp::http::RequestId> global_counter{1};
+const std::chrono::milliseconds kDelay{20};
+}  // namespace
 
 namespace model = olp::dataservice::read::model;
 namespace http = olp::http;
@@ -69,7 +75,8 @@ void VersionedLayerTestBase::ExpectQuadTreeRequest(
   const auto url = url_generator_.VersionedQuadTree(
       quad_tree.Root().ToHereTile(), version, 4);
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(url), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(response, quad_tree.BuildJson()));
+      .WillOnce(ReturnHttpResponse(response, quad_tree.BuildJson(), {}, kDelay,
+                                   global_counter.fetch_add(1)));
 }
 
 void VersionedLayerTestBase::ExpectBlobRequest(const std::string& data_handle,
@@ -77,7 +84,8 @@ void VersionedLayerTestBase::ExpectBlobRequest(const std::string& data_handle,
                                                http::NetworkResponse response) {
   const auto url = url_generator_.DataBlob(data_handle);
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(url), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(response, data));
+      .WillOnce(ReturnHttpResponse(response, data, {}, kDelay,
+                                   global_counter.fetch_add(1)));
 }
 
 void VersionedLayerTestBase::ExpectVersionRequest(
@@ -86,8 +94,9 @@ void VersionedLayerTestBase::ExpectVersionRequest(
   ASSERT_FALSE(version_path.empty());
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(version_path), _, _, _, _))
-      .WillOnce(
-          ReturnHttpResponse(response, ResponseGenerator::Version(version_)));
+      .WillOnce(ReturnHttpResponse(response,
+                                   ResponseGenerator::Version(version_), {},
+                                   kDelay, global_counter.fetch_add(1)));
 }
 
 void VersionedLayerTestBase::ExpectQueryPartitionsRequest(
@@ -95,8 +104,8 @@ void VersionedLayerTestBase::ExpectQueryPartitionsRequest(
     const model::Partitions& partitions_response,
     http::NetworkResponse response) {
   auto partitions_path = url_generator_.PartitionsQuery(partitions, version_);
-
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(partitions_path), _, _, _, _))
       .WillOnce(ReturnHttpResponse(
-          response, ResponseGenerator::Partitions(partitions_response)));
+          response, ResponseGenerator::Partitions(partitions_response), {},
+          kDelay, global_counter.fetch_add(1)));
 }
