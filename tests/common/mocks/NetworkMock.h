@@ -105,7 +105,7 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
 NetworkCallback ReturnHttpResponse(
     olp::http::NetworkResponse response, const std::string& response_body,
     const olp::http::Headers& headers = {},
-    std::chrono::nanoseconds delay = std::chrono::nanoseconds(0),
+    std::chrono::nanoseconds delay = std::chrono::milliseconds(50),
     olp::http::RequestId request_id = 5);
 
 inline olp::http::NetworkResponse GetResponse(int status) {

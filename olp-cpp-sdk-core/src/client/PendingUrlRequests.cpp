@@ -37,6 +37,12 @@ size_t PendingUrlRequest::Append(NetworkAsyncCallback callback) {
   // NOTE: You should not append anything if this request was cancelled
   std::lock_guard<std::mutex> lock(mutex_);
   const auto callback_id = callbacks_.size();
+
+  OLP_SDK_LOG_DEBUG_F(
+      kLogTag,
+      "PendingUrlRequest::Append, callback_id=%zu, request_id=%" PRIu64,
+      callback_id, http_request_id_);
+
   callbacks_.emplace(callback_id, std::move(callback));
   return callback_id;
 }
@@ -51,6 +57,11 @@ bool PendingUrlRequest::ExecuteOrCancelled(const ExecuteFuncType& func,
 
 bool PendingUrlRequest::Cancel(size_t callback_id) {
   std::lock_guard<std::mutex> lock(mutex_);
+
+  OLP_SDK_LOG_DEBUG_F(
+      kLogTag,
+      "PendingUrlRequest::Cancel, callback_id=%zu, request_id=%" PRIu64,
+      callback_id, http_request_id_);
 
   auto it = callbacks_.find(callback_id);
   if (it == callbacks_.end()) {

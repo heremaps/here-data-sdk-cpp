@@ -47,7 +47,7 @@ using olp::http::HttpStatusCode;
 using testing::_;
 using VersionedLayerClientPrefetchPartitionsTest = VersionedLayerTestBase;
 
-constexpr auto kTimeout = std::chrono::seconds(3);
+constexpr auto kTimeout = std::chrono::seconds(10);
 constexpr auto kLayer = "testlayer";
 
 std::vector<std::string> GeneratePartitionIds(size_t partitions_count) {
@@ -205,14 +205,15 @@ TEST_F(VersionedLayerClientPrefetchPartitionsTest, PrefetchPartitionsFails) {
 }
 
 TEST_F(VersionedLayerClientPrefetchPartitionsTest, PrefetchBatchFails) {
-  auto partitions_count = 200u;  // 2 query
+  // Should result in two metadata query
+  constexpr auto partitions_count = 200u;
+  constexpr auto size1 = 100;
+  constexpr auto size2 = 100;
+
   auto client =
       read::VersionedLayerClient(kCatalogHrn, kLayer, version_, settings_);
+
   auto partitions = GeneratePartitionIds(partitions_count);
-
-  auto size1 = 100;
-  auto size2 = 100;
-
   auto partitions_response1 =
       ReadDefaultResponses::GeneratePartitionsResponse(size1);
   auto partitions_response2 =
@@ -228,50 +229,53 @@ TEST_F(VersionedLayerClientPrefetchPartitionsTest, PrefetchBatchFails) {
               http::NetworkResponse().WithStatus(HttpStatusCode::OK));
         }
       };
+
   {
     SCOPED_TRACE("All batch fails");
+
     ExpectQueryPartitionsRequest(
-        std::vector<std::string>(partitions.begin(),
-                                 partitions.begin() + size1),
-        partitions_response1,
+        {partitions.begin(), partitions.begin() + size1}, partitions_response1,
         http::NetworkResponse().WithStatus(HttpStatusCode::BAD_REQUEST));
+
     ExpectQueryPartitionsRequest(
-        std::vector<std::string>(partitions.begin() + size1, partitions.end()),
-        partitions_response2,
+        {partitions.begin() + size1, partitions.end()}, partitions_response2,
         http::NetworkResponse().WithStatus(HttpStatusCode::BAD_REQUEST));
 
     auto future = client.PrefetchPartitions(request).GetFuture();
-    ASSERT_NE(future.wait_for(std::chrono::seconds(kTimeout)),
-              std::future_status::timeout);
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
 
     auto response = future.get();
     ASSERT_FALSE(response.IsSuccessful());
+
+    testing::Mock::VerifyAndClearExpectations(network_mock_.get());
   }
+
   {
     SCOPED_TRACE("One batch fails");
+
     ExpectQueryPartitionsRequest(
-        std::vector<std::string>(partitions.begin(),
-                                 partitions.begin() + size1),
-        partitions_response1,
+        {partitions.begin(), partitions.begin() + size1}, partitions_response1,
         http::NetworkResponse().WithStatus(HttpStatusCode::BAD_REQUEST));
-    ExpectQueryPartitionsRequest(
-        std::vector<std::string>(partitions.begin() + size1, partitions.end()),
-        partitions_response2);
+
+    ExpectQueryPartitionsRequest({partitions.begin() + size1, partitions.end()},
+                                 partitions_response2);
 
     mock_partitions_response(partitions_response2);
 
     auto future = client.PrefetchPartitions(request).GetFuture();
-    ASSERT_NE(future.wait_for(std::chrono::seconds(kTimeout)),
-              std::future_status::timeout);
+    ASSERT_NE(future.wait_for(kTimeout), std::future_status::timeout);
 
     auto response = future.get();
     ASSERT_TRUE(response.IsSuccessful());
+
     const auto result = response.MoveResult();
     ASSERT_EQ(result.GetPartitions().size(), size1);
 
     for (const auto& partition : result.GetPartitions()) {
       ASSERT_TRUE(client.IsCached(partition));
     }
+
+    testing::Mock::VerifyAndClearExpectations(network_mock_.get());
   }
 }
 
