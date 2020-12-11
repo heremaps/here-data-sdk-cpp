@@ -18,7 +18,7 @@
 # Boost
 # Download and unpack boost at configure time
 
-if (WIN32)
+if (CMAKE_HOST_WIN32)
     set(BOOTSTRAP_CMD bootstrap.bat)
     set(B2_CMD b2.exe)
 else()
@@ -32,7 +32,7 @@ configure_file(CMakeLists.txt.boost.in download/CMakeLists.txt @ONLY)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
+execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" . ${COMMON_GENERATE_FLAGS}
   RESULT_VARIABLE result
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/download)
 if(result)

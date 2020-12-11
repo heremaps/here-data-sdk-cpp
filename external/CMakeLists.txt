@@ -18,27 +18,20 @@
 # Do not export external projects to the cmake user package registry
 set(CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON)
 
-include(ProcessorCount)
-ProcessorCount(N)
-
-# get CMAKE_MAKE_PROGRAM to know when to change build flags for Windows command line build
-get_filename_component(compilername ${CMAKE_MAKE_PROGRAM} NAME)
-
-if(NOT N EQUAL 0)
-    if (${compilername} STREQUAL "MSBuild.exe")
-        set(EXTERNAL_BUILD_FLAGS "-- /m:${N}")
-    elseif(NOT (CMAKE_GENERATOR STREQUAL Xcode))
-        set(EXTERNAL_BUILD_FLAGS "-- -j${N}")
-    endif()
-endif()
-
 set(COMMON_PLATFORM_FLAGS)
+
+string(REPLACE "\\" "/" CMAKE_MAKE_PROGRAM "${CMAKE_MAKE_PROGRAM}")
+string(REPLACE "\\" "/" CMAKE_TOOLCHAIN_FILE "${CMAKE_TOOLCHAIN_FILE}")
+string(REPLACE "\\" "/" CMAKE_CURRENT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+
+set(COMMON_GENERATE_FLAGS -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM})
 
 if(ANDROID)
   set(COMMON_PLATFORM_FLAGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                             -DANDROID_PLATFORM=${ANDROID_PLATFORM}
                             -DANDROID_STL=${ANDROID_STL}
-                            -DANDROID_ABI=${ANDROID_ABI})
+                            -DANDROID_ABI=${ANDROID_ABI}
+                            -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM})
 elseif(IOS)
   set(COMMON_PLATFORM_FLAGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                             -DPLATFORM=${PLATFORM}
