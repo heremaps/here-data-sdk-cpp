@@ -1,3 +1,29 @@
+##  v1.10.0 (12/14/2020)
+
+**Common**
+
+* Ported the `std::shared_mutex` class from the C++17 Standard Library to use it in C++11/14 code.
+* Added the logging status of the network requests on the iOS platform. Now, you can see an HTTP return code for each completed request in logs.
+* Fixed the proxy warning message on the Android platform.
+* Added the `Open` and `Close` APIs to `olp::cache::DefaultCache`. You can use them to open or close individual caches.
+* `olp::client::ApiLookupClient` now caches the `olp::client::OlpClient` instances internally. It enables the merging of the same URL requests inside the `olp::client::OlpClient` instance.
+* Added merging of the same requests to the `olp::client::OlpClient` class. Internally, it merges the same requests by a URL when the payload is empty.
+* Removed the unnecessary sleep, which forced all requests to be at least 100 ms, from `olp::http::NetworkCurl`. 2-second sleep can still occur when there are no used handles.
+* Added downloaded size and time of execution to logs for completed requests in `olp::http::NetworkCurl`. Now, upon completion, you can see how much data was downloaded and how long the request took.
+
+**olp-cpp-sdk-authentication**
+
+* Added the `GetMyAccount` API to `olp::authentication::AuthenticationClient`. It can retrieve user information based on a valid access token previously requested by the user upon sign-in.
+* Added the `olp::authentication::Crypto` class. It exposes the SHA256 and HMAC-SHA256 algorithms used by the module internally.
+
+**olp-cpp-sdk-dataservice-read**
+
+* Fixed the data race inside the `olp::client::TaskSink` class. The data race occurred when a task added another task while the destruction was ongoing and then crashed.
+* Adapted `olp::dataservice::read::StreamLayerClient` and `olp::dataservice::read::CatalogClient` to use `olp::client::TaskSink`.
+* Fixed the expiration duration of the latest version. The user-provided expiration duration was not propagated to the cache.
+* Merged the same concurrent `GetPartitions` requests in the `olp::dataservice::read::VersionedLayerClient`.
+* Various changes in logging; decreased the level of messages to reduce the output.
+
 ##  v1.9.0 (10/12/2020)
 
 **Common**
