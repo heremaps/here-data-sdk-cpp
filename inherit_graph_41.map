@@ -1,3 +1,0 @@
-<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classolp_1_1client_1_1OlpClient.html" title="Executes HTTP requests by using the base url and the provided parameters and body. This class will handle retries based on the RetrySettings and will merge all similar URL requests into one. " alt="" coords="5,5,160,32"/>
-</map>
