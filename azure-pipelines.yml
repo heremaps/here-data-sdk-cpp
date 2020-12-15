@@ -43,7 +43,7 @@ jobs:
 
 - job: Android_build
   pool:
-    vmImage: 'ubuntu-18.04'
+    vmImage: 'ubuntu-20.04'
   variables:
     ANDROID_NDK_HOME: $(ANDROID_HOME)/ndk-bundle
     LD_PRELOAD: "/lib/x86_64-linux-gnu/libSegFault.so"
@@ -68,7 +68,7 @@ jobs:
 
 - job: Linux_build_clang
   pool:
-    vmImage: 'ubuntu-latest'
+    vmImage: 'ubuntu-20.04'
   variables:
     LD_PRELOAD: "/lib/x86_64-linux-gnu/libSegFault.so"
     SEGFAULT_SIGNALS: "all"
