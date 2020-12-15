@@ -1,0 +1,10 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classolp_1_1dataservice_1_1write_1_1model_1_1IndexValue.html" title="Supported by a HERE platform index layer. " alt="" coords="5,201,172,243"/>
+<area shape="rect" id="node2" href="$classolp_1_1dataservice_1_1write_1_1model_1_1BooleanIndexValue.html" title="BooleanIndexValue that is supported by an index layer indexField. " alt="" coords="236,5,440,47"/>
+<area shape="rect" id="node3" href="$classolp_1_1dataservice_1_1write_1_1model_1_1EmptyIndexValue.html" title="EmptyIndexValue that is passed to by an index layer indexField. " alt="" coords="241,71,435,112"/>
+<area shape="rect" id="node4" href="$classolp_1_1dataservice_1_1write_1_1model_1_1HereTileIndexValue.html" title="HereTileIndexValue that is supported by an index layer indexField. " alt="" coords="235,136,441,177"/>
+<area shape="rect" id="node5" href="$classolp_1_1dataservice_1_1write_1_1model_1_1IntIndexValue.html" title="IntIndexValue that is supported by an index layer indexField. " alt="" coords="254,201,422,243"/>
+<area shape="rect" id="node6" href="$classolp_1_1dataservice_1_1write_1_1model_1_1StringIndexValue.html" title="IntIndexValue that is supported by an index layer indexField. " alt="" coords="243,267,433,308"/>
+<area shape="rect" id="node7" href="$classolp_1_1dataservice_1_1write_1_1model_1_1TimeWindowIndexValue.html" title="TimeWindowIndexValue that is supported by an index layer indexField. " alt="" coords="220,332,456,373"/>
+<area shape="rect" id="node8" href="$classolp_1_1dataservice_1_1write_1_1model_1_1UnsupportedIndexValue.html" title="UnsupportedIndexValue that is not supported by an index layer. " alt="" coords="221,397,455,439"/>
+</map>
