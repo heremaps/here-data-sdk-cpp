@@ -19,6 +19,7 @@
 
 #include "olp/core/utils/Dir.h"
 
+#include <cstring>
 #if defined(_WIN32) && !defined(__MINGW32__)
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -28,7 +29,9 @@
 #include <windows.h>
 #include <vector>
 #else
+#include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <ftw.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -399,6 +402,88 @@ bool Dir::FileExists(const std::string& file_path) {
          S_ISREG(stat_info.st_mode);
 
 #endif
+}
+
+uint64_t Dir::Size(const std::string& path, FilterFunction filter_fn) {
+  uint64_t result = 0;
+
+#if defined(_WIN32) && !defined(__MINGW32__)
+
+  WIN32_FIND_DATA find_data;
+  std::string current_path = path + "\\*.*";
+  HANDLE handle = FindFirstFile(current_path.c_str(), &find_data);
+
+  if (handle != INVALID_HANDLE_VALUE) {
+    do {
+      if (strcmp(find_data.cFileName, ".") == 0 ||
+          strcmp(find_data.cFileName, "..") == 0) {
+        continue;
+      }
+
+      if (filter_fn && !filter_fn(find_data.cFileName)) {
+        continue;
+      }
+
+      if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+        current_path = path + "\\" + find_data.cFileName;
+        result += Size(current_path, filter_fn);
+      } else {
+        LARGE_INTEGER size;
+        size.LowPart = find_data.nFileSizeLow;
+        size.HighPart = find_data.nFileSizeHigh;
+        result += size.QuadPart;
+      }
+    } while (FindNextFile(handle, &find_data) != 0);
+
+    FindClose(handle);
+  }
+
+#else
+
+  DIR* dir = nullptr;
+  struct dirent* ent = nullptr;
+
+  if ((dir = opendir(path.c_str())) != nullptr) {
+    int fd = dirfd(dir);
+
+    while ((ent = readdir(dir)) != nullptr) {
+#ifdef __APPLE__
+      struct stat sb;
+      if (fstatat(fd, ent->d_name, &sb, AT_SYMLINK_NOFOLLOW) == 0) {
+#else
+      struct stat64 sb;
+      if (fstatat64(fd, ent->d_name, &sb, AT_SYMLINK_NOFOLLOW) == 0) {
+#endif
+        if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) {
+          continue;
+        }
+
+        if (filter_fn && !filter_fn(ent->d_name)) {
+          continue;
+        }
+
+        switch (sb.st_mode & S_IFMT) {
+          case S_IFDIR:
+            result += Size(ent->d_name, filter_fn);
+            break;
+          case S_IFREG:
+            result += sb.st_size;
+            break;
+          default:
+            break;
+        }
+      } else {
+        result = 0;
+        break;
+      }
+    }
+
+    closedir(dir);
+  }
+
+#endif
+
+  return result;
 }
 
 }  // namespace utils

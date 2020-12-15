@@ -22,6 +22,8 @@
 
 #include <cache/DefaultCacheImpl.h>
 #include <olp/core/utils/Dir.h>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include "Helpers.h"
 
@@ -82,7 +84,12 @@ class DefaultCacheImplHelper : public cache::DefaultCacheImpl {
     return disk_cache->Get(key) != boost::none;
   }
 
-  uint64_t Size() const { return GetMutableCacheSize(); }
+  uint64_t Size(CacheType cache_type) const {
+    if (cache_type == CacheType::kMutable) {
+      return GetMutableCacheSize();
+    }
+    return GetProtectedCacheSize();
+  }
 
   uint64_t CalculateExpirySize(const std::string& key) const {
     const auto expiry_key = GetExpiryKey(key);
@@ -451,13 +458,13 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
               (std::numeric_limits<time_t>::max)());
     auto data_size = key1.size() + data_string.size();
 
-    EXPECT_EQ(data_size, cache.Size());
+    EXPECT_EQ(data_size, cache.Size(CacheType::kMutable));
 
     cache.Put(key2, data_string, [=]() { return data_string; }, expiry);
     data_size +=
         key2.size() + data_string.size() + cache.CalculateExpirySize(key2);
 
-    EXPECT_EQ(data_size, cache.Size());
+    EXPECT_EQ(data_size, cache.Size(CacheType::kMutable));
   }
 
   {
@@ -471,13 +478,13 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
     cache.Put(key1, data_ptr, (std::numeric_limits<time_t>::max)());
     auto data_size = key1.size() + binary_data.size();
 
-    EXPECT_EQ(data_size, cache.Size());
+    EXPECT_EQ(data_size, cache.Size(CacheType::kMutable));
 
     cache.Put(key2, data_ptr, expiry);
     data_size +=
         key2.size() + binary_data.size() + cache.CalculateExpirySize(key2);
 
-    EXPECT_EQ(data_size, cache.Size());
+    EXPECT_EQ(data_size, cache.Size(CacheType::kMutable));
   }
 
   {
@@ -495,7 +502,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
     cache.Remove(key2);
     cache.Remove(invalid_key);
 
-    EXPECT_EQ(0u, cache.Size());
+    EXPECT_EQ(0u, cache.Size(CacheType::kMutable));
   }
 
   {
@@ -512,7 +519,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
     cache.Remove(key2);
     cache.Remove(invalid_key);
 
-    EXPECT_EQ(0u, cache.Size());
+    EXPECT_EQ(0u, cache.Size(CacheType::kMutable));
   }
 
   {
@@ -531,7 +538,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
     cache.RemoveKeysWithPrefix(invalid_key);
     cache.RemoveKeysWithPrefix("some");
 
-    EXPECT_EQ(data_size, cache.Size());
+    EXPECT_EQ(data_size, cache.Size(CacheType::kMutable));
   }
 
   {
@@ -547,7 +554,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
     cache.Get(key1);
     cache.Get(key2, [](const std::string& value) { return value; });
 
-    EXPECT_EQ(0, cache.Size());
+    EXPECT_EQ(0, cache.Size(CacheType::kMutable));
   }
 
   {
@@ -565,13 +572,13 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
               (std::numeric_limits<time_t>::max)());
     const auto data_size = key.size() + data_string.size();
     cache.Close();
-    EXPECT_EQ(0u, cache.Size());
+    EXPECT_EQ(0u, cache.Size(CacheType::kMutable));
 
     cache.Open();
-    EXPECT_EQ(data_size, cache.Size());
+    EXPECT_EQ(data_size, cache.Size(CacheType::kMutable));
 
     cache.Clear();
-    EXPECT_EQ(0u, cache.Size());
+    EXPECT_EQ(0u, cache.Size(CacheType::kMutable));
   }
 
   {
@@ -613,7 +620,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
                   (std::numeric_limits<time_t>::max)());
     EXPECT_FALSE(result);
     EXPECT_TRUE(total_size < settings.max_disk_storage);
-    EXPECT_EQ(total_size, cache.Size());
+    EXPECT_EQ(total_size, cache.Size(CacheType::kMutable));
 
     cache.Remove(prefix + std::to_string(count - 1));
     cache.Remove(prefix + std::to_string(count - 2));
@@ -623,7 +630,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
                   (std::numeric_limits<time_t>::max)());
 
     EXPECT_TRUE(result);
-    EXPECT_TRUE(total_size > cache.Size());
+    EXPECT_TRUE(total_size > cache.Size(CacheType::kMutable));
   }
 }
 
@@ -1159,6 +1166,65 @@ TEST_F(DefaultCacheImplTest, OpenTypeCache) {
     ASSERT_FALSE(cache.HasMutableCache());
     ASSERT_FALSE(cache.HasProtectedCache());
   }
+}
+
+TEST_F(DefaultCacheImplTest, ProtectedCacheSize) {
+  cache::CacheSettings settings;
+  settings.max_disk_storage = std::uint64_t(-1);
+  settings.max_memory_cache_size = 0;
+  settings.openOptions = olp::cache::OpenOptions::Default;
+  settings.eviction_policy = olp::cache::EvictionPolicy::kNone;
+
+  {
+    // Filling up cache with arbitrary data
+    settings.disk_path_mutable = cache_path_;
+
+    DefaultCacheImplHelper cache{settings};
+    ASSERT_EQ(cache.Open(), cache::DefaultCache::StorageOpenResult::Success);
+
+    boost::uuids::random_generator gen;
+    for (int i = 0; i < 100; ++i) {
+      auto data_str = boost::uuids::to_string(gen());
+      auto data = std::make_shared<cache::KeyValueCache::ValueType>(
+          data_str.begin(), data_str.end());
+      ASSERT_TRUE(cache.Put(boost::uuids::to_string(gen()), data,
+                            std::time(nullptr) * 2));
+    }
+
+    for (int i = 0; i < 3; ++i) {
+      cache.Compact();
+    }
+
+    settings.disk_path_mutable = boost::none;
+  }
+
+  const std::string ldb_ext = ".ldb";
+  const uint64_t actual_size_on_disk =
+      olp::utils::Dir::Size(cache_path_, [&](const std::string& path) {
+        // Taking into account only ldb files.
+        // Other files: lock, logs, manifest are quite small (~100KB on >1GB db)
+        if (path.length() <= ldb_ext.length()) {
+          return false;
+        }
+        return path.substr(path.length() - ldb_ext.length()) == ldb_ext;
+      });
+  ASSERT_NE(actual_size_on_disk, 0);
+
+  settings.disk_path_protected = cache_path_;
+
+  DefaultCacheImplHelper cache{settings};
+  ASSERT_EQ(cache.Open(), cache::DefaultCache::StorageOpenResult::Success);
+
+  const auto evaluated_size = cache.Size(CacheType::kProtected);
+
+  const int64_t diff = static_cast<int64_t>(actual_size_on_disk) -
+                       static_cast<int64_t>(evaluated_size);
+  const double average =
+      static_cast<double>(actual_size_on_disk + evaluated_size) / 2.0;
+  const double diff_percentage = (diff / average) * 100 /* % */;
+  const double acceptable_diff_percentage = 1.2 /* % */;
+
+  EXPECT_LT(std::fabs(diff_percentage), acceptable_diff_percentage);
 }
 
 }  // namespace

@@ -54,3 +54,6 @@ CMakeSettings.json
 
 # Android Studio
 !build.gradle*
+
+# CLion
+.idea/

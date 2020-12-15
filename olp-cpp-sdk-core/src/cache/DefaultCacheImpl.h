@@ -101,6 +101,9 @@ class DefaultCacheImpl {
   /// Returns mutable cache size, used for tests.
   uint64_t GetMutableCacheSize() const { return mutable_cache_data_size_; }
 
+  /// Returns protected cache size
+  uint64_t GetProtectedCacheSize() const;
+
   /// Gets expiry key, used for tests.
   std::string GetExpiryKey(const std::string& key) const;
 

@@ -144,6 +144,10 @@ class DiskCache {
   /// Check if cache contains data with the key.
   bool Contains(const std::string& key);
 
+  /// Gets size of the database: approximate for read-write, more-or-less
+  /// precise for read-only
+  uint64_t Size() const;
+
  private:
   /// Initialize empty db, so it can be used as protected cache.
   leveldb::Status InitializeDB(const StorageSettings& settings,

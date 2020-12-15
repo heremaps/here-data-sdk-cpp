@@ -19,10 +19,8 @@
 
 #include "DiskCache.h"
 
-#include <algorithm>
 #include <iterator>
 #include <memory>
-#include <regex>
 #include <string>
 #include <utility>
 #include <vector>
@@ -439,6 +437,13 @@ leveldb::Options DiskCache::CreateOpenOptions(const StorageSettings& settings,
   }
 
   return options;
+}
+
+uint64_t DiskCache::Size() const {
+  uint64_t result{0u};
+  leveldb::Range range{"0", "z"};
+  database_->GetApproximateSizes(&range, 1, &result);
+  return result;
 }
 
 }  // namespace cache

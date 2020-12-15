@@ -828,6 +828,10 @@ DefaultCacheImpl::GetFromDiscCache(const std::string& key) {
   return boost::none;
 }
 
+uint64_t DefaultCacheImpl::GetProtectedCacheSize() const {
+  return protected_cache_ ? protected_cache_->Size() : 0u;
+}
+
 std::string DefaultCacheImpl::GetExpiryKey(const std::string& key) const {
   return CreateExpiryKey(key);
 }
