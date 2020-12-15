@@ -82,9 +82,7 @@ class ThreadPoolTaskScheduler::QueueImpl {
 
   bool Pull(ElementType& element) { return sync_queue_.Pull(element); }
 
-  void Push(ElementType&& element) {
-    sync_queue_.Push(std::forward<ElementType>(element));
-  }
+  void Push(ElementType&& element) { sync_queue_.Push(std::move(element)); }
 
   void Close() { sync_queue_.Close(); }
 
