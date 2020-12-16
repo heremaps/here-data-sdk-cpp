@@ -57,9 +57,10 @@ ExternalProject_Add(boost-download
                         tools/boost_install
     GIT_SHALLOW         1
     SOURCE_DIR          "@CMAKE_CURRENT_BINARY_DIR@/external_boost"
+    BUILD_IN_SOURCE     1
     UPDATE_COMMAND      ""
-    CONFIGURE_COMMAND   cd "@CMAKE_CURRENT_BINARY_DIR@/external_boost" && @BOOTSTRAP_CMD@ && cd "@CMAKE_CURRENT_BINARY_DIR@/external_boost" && @B2_CMD@ headers
-    BUILD_COMMAND       ""
+    CONFIGURE_COMMAND   @BOOTSTRAP_CMD@
+    BUILD_COMMAND       @B2_CMD@ headers
     INSTALL_COMMAND     ""
     TEST_COMMAND        ""
 )
