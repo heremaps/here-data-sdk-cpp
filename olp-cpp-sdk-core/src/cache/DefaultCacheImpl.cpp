@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <memory>
 #include <string>
 #include <utility>
@@ -38,6 +39,7 @@ constexpr auto kInternalKeysPrefix = "internal::";
 constexpr auto kMaxDiskSize = std::uint64_t(-1);
 constexpr auto kMinDiskUsedThreshold = 0.85f;
 constexpr auto kMaxDiskUsedThreshold = 0.9f;
+constexpr auto kEvictionPortion = 1024u * 1024u;  // 1 MB
 
 // current epoch time contains 10 digits.
 constexpr auto kExpiryValueSize = 10;
@@ -129,7 +131,8 @@ DefaultCacheImpl::DefaultCacheImpl(CacheSettings settings)
       mutable_cache_(nullptr),
       mutable_cache_lru_(nullptr),
       protected_cache_(nullptr),
-      mutable_cache_data_size_(0) {}
+      mutable_cache_data_size_(0),
+      eviction_portion_(kEvictionPortion) {}
 
 DefaultCache::StorageOpenResult DefaultCacheImpl::Open() {
   std::lock_guard<std::mutex> lock(cache_lock_);
@@ -529,17 +532,86 @@ uint64_t DefaultCacheImpl::MaybeEvictData(leveldb::WriteBatch& batch) {
   }
 
   const auto start = std::chrono::steady_clock::now();
-  int64_t evicted = 0u;
+  int64_t left_to_evict =
+      mutable_cache_data_size_ -
+      std::llroundl(settings_.max_disk_storage * kMinDiskUsedThreshold);
+  uint64_t evicted = 0u;
   auto count = 0u;
-  const auto min_size = kMinDiskUsedThreshold * settings_.max_disk_storage;
 
+  const auto call_evict_method =
+      [&](std::function<EvictionResult(DefaultCacheImpl*, leveldb::WriteBatch&,
+                                       uint64_t)>
+              evict_method) {
+        EvictionResult eviction_result;
+        std::unique_ptr<leveldb::WriteBatch> eviction_batch = nullptr;
+        uint64_t current_eviction_target;
+
+        do {
+          // At this point left_to_evict can't be below zero.
+          current_eviction_target =
+              static_cast<uint64_t>(left_to_evict) < eviction_portion_
+                  ? left_to_evict
+                  : eviction_portion_;
+          eviction_batch = std::make_unique<leveldb::WriteBatch>();
+          eviction_result =
+              evict_method(this, *eviction_batch, current_eviction_target);
+
+          if (eviction_result.size >= eviction_portion_) {
+            // Apply intermediate batch
+            const auto apply_result =
+                mutable_cache_->ApplyBatch(std::move(eviction_batch));
+            if (!apply_result.IsSuccessful()) {
+              OLP_SDK_LOG_WARNING_F(
+                  kLogTag,
+                  "MaybeEvictData(): failed to apply batch, error_code=%d, "
+                  "error_message=%s",
+                  static_cast<int>(apply_result.GetError().GetErrorCode()),
+                  apply_result.GetError().GetMessage().c_str());
+              break;
+            }
+
+            mutable_cache_->Compact();
+          }
+
+          evicted += eviction_result.size;
+          count += eviction_result.count;
+          left_to_evict -= eviction_result.size;
+        } while (eviction_result.size >= current_eviction_target &&
+                 left_to_evict > 0);
+
+        // Append last eviction batch that is not reached eviction limit to
+        // caller's batch
+        if (eviction_batch) {
+          batch.Append(*eviction_batch);
+        }
+      };
+
+  // Evict expired data first
+  call_evict_method(std::mem_fn(&DefaultCacheImpl::EvictExpiredDataPortion));
+
+  // If after expired data eviction the desired size isn't reached yet, eviction
+  // of not expired data is required.
+  if (left_to_evict > 0) {
+    call_evict_method(std::mem_fn(&DefaultCacheImpl::EvictDataPortion));
+  }
+
+  OLP_SDK_LOG_INFO_F(kLogTag,
+                     "Evicted from mutable cache, items=%" PRId32
+                     ", time=%" PRId64 "ms, size=%" PRIu64,
+                     count, GetElapsedTime(start), evicted);
+
+  return evicted;
+}
+
+DefaultCacheImpl::EvictionResult DefaultCacheImpl::EvictExpiredDataPortion(
+    leveldb::WriteBatch& batch, uint64_t target_eviction_size) {
+  uint64_t evicted = 0u;
+  auto count = 0u;
   const auto current_time = olp::cache::InMemoryCache::DefaultTimeProvider()();
 
-  // Remove the expired elements first
-  // protected elements are not stored in lru, so do not need to check
+  // Protected elements are not stored in lru, so do not need to check
   for (auto it = mutable_cache_lru_->begin();
-       it != mutable_cache_lru_->end() &&
-       mutable_cache_data_size_ - evicted > min_size;) {
+       it != mutable_cache_lru_->end() && evicted < target_eviction_size;) {
     const auto& key = it->key();
     const auto& properties = it->value();
 
@@ -568,16 +640,29 @@ uint64_t DefaultCacheImpl::MaybeEvictData(leveldb::WriteBatch& batch) {
     it = mutable_cache_lru_->Erase(it);
   }
 
-  // Remove the other elements if needed
+  OLP_SDK_LOG_DEBUG_F(kLogTag,
+                      "EvictExpiredDataPortion(): Evicted successfully, "
+                      "count=%d, evicted=%" PRIu64,
+                      count, evicted);
+  return {count, evicted};
+}
+
+DefaultCacheImpl::EvictionResult DefaultCacheImpl::EvictDataPortion(
+    leveldb::WriteBatch& batch, uint64_t target_eviction_size) {
+  uint64_t evicted = 0u;
+  auto count = 0u;
+
+  // Protected elements are not stored in lru, so do not need to check
   for (auto it = mutable_cache_lru_->rbegin();
-       it != mutable_cache_lru_->rend() &&
-       mutable_cache_data_size_ - evicted > min_size;) {
+       it != mutable_cache_lru_->rend() && evicted < target_eviction_size;) {
     const auto& key = it->key();
     const auto& properties = it->value();
 
+    // Remove the key
     evicted += key.size() + properties.size;
     batch.Delete(key);
 
+    // Remove the key's expiry
     if (IsExpiryValid(properties.expiry)) {
       const auto expiry_key = CreateExpiryKey(key);
       evicted += expiry_key.size() + kExpiryValueSize;
@@ -594,12 +679,11 @@ uint64_t DefaultCacheImpl::MaybeEvictData(leveldb::WriteBatch& batch) {
     it = mutable_cache_lru_->rbegin();
   }
 
-  OLP_SDK_LOG_INFO_F(kLogTag,
-                     "Evicted from mutable cache, items=%" PRId32
-                     ", time=%" PRId64 "ms, size=%" PRIu64,
-                     count, GetElapsedTime(start), evicted);
-
-  return evicted;
+  OLP_SDK_LOG_DEBUG_F(
+      kLogTag,
+      "EvictDataPortion(): Evicted successfully, count=%u, evicted=%" PRIu64,
+      count, evicted);
+  return {count, evicted};
 }
 
 int64_t DefaultCacheImpl::MaybeUpdatedProtectedKeys(
@@ -911,6 +995,50 @@ time_t DefaultCacheImpl::GetExpiryForMemoryCache(const std::string& key,
     return KeyValueCache::kDefaultExpiry;
   }
   return expiry;
+}
+
+void DefaultCacheImpl::SetEvictionPortion(uint64_t size) {
+  eviction_portion_ = size;
+}
+
+uint64_t DefaultCacheImpl::Size(CacheType type) const {
+  if (type == CacheType::kMutable) {
+    return mutable_cache_data_size_;
+  }
+
+  // Protected size calculation will be added later
+  return 0u;
+}
+
+uint64_t DefaultCacheImpl::Size(uint64_t new_size) {
+  std::lock_guard<std::mutex> lock(cache_lock_);
+
+  if (!is_open_ || !mutable_cache_ || !mutable_cache_lru_) {
+    return 0u;
+  }
+
+  // Increase max size
+  if (new_size >= settings_.max_disk_storage) {
+    settings_.max_disk_storage = new_size;
+    return 0u;
+  }
+
+  settings_.max_disk_storage = new_size;
+  auto batch = std::make_unique<leveldb::WriteBatch>();
+  const auto evicted = MaybeEvictData(*batch);
+  const auto apply_result = mutable_cache_->ApplyBatch(std::move(batch));
+  if (!apply_result.IsSuccessful()) {
+    OLP_SDK_LOG_WARNING_F(
+        kLogTag,
+        "Size(): failed to apply batch, error_code=%d, "
+        "error_message=%s",
+        static_cast<int>(apply_result.GetError().GetErrorCode()),
+        apply_result.GetError().GetMessage().c_str());
+  }
+
+  mutable_cache_data_size_ -= evicted;
+  mutable_cache_->Compact();
+  return evicted;
 }
 }  // namespace cache
 }  // namespace olp

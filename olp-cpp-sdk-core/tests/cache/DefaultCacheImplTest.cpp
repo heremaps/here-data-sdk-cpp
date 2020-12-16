@@ -82,8 +82,6 @@ class DefaultCacheImplHelper : public cache::DefaultCacheImpl {
     return disk_cache->Get(key) != boost::none;
   }
 
-  uint64_t Size() const { return GetMutableCacheSize(); }
-
   uint64_t CalculateExpirySize(const std::string& key) const {
     const auto expiry_key = GetExpiryKey(key);
     const auto& disk_cache = GetCache(CacheType::kMutable);
@@ -115,6 +113,10 @@ class DefaultCacheImplHelper : public cache::DefaultCacheImpl {
     }
 
     return lru_cache->end();
+  }
+
+  void SetEvictionPortion(uint64_t size) {
+    cache::DefaultCacheImpl::SetEvictionPortion(size);
   }
 };
 
@@ -342,6 +344,7 @@ TEST_F(DefaultCacheImplTest, LruCacheRemove) {
     EXPECT_FALSE(cache.ContainsLru(key2));
   }
 }
+
 TEST_F(DefaultCacheImplTest, MutableCacheExpired) {
   const std::string key1{"somekey1"};
   const std::string key2{"somekey2"};
@@ -451,13 +454,13 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
               (std::numeric_limits<time_t>::max)());
     auto data_size = key1.size() + data_string.size();
 
-    EXPECT_EQ(data_size, cache.Size());
+    EXPECT_EQ(data_size, cache.Size(CacheType::kMutable));
 
     cache.Put(key2, data_string, [=]() { return data_string; }, expiry);
     data_size +=
         key2.size() + data_string.size() + cache.CalculateExpirySize(key2);
 
-    EXPECT_EQ(data_size, cache.Size());
+    EXPECT_EQ(data_size, cache.Size(CacheType::kMutable));
   }
 
   {
@@ -471,13 +474,13 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
     cache.Put(key1, data_ptr, (std::numeric_limits<time_t>::max)());
     auto data_size = key1.size() + binary_data.size();
 
-    EXPECT_EQ(data_size, cache.Size());
+    EXPECT_EQ(data_size, cache.Size(CacheType::kMutable));
 
     cache.Put(key2, data_ptr, expiry);
     data_size +=
         key2.size() + binary_data.size() + cache.CalculateExpirySize(key2);
 
-    EXPECT_EQ(data_size, cache.Size());
+    EXPECT_EQ(data_size, cache.Size(CacheType::kMutable));
   }
 
   {
@@ -495,7 +498,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
     cache.Remove(key2);
     cache.Remove(invalid_key);
 
-    EXPECT_EQ(0u, cache.Size());
+    EXPECT_EQ(0u, cache.Size(CacheType::kMutable));
   }
 
   {
@@ -512,7 +515,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
     cache.Remove(key2);
     cache.Remove(invalid_key);
 
-    EXPECT_EQ(0u, cache.Size());
+    EXPECT_EQ(0u, cache.Size(CacheType::kMutable));
   }
 
   {
@@ -531,7 +534,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
     cache.RemoveKeysWithPrefix(invalid_key);
     cache.RemoveKeysWithPrefix("some");
 
-    EXPECT_EQ(data_size, cache.Size());
+    EXPECT_EQ(data_size, cache.Size(CacheType::kMutable));
   }
 
   {
@@ -547,7 +550,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
     cache.Get(key1);
     cache.Get(key2, [](const std::string& value) { return value; });
 
-    EXPECT_EQ(0, cache.Size());
+    EXPECT_EQ(0, cache.Size(CacheType::kMutable));
   }
 
   {
@@ -565,13 +568,13 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
               (std::numeric_limits<time_t>::max)());
     const auto data_size = key.size() + data_string.size();
     cache.Close();
-    EXPECT_EQ(0u, cache.Size());
+    EXPECT_EQ(0u, cache.Size(CacheType::kMutable));
 
     cache.Open();
-    EXPECT_EQ(data_size, cache.Size());
+    EXPECT_EQ(data_size, cache.Size(CacheType::kMutable));
 
     cache.Clear();
-    EXPECT_EQ(0u, cache.Size());
+    EXPECT_EQ(0u, cache.Size(CacheType::kMutable));
   }
 
   {
@@ -613,7 +616,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
                   (std::numeric_limits<time_t>::max)());
     EXPECT_FALSE(result);
     EXPECT_TRUE(total_size < settings.max_disk_storage);
-    EXPECT_EQ(total_size, cache.Size());
+    EXPECT_EQ(total_size, cache.Size(CacheType::kMutable));
 
     cache.Remove(prefix + std::to_string(count - 1));
     cache.Remove(prefix + std::to_string(count - 2));
@@ -623,7 +626,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
                   (std::numeric_limits<time_t>::max)());
 
     EXPECT_TRUE(result);
-    EXPECT_TRUE(total_size > cache.Size());
+    EXPECT_TRUE(total_size > cache.Size(CacheType::kMutable));
   }
 }
 
@@ -1161,4 +1164,88 @@ TEST_F(DefaultCacheImplTest, OpenTypeCache) {
   }
 }
 
+TEST_F(DefaultCacheImplTest, SetMaxMutableSize) {
+  cache::CacheSettings settings;
+  settings.max_disk_storage = 2000;
+  settings.disk_path_mutable = cache_path_;
+  DefaultCacheImplHelper cache(settings);
+  cache.SetEvictionPortion(85);
+  cache.Open();
+  cache.Clear();
+
+  std::vector<uint64_t> sizes;
+  uint64_t total_size = 0;
+
+  {
+    SCOPED_TRACE("Fill the cache with data");
+
+    for (auto i = 0; i < 15; i++) {
+      const auto key = std::string("key_") + std::to_string(i);
+      auto binary_data = std::vector<unsigned char>(i, i);
+
+      // Create some elements with expiration, and some without
+      time_t expiry = 1;
+      if (i < 10) {
+        expiry = std::numeric_limits<time_t>::max();
+      }
+
+      cache.Put(key, std::make_shared<std::vector<unsigned char>>(binary_data),
+                expiry);
+
+      const auto size =
+          key.size() + binary_data.size() + cache.CalculateExpirySize(key);
+      sizes.push_back(size);
+      total_size += size;
+    }
+
+    ASSERT_EQ(cache.Size(CacheType::kMutable), total_size);
+  }
+
+  {
+    SCOPED_TRACE("Decrease without eviction");
+
+    EXPECT_EQ(cache.Size(1000), 0);
+    EXPECT_EQ(cache.Size(CacheType::kMutable), total_size);
+  }
+
+  {
+    SCOPED_TRACE("Decrease with eviction");
+
+    // Wait for data expiration
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+
+    // Eviction process:
+    // - elements [10; 14] must be evicted due to expiration;
+    // - elements [0; 6] must be evicted due to LRU policy.
+    // Elements [7; 9] must stay in the cache
+    uint64_t left_size = 0;
+    for (auto i = 7; i <= 9; i++) {
+      left_size += sizes[i];
+    }
+
+    const auto new_max_size = 50;
+    const auto max_disk_used_threshold = 0.85;
+    EXPECT_EQ(cache.Size(new_max_size), total_size - left_size);
+    EXPECT_EQ(cache.Size(CacheType::kMutable), left_size);
+    EXPECT_LE(cache.Size(CacheType::kMutable),
+              new_max_size * max_disk_used_threshold);
+  }
+
+  {
+    SCOPED_TRACE("Increase cache size");
+
+    total_size = cache.Size(CacheType::kMutable);
+    EXPECT_EQ(cache.Size(1000), 0);
+    EXPECT_EQ(cache.Size(CacheType::kMutable), total_size);
+
+    const auto key = std::string("new_key");
+    auto binary_data = std::vector<unsigned char>(500, 'a');
+    cache.Put(key, std::make_shared<std::vector<unsigned char>>(binary_data),
+              1);
+    const auto new_item_size =
+        key.size() + binary_data.size() + cache.CalculateExpirySize(key);
+
+    EXPECT_EQ(cache.Size(CacheType::kMutable), total_size + new_item_size);
+  }
+}
 }  // namespace
