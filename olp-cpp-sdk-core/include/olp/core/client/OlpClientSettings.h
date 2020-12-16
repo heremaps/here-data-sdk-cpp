@@ -193,7 +193,7 @@ struct CORE_API RetrySettings {
   /**
    * @brief The backdown strategy.
    *
-   * Calculates the number of retry timeouts for failed requests.
+   * Defines the delay between retries on a failed request.
    */
   BackdownStrategy backdown_strategy = ExponentialBackdownStrategy();
 

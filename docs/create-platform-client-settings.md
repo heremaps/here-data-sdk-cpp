@@ -24,7 +24,7 @@ You need to create the `OlpClientSettings` object to get catalog and partition m
 3. To configure the handling of failed requests, create the `RetrySettings` object with the following parameters:
 
    - `retry_condition` – the HTTP status codes that you want to retry.
-   - `backdown_strategy` – the number of retry timeouts for failed requests.
+   - `backdown_strategy` – the delay between retries.
    - `max_attempts` – the number of attempts.
    - `timeout` – the connection timeout limit (in seconds).
    - `initial_backdown_period` – the period between the error and the first retry attempt (in milliseconds).
