@@ -64,21 +64,26 @@ class PrefetchTilesHelper {
     OLP_SDK_LOG_DEBUG_F("PrefetchJob", "Starting queries, requests=%zu",
                         roots.size());
 
-    execution_context.ExecuteOrCancelled([&]() {
-      VectorOfTokens tokens;
-      std::transform(std::begin(roots), std::end(roots),
-                     std::back_inserter(tokens), [&](geo::TileKey root) {
-                       return task_sink.AddTask(
-                           [=](client::CancellationContext context) {
-                             return query_job->Query(root, context);
-                           },
-                           [=](repository::SubQuadsResponse response) {
-                             query_job->CompleteQuery(std::move(response));
-                           },
-                           priority);
-                     });
-      return CreateToken(std::move(tokens));
-    });
+    execution_context.ExecuteOrCancelled(
+        [&]() {
+          VectorOfTokens tokens;
+          std::transform(std::begin(roots), std::end(roots),
+                         std::back_inserter(tokens), [&](geo::TileKey root) {
+                           return task_sink.AddTask(
+                               [=](client::CancellationContext context) {
+                                 return query_job->Query(root, context);
+                               },
+                               [=](repository::SubQuadsResponse response) {
+                                 query_job->CompleteQuery(std::move(response));
+                               },
+                               priority);
+                         });
+          return CreateToken(std::move(tokens));
+        },
+        [&]() {
+          download_job->OnPrefetchCompleted(
+              {{client::ErrorCode::Cancelled, "Cancelled"}});
+        });
 
     return client::CancellationToken(
         [execution_context]() mutable { execution_context.CancelOperation(); });

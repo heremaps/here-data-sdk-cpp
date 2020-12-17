@@ -66,32 +66,38 @@ class PrefetchPartitionsHelper {
     OLP_SDK_LOG_DEBUG_F("PrefetchJob", "Starting queries, requests=%zu",
                         roots.size());
 
-    execution_context.ExecuteOrCancelled([&]() {
-      VectorOfTokens tokens;
-      tokens.reserve(query_size);
+    execution_context.ExecuteOrCancelled(
+        [&]() {
+          VectorOfTokens tokens;
+          tokens.reserve(query_size);
 
-      // split items to blocks
-      auto size_left = roots.size();
-      auto start = 0u;
-      while (size_left > start) {
-        auto size = std::min(query_max_size, size_left - start);
-        auto query_element = std::vector<std::string>(
-            roots.begin() + start, roots.begin() + start + size);
+          // split items to blocks
+          auto size_left = roots.size();
+          auto start = 0u;
+          while (size_left > start) {
+            auto size = std::min(query_max_size, size_left - start);
+            auto query_element = std::vector<std::string>(
+                roots.begin() + start, roots.begin() + start + size);
 
-        tokens.emplace_back(task_sink.AddTask(
-            [query_element, query_job](client::CancellationContext context) {
-              return query_job->Query(std::move(query_element), context);
-            },
-            [query_job](PartitionsDataHandleExtendedResponse response) {
-              query_job->CompleteQuery(std::move(response));
-            },
-            priority));
+            tokens.emplace_back(task_sink.AddTask(
+                [query_element,
+                 query_job](client::CancellationContext context) {
+                  return query_job->Query(std::move(query_element), context);
+                },
+                [query_job](PartitionsDataHandleExtendedResponse response) {
+                  query_job->CompleteQuery(std::move(response));
+                },
+                priority));
 
-        start += size;
-      }
+            start += size;
+          }
 
-      return CreateToken(std::move(tokens));
-    });
+          return CreateToken(std::move(tokens));
+        },
+        [&]() {
+          download_job->OnPrefetchCompleted(
+              {{client::ErrorCode::Cancelled, "Cancelled"}});
+        });
 
     return client::CancellationToken(
         [execution_context]() mutable { execution_context.CancelOperation(); });
