@@ -271,7 +271,7 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
           }
         };
 
-        context.ExecuteOrCancelled([&]() {
+        bool prefetch_triggered = context.ExecuteOrCancelled([&]() {
           auto download_job =
               std::make_shared<PrefetchTilesHelper::DownloadJob>(
                   std::move(download), std::move(append_result),
@@ -281,7 +281,11 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
               std::move(filter), task_sink_, request.GetPriority());
         });
 
-        return EmptyResponse(PrefetchTileNoError());
+        if (prefetch_triggered) {
+          return EmptyResponse(PrefetchTileNoError());
+        } else {
+          return client::ApiError(client::ErrorCode::Cancelled, "Canceled");
+        }
       },
       // Because the handling of prefetch tiles responses is performed by the
       // inner-task, no need to set a callback here. Otherwise, the user would
