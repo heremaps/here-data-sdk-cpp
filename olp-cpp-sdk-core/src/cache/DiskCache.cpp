@@ -414,10 +414,14 @@ bool DiskCache::RemoveKeysWithPrefix(const std::string& prefix,
 
 leveldb::Status DiskCache::InitializeDB(const StorageSettings& settings,
                                         const std::string& path) const {
+  // NOTE: FilterPolicy should be deleted after DB
+  std::unique_ptr<const leveldb::FilterPolicy> filter_policy;
   std::unique_ptr<leveldb::DB> database;
   leveldb::DB* db = nullptr;
 
   auto open_options = CreateOpenOptions(settings, false);
+  filter_policy.reset(open_options.filter_policy);
+
   auto status = leveldb::DB::Open(open_options, path, &db);
   database.reset(db);
 
