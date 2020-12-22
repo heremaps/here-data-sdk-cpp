@@ -84,13 +84,6 @@ class DefaultCacheImplHelper : public cache::DefaultCacheImpl {
     return disk_cache->Get(key) != boost::none;
   }
 
-  uint64_t Size(CacheType cache_type) const {
-    if (cache_type == CacheType::kMutable) {
-      return GetMutableCacheSize();
-    }
-    return GetProtectedCacheSize();
-  }
-
   uint64_t CalculateExpirySize(const std::string& key) const {
     const auto expiry_key = GetExpiryKey(key);
     const auto& disk_cache = GetCache(CacheType::kMutable);

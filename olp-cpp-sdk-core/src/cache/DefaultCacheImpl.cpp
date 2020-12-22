@@ -912,10 +912,6 @@ DefaultCacheImpl::GetFromDiscCache(const std::string& key) {
   return boost::none;
 }
 
-uint64_t DefaultCacheImpl::GetProtectedCacheSize() const {
-  return protected_cache_ ? protected_cache_->Size() : 0u;
-}
-
 std::string DefaultCacheImpl::GetExpiryKey(const std::string& key) const {
   return CreateExpiryKey(key);
 }
@@ -1010,8 +1006,7 @@ uint64_t DefaultCacheImpl::Size(CacheType type) const {
     return mutable_cache_data_size_;
   }
 
-  // Protected size calculation will be added later
-  return 0u;
+  return protected_cache_ ? protected_cache_->Size() : 0;
 }
 
 uint64_t DefaultCacheImpl::Size(uint64_t new_size) {
