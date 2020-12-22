@@ -51,6 +51,7 @@ html/
 # Visual Studio
 .vs/
 CMakeSettings.json
+.devcontainer/
 
 # Android Studio
 !build.gradle*

@@ -67,6 +67,9 @@ class DefaultCacheImpl {
   bool Release(const DefaultCache::KeyListType& keys);
   bool IsProtected(const std::string& key) const;
 
+  uint64_t Size(DefaultCache::CacheType type) const;
+  uint64_t Size(uint64_t new_size);
+
  protected:
   /// The LRU value property.
   struct ValueProperties {
@@ -107,9 +110,21 @@ class DefaultCacheImpl {
   /// Gets expiry key, used for tests.
   std::string GetExpiryKey(const std::string& key) const;
 
+  /// Sets exiction portion, used for tests.
+  void SetEvictionPortion(uint64_t size);
+
  private:
+  /// Represents intermediate eviction result.
+  struct EvictionResult {
+    /// Number of evicted elements.
+    unsigned count;
+    /// The size of evicted elements.
+    uint64_t size;
+  };
+
   /// Add single key to LRU.
   bool AddKeyLru(std::string key, const leveldb::Slice& value);
+
   /// Initializes LRU mutable cache if possible.
   void InitializeLru();
 
@@ -125,6 +140,19 @@ class DefaultCacheImpl {
 
   /// Returns evicted data size.
   uint64_t MaybeEvictData(leveldb::WriteBatch& batch);
+
+  /// Returns number of evicted elements, evicted data size and a flag indicatin
+  /// if eviction limit reached. If the flag is true, another
+  /// EvictExpiredDataPortion call is needed to continue eviction.
+  EvictionResult EvictExpiredDataPortion(leveldb::WriteBatch& batch,
+                                         uint64_t target_eviction_size);
+
+  /// Returns number of evicted elements, evicted data size and a flag indicatin
+  /// if eviction limit reached. If the flag is true, another EvictDataPortion
+  /// call is needed to continue eviction.
+  /// To be used when all expired data already evicted and it is not enough.
+  EvictionResult EvictDataPortion(leveldb::WriteBatch& batch,
+                                  uint64_t target_eviction_size);
 
   /// Returns changed data size.
   int64_t MaybeUpdatedProtectedKeys(leveldb::WriteBatch& batch);
@@ -158,6 +186,7 @@ class DefaultCacheImpl {
   uint64_t mutable_cache_data_size_;
   ProtectedKeyList protected_keys_;
   mutable std::mutex cache_lock_;
+  uint64_t eviction_portion_;
 };
 
 }  // namespace cache

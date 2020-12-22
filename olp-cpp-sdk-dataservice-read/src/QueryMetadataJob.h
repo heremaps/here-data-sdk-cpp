@@ -140,34 +140,40 @@ class QueryMetadataJob {
 
       bool all_download_tasks_triggered = true;
 
-      execution_context_.ExecuteOrCancelled([&]() {
-        VectorOfTokens tokens;
-        std::transform(
-            std::begin(query_result_), std::end(query_result_),
-            std::back_inserter(tokens),
-            [&](const typename QueryResponseType::ResultType::value_type&
-                    item) {
-              const std::string& data_handle = item.second;
-              const auto& item_key = item.first;
+      execution_context_.ExecuteOrCancelled(
+          [&]() {
+            VectorOfTokens tokens;
+            std::transform(
+                std::begin(query_result_), std::end(query_result_),
+                std::back_inserter(tokens),
+                [&](const typename QueryResponseType::ResultType::value_type&
+                        item) {
+                  const std::string& data_handle = item.second;
+                  const auto& item_key = item.first;
 
-              auto result = task_sink_.AddTaskChecked(
-                  [=](client::CancellationContext context) {
-                    return download_job->Download(data_handle, context);
-                  },
-                  [=](ExtendedDataResponse response) {
-                    download_job->CompleteItem(item_key, std::move(response));
-                  },
-                  priority_);
+                  auto result = task_sink_.AddTaskChecked(
+                      [=](client::CancellationContext context) {
+                        return download_job->Download(data_handle, context);
+                      },
+                      [=](ExtendedDataResponse response) {
+                        download_job->CompleteItem(item_key,
+                                                   std::move(response));
+                      },
+                      priority_);
 
-              if (result) {
-                return *result;
-              }
+                  if (result) {
+                    return *result;
+                  }
 
-              all_download_tasks_triggered = false;
-              return client::CancellationToken();
-            });
-        return CreateToken(std::move(tokens));
-      });
+                  all_download_tasks_triggered = false;
+                  return client::CancellationToken();
+                });
+            return CreateToken(std::move(tokens));
+          },
+          [&]() {
+            download_job->OnPrefetchCompleted(
+                {{client::ErrorCode::Cancelled, "Cancelled"}});
+          });
 
       if (!all_download_tasks_triggered) {
         execution_context_.CancelOperation();

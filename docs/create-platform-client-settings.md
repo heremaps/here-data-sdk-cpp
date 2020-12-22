@@ -21,9 +21,33 @@ You need to create the `OlpClientSettings` object to get catalog and partition m
    > #### Note
    > The `Network` client is designed and intended to be shared.
 
-3. [Authenticate](authenticate.md) to the HERE platform.
+3. To configure the handling of failed requests, create the `RetrySettings` object with the following parameters:
 
-4. (Optional) For data that is stored in the cache, to add expiration limit, set the `default_cache_expiration` to the needed expiration time.
+   - `retry_condition` – the HTTP status codes that you want to retry.
+   - `backdown_strategy` – the delay between retries.
+   - `max_attempts` – the number of attempts.
+   - `timeout` – the connection timeout limit (in seconds).
+   - `initial_backdown_period` – the period between the error and the first retry attempt (in milliseconds).
+
+   > #### Note
+   > We recommend that your application includes retry logic for handling HTTP 429 and 5xx errors. Use exponential backoff in the retry logic.
+
+   ```cpp
+   olp::client::RetrySettings retry_settings;
+   retry_settings.retry_condition =
+         [](const olp::client::HttpResponse& response) {
+            return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
+            };
+   retry_settings.backdown_strategy = ExponentialBackdownStrategy();
+   retry_settings.max_attempts = 3;
+   retry_settings.timeout = 60;
+   retry_settings.initial_backdown_period = 200;
+   };
+   ```
+
+4. [Authenticate](authenticate.md) to the HERE platform.
+
+5. (Optional) For data that is stored in the cache, to add expiration limit, set the `default_cache_expiration` to the needed expiration time.
 
    By default, expiration is disabled.
 
@@ -34,13 +58,14 @@ You need to create the `OlpClientSettings` object to get catalog and partition m
    std::chrono::seconds default_cache_expiration = std::chrono::seconds(200);
    ```
 
-5. Set up the `OlpClientSettings` object.
+6. Set up the `OlpClientSettings` object.
 
    ```cpp
    olp::client::OlpClientSettings client_settings;
    client_settings.authentication_settings = auth_settings;
    client_settings.task_scheduler = task_scheduler;
    client_settings.network_request_handler = http_client;
+   client_settings.retry_settings = retry_settings;
    client_settings.cache =
        olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
    client_settings.default_cache_expiration = std::chrono::seconds(200);

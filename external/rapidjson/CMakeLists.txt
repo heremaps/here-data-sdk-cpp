@@ -20,7 +20,7 @@
 
 configure_file(CMakeLists.txt.rapidjson.in download/CMakeLists.txt)
 
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" . ${COMMON_GENERATE_FLAGS}
   RESULT_VARIABLE result
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/download)
 if(result)

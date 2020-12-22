@@ -123,6 +123,10 @@ class DefaultCacheImplHelper : public cache::DefaultCacheImpl {
 
     return lru_cache->end();
   }
+
+  void SetEvictionPortion(uint64_t size) {
+    cache::DefaultCacheImpl::SetEvictionPortion(size);
+  }
 };
 
 TEST_F(DefaultCacheImplTest, LruCache) {
@@ -349,6 +353,7 @@ TEST_F(DefaultCacheImplTest, LruCacheRemove) {
     EXPECT_FALSE(cache.ContainsLru(key2));
   }
 }
+
 TEST_F(DefaultCacheImplTest, MutableCacheExpired) {
   const std::string key1{"somekey1"};
   const std::string key2{"somekey2"};
@@ -1168,6 +1173,91 @@ TEST_F(DefaultCacheImplTest, OpenTypeCache) {
   }
 }
 
+TEST_F(DefaultCacheImplTest, SetMaxMutableSize) {
+  cache::CacheSettings settings;
+  settings.max_disk_storage = 2000;
+  settings.disk_path_mutable = cache_path_;
+  DefaultCacheImplHelper cache(settings);
+  cache.SetEvictionPortion(85);
+  cache.Open();
+  cache.Clear();
+
+  std::vector<uint64_t> sizes;
+  uint64_t total_size = 0;
+
+  {
+    SCOPED_TRACE("Fill the cache with data");
+
+    for (auto i = 0; i < 15; i++) {
+      const auto key = std::string("key_") + std::to_string(i);
+      auto binary_data = std::vector<unsigned char>(i, i);
+
+      // Create some elements with expiration, and some without
+      time_t expiry = 1;
+      if (i < 10) {
+        expiry = std::numeric_limits<time_t>::max();
+      }
+
+      cache.Put(key, std::make_shared<std::vector<unsigned char>>(binary_data),
+                expiry);
+
+      const auto size =
+          key.size() + binary_data.size() + cache.CalculateExpirySize(key);
+      sizes.push_back(size);
+      total_size += size;
+    }
+
+    ASSERT_EQ(cache.Size(CacheType::kMutable), total_size);
+  }
+
+  {
+    SCOPED_TRACE("Decrease without eviction");
+
+    EXPECT_EQ(cache.Size(1000), 0);
+    EXPECT_EQ(cache.Size(CacheType::kMutable), total_size);
+  }
+
+  {
+    SCOPED_TRACE("Decrease with eviction");
+
+    // Wait for data expiration
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+
+    // Eviction process:
+    // - elements [10; 14] must be evicted due to expiration;
+    // - elements [0; 6] must be evicted due to LRU policy.
+    // Elements [7; 9] must stay in the cache
+    uint64_t left_size = 0;
+    for (auto i = 7; i <= 9; i++) {
+      left_size += sizes[i];
+    }
+
+    const auto new_max_size = 50;
+    const auto max_disk_used_threshold = 0.85;
+    EXPECT_EQ(cache.Size(new_max_size), total_size - left_size);
+    EXPECT_EQ(cache.Size(CacheType::kMutable), left_size);
+    EXPECT_LE(cache.Size(CacheType::kMutable),
+              new_max_size * max_disk_used_threshold);
+  }
+
+  {
+    SCOPED_TRACE("Increase cache size");
+
+    total_size = cache.Size(CacheType::kMutable);
+    EXPECT_EQ(cache.Size(1000), 0);
+    EXPECT_EQ(cache.Size(CacheType::kMutable), total_size);
+
+    const auto key = std::string("new_key");
+    auto binary_data = std::vector<unsigned char>(500, 'a');
+    cache.Put(key, std::make_shared<std::vector<unsigned char>>(binary_data),
+              1);
+    const auto new_item_size =
+        key.size() + binary_data.size() + cache.CalculateExpirySize(key);
+
+    EXPECT_EQ(cache.Size(CacheType::kMutable), total_size + new_item_size);
+  }
+}
+
 TEST_F(DefaultCacheImplTest, ProtectedCacheSize) {
   cache::CacheSettings settings;
   settings.max_disk_storage = std::uint64_t(-1);
@@ -1226,5 +1316,4 @@ TEST_F(DefaultCacheImplTest, ProtectedCacheSize) {
 
   EXPECT_LT(std::fabs(diff_percentage), acceptable_diff_percentage);
 }
-
 }  // namespace
