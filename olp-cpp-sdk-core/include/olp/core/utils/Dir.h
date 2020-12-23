@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <functional>
 #include <string>
 
 #include <olp/core/CoreApi.h>
@@ -28,6 +29,9 @@ namespace utils {
 
 class CORE_API Dir {
  public:
+  /// Alias for filter function.
+  using FilterFunction = std::function<bool(const std::string&)>;
+
   /**
    * @brief Checks if directory exists.
    *
@@ -105,6 +109,17 @@ class CORE_API Dir {
    * @return \c true if any file with the given path exists, \c false otherwise.
    */
   static bool FileExists(const std::string& file_path);
+
+  /**
+   * @brief Calculates size of the directory. Filter may be applied to exclude
+   * unnecessary files or directories from calculation.
+   *
+   * @param path Path of the directory.
+   * @param filter_fn Filter function.
+   *
+   * @return Calculated size.
+   */
+  static uint64_t Size(const std::string& path, FilterFunction filter_fn = {});
 };
 
 }  // namespace utils

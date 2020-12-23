@@ -22,6 +22,8 @@
 
 #include <cache/DefaultCacheImpl.h>
 #include <olp/core/utils/Dir.h>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include "Helpers.h"
 
@@ -1247,5 +1249,64 @@ TEST_F(DefaultCacheImplTest, SetMaxMutableSize) {
 
     EXPECT_EQ(cache.Size(CacheType::kMutable), total_size + new_item_size);
   }
+}
+
+TEST_F(DefaultCacheImplTest, ProtectedCacheSize) {
+  cache::CacheSettings settings;
+  settings.max_disk_storage = std::uint64_t(-1);
+  settings.max_memory_cache_size = 0;
+  settings.openOptions = olp::cache::OpenOptions::Default;
+  settings.eviction_policy = olp::cache::EvictionPolicy::kNone;
+
+  {
+    // Filling up cache with arbitrary data
+    settings.disk_path_mutable = cache_path_;
+
+    DefaultCacheImplHelper cache{settings};
+    ASSERT_EQ(cache.Open(), cache::DefaultCache::StorageOpenResult::Success);
+
+    boost::uuids::random_generator gen;
+    for (int i = 0; i < 100; ++i) {
+      auto data_str = boost::uuids::to_string(gen());
+      auto data = std::make_shared<cache::KeyValueCache::ValueType>(
+          data_str.begin(), data_str.end());
+      ASSERT_TRUE(cache.Put(boost::uuids::to_string(gen()), data,
+                            std::time(nullptr) * 2));
+    }
+
+    for (int i = 0; i < 3; ++i) {
+      cache.Compact();
+    }
+
+    settings.disk_path_mutable = boost::none;
+  }
+
+  const std::string ldb_ext = ".ldb";
+  const uint64_t actual_size_on_disk =
+      olp::utils::Dir::Size(cache_path_, [&](const std::string& path) {
+        // Taking into account only ldb files.
+        // Other files: lock, logs, manifest are quite small (~100KB on >1GB db)
+        if (path.length() <= ldb_ext.length()) {
+          return false;
+        }
+        return path.substr(path.length() - ldb_ext.length()) == ldb_ext;
+      });
+  ASSERT_NE(actual_size_on_disk, 0);
+
+  settings.disk_path_protected = cache_path_;
+
+  DefaultCacheImplHelper cache{settings};
+  ASSERT_EQ(cache.Open(), cache::DefaultCache::StorageOpenResult::Success);
+
+  const auto evaluated_size = cache.Size(CacheType::kProtected);
+
+  const int64_t diff = static_cast<int64_t>(actual_size_on_disk) -
+                       static_cast<int64_t>(evaluated_size);
+  const double average =
+      static_cast<double>(actual_size_on_disk + evaluated_size) / 2.0;
+  const double diff_percentage = (diff / average) * 100 /* % */;
+  const double acceptable_diff_percentage = 1.2 /* % */;
+
+  EXPECT_LT(std::fabs(diff_percentage), acceptable_diff_percentage);
 }
 }  // namespace

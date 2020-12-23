@@ -104,7 +104,7 @@ class DefaultCacheImpl {
   /// Gets expiry key, used for tests.
   std::string GetExpiryKey(const std::string& key) const;
 
-  /// Sets exiction portion, used for tests.
+  /// Sets eviction portion, used for tests.
   void SetEvictionPortion(uint64_t size);
 
  private:
