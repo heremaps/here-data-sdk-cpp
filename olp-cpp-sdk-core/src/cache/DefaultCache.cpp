@@ -83,5 +83,11 @@ bool DefaultCache::IsProtected(const std::string& key) const {
   return impl_->IsProtected(key);
 }
 
+uint64_t DefaultCache::Size(CacheType cache_type) const {
+  return impl_->Size(cache_type);
+}
+
+uint64_t DefaultCache::Size(uint64_t new_size) { return impl_->Size(new_size); }
+
 }  // namespace cache
 }  // namespace olp

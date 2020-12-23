@@ -242,6 +242,27 @@ class CORE_API DefaultCache : public KeyValueCache {
    */
   bool IsProtected(const std::string& key) const override;
 
+  /**
+   * @brief Gets size of the corresponding cache.
+   *
+   * @param cache_type The type of a cache.
+   *
+   * @return Size of the corresponding cache.
+   */
+  uint64_t Size(CacheType cache_type) const;
+
+  /**
+   * @brief Sets maximum size for the mutable cache. Evict data that exceeds
+   * new maximum size.
+   *
+   * @param new_size The new maximum size.
+   *
+   * @return The size of the evicted data. If no data evicted return 0u.
+   *
+   * @note Currently this operation may take a lot of time and RAM to finish.
+   */
+  uint64_t Size(uint64_t new_size);
+
  private:
   std::shared_ptr<DefaultCacheImpl> impl_;
 };
