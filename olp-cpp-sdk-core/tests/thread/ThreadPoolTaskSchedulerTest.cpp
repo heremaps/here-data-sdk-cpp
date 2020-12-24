@@ -247,3 +247,35 @@ TEST(ThreadPoolTaskSchedulerTest, SamePrioritySequence) {
 
   testing::Mock::VerifyAndClearExpectations(&mockop);
 }
+
+TEST(ThreadPoolTaskSchedulerTest, Move) {
+  // The test goal is to check tasks added to the scheduler are moved and not
+  // copied
+  auto thread_pool = std::make_shared<ThreadPool>(1);
+  TaskScheduler& scheduler = *thread_pool;
+
+  // Helper to mock move and copy constructors
+  struct MockOp {
+    MOCK_METHOD(void, Copy, ());
+    MOCK_METHOD(void, Move, ());
+  } mockop;
+
+  struct MovableObj {
+    MovableObj(MockOp& op) : mockop(op) {}
+    MovableObj(MovableObj&& obj) : mockop(obj.mockop) { mockop.Move(); }
+    MovableObj(const MovableObj& obj) : mockop(obj.mockop) { mockop.Copy(); }
+
+    MockOp& mockop;
+  } object(mockop);
+
+  EXPECT_CALL(mockop, Copy()).Times(0);
+  EXPECT_CALL(mockop, Move()).Times(testing::AtLeast(2));
+
+  auto task = std::bind([](MovableObj&) {}, std::move(object));
+  scheduler.ScheduleTask(std::move(task));
+
+  // Close queue and join threads.
+  // SyncQueue and threads join should be done in destructor.
+  thread_pool.reset();
+  testing::Mock::VerifyAndClearExpectations(&mockop);
+}

@@ -74,7 +74,7 @@ TEST(PriorityQueueExtendedTest, BasicFunctionality) {
     thread::PriorityQueueExtended<std::string> queue;
     queue.push(std::move(value));
 
-    EXPECT_FALSE(value.empty());
+    EXPECT_TRUE(value.empty());
     ASSERT_FALSE(queue.empty());
     EXPECT_FALSE(queue.front().empty());
   }

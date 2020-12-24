@@ -89,7 +89,8 @@ class PriorityQueueExtended<T, COMPARE>::PriorityQueueExtendedImpl {
     DistinguishableObject(std::uint32_t id, Args... args)
         : id(id), obj(args...) {}
     DistinguishableObject(std::uint32_t id, const T& obj) : id(id), obj(obj) {}
-    DistinguishableObject(std::uint32_t id, T&& obj) : id(id), obj(obj) {}
+    DistinguishableObject(std::uint32_t id, T&& obj)
+        : id(id), obj(std::move(obj)) {}
 
     std::uint32_t id;
     T obj;
@@ -137,7 +138,7 @@ void PriorityQueueExtended<T, COMPARE>::push(const T& value) {
 
 template <class T, class COMPARE>
 void PriorityQueueExtended<T, COMPARE>::push(T&& value) {
-  impl_->Push(value);
+  impl_->Push(std::move(value));
 }
 
 template <class T, class COMPARE>
@@ -176,7 +177,7 @@ void PriorityQueueExtended<T, COMPARE>::PriorityQueueExtendedImpl::Push(
 template <class T, class COMPARE>
 void PriorityQueueExtended<T, COMPARE>::PriorityQueueExtendedImpl::Push(
     T&& value) {
-  container_.push_back(DistinguishableObject(GetNextId(), value));
+  container_.push_back(DistinguishableObject(GetNextId(), std::move(value)));
   std::push_heap(container_.begin(), container_.end(), compare_);
 }
 
