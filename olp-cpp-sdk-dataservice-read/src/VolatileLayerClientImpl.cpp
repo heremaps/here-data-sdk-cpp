@@ -170,6 +170,16 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
   auto settings = settings_;
   auto lookup_client = lookup_client_;
 
+  // User callback should be called only once. If prefetch is finished, but
+  // thread with init task is still pending, cancel will cause 2nd user callback
+  // call. Wrapping it to handle the case.
+  auto is_callback_called = std::make_shared<std::atomic<bool>>(false);
+  auto completion_callback = [=](PrefetchTilesResponse response) {
+    if (!is_callback_called->exchange(true)) {
+      callback(std::move(response));
+    }
+  };
+
   auto token = task_sink_.AddTask(
       [=](CancellationContext context) mutable -> EmptyResponse {
         const auto& tile_keys = request.GetTileKeys();
@@ -275,7 +285,7 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
           auto download_job =
               std::make_shared<PrefetchTilesHelper::DownloadJob>(
                   std::move(download), std::move(append_result),
-                  std::move(callback), nullptr);
+                  std::move(completion_callback), nullptr);
           return PrefetchTilesHelper::Prefetch(
               std::move(download_job), std::move(roots), std::move(query),
               std::move(filter), task_sink_, request.GetPriority());
@@ -292,10 +302,10 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
       // be notified with empty results.
       // It is possible to not invoke inner task, when it was cancelled before
       // execution.
-      [callback](EmptyResponse response) {
+      [completion_callback](EmptyResponse response) {
         // Inner task only generates successfull result
         if (!response.IsSuccessful()) {
-          callback(response.GetError());
+          completion_callback(response.GetError());
         }
       },
       request.GetPriority());

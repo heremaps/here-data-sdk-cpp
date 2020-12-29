@@ -181,6 +181,16 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
   // shared_settings for saving some mb while prefetch.
   auto shared_settings = std::make_shared<client::OlpClientSettings>(settings_);
 
+  // User callback should be called only once. If prefetch is finished, but
+  // thread with init task is still pending, cancel will cause 2nd user callback
+  // call. Wrapping it to handle the case.
+  auto is_callback_called = std::make_shared<std::atomic<bool>>(false);
+  auto completion_callback = [=](PrefetchPartitionsResponse response) {
+    if (!is_callback_called->exchange(true)) {
+      callback(std::move(response));
+    }
+  };
+
   auto token = task_sink_.AddTask(
       [=](CancellationContext context) mutable -> EmptyResponse {
         if (request.GetPartitionIds().empty()) {
@@ -271,13 +281,14 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
           }
         };
 
-        auto call_user_callback = [callback](
+        auto call_user_callback = [completion_callback](
                                       PrefetchPartitionsResponse result) {
           if (result.IsSuccessful() &&
               result.GetResult().GetPartitions().size() == 0) {
-            callback({{ErrorCode::Unknown, "No partitions were prefetched."}});
+            completion_callback(
+                {{ErrorCode::Unknown, "No partitions were prefetched."}});
           } else {
-            callback(std::move(result));
+            completion_callback(std::move(result));
           }
         };
 
@@ -298,10 +309,10 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
           return client::ApiError(client::ErrorCode::Cancelled, "Canceled");
         }
       },
-      [callback](EmptyResponse response) {
+      [completion_callback](EmptyResponse response) {
         // Inner task only generates successfull result
         if (!response.IsSuccessful()) {
-          callback(response.GetError());
+          completion_callback(response.GetError());
         }
       },
       request.GetPriority());
@@ -340,6 +351,16 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
   // in lambda, shared pointer (16 bytes) saves 520 bytes of heap memory.
   // When users prefetch few hundreds tiles it could save few mb.
   auto shared_settings = std::make_shared<client::OlpClientSettings>(settings_);
+
+  // User callback should be called only once. If prefetch is finished, but
+  // thread with init task is still pending, cancel will cause 2nd user callback
+  // call. Wrapping it to handle the case.
+  auto is_callback_called = std::make_shared<std::atomic<bool>>(false);
+  auto completion_callback = [=](PrefetchTilesResponse response) {
+    if (!is_callback_called->exchange(true)) {
+      callback(std::move(response));
+    }
+  };
 
   auto token = task_sink_.AddTask(
       [=](CancellationContext context) mutable -> EmptyResponse {
@@ -463,7 +484,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
           auto download_job =
               std::make_shared<PrefetchTilesHelper::DownloadJob>(
                   std::move(download), std::move(append_result),
-                  std::move(callback), std::move(status_callback));
+                  std::move(completion_callback), std::move(status_callback));
 
           return PrefetchTilesHelper::Prefetch(
               std::move(download_job), std::move(roots), std::move(query),
@@ -476,15 +497,14 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
           return client::ApiError(client::ErrorCode::Cancelled, "Canceled");
         }
       },
-      // Because the handling of prefetch tiles responses is performed by the
-      // inner-task, no need to set a callback here. Otherwise, the user would
-      // be notified with empty results.
-      // It is possible to not invoke inner task, when it was cancelled before
-      // execution.
-      [callback](EmptyResponse response) {
+      // Because the handling of prefetch tiles responses is performed by
+      // the inner-task, no need to set a callback here. Otherwise, the user
+      // would be notified with empty results. It is possible to not invoke
+      // inner task, when it was cancelled before execution.
+      [completion_callback](EmptyResponse response) {
         // Inner task only generates successfull result
         if (!response.IsSuccessful()) {
-          callback(response.GetError());
+          completion_callback(response.GetError());
         }
       },
       request.GetPriority());
