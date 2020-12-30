@@ -158,6 +158,10 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::Open(
       return DefaultCache::OpenDiskPathFailure;
     }
 
+    if (memory_cache_) {
+      memory_cache_->Clear();
+    }
+
     return SetupMutableCache();
   }
 
@@ -170,6 +174,10 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::Open(
     OLP_SDK_LOG_ERROR_F(kLogTag,
                         "Failed to open the protected cache - path is empty");
     return DefaultCache::OpenDiskPathFailure;
+  }
+
+  if (memory_cache_) {
+    memory_cache_->Clear();
   }
 
   return SetupProtectedCache();
