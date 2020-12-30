@@ -133,7 +133,7 @@ class DefaultCacheImpl {
   bool PromoteKeyLru(const std::string& key);
 
   /// Returns evicted data size.
-  uint64_t MaybeEvictData(leveldb::WriteBatch& batch);
+  uint64_t MaybeEvictData();
 
   /// Returns number of evicted elements, evicted data size and a flag indicatin
   /// if eviction limit reached. If the flag is true, another

@@ -529,7 +529,7 @@ bool DefaultCacheImpl::PromoteKeyLru(const std::string& key) {
   return true;
 }
 
-uint64_t DefaultCacheImpl::MaybeEvictData(leveldb::WriteBatch& batch) {
+uint64_t DefaultCacheImpl::MaybeEvictData() {
   if (!mutable_cache_ || !mutable_cache_lru_) {
     return 0;
   }
@@ -551,7 +551,6 @@ uint64_t DefaultCacheImpl::MaybeEvictData(leveldb::WriteBatch& batch) {
                                        uint64_t)>
               evict_method) {
         EvictionResult eviction_result;
-        std::unique_ptr<leveldb::WriteBatch> eviction_batch = nullptr;
         uint64_t current_eviction_target;
 
         do {
@@ -560,38 +559,31 @@ uint64_t DefaultCacheImpl::MaybeEvictData(leveldb::WriteBatch& batch) {
               static_cast<uint64_t>(left_to_evict) < eviction_portion_
                   ? left_to_evict
                   : eviction_portion_;
-          eviction_batch = std::make_unique<leveldb::WriteBatch>();
+          auto eviction_batch = std::make_unique<leveldb::WriteBatch>();
           eviction_result =
               evict_method(this, *eviction_batch, current_eviction_target);
 
-          if (eviction_result.size >= eviction_portion_) {
-            // Apply intermediate batch
-            const auto apply_result =
-                mutable_cache_->ApplyBatch(std::move(eviction_batch));
-            if (!apply_result.IsSuccessful()) {
-              OLP_SDK_LOG_WARNING_F(
-                  kLogTag,
-                  "MaybeEvictData(): failed to apply batch, error_code=%d, "
-                  "error_message=%s",
-                  static_cast<int>(apply_result.GetError().GetErrorCode()),
-                  apply_result.GetError().GetMessage().c_str());
-              break;
-            }
+          // Apply intermediate batch
+          const auto apply_result =
+              mutable_cache_->ApplyBatch(std::move(eviction_batch));
 
-            mutable_cache_->Compact();
+          if (!apply_result.IsSuccessful()) {
+            OLP_SDK_LOG_WARNING_F(
+                kLogTag,
+                "MaybeEvictData(): failed to apply batch, error_code=%d, "
+                "error_message=%s",
+                static_cast<int>(apply_result.GetError().GetErrorCode()),
+                apply_result.GetError().GetMessage().c_str());
+            break;
           }
+
+          mutable_cache_->Compact();
 
           evicted += eviction_result.size;
           count += eviction_result.count;
           left_to_evict -= eviction_result.size;
         } while (eviction_result.size >= current_eviction_target &&
                  left_to_evict > 0);
-
-        // Append last eviction batch that is not reached eviction limit to
-        // caller's batch
-        if (eviction_batch) {
-          batch.Append(*eviction_batch);
-        }
       };
 
   // Evict expired data first
@@ -742,7 +734,7 @@ bool DefaultCacheImpl::PutMutableCache(const std::string& key,
     added_data_size += StoreExpiry(key, *batch, expiry);
   }
 
-  auto removed_data_size = MaybeEvictData(*batch);
+  auto removed_data_size = MaybeEvictData();
   auto updated_data_size = MaybeUpdatedProtectedKeys(*batch);
 
   auto result = mutable_cache_->ApplyBatch(std::move(batch));
@@ -1031,17 +1023,8 @@ uint64_t DefaultCacheImpl::Size(uint64_t new_size) {
   }
 
   settings_.max_disk_storage = new_size;
-  auto batch = std::make_unique<leveldb::WriteBatch>();
-  const auto evicted = MaybeEvictData(*batch);
-  const auto apply_result = mutable_cache_->ApplyBatch(std::move(batch));
-  if (!apply_result.IsSuccessful()) {
-    OLP_SDK_LOG_WARNING_F(
-        kLogTag,
-        "Size(): failed to apply batch, error_code=%d, "
-        "error_message=%s",
-        static_cast<int>(apply_result.GetError().GetErrorCode()),
-        apply_result.GetError().GetMessage().c_str());
-  }
+
+  const auto evicted = MaybeEvictData();
 
   mutable_cache_data_size_ -= evicted;
   mutable_cache_->Compact();
