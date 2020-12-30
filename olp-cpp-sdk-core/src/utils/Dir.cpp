@@ -409,9 +409,17 @@ uint64_t Dir::Size(const std::string& path, FilterFunction filter_fn) {
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 
-  WIN32_FIND_DATA find_data;
   std::string current_path = path + "\\*.*";
-  HANDLE handle = FindFirstFile(current_path.c_str(), &find_data);
+
+#ifdef _UNICODE
+  std::wstring wstr_path = ConvertStringToWideString(current_path);
+  const TCHAR* syspath = wstr_path.c_str();
+#else
+  const TCHAR* syspath = current_path.c_str();
+#endif  // _UNICODE
+
+  WIN32_FIND_DATA find_data;
+  HANDLE handle = FindFirstFile(syspath, &find_data);
 
   if (handle != INVALID_HANDLE_VALUE) {
     do {
