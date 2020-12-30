@@ -135,8 +135,11 @@ namespace helpers {
 bool MakeDirectoryContentReadonly(const std::string& path, bool readonly) {
 #if defined(_WIN32) && !defined(__MINGW32__)
 #ifdef _UNICODE
-  std::wstring wstrPath = ConvertStringToWideString(path);
-  const TCHAR* n_path = wstrPath.c_str();
+
+  int size_needed = MultiByteToWideChar(CP_ACP, 0, &path[0], path.size(), NULL, 0);
+  std::wstring wstr_path(size_needed, 0);
+  MultiByteToWideChar(CP_ACP, 0, &path[0], path.size(), &wstr_path[0], size_needed);
+  const TCHAR* n_path = wstr_path.c_str();
 #else
   const TCHAR* n_path = path.c_str();
 #endif  // _UNICODE

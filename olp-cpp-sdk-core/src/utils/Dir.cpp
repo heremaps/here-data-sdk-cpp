@@ -409,9 +409,10 @@ uint64_t Dir::Size(const std::string& path, FilterFunction filter_fn) {
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 
-  WIN32_FIND_DATA find_data;
+  WIN32_FIND_DATAA find_data;
   std::string current_path = path + "\\*.*";
-  HANDLE handle = FindFirstFile(current_path.c_str(), &find_data);
+
+  HANDLE handle = FindFirstFileA(current_path.c_str(), &find_data);
 
   if (handle != INVALID_HANDLE_VALUE) {
     do {
@@ -433,7 +434,7 @@ uint64_t Dir::Size(const std::string& path, FilterFunction filter_fn) {
         size.HighPart = find_data.nFileSizeHigh;
         result += size.QuadPart;
       }
-    } while (FindNextFile(handle, &find_data) != 0);
+    } while (FindNextFileA(handle, &find_data) != 0);
 
     FindClose(handle);
   }
