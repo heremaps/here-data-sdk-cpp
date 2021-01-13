@@ -225,10 +225,10 @@ class CORE_API TaskContext {
              response.GetError().GetErrorCode() == ErrorCode::RequestTimeout)) {
           user_response = std::move(response);
         }
-
-        // Reset the context after the task is finished.
-        context_ = CancellationContext();
       }
+
+      // Reset the context after the task is finished.
+      context_.ExecuteOrCancelled([]() { return CancellationToken(); });
 
       if (callback) {
         callback(std::move(user_response));

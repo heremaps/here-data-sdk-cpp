@@ -46,13 +46,15 @@ class PrefetchTilesHelper {
   using QueryFunc =
       QueryItemsFunc<geo::TileKey, geo::TileKey, repository::SubQuadsResponse>;
 
-  static client::CancellationToken Prefetch(
-      std::shared_ptr<DownloadJob> download_job,
-      const std::vector<geo::TileKey>& roots, QueryFunc query,
-      FilterItemsFunc<repository::SubQuadsResult> filter, TaskSink& task_sink,
-      uint32_t priority) {
-    client::CancellationContext execution_context;
+  static client::ApiError Canceled() {
+    return client::ApiError(client::ErrorCode::Cancelled, "Cancelled");
+  }
 
+  static void Prefetch(std::shared_ptr<DownloadJob> download_job,
+                       const std::vector<geo::TileKey>& roots, QueryFunc query,
+                       FilterItemsFunc<repository::SubQuadsResult> filter,
+                       TaskSink& task_sink, uint32_t priority,
+                       client::CancellationContext execution_context) {
     auto query_job = std::make_shared<
         QueryMetadataJob<geo::TileKey, geo::TileKey, PrefetchTilesResult,
                          repository::SubQuadsResponse, PrefetchStatus>>(
@@ -67,26 +69,28 @@ class PrefetchTilesHelper {
     execution_context.ExecuteOrCancelled(
         [&]() {
           VectorOfTokens tokens;
+
+          auto transform_func = [&](geo::TileKey root) {
+            auto token = task_sink.AddTaskChecked(
+                [=](client::CancellationContext context) {
+                  return query_job->Query(root, context);
+                },
+                [=](repository::SubQuadsResponse response) {
+                  query_job->CompleteQuery(std::move(response));
+                },
+                priority);
+            if (!token) {
+              query_job->CompleteQuery(Canceled());
+              return client::CancellationToken();
+            }
+            return *token;
+          };
+
           std::transform(std::begin(roots), std::end(roots),
-                         std::back_inserter(tokens), [&](geo::TileKey root) {
-                           return task_sink.AddTask(
-                               [=](client::CancellationContext context) {
-                                 return query_job->Query(root, context);
-                               },
-                               [=](repository::SubQuadsResponse response) {
-                                 query_job->CompleteQuery(std::move(response));
-                               },
-                               priority);
-                         });
+                         std::back_inserter(tokens), std::move(transform_func));
           return CreateToken(std::move(tokens));
         },
-        [&]() {
-          download_job->OnPrefetchCompleted(
-              {{client::ErrorCode::Cancelled, "Cancelled"}});
-        });
-
-    return client::CancellationToken(
-        [execution_context]() mutable { execution_context.CancelOperation(); });
+        [&]() { download_job->OnPrefetchCompleted(Canceled()); });
   }
 };
 

@@ -50,6 +50,20 @@ TaskSink::~TaskSink() {
 
 void TaskSink::CancelTasks() { pending_requests_->CancelAll(); }
 
+client::CancellationToken TaskSink::AddTask(
+    std::function<void(client::CancellationContext)> func, uint32_t priority,
+    client::CancellationContext context) {
+  auto task = client::TaskContext::Create(
+      [](client::CancellationContext)
+          -> client::ApiResponse<bool, client::ApiError> {
+        return client::ApiError();
+      },
+      [=](client::ApiResponse<bool, client::ApiError>) { func(context); },
+      context);
+  AddTaskImpl(task, priority);
+  return task.CancelToken();
+}
+
 bool TaskSink::AddTaskImpl(client::TaskContext task, uint32_t priority) {
   if (task_scheduler_) {
     return ScheduleTask(std::move(task), priority);

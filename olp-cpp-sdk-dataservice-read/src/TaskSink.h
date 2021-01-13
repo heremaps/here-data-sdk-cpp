@@ -41,6 +41,10 @@ class TaskSink {
 
   void CancelTasks();
 
+  client::CancellationToken AddTask(
+      std::function<void(client::CancellationContext)> func, uint32_t priority,
+      client::CancellationContext context);
+
   template <typename Function, typename Callback, typename... Args>
   client::CancellationToken AddTask(Function task, Callback callback,
                                     uint32_t priority, Args&&... args) {
