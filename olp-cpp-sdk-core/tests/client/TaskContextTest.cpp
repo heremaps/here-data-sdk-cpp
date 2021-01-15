@@ -222,6 +222,30 @@ TEST(TaskContextTest, CancelToken) {
   EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
 }
 
+TEST(TaskContextTest, LateCancel) {
+  ExecuteFunc func = [&](CancellationContext c) -> Response {
+    // Late cancel should not trigger the cancellation function.
+    c.ExecuteOrCancelled([]() -> CancellationToken {
+      return CancellationToken([]() { FAIL(); });
+    });
+    return std::string("Success");
+  };
+
+  Response response;
+
+  Callback callback = [&](Response r) { response = std::move(r); };
+
+  CancellationToken token;
+
+  {
+    TaskContext context = TaskContext::Create(func, callback);
+    token = context.CancelToken();
+    context.Execute();
+  }
+
+  token.Cancel();
+}
+
 TEST(TaskContextTest, OLPSUP_10456) {
   // Cancel should not be triggered from the inside of Execute function.
   // This happens when the execution function is keeping the last owning

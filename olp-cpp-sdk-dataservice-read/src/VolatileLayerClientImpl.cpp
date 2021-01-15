@@ -160,37 +160,33 @@ bool VolatileLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
 
 client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
     PrefetchTilesRequest request, PrefetchTilesResponseCallback callback) {
-  // Used as empty response to be able to execute initial task
-  using EmptyResponse = Response<PrefetchTileNoError>;
-  using client::CancellationContext;
+  using client::ApiError;
   using client::ErrorCode;
 
-  auto catalog = catalog_;
-  auto layer_id = layer_id_;
-  auto settings = settings_;
-  auto lookup_client = lookup_client_;
+  client::CancellationContext execution_context;
 
-  // User callback should be called only once. If prefetch is finished, but
-  // thread with init task is still pending, cancel will cause 2nd user callback
-  // call. Wrapping it to handle the case.
-  auto is_callback_called = std::make_shared<std::atomic<bool>>(false);
-  auto completion_callback = [=](PrefetchTilesResponse response) {
-    if (!is_callback_called->exchange(true)) {
-      callback(std::move(response));
+  auto prefetch_callback = [=](PrefetchTilesResponse response) {
+    if (execution_context.IsCancelled()) {
+      callback(ApiError(ErrorCode::Cancelled, "Canceled"));
+    } else {
+      callback(response);
     }
   };
 
-  auto token = task_sink_.AddTask(
-      [=](CancellationContext context) mutable -> EmptyResponse {
+  return task_sink_.AddTask(
+      [=](client::CancellationContext context) mutable -> void {
         const auto& tile_keys = request.GetTileKeys();
         if (tile_keys.empty()) {
           OLP_SDK_LOG_WARNING_F(kLogTag,
                                 "PrefetchTiles : invalid request, layer=%s",
-                                layer_id.c_str());
-          return {{ErrorCode::InvalidArgument, "Empty tile key list"}};
+                                layer_id_.c_str());
+
+          prefetch_callback(
+              ApiError(ErrorCode::InvalidArgument, "Empty tile key list"));
+          return;
         }
 
-        const auto key = request.CreateKey(layer_id);
+        const auto key = request.CreateKey(layer_id_);
         OLP_SDK_LOG_INFO_F(kLogTag, "PrefetchTiles: using key=%s", key.c_str());
 
         // Calculate the minimal set of Tile keys and depth to
@@ -205,8 +201,8 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
                  ? static_cast<unsigned int>(geo::TileKey::LevelCount)
                  : request.GetMaxLevel());
 
-        repository::PrefetchTilesRepository repository(catalog, layer_id,
-                                                       settings, lookup_client);
+        repository::PrefetchTilesRepository repository(
+            catalog_, layer_id_, settings_, lookup_client_);
         auto sliced_tiles =
             repository.GetSlicedTiles(tile_keys, min_level, max_level);
 
@@ -214,14 +210,13 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
           OLP_SDK_LOG_WARNING_F(kLogTag,
                                 "PrefetchTiles: tile/level mismatch, key=%s",
                                 key.c_str());
-          return {{ErrorCode::InvalidArgument, "TileKeys/levels mismatch"}};
+          prefetch_callback(
+              ApiError(ErrorCode::InvalidArgument, "TileKeys/levels mismatch"));
+          return;
         }
 
         OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles, subquads=%zu, key=%s",
                             sliced_tiles.size(), key.c_str());
-
-        auto shared_settings =
-            std::make_shared<client::OlpClientSettings>(settings);
 
         auto query = [=](geo::TileKey root,
                          client::CancellationContext inner_context) mutable {
@@ -245,15 +240,15 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
                 client::ApiError(client::ErrorCode::NotFound, "Not found"));
           }
           repository::DataCacheRepository data_cache_repository(
-              catalog, shared_settings->cache);
-          if (data_cache_repository.IsCached(layer_id, data_handle)) {
+              catalog_, settings_.cache);
+          if (data_cache_repository.IsCached(layer_id_, data_handle)) {
             return BlobApi::DataResponse(nullptr);
           }
 
-          repository::DataRepository repository(catalog, *shared_settings,
-                                                lookup_client);
+          repository::DataRepository repository(catalog_, settings_,
+                                                lookup_client_);
           // Fetch from online
-          return repository.GetVolatileData(layer_id,
+          return repository.GetVolatileData(layer_id_,
                                             DataRequest()
                                                 .WithDataHandle(data_handle)
                                                 .WithBillingTag(billing_tag),
@@ -281,36 +276,14 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
           }
         };
 
-        bool prefetch_triggered = context.ExecuteOrCancelled([&]() {
-          auto download_job =
-              std::make_shared<PrefetchTilesHelper::DownloadJob>(
-                  std::move(download), std::move(append_result),
-                  std::move(completion_callback), nullptr);
-          return PrefetchTilesHelper::Prefetch(
-              std::move(download_job), std::move(roots), std::move(query),
-              std::move(filter), task_sink_, request.GetPriority());
-        });
-
-        if (prefetch_triggered) {
-          return EmptyResponse(PrefetchTileNoError());
-        } else {
-          return client::ApiError(client::ErrorCode::Cancelled, "Canceled");
-        }
+        auto download_job = std::make_shared<PrefetchTilesHelper::DownloadJob>(
+            std::move(download), std::move(append_result),
+            std::move(prefetch_callback), nullptr);
+        return PrefetchTilesHelper::Prefetch(
+            std::move(download_job), std::move(roots), std::move(query),
+            std::move(filter), task_sink_, request.GetPriority(), context);
       },
-      // Because the handling of prefetch tiles responses is performed by the
-      // inner-task, no need to set a callback here. Otherwise, the user would
-      // be notified with empty results.
-      // It is possible to not invoke inner task, when it was cancelled before
-      // execution.
-      [completion_callback](EmptyResponse response) {
-        // Inner task only generates successfull result
-        if (!response.IsSuccessful()) {
-          completion_callback(response.GetError());
-        }
-      },
-      request.GetPriority());
-
-  return token;
+      request.GetPriority(), execution_context);
 }
 
 client::CancellableFuture<PrefetchTilesResponse>

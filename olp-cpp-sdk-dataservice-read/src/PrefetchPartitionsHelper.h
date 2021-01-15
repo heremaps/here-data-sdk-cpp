@@ -48,12 +48,11 @@ class PrefetchPartitionsHelper {
   using QueryFunc = QueryItemsFunc<std::string, std::vector<std::string>,
                                    PartitionsDataHandleExtendedResponse>;
 
-  static client::CancellationToken Prefetch(
-      std::shared_ptr<DownloadJob> download_job,
-      const std::vector<std::string>& roots, QueryFunc query,
-      TaskSink& task_sink, size_t query_max_size, uint32_t priority) {
-    client::CancellationContext execution_context;
-
+  static void Prefetch(std::shared_ptr<DownloadJob> download_job,
+                       const std::vector<std::string>& roots, QueryFunc query,
+                       TaskSink& task_sink, size_t query_max_size,
+                       uint32_t priority,
+                       client::CancellationContext execution_context) {
     auto query_job = std::make_shared<QueryPartitionsJob>(
         std::move(query), nullptr, download_job, task_sink, execution_context,
         priority);
@@ -79,7 +78,7 @@ class PrefetchPartitionsHelper {
             auto query_element = std::vector<std::string>(
                 roots.begin() + start, roots.begin() + start + size);
 
-            tokens.emplace_back(task_sink.AddTask(
+            auto token = task_sink.AddTaskChecked(
                 [query_element,
                  query_job](client::CancellationContext context) {
                   return query_job->Query(std::move(query_element), context);
@@ -87,7 +86,14 @@ class PrefetchPartitionsHelper {
                 [query_job](PartitionsDataHandleExtendedResponse response) {
                   query_job->CompleteQuery(std::move(response));
                 },
-                priority));
+                priority);
+
+            if (!token) {
+              query_job->CompleteQuery(
+                  client::ApiError(client::ErrorCode::Cancelled, "Cancelled"));
+            } else {
+              tokens.emplace_back(*token);
+            }
 
             start += size;
           }
@@ -98,9 +104,6 @@ class PrefetchPartitionsHelper {
           download_job->OnPrefetchCompleted(
               {{client::ErrorCode::Cancelled, "Cancelled"}});
         });
-
-    return client::CancellationToken(
-        [execution_context]() mutable { execution_context.CancelOperation(); });
   }
 };
 
