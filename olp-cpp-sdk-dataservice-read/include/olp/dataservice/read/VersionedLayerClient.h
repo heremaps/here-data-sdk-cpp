@@ -91,7 +91,7 @@ class VersionedLayerClientImpl;
  *
  * @see
  * The [versioned
- * layer](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/layers.html#versioned-layers)
+ * layer](https://developer.here.com/documentation/data-user-guide/portal/layers/layers.html#versioned-layers)
  * section in the Data User Guide.
  */
 // clang-format on

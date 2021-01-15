@@ -88,9 +88,9 @@ class StreamLayerClientImpl;
  * @endcode
  *
  * @see The
- * [Layers](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/layers.html)
+ * [Layers](https://developer.here.com/documentation/data-user-guide/portal/layers/layers.html)
  * section of the Data User Guide and the [Get Data from a Stream
- * Layer](https://developer.here.com/olp/documentation/data-api/data_dev_guide/rest/getting-data-stream.html)
+ * Layer](https://developer.here.com/documentation/data-api/data_dev_guide/rest/getting-data-stream.html)
  * section of the Data API Developer Guide.
  */
 class DATASERVICE_READ_API StreamLayerClient final {

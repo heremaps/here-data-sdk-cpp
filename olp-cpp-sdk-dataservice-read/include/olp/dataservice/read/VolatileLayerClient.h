@@ -74,7 +74,7 @@ class VolatileLayerClientImpl;
  *
  * @see
  * The [volatile
- * layer](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/layers.html#volatile-layers)
+ * layer](https://developer.here.com/documentation/data-user-guide/portal/layers/layers.html#volatile-layers)
  * section in the Data User Guide.
  */
 // clang-format on

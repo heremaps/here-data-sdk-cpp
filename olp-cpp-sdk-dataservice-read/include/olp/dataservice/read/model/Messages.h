@@ -43,7 +43,7 @@ class DATASERVICE_READ_API Metadata final {
    * @brief Gets the partition of this metadata.
    *
    * For more information on partitions, see the [related
-   * section](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/partitions.html)
+   * section](https://developer.here.com/documentation/data-user-guide/portal/layers/partitions.html)
    * in the Data User Guide.
    *
    * @return The partition to which this metadata content is related.

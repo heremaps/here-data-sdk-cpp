@@ -359,9 +359,9 @@ class DATASERVICE_READ_API Partitioning {
    * The partitioning scheme can be generic or HERE tile.
    *
    * @see [Generic
-   * Partitioninc](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/partitions.html#generic-partitioning)
+   * Partitioninc](https://developer.here.com/documentation/data-user-guide/portal/layers/partitions.html#generic-partitioning)
    * and [HERE Tile
-   * Partitioning](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/partitions.html#here-tile-partitioning)
+   * Partitioning](https://developer.here.com/documentation/data-user-guide/portal/layers/partitions.html#here-tile-partitioning)
    * sections in the Get Started guide.
    *
    * @return The name of the catalog partitioning scheme.
