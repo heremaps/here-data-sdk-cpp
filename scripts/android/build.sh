@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 #
-# Copyright (C) 2019 HERE Europe B.V.
+# Copyright (C) 2019-2021 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,17 +17,37 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
+#
+# This script will compile Data SDK for C++
+# with ANDROID_PLATFORM=android-28 and -DANDROID_ABI=arm64-v8a
+# by using Android NDK 21.
+#
+
+# Install required NDK version (output disabled as it causes issues during page loading)
+env
+${ANDROID_HOME}/tools/bin/sdkmanager --list
+${ANDROID_HOME}/tools/bin/sdkmanager --install "ndk;21.3.6528147" --sdk_root=${ANDROID_HOME} >/dev/null
+${ANDROID_HOME}/tools/bin/sdkmanager --list
+export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/21.3.6528147
+env
+# Verify content of NDK directories
+ls -la $ANDROID_NDK_HOME
+ls -la $ANDROID_NDK_HOME/platforms
 
 mkdir -p build && cd build
-cmake .. -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" \
-	-DANDROID_PLATFORM=android-28 \
-	-DANDROID_ABI=arm64-v8a \
-	-DOLP_SDK_ENABLE_TESTING=NO \
-	-DOLP_SDK_BUILD_EXAMPLES=ON
+cmake .. -DCMAKE_TOOLCHAIN_FILE="$ANDROID_HOME/ndk/21.3.6528147/build/cmake/android.toolchain.cmake" \
+  -DANDROID_PLATFORM=android-28 \
+  -DANDROID_ABI=arm64-v8a \
+  -DANDROID_NDK="$ANDROID_HOME/ndk/21.3.6528147" \
+  -DOLP_SDK_ENABLE_TESTING=NO \
+  -DOLP_SDK_BUILD_EXAMPLES=ON
 
 #cmake --build . # this is alternative option for build
 sudo make install -j$(nproc)
 
 pushd examples/android
-sudo ./gradlew assemble
+  # check java version
+  echo "java is $(java --version)"
+  echo "sudo java is $(sudo java --version)"
+  ./gradlew assemble --stacktrace
 popd
