@@ -39,7 +39,7 @@ namespace authentication {
  *
  * For instructions on how to get the access keys, see
  * the [Get
- * Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html)
+ * Credentials](https://developer.here.com/documentation/access-control/user-guide/topics/get-credentials.html)
  * section in the Terms and Permissions User Guide.
  */
 class AUTHENTICATION_API AuthenticationCredentials {
@@ -71,7 +71,7 @@ class AUTHENTICATION_API AuthenticationCredentials {
    *
    * For instructions on how to get the **credentials.properties** file, see
    * the [Get
-   * Credentials](https://developer.here.com/olp/documentation/access-control/user-guide/topics/get-credentials.html)
+   * Credentials](https://developer.here.com/documentation/access-control/user-guide/topics/get-credentials.html)
    * section in the Terms and Permissions User Guide.
    *
    * @param[in] filename The path to the file that contains the credentials.

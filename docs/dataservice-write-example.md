@@ -168,7 +168,7 @@ If you encounter an error message, for a detailed error description, check the d
 
 ### Publish data to a stream layer
 
-You can create a queue that streams data to data consumers in real time using a [stream layer](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/layers.html#stream-layers).
+You can create a queue that streams data to data consumers in real time using a [stream layer](https://developer.here.com/documentation/data-user-guide/portal/layers/layers.html#stream-layers).
 
 **To publish data to the stream layer:**
 

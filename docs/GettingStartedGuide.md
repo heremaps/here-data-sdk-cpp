@@ -13,12 +13,12 @@ Working with the Data SDK requires knowledge of the following subjects:
 
 To use HERE Data SDK for C++, you need to understand the following concepts related to the HERE platform:
 
-- [Catalogs](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/catalogs.html)
-- [Layers](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/layers.html)
-- [Partitions](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/partitions.html)
-- [HERE Resource Names (HRNs)](https://developer.here.com/olp/documentation/data-user-guide/shared_content/topics/olp/concepts/hrn.html)
+- [Catalogs](https://developer.here.com/documentation/data-user-guide/portal/layers/catalogs.html)
+- [Layers](https://developer.here.com/documentation/data-user-guide/portal/layers/layers.html)
+- [Partitions](https://developer.here.com/documentation/data-user-guide/portal/layers/partitions.html)
+- [HERE Resource Names (HRNs)](https://developer.here.com/documentation/data-user-guide/shared_content/topics/concepts/hrn.html)
 
-For more details, see the [Data User Guide](https://developer.here.com/olp/documentation/data-user-guide/index.html).
+For more details, see the [Data User Guide](https://developer.here.com/documentation/data-user-guide/index.html).
 
 ## Get credentials
 

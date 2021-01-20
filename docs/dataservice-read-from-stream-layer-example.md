@@ -62,7 +62,7 @@ After building and running the example project, you see the following informatio
 
 ### Get data from a stream layer
 
-You can read messages from a [stream layer](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/layers.html#stream-layers) if you subscribe to it.
+You can read messages from a [stream layer](https://developer.here.com/documentation/data-user-guide/portal/layers/layers.html#stream-layers) if you subscribe to it.
 
 **To get data from the stream layer:**
 

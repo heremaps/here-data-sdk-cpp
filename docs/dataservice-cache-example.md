@@ -64,7 +64,7 @@ After building and running the example project, you see the following informatio
 
 ### <a name="get-partition-data-mutable"></a>Get data from a versioned layer with a cache
 
-You can get data from a [versioned layer](https://developer.here.com/olp/documentation/data-user-guide/portal/layers/layers.html#versioned-layers) with a mutable or protected cache.
+You can get data from a [versioned layer](https://developer.here.com/documentation/data-user-guide/portal/layers/layers.html#versioned-layers) with a mutable or protected cache.
 
 **To get data from the versioned layer with mutable cache:**
 

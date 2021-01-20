@@ -130,7 +130,7 @@ class DATASERVICE_READ_API SubscribeRequest final {
    * @brief Sets the consumer properties for the request.
    *
    * @see The [Get Data from a Stream
-   * Layer](https://developer.here.com/olp/documentation/data-api/data_dev_guide/rest/getting-data-stream.html)
+   * Layer](https://developer.here.com/documentation/data-api/data_dev_guide/rest/getting-data-stream.html)
    * section in the Data API Developer Guide.
    *
    * @param properties The consumer properties.
