@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (C) 2019 HERE Europe B.V.
+# Copyright (C) 2019-2021 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +16,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
+
+echo ">>> Installing mock server SSL certificate into OS... >>>"
+curl https://raw.githubusercontent.com/mock-server/mockserver/master/mockserver-core/src/main/resources/org/mockserver/socket/CertificateAuthorityCertificate.pem --output mock-server-cert.cer
+certutil -enterprise -f -v -addstore "Root" mock-server-cert.cer
+certutil -enterprise -f -v -addstore "CA" mock-server-cert.cer
+
 
 [[ -d "build" ]] && rm -rf build
 mkdir build && cd build
