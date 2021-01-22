@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,12 @@
 
 #pragma once
 
+#include <time.h>
 #include <memory>
+#include <string>
 
 #include <olp/core/client/HRN.h>
 #include <boost/optional.hpp>
-#include <string>
 
 namespace olp {
 namespace cache {

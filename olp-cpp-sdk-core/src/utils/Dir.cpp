@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,8 +56,8 @@ std::wstring ConvertStringToWideString(const std::string& str) {
                       size_needed);
   return wstr_path;
 }
-#endif // _UNICODE
-#endif // _WIN32 && _MINGW32
+#endif  // _UNICODE
+#endif  // _WIN32 && _MINGW32
 
 #if !defined(_WIN32) || defined(__MINGW32__)
 int remove_dir_callback(const char* file, const struct stat* /*stat*/, int flag,
@@ -127,7 +127,7 @@ static bool mkdir_all(const char* dirname, int mode) {
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 void Tokenize(const std::string& path, const std::string& delimiters,
-                     std::vector<std::string>& result) {
+              std::vector<std::string>& result) {
   std::string sub_path = path;
   while (1) {
     size_t position = sub_path.find(delimiters);
@@ -445,15 +445,14 @@ uint64_t Dir::Size(const std::string& path, FilterFunction filter_fn) {
   struct dirent* ent = nullptr;
 
   if ((dir = opendir(path.c_str())) != nullptr) {
-    int fd = dirfd(dir);
-
     while ((ent = readdir(dir)) != nullptr) {
+      std::string ent_path = path + "/" + ent->d_name;
 #ifdef __APPLE__
       struct stat sb;
-      if (fstatat(fd, ent->d_name, &sb, AT_SYMLINK_NOFOLLOW) == 0) {
+      if (lstat(ent_path.c_str(), &sb) == 0) {
 #else
       struct stat64 sb;
-      if (fstatat64(fd, ent->d_name, &sb, AT_SYMLINK_NOFOLLOW) == 0) {
+      if (lstat64(ent_path.c_str(), &sb) == 0) {
 #endif
         if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) {
           continue;
@@ -465,7 +464,7 @@ uint64_t Dir::Size(const std::string& path, FilterFunction filter_fn) {
 
         switch (sb.st_mode & S_IFMT) {
           case S_IFDIR:
-            result += Size(ent->d_name, filter_fn);
+            result += Size(ent_path, filter_fn);
             break;
           case S_IFREG:
             result += sb.st_size;
