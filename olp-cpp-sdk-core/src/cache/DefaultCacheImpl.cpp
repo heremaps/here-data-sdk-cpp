@@ -789,9 +789,16 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupStorage() {
 
 DefaultCache::StorageOpenResult DefaultCacheImpl::SetupProtectedCache() {
   protected_cache_ = std::make_unique<DiskCache>();
+
+  // Storage settings for protected cache are different. We want to specify the
+  // max_file_size greater than the manifest file size. Or else leveldb will try
+  // to repair the cache.
+  StorageSettings protected_storage_settings;
+  protected_storage_settings.max_file_size = 32 * 1024 * 1024;
+
   auto status = protected_cache_->Open(
       settings_.disk_path_protected.get(), settings_.disk_path_protected.get(),
-      StorageSettings{}, OpenOptions::ReadOnly);
+      protected_storage_settings, OpenOptions::ReadOnly);
   if (status == OpenResult::Fail) {
     OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to reopen protected cache %s",
                         settings_.disk_path_protected.get().c_str());
