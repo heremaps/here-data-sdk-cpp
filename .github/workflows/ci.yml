@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '*'
+
+env:
+  BUILD_TYPE: COVERAGE
+  LD_PRELOAD: /lib/x86_64-linux-gnu/libSegFault.so
+  SEGFAULT_SIGNALS: all
+
+jobs:
+  linux-gcc-psv-build-test-codecov:
+    name: Linux Build using gcc & tests & code coverage
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+    - name: "C++ Lint checker script"
+      run: ./scripts/misc/cpplint_ci.sh
+      shell: bash
+    - name: Install Ubuntu dependencies
+      run: sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
+      shell: bash
+    - name: Compile project with cmake and ccache
+      run: gcc --version && ./scripts/linux/psv/build_psv.sh
+      shell: bash
+    - name: Run unit and integration tests. Report coverage to CodeCov. 
+      run: ./scripts/linux/psv/test_psv.sh
+      shell: bash
+
