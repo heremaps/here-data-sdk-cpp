@@ -36,7 +36,7 @@ else
 fi
 
 # Get affected files and filter source files
-FILES=$(git diff-tree --no-commit-id --name-only -r master "$CURRENT_BRANCH" \
+FILES=$(git diff-tree --no-commit-id --name-only -r origin/master "$CURRENT_BRANCH" \
         | grep '\.c\|\.cpp\|\.cxx\|\.h\|\.hpp\|\.hxx')
 
 if [ -z "$FILES" ]; then
