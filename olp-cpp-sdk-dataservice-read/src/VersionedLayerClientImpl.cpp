@@ -177,22 +177,19 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
 
   client::CancellationContext execution_context;
 
-  auto prefetch_callback = [=](PrefetchPartitionsResponse response) {
-    if (execution_context.IsCancelled()) {
-      callback(ApiError(ErrorCode::Cancelled, "Canceled"));
-    } else {
-      callback(response);
-    }
-  };
-
   return task_sink_.AddTask(
       [=](client::CancellationContext context) {
+        if (context.IsCancelled()) {
+          callback(ApiError(ErrorCode::Cancelled, "Canceled"));
+          return;
+        }
+
         if (request.GetPartitionIds().empty()) {
           OLP_SDK_LOG_WARNING_F(
               kLogTag,
               "PrefetchPartitions : invalid request, catalog=%s, layer=%s",
               catalog_.ToCatalogHRNString().c_str(), layer_id_.c_str());
-          prefetch_callback(
+          callback(
               ApiError(ErrorCode::InvalidArgument, "Empty partitions list"));
           return;
         }
@@ -209,7 +206,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
                                 "failed, catalog=%s, key=%s",
                                 catalog_.ToCatalogHRNString().c_str(),
                                 key.c_str());
-          prefetch_callback(response.GetError());
+          callback(response.GetError());
           return;
         }
 
@@ -282,13 +279,13 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
         };
 
         auto call_user_callback =
-            [prefetch_callback](PrefetchPartitionsResponse result) {
+            [callback](PrefetchPartitionsResponse result) {
               if (result.IsSuccessful() &&
                   result.GetResult().GetPartitions().size() == 0) {
-                prefetch_callback(ApiError(client::ErrorCode::Unknown,
-                                           "No partitions were prefetched."));
+                callback(ApiError(client::ErrorCode::Unknown,
+                                  "No partitions were prefetched."));
               } else {
-                prefetch_callback(std::move(result));
+                callback(std::move(result));
               }
             };
 
@@ -327,22 +324,18 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
 
   client::CancellationContext execution_context;
 
-  auto prefetch_callback = [=](PrefetchTilesResponse response) {
-    if (execution_context.IsCancelled()) {
-      callback(ApiError(ErrorCode::Cancelled, "Canceled"));
-    } else {
-      callback(response);
-    }
-  };
-
   return task_sink_.AddTask(
       [=](client::CancellationContext context) mutable -> void {
+        if (context.IsCancelled()) {
+          callback(ApiError(ErrorCode::Cancelled, "Canceled"));
+          return;
+        }
+
         if (request.GetTileKeys().empty()) {
           OLP_SDK_LOG_WARNING_F(
               kLogTag, "PrefetchTiles : invalid request, catalog=%s, layer=%s",
               catalog_.ToCatalogHRNString().c_str(), layer_id_.c_str());
-          prefetch_callback(
-              ApiError(ErrorCode::InvalidArgument, "Empty tile key list"));
+          callback(ApiError(ErrorCode::InvalidArgument, "Empty tile key list"));
           return;
         }
 
@@ -355,7 +348,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
           OLP_SDK_LOG_WARNING_F(
               kLogTag, "PrefetchTiles: getting catalog version failed, key=%s",
               key.c_str());
-          prefetch_callback(response.GetError());
+          callback(response.GetError());
           return;
         }
 
@@ -390,7 +383,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
           OLP_SDK_LOG_WARNING_F(kLogTag,
                                 "PrefetchTiles: tile/level mismatch, key=%s",
                                 key.c_str());
-          prefetch_callback(
+          callback(
               ApiError(ErrorCode::InvalidArgument, "TileKeys/levels mismatch"));
           return;
         }
@@ -461,8 +454,8 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
         };
 
         auto download_job = std::make_shared<PrefetchTilesHelper::DownloadJob>(
-            std::move(download), std::move(append_result),
-            std::move(prefetch_callback), std::move(status_callback));
+            std::move(download), std::move(append_result), std::move(callback),
+            std::move(status_callback));
 
         return PrefetchTilesHelper::Prefetch(
             std::move(download_job), std::move(roots), std::move(query),
