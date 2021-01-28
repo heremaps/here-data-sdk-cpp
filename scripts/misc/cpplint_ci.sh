@@ -35,6 +35,9 @@ else
   printf "Currently in %s branch. Running cpplint.\n" "$CURRENT_BRANCH"
 fi
 
+git branch --all
+git fetch origin master
+git branch --all
 # Get affected files and filter source files
 FILES=$(git diff-tree --no-commit-id --name-only -r origin/master "$CURRENT_BRANCH" \
         | grep '\.c\|\.cpp\|\.cxx\|\.h\|\.hpp\|\.hxx')
@@ -49,8 +52,8 @@ fi
 # Install cpplint tool using pip
 printf "Installing cpplint using pip\n\n"
 
-pip install --user cpplint
-
+pip3 install --user cpplint
+export PATH=$PATH:~/.local/bin/
 printf "\n\nRunning cpplint\n\n"
 
 # Run the cpplint tool and collect all warnings
