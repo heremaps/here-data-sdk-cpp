@@ -6,14 +6,22 @@ HERE Data SDK for C++ is a C++ client for the <a href="https://platform.here.com
 
 ### Build and test
 
-| Platform | Status                                                                                                                                                                                                                                                                                |
-| :------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Linux GCC   | <a href="https://travis-ci.com/heremaps/here-data-sdk-cpp" target="_blank"><img src="https://travis-ci.com/heremaps/here-data-sdk-cpp.svg?branch=master" alt="Linux build status"/></a> |
-| Linux Clang | <a href="https://dev.azure.com/heremaps/here-data-sdk/_build/latest?definitionId=3&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=Linux_build_clang" alt="Android build status"/></a> |
-| MacOS    | <a href="https://dev.azure.com/heremaps/here-data-sdk/_build/latest?definitionId=3&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=MacOS_build" alt="macOS build status"/></a>   |
-| iOS      | <a href="https://dev.azure.com/heremaps/here-data-sdk/_build/latest?definitionId=3&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=iOS_build" alt="iOS build status"/></a>       |
-| Windows  | <a href="https://dev.azure.com/heremaps/here-data-sdk/_build/latest?definitionId=3&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=Windows_build" alt="Windows build status"/></a>     |
-| Android  | <a href="https://dev.azure.com/heremaps/here-data-sdk/_build/latest?definitionId=3&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=Android_build" alt="Android build status"/></a> |
+| Linux GCC | Linux CLang | MacOS |
+| :-------- | :---------- | :---- |
+| [![Linux gcc build status][1]][2] | [![Linux Clang build status][3]][4] | [![MacOS build status][5]][4] |
+
+| iOS | Windows | Android |
+| :-- | :------ | :------ |
+| [![iOS build status][6]][4] | [![Windows build status][7]][4] | [![Android build status][8]][4] |
+
+[1]: https://github.com/heremaps/here-data-sdk-cpp/workflows/CI/badge.svg?branch=master
+[2]: https://github.com/heremaps/here-data-sdk-cpp/actions?query=workflow%3ACI+branch%3Amaster
+[3]: https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=Linux_build_clang
+[4]: https://dev.azure.com/heremaps/here-data-sdk/_build/latest?definitionId=3&branchName=master
+[5]: https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=MacOS_build
+[6]: https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=iOS_build
+[7]: https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=Windows_build
+[8]: https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=Android_build
 
 ### Test coverage
 
