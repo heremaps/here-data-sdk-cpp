@@ -165,24 +165,20 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
 
   client::CancellationContext execution_context;
 
-  auto prefetch_callback = [=](PrefetchTilesResponse response) {
-    if (execution_context.IsCancelled()) {
-      callback(ApiError(ErrorCode::Cancelled, "Canceled"));
-    } else {
-      callback(response);
-    }
-  };
-
   return task_sink_.AddTask(
       [=](client::CancellationContext context) mutable -> void {
+        if (context.IsCancelled()) {
+          callback(ApiError(ErrorCode::Cancelled, "Canceled"));
+          return;
+        }
+
         const auto& tile_keys = request.GetTileKeys();
         if (tile_keys.empty()) {
           OLP_SDK_LOG_WARNING_F(kLogTag,
                                 "PrefetchTiles : invalid request, layer=%s",
                                 layer_id_.c_str());
 
-          prefetch_callback(
-              ApiError(ErrorCode::InvalidArgument, "Empty tile key list"));
+          callback(ApiError(ErrorCode::InvalidArgument, "Empty tile key list"));
           return;
         }
 
@@ -210,7 +206,7 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
           OLP_SDK_LOG_WARNING_F(kLogTag,
                                 "PrefetchTiles: tile/level mismatch, key=%s",
                                 key.c_str());
-          prefetch_callback(
+          callback(
               ApiError(ErrorCode::InvalidArgument, "TileKeys/levels mismatch"));
           return;
         }
@@ -277,8 +273,8 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
         };
 
         auto download_job = std::make_shared<PrefetchTilesHelper::DownloadJob>(
-            std::move(download), std::move(append_result),
-            std::move(prefetch_callback), nullptr);
+            std::move(download), std::move(append_result), std::move(callback),
+            nullptr);
         return PrefetchTilesHelper::Prefetch(
             std::move(download_job), std::move(roots), std::move(query),
             std::move(filter), task_sink_, request.GetPriority(), context);
