@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,13 @@
 #pragma once
 
 #include <gtest/gtest.h>
-
 #include <olp/core/cache/CacheSettings.h>
+#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/utils/Dir.h>
 #include <testutils/CustomParameters.hpp>
-
 #include "NetworkWrapper.h"
-#include "NullCache.h"
 
 using KeyValueCachePtr = std::shared_ptr<olp::cache::KeyValueCache>;
 using CacheFactory = std::function<KeyValueCachePtr()>;
@@ -91,13 +89,6 @@ class MemoryTestBase : public ::testing::TestWithParam<Param> {
 inline void SetErrorFlags(TestBaseConfiguration& configuration) {
   configuration.with_http_errors = true;
   configuration.with_network_timeouts = true;
-}
-
-/*
- * Set null cache configuration. Cache does not perform any operations.
- */
-inline void SetNullCacheConfiguration(TestBaseConfiguration& configuration) {
-  configuration.cache_factory = []() { return std::make_shared<NullCache>(); };
 }
 
 /*

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,9 +73,8 @@ class PrefetchTest : public MemoryTestBase<TestConfiguration> {
 };
 
 void PrefetchTest::SetUp() {
-  using namespace olp;
-  request_counter_.store(
-      static_cast<http::RequestId>(http::RequestIdConstants::RequestIdMin));
+  request_counter_.store(static_cast<olp::http::RequestId>(
+      olp::http::RequestIdConstants::RequestIdMin));
   total_requests_.store(0);
   success_responses_.store(0);
   failed_responses_.store(0);
@@ -167,18 +166,6 @@ TEST_P(PrefetchTest, PrefetchPartitionsFromVersionedLayer) {
 }
 
 /*
- * Test to collect SDK allocations without cache.
- */
-TestConfiguration ShortRunningTestWithNullCache() {
-  TestConfiguration configuration;
-  SetNullCacheConfiguration(configuration);
-  configuration.task_scheduler_capacity =
-      configuration.calling_thread_count * 3;
-  configuration.configuration_name = "short_test_null_cache";
-  return configuration;
-}
-
-/*
  * Test to collect SDK allocations with in memory cache.
  */
 TestConfiguration ShortRunningTestWithMemoryCache() {
@@ -204,7 +191,6 @@ TestConfiguration ShortRunningTestWithMutableCache() {
 
 std::vector<TestConfiguration> Configurations() {
   std::vector<TestConfiguration> configurations;
-  configurations.emplace_back(ShortRunningTestWithNullCache());
   configurations.emplace_back(ShortRunningTestWithMemoryCache());
   configurations.emplace_back(ShortRunningTestWithMutableCache());
   return configurations;

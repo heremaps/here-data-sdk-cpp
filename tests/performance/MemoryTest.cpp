@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,9 +86,8 @@ class MemoryTest : public MemoryTestBase<TestConfiguration> {
 };
 
 void MemoryTest::SetUp() {
-  using namespace olp;
-  request_counter_.store(
-      static_cast<http::RequestId>(http::RequestIdConstants::RequestIdMin));
+  request_counter_.store(static_cast<olp::http::RequestId>(
+      olp::http::RequestIdConstants::RequestIdMin));
   total_requests_.store(0);
   success_responses_.store(0);
   failed_responses_.store(0);
@@ -197,73 +196,16 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
   });
 }
 
-TEST_P(MemoryTest, PrefetchPartitionsFromVersionedLayer) {
-  // Enable only errors to have a short output.
-  olp::logging::Log::setLevel(olp::logging::Level::Warning);
-
-  const auto& parameter = GetParam();
-
-  auto settings = CreateCatalogClientSettings();
-
-  StartThreads([=](uint8_t /*thread_id*/) {
-    olp::dataservice::read::VersionedLayerClient service_client(
-        kCatalog, kVersionedLayerId, boost::none, settings);
-
-    const auto end_timestamp =
-        std::chrono::steady_clock::now() + parameter.runtime;
-
-    while (end_timestamp > std::chrono::steady_clock::now()) {
-      const auto level = 10;
-      const auto tile_count = 1 << level;
-
-      std::vector<olp::geo::TileKey> tile_keys = {
-          olp::geo::TileKey::FromRowColumnLevel(rand() % tile_count,
-                                                rand() % tile_count, level)};
-
-      auto request = olp::dataservice::read::PrefetchTilesRequest()
-                         .WithMaxLevel(level + 2)
-                         .WithMinLevel(level)
-                         .WithTileKeys(tile_keys);
-      total_requests_.fetch_add(1);
-      auto token = service_client.PrefetchTiles(
-          std::move(request),
-          [&](olp::dataservice::read::PrefetchTilesResponse response) {
-            if (response.IsSuccessful()) {
-              success_responses_.fetch_add(1);
-            } else {
-              failed_responses_.fetch_add(1);
-              ReportError(response.GetError());
-            }
-          });
-
-      RandomlyCancel(std::move(token));
-
-      std::this_thread::sleep_for(
-          GetSleepPeriod(parameter.requests_per_second));
-    }
-  });
-}
-
 /*
- * 10 hours stability test with default constructed cache.
+ * 15 minutes stability test with disk cache.
  */
 TestConfiguration LongRunningTest() {
   TestConfiguration configuration;
   SetErrorFlags(configuration);
   SetDiskCacheConfiguration(configuration);
-  configuration.configuration_name = "10h_test";
-  configuration.runtime = std::chrono::hours(10);
+  configuration.configuration_name = "15m_test";
+  configuration.runtime = std::chrono::minutes(15);
   configuration.cancelation_chance = 0.25f;
-  return configuration;
-}
-
-/*
- * Short 5 minutes test to collect SDK allocations without cache.
- */
-TestConfiguration ShortRunningTestWithNullCache() {
-  TestConfiguration configuration;
-  SetNullCacheConfiguration(configuration);
-  configuration.configuration_name = "short_test_null_cache";
   return configuration;
 }
 
@@ -290,7 +232,6 @@ TestConfiguration ShortRunningTestWithMutableCache() {
 
 std::vector<TestConfiguration> Configurations() {
   std::vector<TestConfiguration> configurations;
-  configurations.emplace_back(ShortRunningTestWithNullCache());
   configurations.emplace_back(ShortRunningTestWithMemoryCache());
   configurations.emplace_back(ShortRunningTestWithMutableCache());
   configurations.emplace_back(LongRunningTest());
