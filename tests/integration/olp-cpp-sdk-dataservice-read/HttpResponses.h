@@ -20,7 +20,7 @@
 #pragma once
 
 #define URL_CONFIG                                                        \
-  R"(https://config.data.api.platform.in.here.com/config/v1/catalogs/)" + \
+  R"(https://config.data.api.platform.sit.here.com/config/v1/catalogs/)" + \
       GetTestCatalog()
 
 #define URL_LATEST_CATALOG_VERSION \
@@ -111,11 +111,11 @@
 #define URL_SEEK_STREAM \
   R"(https://some.stream.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/seek?mode=serial&subscriptionId=subscribe_id_12345)"
 
-#define CONFIG_BASE_URL "https://config.data.api.platform.in.here.com/config/v1"
+#define CONFIG_BASE_URL "https://config.data.api.platform.sit.here.com/config/v1"
 
 #define HTTP_RESPONSE_LOOKUP_CONFIG                                                    \
   R"jsonString([{"api":"config","version":"v1","baseURL":")jsonString" CONFIG_BASE_URL \
-  R"jsonString(","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}}])jsonString"
+  R"jsonString(","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.sit.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.sit.here.com/pipeline-service","parameters":{}}])jsonString"
 
 #define HTTP_RESPONSE_LOOKUP \
   R"jsonString([{"api":"metadata","version":"v1","baseURL":"https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2","parameters":{}}, {"api":"query","version":"v1","baseURL":"https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2","parameters":{}}, {"api":"blob","version":"v1","baseURL":"https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}},{"api":"volatile-blob","version":"v1","baseURL":"https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}},{"api":"stream","version":"v2","baseURL":"https://stream-ireland.data.api.platform.here.com/stream/v2/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString"

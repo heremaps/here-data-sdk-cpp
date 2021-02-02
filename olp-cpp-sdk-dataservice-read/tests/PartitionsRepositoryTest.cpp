@@ -100,10 +100,10 @@ const std::string kOlpSdkUrlLookupConfig =
     R"(https://api-lookup.data.api.platform.here.com/lookup/v1/platform/apis)";
 
 const std::string kOlpSdkHttpResponseLookupConfig =
-    R"jsonString([{"api":"config","version":"v1","baseURL":"https://config.data.api.platform.in.here.com/config/v1","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}}])jsonString";
+    R"jsonString([{"api":"config","version":"v1","baseURL":"https://config.data.api.platform.sit.here.com/config/v1","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.sit.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.sit.here.com/pipeline-service","parameters":{}}])jsonString";
 
 const std::string kOlpSdkUrlConfig =
-    R"(https://config.data.api.platform.in.here.com/config/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2)";
+    R"(https://config.data.api.platform.sit.here.com/config/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2)";
 
 const std::string
     kOlpSdkHttpResponseConfig =

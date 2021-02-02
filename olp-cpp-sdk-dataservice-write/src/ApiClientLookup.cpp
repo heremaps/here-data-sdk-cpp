@@ -38,7 +38,7 @@ constexpr auto kLogTag = "ApiClientLookupWrite";
 std::string GetDatastoreServerUrl(const std::string& partition) {
   static const std::map<std::string, std::string> kDatastoreServerUrl = {
       {"here", "data.api.platform.here.com"},
-      {"here-dev", "data.api.platform.in.here.com"},
+      {"here-dev", "data.api.platform.sit.here.com"},
       {"here-cn", "data.api.platform.hereolp.cn"},
       {"here-cn-dev", "data.api.platform.in.hereolp.cn"}};
 

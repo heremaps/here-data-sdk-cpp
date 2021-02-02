@@ -30,7 +30,7 @@ std::string DefaultLookupEndpointProvider::operator()(
   } kDatastoreServerUrl[4] = {
       {"here", "https://api-lookup.data.api.platform.here.com/lookup/v1"},
       {"here-dev",
-       "https://api-lookup.data.api.platform.in.here.com/lookup/v1"},
+       "https://api-lookup.data.api.platform.sit.here.com/lookup/v1"},
       {"here-cn", "https://api-lookup.data.api.platform.hereolp.cn/lookup/v1"},
       {"here-cn-dev",
        "https://api-lookup.data.api.platform.in.hereolp.cn/lookup/v1"}};
