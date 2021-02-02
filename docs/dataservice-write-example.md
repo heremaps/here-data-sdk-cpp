@@ -56,7 +56,7 @@ To integrate the Data SDK libraries in the Android example project:
 
 - [Set up prerequisites](#prerequisites-android)
 - [Build the Data SDK](#build-sdk-android)
-- [Build and Run the APK](#build-and-run-android)
+- [Build and run the APK](#build-and-run-android)
 
 ### <a name="prerequisites-android"></a>Prerequisites
 
@@ -106,7 +106,7 @@ To integrate the Data SDK libraries in the iOS example application written in th
 
 - [Set up prerequisites](#prerequisites-ios)
 - [Build the Data SDK](#build-sdk-ios)
-- [Build and Run the Application](#build-and-run-ios)
+- [Build and run the Application](#build-and-run-ios)
 
 ### <a name="prerequisites-ios"></a>Prerequisites
 
