@@ -56,7 +56,6 @@ namespace {
 constexpr auto kLogTag = "VersionedLayerClientImpl";
 constexpr int64_t kInvalidVersion = -1;
 constexpr auto kQuadTreeDepth = 4;
-constexpr auto kQueryPartitionsMaxSize = 100u;
 }  // namespace
 
 VersionedLayerClientImpl::VersionedLayerClientImpl(
@@ -177,128 +176,122 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
 
   client::CancellationContext execution_context;
 
-  return task_sink_.AddTask(
-      [=](client::CancellationContext context) {
-        if (context.IsCancelled()) {
-          callback(ApiError(ErrorCode::Cancelled, "Canceled"));
-          return;
-        }
+  auto task = [=](client::CancellationContext context,
+                  PrefetchPartitionsRequest& request) mutable {
+    if (context.IsCancelled()) {
+      callback(ApiError(ErrorCode::Cancelled, "Canceled"));
+      return;
+    }
 
-        if (request.GetPartitionIds().empty()) {
-          OLP_SDK_LOG_WARNING_F(
-              kLogTag,
-              "PrefetchPartitions : invalid request, catalog=%s, layer=%s",
-              catalog_.ToCatalogHRNString().c_str(), layer_id_.c_str());
-          callback(
-              ApiError(ErrorCode::InvalidArgument, "Empty partitions list"));
-          return;
-        }
+    if (request.GetPartitionIds().empty()) {
+      OLP_SDK_LOG_WARNING_F(
+          kLogTag, "PrefetchPartitions : invalid request, catalog=%s, layer=%s",
+          catalog_.ToCatalogHRNString().c_str(), layer_id_.c_str());
+      callback(ApiError(ErrorCode::InvalidArgument, "Empty partitions list"));
+      return;
+    }
 
-        auto billing_tag = request.GetBillingTag();
+    auto billing_tag = request.GetBillingTag();
 
-        const auto key = request.CreateKey(layer_id_);
+    const auto key = request.CreateKey(layer_id_);
 
-        auto response = GetVersion(billing_tag, OnlineIfNotFound, context);
+    auto response = GetVersion(billing_tag, OnlineIfNotFound, context);
 
-        if (!response.IsSuccessful()) {
-          OLP_SDK_LOG_WARNING_F(kLogTag,
-                                "PrefetchPartitions: getting catalog version "
-                                "failed, catalog=%s, key=%s",
-                                catalog_.ToCatalogHRNString().c_str(),
-                                key.c_str());
-          callback(response.GetError());
-          return;
-        }
+    if (!response.IsSuccessful()) {
+      OLP_SDK_LOG_WARNING_F(kLogTag,
+                            "PrefetchPartitions: getting catalog version "
+                            "failed, catalog=%s, key=%s",
+                            catalog_.ToCatalogHRNString().c_str(), key.c_str());
+      callback(response.GetError());
+      return;
+    }
 
-        auto version = response.GetResult().GetVersion();
+    auto version = response.GetResult().GetVersion();
 
-        OLP_SDK_LOG_INFO_F(kLogTag,
-                           "PrefetchPartitions: catalog=%s, using key=%s",
-                           catalog_.ToCatalogHRNString().c_str(), key.c_str());
+    OLP_SDK_LOG_INFO_F(kLogTag, "PrefetchPartitions: catalog=%s, using key=%s",
+                       catalog_.ToCatalogHRNString().c_str(), key.c_str());
 
-        repository::PartitionsRepository repository(catalog_, layer_id_,
-                                                    settings_, lookup_client_);
-
-        auto query = [=](std::vector<std::string> partitions,
-                         client::CancellationContext inner_context) mutable
-            -> PartitionsDataHandleExtendedResponse {
-          auto partitions_request = PartitionsRequest()
-                                        .WithPartitionIds(std::move(partitions))
-                                        .WithBillingTag(billing_tag);
-          auto response = repository.GetVersionedPartitionsExtendedResponse(
-              partitions_request, version, inner_context);
-
-          if (!response.IsSuccessful()) {
-            OLP_SDK_LOG_WARNING_F(kLogTag,
-                                  "PrefetchPartitions: getting versioned "
-                                  "partitions failed, catalog=%s, key=%s",
-                                  catalog_.ToCatalogHRNString().c_str(),
-                                  key.c_str());
-            return {response.GetError(), response.GetPayload()};
-          }
-
-          PartitionDataHandleResult result;
-          std::transform(std::begin(response.GetResult().GetPartitions()),
-                         std::end(response.GetResult().GetPartitions()),
-                         std::back_inserter(result),
-                         [&](const model::Partition& partition) {
-                           return std::make_pair(partition.GetPartition(),
-                                                 partition.GetDataHandle());
-                         });
-
-          return {result, response.GetPayload()};
-        };
-
-        auto download = [=](std::string data_handle,
-                            client::CancellationContext inner_context) mutable {
-          if (data_handle.empty()) {
-            return BlobApi::DataResponse(
-                client::ApiError(client::ErrorCode::NotFound, "Not found"));
-          }
-          repository::DataCacheRepository data_cache_repository(
-              catalog_, settings_.cache);
-          if (data_cache_repository.IsCached(layer_id_, data_handle)) {
-            return BlobApi::DataResponse(nullptr);
-          }
-
-          repository::DataRepository repository(catalog_, settings_,
+    repository::PartitionsRepository repository(catalog_, layer_id_, settings_,
                                                 lookup_client_);
-          // Fetch from online
-          return repository.GetVersionedData(layer_id_,
-                                             DataRequest()
-                                                 .WithDataHandle(data_handle)
-                                                 .WithBillingTag(billing_tag),
-                                             version, inner_context);
-        };
 
-        auto append_result = [](ExtendedDataResponse response, std::string item,
-                                PrefetchPartitionsResult& prefetch_result) {
-          if (response.IsSuccessful()) {
-            prefetch_result.AddPartition(std::move(item));
-          }
-        };
+    auto query = [=](std::vector<std::string> partitions,
+                     client::CancellationContext inner_context) mutable
+        -> PartitionsDataHandleExtendedResponse {
+      auto partitions_request = PartitionsRequest()
+                                    .WithPartitionIds(std::move(partitions))
+                                    .WithBillingTag(billing_tag);
+      auto response = repository.GetVersionedPartitionsExtendedResponse(
+          partitions_request, version, inner_context);
 
-        auto call_user_callback =
-            [callback](PrefetchPartitionsResponse result) {
-              if (result.IsSuccessful() &&
-                  result.GetResult().GetPartitions().size() == 0) {
-                callback(ApiError(client::ErrorCode::Unknown,
-                                  "No partitions were prefetched."));
-              } else {
-                callback(std::move(result));
-              }
-            };
+      if (!response.IsSuccessful()) {
+        OLP_SDK_LOG_WARNING_F(kLogTag,
+                              "PrefetchPartitions: getting versioned "
+                              "partitions failed, catalog=%s, key=%s",
+                              catalog_.ToCatalogHRNString().c_str(),
+                              key.c_str());
+        return {response.GetError(), response.GetPayload()};
+      }
 
-        auto download_job =
-            std::make_shared<PrefetchPartitionsHelper::DownloadJob>(
-                std::move(download), std::move(append_result),
-                std::move(call_user_callback), std::move(status_callback));
-        return PrefetchPartitionsHelper::Prefetch(
-            std::move(download_job), request.GetPartitionIds(),
-            std::move(query), task_sink_, kQueryPartitionsMaxSize,
-            request.GetPriority(), context);
-      },
-      request.GetPriority(), execution_context);
+      PartitionDataHandleResult result;
+      std::transform(std::begin(response.GetResult().GetPartitions()),
+                     std::end(response.GetResult().GetPartitions()),
+                     std::back_inserter(result),
+                     [&](const model::Partition& partition) {
+                       return std::make_pair(partition.GetPartition(),
+                                             partition.GetDataHandle());
+                     });
+
+      return {result, response.GetPayload()};
+    };
+
+    auto download = [=](std::string data_handle,
+                        client::CancellationContext inner_context) mutable {
+      if (data_handle.empty()) {
+        return BlobApi::DataResponse(
+            client::ApiError(client::ErrorCode::NotFound, "Not found"));
+      }
+      repository::DataCacheRepository data_cache_repository(catalog_,
+                                                            settings_.cache);
+      if (data_cache_repository.IsCached(layer_id_, data_handle)) {
+        return BlobApi::DataResponse(nullptr);
+      }
+
+      repository::DataRepository repository(catalog_, settings_,
+                                            lookup_client_);
+      // Fetch from online
+      return repository.GetVersionedData(
+          layer_id_,
+          DataRequest().WithDataHandle(data_handle).WithBillingTag(billing_tag),
+          version, inner_context);
+    };
+
+    auto append_result = [](ExtendedDataResponse response, std::string item,
+                            PrefetchPartitionsResult& prefetch_result) {
+      if (response.IsSuccessful()) {
+        prefetch_result.AddPartition(std::move(item));
+      }
+    };
+
+    auto call_user_callback = [callback](PrefetchPartitionsResponse result) {
+      if (result.IsSuccessful() && result.GetResult().GetPartitions().empty()) {
+        callback(ApiError(client::ErrorCode::Unknown,
+                          "No partitions were prefetched."));
+      } else {
+        callback(std::move(result));
+      }
+    };
+
+    auto download_job = std::make_shared<PrefetchPartitionsHelper::DownloadJob>(
+        std::move(download), std::move(append_result),
+        std::move(call_user_callback), std::move(status_callback));
+    return PrefetchPartitionsHelper::Prefetch(
+        std::move(download_job), request.GetPartitionIds(), std::move(query),
+        task_sink_, request.GetPriority(), context);
+  };
+  const auto priority = request.GetPriority();
+  return task_sink_.AddTask(
+      std::bind(task, std::placeholders::_1, std::move(request)), priority,
+      execution_context);
 }
 
 client::CancellableFuture<PrefetchPartitionsResponse>
