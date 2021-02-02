@@ -83,6 +83,8 @@ class CORE_API DefaultCache : public KeyValueCache {
    *
    * @return `StorageOpenResult` if there are problems opening any of
    * the provided paths on the disk.
+   *
+   * @note If the cache cannot be opened or repaired, it is deleted.
    */
   StorageOpenResult Open();
 
@@ -92,8 +94,10 @@ class CORE_API DefaultCache : public KeyValueCache {
    * @param type The type of cache to open.
    *
    * @return `Success` if the cache is created or already open, `NotReady` if
-   * DefaultCache is closed and `OpenDiskPathFailure` if there are problems
+   * `DefaultCache` is closed, and `OpenDiskPathFailure` if there are problems
    * opening the provided path on the disk.
+   *
+   * @note If the cache cannot be opened or repaired, it is deleted.
    */
   StorageOpenResult Open(CacheType type);
 

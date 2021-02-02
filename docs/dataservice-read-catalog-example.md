@@ -50,7 +50,7 @@ After building and running the example project, you see the following informatio
 
 - `edge-example-catalog` – a catalog description.
 - `versioned-world-layer` – a layer description.
-- `Request partition data - Success, data size - 3375` - a success message that displays the size of data retrieved from the requested partition.
+- `Request partition data - Success, data size - 3375` – a success message that displays the size of data retrieved from the requested partition.
 
 ```bash
 [INFO] read-example - Catalog description: edge-example-catalog
@@ -66,7 +66,7 @@ To integrate the Data SDK libraries in the Android example project:
 
 - [Set up prerequisites](#prerequisites-android)
 - [Build the Data SDK](#build-sdk-android)
-- [Build and Run the APK](#build-and-run-android)
+- [Build and run the APK](#build-and-run-android)
 
 ### <a name="prerequisites-android"></a>Prerequisites
 
@@ -416,4 +416,4 @@ if (data_response.IsSuccessful()) {
 }
 ```
 
-The `DataResult` class contains the raw partition data that is an alias for a `std::shared_ptr<std::vector<unsigned char>>`.
+The `DataResult` class contains raw partition data that is an alias for a `std::shared_ptr<std::vector<unsigned char>>`.
