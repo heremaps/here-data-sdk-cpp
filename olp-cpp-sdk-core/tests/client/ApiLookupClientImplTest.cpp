@@ -30,13 +30,13 @@ using testing::_;
 using testing::Return;
 
 constexpr auto kConfigBaseUrl =
-    "https://config.data.api.platform.in.here.com/config/v1";
+    "https://config.data.api.platform.sit.here.com/config/v1";
 
 constexpr auto kResponseLookupResource =
-    R"jsonString([{"api":"random_service","version":"v8","baseURL":"https://config.data.api.platform.in.here.com/config/v1","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}}])jsonString";
+    R"jsonString([{"api":"random_service","version":"v8","baseURL":"https://config.data.api.platform.sit.here.com/config/v1","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.sit.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.sit.here.com/pipeline-service","parameters":{}}])jsonString";
 
 constexpr auto kResponseLookupPlatform =
-    R"jsonString([{"api":"config","version":"v1","baseURL":"https://config.data.api.platform.in.here.com/config/v1","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}}])jsonString";
+    R"jsonString([{"api":"config","version":"v1","baseURL":"https://config.data.api.platform.sit.here.com/config/v1","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.sit.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.sit.here.com/pipeline-service","parameters":{}}])jsonString";
 
 class ApiLookupClientImplTestable : public client::ApiLookupClientImpl {
  public:
@@ -74,7 +74,7 @@ TEST_F(ApiLookupClientImplTest, LookupApi) {
   const std::string service_url = "http://random_service.com";
   const std::string service_version = "v8";
   const std::string config_url =
-      "https://config.data.api.platform.in.here.com/config/v1";
+      "https://config.data.api.platform.sit.here.com/config/v1";
   const std::string cache_key =
       catalog + "::" + service_name + "::" + service_version + "::api";
   const std::string lookup_url =
@@ -432,7 +432,7 @@ TEST_F(ApiLookupClientImplTest, CustomProvider) {
   const std::string service_url = "http://random_service.com";
   const std::string service_version = "v8";
   const std::string config_url =
-      "https://config.data.api.platform.in.here.com/config/v1";
+      "https://config.data.api.platform.sit.here.com/config/v1";
   const std::string lookup_url = "https://some-lookup-url.com/lookup/v1";
   const std::string request_lookup_url =
       lookup_url + "/resources/" + catalog + "/apis";
@@ -532,7 +532,7 @@ TEST_F(ApiLookupClientImplTest, LookupApiAsync) {
   const std::string service_url = "http://random_service.com";
   const std::string service_version = "v8";
   const std::string config_url =
-      "https://config.data.api.platform.in.here.com/config/v1";
+      "https://config.data.api.platform.sit.here.com/config/v1";
   const std::string cache_key =
       catalog + "::" + service_name + "::" + service_version + "::api";
   const std::string lookup_url =
@@ -878,7 +878,7 @@ TEST_F(ApiLookupClientImplTest, CustomProviderAsync) {
   const std::string service_url = "http://random_service.com";
   const std::string service_version = "v8";
   const std::string config_url =
-      "https://config.data.api.platform.in.here.com/config/v1";
+      "https://config.data.api.platform.sit.here.com/config/v1";
   const std::string lookup_url = "https://some-lookup-url.com/lookup/v1";
   const std::string request_lookup_url =
       lookup_url + "/resources/" + catalog + "/apis";

@@ -27,10 +27,10 @@ namespace client = olp::client;
 namespace read = olp::dataservice::read;
 
 const auto kConfigBaseUrl =
-    "https://config.data.api.platform.in.here.com/config/v1";
+    "https://config.data.api.platform.sit.here.com/config/v1";
 
 const auto kResponseLookupConfig =
-    R"jsonString([{"api":"random_service","version":"v8","baseURL":"https://config.data.api.platform.in.here.com/config/v1","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.in.here.com/pipeline-service","parameters":{}}])jsonString";
+    R"jsonString([{"api":"random_service","version":"v8","baseURL":"https://config.data.api.platform.sit.here.com/config/v1","parameters":{}},{"api":"pipelines","version":"v1","baseURL":"https://pipelines.api.platform.sit.here.com/pipeline-service","parameters":{}},{"api":"pipelines","version":"v2","baseURL":"https://pipelines.api.platform.sit.here.com/pipeline-service","parameters":{}}])jsonString";
 
 TEST(ApiClientLookupTest, LookupApi) {
   using testing::_;
@@ -51,7 +51,7 @@ TEST(ApiClientLookupTest, LookupApi) {
   const std::string service_url = "http://random_service.com";
   const std::string service_version = "v8";
   const std::string config_url =
-      "https://config.data.api.platform.in.here.com/config/v1";
+      "https://config.data.api.platform.sit.here.com/config/v1";
   const std::string cache_key =
       catalog + "::" + service_name + "::" + service_version + "::api";
   const std::string lookup_url =
@@ -242,7 +242,7 @@ TEST(ApiClientLookupTest, LookupApiConcurrent) {
   const std::string service_url = "http://random_service.com";
   const std::string service_version = "v8";
   const std::string config_url =
-      "https://config.data.api.platform.in.here.com/config/v1";
+      "https://config.data.api.platform.sit.here.com/config/v1";
   const std::string cache_key =
       catalog + "::" + service_name + "::" + service_version + "::api";
   const std::string lookup_url =
