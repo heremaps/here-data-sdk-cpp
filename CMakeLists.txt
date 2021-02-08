@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2020 HERE Europe B.V.
+# Copyright (C) 2019-2021 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 cmake_minimum_required(VERSION 3.9)
 
 # Build the sdk targets
-project(olp-cpp-sdk VERSION 1.10.0)
+project(olp-cpp-sdk VERSION 1.11.0)
 
 # Add preprocessor definitions for the SDK version and platform name
 add_definitions(-DOLP_SDK_VERSION_STRING=\"${olp-cpp-sdk_VERSION}\")
