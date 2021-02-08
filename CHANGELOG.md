@@ -1,3 +1,18 @@
+##  v1.11.0 (02/08/2020)
+
+**Common**
+
+* Added API to the `olp::cache::DefaultCache` to get or set the size of the mutable cache. Now you can increase or decrease the disk cache size during runtime. Please note that when setting a smaller size then the current size, the eviction of data will be triggered which can take some time.
+* Added API to the `olp::cache::DefaultCache` to get size of protected cache.
+* Fixed incorrect `olp::thread::ThreadedTaskScheduler` behaviour to copy tasks instead of moving them.
+* Fixed the incorrect reset of the `olp::client::CancelationContext` in the `olp::client::TaskContext` that could lead to resource leaking and unexpected network requests cancelation.
+* Updated the lookup API endpoint for `here-dev` partitions from `in.here.com` to `sit.here.com`.
+
+**olp-cpp-sdk-dataservice-read**
+
+* Fixed the data races inside prefetch operation that could lead to double callback or no callback at all.
+* Fixed prefetch cancelation behavior for both `olp::dataservice::read::VersionedLayerClient` and `olp::dataservice::read::VolatileLayerClient`. When canceled before this fix user will not know the status for each tile, in particular, that were canceled and only received the status for the tiles which succeeded or which failed with an arbitrary error.
+
 ##  v1.10.0 (12/14/2020)
 
 **Common**
