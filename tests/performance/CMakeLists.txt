@@ -23,7 +23,6 @@ endif()
 set(OLP_SDK_PERFORMANCE_TESTS_SOURCES
     ./MemoryTest.cpp
     ./MemoryTestBase.h
-    ./NullCache.h
     ./NetworkWrapper.h
     ./PrefetchTest.cpp
 )
