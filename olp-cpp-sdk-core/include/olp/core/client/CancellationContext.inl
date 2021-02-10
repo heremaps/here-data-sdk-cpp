@@ -72,5 +72,9 @@ inline bool CancellationContext::IsCancelled() const {
   return impl_->is_cancelled_;
 }
 
+bool CancellationContext::operator<(const CancellationContext& other) {
+  return impl_ < other.impl_;
+}
+
 }  // namespace client
 }  // namespace olp

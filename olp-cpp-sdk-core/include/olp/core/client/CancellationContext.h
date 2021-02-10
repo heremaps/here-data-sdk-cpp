@@ -80,6 +80,15 @@ class CORE_API CancellationContext {
    */
   bool IsCancelled() const;
 
+  /**
+   * @brief Overload operator < for CancellationContext.
+   *
+   * @param other CancellationContext object.
+   *
+   * @return True if the context less than other value.
+   */
+  bool operator<(const CancellationContext& other);
+
  private:
   /**
    * @brief An implementation used to shared the `CancellationContext` instance.
