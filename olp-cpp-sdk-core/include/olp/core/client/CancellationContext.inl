@@ -72,8 +72,11 @@ inline bool CancellationContext::IsCancelled() const {
   return impl_->is_cancelled_;
 }
 
-bool CancellationContext::operator<(const CancellationContext& other) {
-  return impl_ < other.impl_;
+inline size_t CancellationContextHash::operator()(
+    const CancellationContext& context) const {
+  return std::hash<
+      std::shared_ptr<CancellationContext::CancellationContextImpl>>()(
+      context.impl_);
 }
 
 }  // namespace client

@@ -80,16 +80,10 @@ class CORE_API CancellationContext {
    */
   bool IsCancelled() const;
 
-  /**
-   * @brief Overload operator < for CancellationContext.
-   *
-   * @param other CancellationContext object.
-   *
-   * @return True if the context less than other value.
-   */
-  bool operator<(const CancellationContext& other);
-
  private:
+  /// A helper for unordered containers.
+  friend struct CancellationContextHash;
+
   /**
    * @brief An implementation used to shared the `CancellationContext` instance.
    */
@@ -116,6 +110,20 @@ class CORE_API CancellationContext {
    * @brief The shared implementation.
    */
   std::shared_ptr<CancellationContextImpl> impl_;
+};
+
+/**
+ * @brief A helper for unordered containers.
+ */
+struct CORE_API CancellationContextHash {
+  /**
+   * @brief The hash function for the `CancellationContext` instance.
+   *
+   * @param context The `CancellationContext` instance.
+   *
+   * @return The hash for the `CancellationContext` instance.
+   */
+  size_t operator()(const CancellationContext& context) const;
 };
 
 }  // namespace client
