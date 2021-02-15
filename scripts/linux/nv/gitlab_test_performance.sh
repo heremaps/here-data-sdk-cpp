@@ -79,9 +79,8 @@ git clone --depth=1 https://github.com/brendangregg/FlameGraph
 # test names
 t1=short_test_disk_cache
 t2=short_test_memory_cache
-t3=short_test_null_cache
 
-for archive_name in PrefetchPartitionsFromVersionedLayer.$t1 PrefetchPartitionsFromVersionedLayer.$t2 PrefetchPartitionsFromVersionedLayer.$t3 ReadNPartitionsFromVersionedLayer.$t1 ReadNPartitionsFromVersionedLayer.$t2 ReadNPartitionsFromVersionedLayer.$t3
+for archive_name in PrefetchPartitionsFromVersionedLayer.$t1 PrefetchPartitionsFromVersionedLayer.$t2 ReadNPartitionsFromVersionedLayer.$t1 ReadNPartitionsFromVersionedLayer.$t2
 do
     heaptrack_print --print-leaks \
       --print-flamegraph heaptrack/flamegraph_${archive_name}.data \
