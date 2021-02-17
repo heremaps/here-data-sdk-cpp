@@ -1,12 +1,8 @@
 var searchData=
 [
-  ['signinclientcallback_2150',['SignInClientCallback',['../classolp_1_1authentication_1_1_authentication_client.html#aac3b31b8dbd7b424622df144db8ca25b',1,'olp::authentication::AuthenticationClient']]],
-  ['signinclientresponse_2151',['SignInClientResponse',['../classolp_1_1authentication_1_1_authentication_client.html#a76f9da2cf6767414ab9d7f4683c15887',1,'olp::authentication::AuthenticationClient']]],
-  ['signinusercallback_2152',['SignInUserCallback',['../classolp_1_1authentication_1_1_authentication_client.html#a92c94cdb324c080fb4c74918a5b7dc90',1,'olp::authentication::AuthenticationClient']]],
-  ['signinuserresponse_2153',['SignInUserResponse',['../classolp_1_1authentication_1_1_authentication_client.html#a3216d2b1e64eca2b0724adf9ffa83185',1,'olp::authentication::AuthenticationClient']]],
-  ['signoutusercallback_2154',['SignOutUserCallback',['../classolp_1_1authentication_1_1_authentication_client.html#a7f2a67946b8234fbeea376b992362f21',1,'olp::authentication::AuthenticationClient']]],
-  ['signoutuserresponse_2155',['SignOutUserResponse',['../classolp_1_1authentication_1_1_authentication_client.html#a75f7a2c8d4687dbb9d62afa3fd023f6c',1,'olp::authentication::AuthenticationClient']]],
-  ['signupcallback_2156',['SignUpCallback',['../classolp_1_1authentication_1_1_authentication_client.html#af3ee13c216810f43f0c7a826b2c939c9',1,'olp::authentication::AuthenticationClient']]],
-  ['signupresponse_2157',['SignUpResponse',['../classolp_1_1authentication_1_1_authentication_client.html#a42a06aaa923ec45d9f1240cc2af380d2',1,'olp::authentication::AuthenticationClient']]],
-  ['streamoffsets_2158',['StreamOffsets',['../classolp_1_1dataservice_1_1read_1_1_seek_request.html#ac389b19f7e8780b795b835ab30225da0',1,'olp::dataservice::read::SeekRequest']]]
+  ['requestbodytype_2149',['RequestBodyType',['../classolp_1_1http_1_1NetworkRequest.html#aae13881b97baa0d2d3d9a416dde924c9',1,'olp::http::NetworkRequest']]],
+  ['requestid_2150',['RequestId',['../namespaceolp_1_1http.html#ab4ebd4de6206da6920482383a686e7b4',1,'olp::http']]],
+  ['response_2151',['Response',['../namespaceolp_1_1authentication.html#ace1e8c385111244d29539e15a9660b43',1,'olp::authentication']]],
+  ['resulttype_2152',['ResultType',['../classolp_1_1client_1_1ApiResponse.html#aaec31a03fb7d5edcc1a8a9e84989bf21',1,'olp::client::ApiResponse']]],
+  ['retrycondition_2153',['RetryCondition',['../structolp_1_1client_1_1RetrySettings.html#a8912b47049a4184e3dad2bccd7ed7570',1,'olp::client::RetrySettings']]]
 ];

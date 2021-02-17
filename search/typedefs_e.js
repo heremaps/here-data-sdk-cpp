@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['useraccountinfocallback_2162',['UserAccountInfoCallback',['../namespaceolp_1_1authentication.html#a332d0dff23054e56482b32cc66aa6e22',1,'olp::authentication']]],
-  ['useraccountinforesponse_2163',['UserAccountInfoResponse',['../namespaceolp_1_1authentication.html#a59139f5f6420f72916d98deb8840f3a6',1,'olp::authentication']]],
-  ['usercallback_2164',['UserCallback',['../classolp_1_1client_1_1_task_context_1_1_task_context_impl.html#a3b4337779c27fd5fd2ed8f7de9bd8904',1,'olp::client::TaskContext::TaskContextImpl']]]
+  ['tokenprovidercallback_2163',['TokenProviderCallback',['../structolp_1_1client_1_1AuthenticationSettings.html#ab6073dcc4d615301cbc5770add5e91c2',1,'olp::client::AuthenticationSettings']]],
+  ['tokenprovidercancelcallback_2164',['TokenProviderCancelCallback',['../structolp_1_1client_1_1AuthenticationSettings.html#a2f09e92369bf14adf30b623810beba2c',1,'olp::client::AuthenticationSettings']]],
+  ['tokenproviderdefault_2165',['TokenProviderDefault',['../namespaceolp_1_1authentication.html#add9e77c777aa9984099a62d7ca94ba5c',1,'olp::authentication']]]
 ];

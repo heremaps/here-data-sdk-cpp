@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['x_1100',['x',['../classolp_1_1geo_1_1_geo_point.html#a70716f0eea3fe1d8928b597a8b386e80',1,'olp::geo::GeoPoint']]]
+  ['x_1102',['x',['../classolp_1_1geo_1_1GeoPoint.html#a70716f0eea3fe1d8928b597a8b386e80',1,'olp::geo::GeoPoint']]]
 ];
