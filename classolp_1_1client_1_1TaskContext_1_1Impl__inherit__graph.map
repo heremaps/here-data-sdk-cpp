@@ -1,4 +1,0 @@
-<map id="olp::client::TaskContext::Impl" name="olp::client::TaskContext::Impl">
-<area shape="rect" id="node1" title="An implementation helper interface used to declare the Execute, BlockingCancel, and CancelToken funct..." alt="" coords="34,5,209,47"/>
-<area shape="rect" id="node2" href="$classolp_1_1client_1_1TaskContext_1_1TaskContextImpl.html" title="Implements the Impl interface." alt="" coords="5,95,237,136"/>
-</map>

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['taskcontexthash_2250',['TaskContextHash',['../classolp_1_1client_1_1TaskContext.html#ab6581da2742019b5f6a0e981a267cc59',1,'olp::client::TaskContext']]]
+  ['cancellationcontexthash_2250',['CancellationContextHash',['../classolp_1_1client_1_1_cancellation_context.html#ad49ab03f7e622fbec2c6e487cad28557',1,'olp::client::CancellationContext']]]
 ];
