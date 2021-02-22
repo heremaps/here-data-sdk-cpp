@@ -98,9 +98,12 @@ class PrefetchTilesRepository {
   SubQuadsResult FilterTilesByList(const PrefetchTilesRequest& request,
                                    SubQuadsResult tiles);
 
+  client::NetworkStatistics LoadAggregatedSubQuads(
+      geo::TileKey tile, const SubQuadsResult& tiles, std::int64_t version,
+      client::CancellationContext context);
+
   SubQuadsResponse GetVersionedSubQuads(geo::TileKey tile, int32_t depth,
                                         std::int64_t version,
-                                        bool aggregation_enabled,
                                         client::CancellationContext context);
 
   SubQuadsResponse GetVolatileSubQuads(geo::TileKey tile, int32_t depth,

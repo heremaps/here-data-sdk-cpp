@@ -169,9 +169,48 @@ RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
   return root_tiles_depth;
 }
 
+client::NetworkStatistics PrefetchTilesRepository::LoadAggregatedSubQuads(
+    geo::TileKey root, const SubQuadsResult& tiles, std::int64_t version,
+    client::CancellationContext context) {
+  // if quad tree isn't cached, no reason to download additional quads
+  QuadTreeIndex quad_tree;
+  client::NetworkStatistics network_stats;
+
+  if (!cache_repository_.Get(root, kMaxQuadTreeIndexDepth, version,
+                             quad_tree)) {
+    return network_stats;
+  }
+
+  auto highest_tile_it = std::min_element(tiles.begin(), tiles.end());
+
+  // Currently there is no better way to correctly handle the prefetch of
+  // aggregated tiles, we download parent trees until the tile or it's parent is
+  // found in subtiles. In this way we make sure that all tiles within requested
+  // tree have aggregated parent downloaded and cached. This may cause
+  // additional or duplicate download request.
+  auto root_index = quad_tree.Find(highest_tile_it->first, true);
+  if (root_index) {
+    const auto& aggregated_tile_key = root_index->tile_key;
+
+    while (root.Level() > aggregated_tile_key.Level()) {
+      root = root.ChangedLevelBy(-kMaxQuadTreeIndexDepth - 1);
+
+      if (!cache_repository_.ContainsTree(root, kMaxQuadTreeIndexDepth,
+                                          version)) {
+        QuadTreeResponse response = DownloadVersionedQuadTree(
+            root, kMaxQuadTreeIndexDepth, version, context);
+
+        network_stats += GetNetworkStatistics(response);
+      }
+    }
+  }
+
+  return network_stats;
+}
+
 SubQuadsResponse PrefetchTilesRepository::GetVersionedSubQuads(
     geo::TileKey tile, int32_t depth, std::int64_t version,
-    bool aggregation_enabled, client::CancellationContext context) {
+    client::CancellationContext context) {
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetSubQuads(%s, %" PRId64 ", %" PRId32 ")",
                       tile.ToHereTile().c_str(), version, depth);
   // check if quad tree with requested tile and depth already in cache
@@ -194,31 +233,6 @@ SubQuadsResponse PrefetchTilesRepository::GetVersionedSubQuads(
     }
 
     quad_tree = response.MoveResult();
-  }
-
-  // Currently there is no better way to correctly handle the prefetch of
-  // aggregated tiles, we download parent trees until the tile or it's parent is
-  // found in subtiles. In this way we make sure that all tiles within requested
-  // tree have aggregated parent downloaded and cached. This may cause
-  // additional or duplicate download request.
-  if (aggregation_enabled) {
-    auto root = quad_tree.GetRootTile();
-    auto root_index = quad_tree.Find(root, true);
-    if (root_index) {
-      const auto& aggregated_tile_key = root_index->tile_key;
-
-      while (root.Level() > aggregated_tile_key.Level()) {
-        root = root.ChangedLevelBy(-kMaxQuadTreeIndexDepth - 1);
-
-        if (!cache_repository_.ContainsTree(root, kMaxQuadTreeIndexDepth,
-                                            version)) {
-          QuadTreeResponse response =
-              DownloadVersionedQuadTree(root, depth, version, context);
-
-          network_stats += GetNetworkStatistics(response);
-        }
-      }
-    }
   }
 
   return {FlattenTree(quad_tree), network_stats};
