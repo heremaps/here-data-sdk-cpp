@@ -105,7 +105,8 @@ std::time_t ParseTime(const std::string& value) {
   return timegm(&tm);
 }
 
-std::time_t GetTimestampFromHeaders(const olp::http::Headers& headers) {
+boost::optional<std::time_t> GetTimestampFromHeaders(
+    const olp::http::Headers& headers) {
   auto it =
       std::find_if(begin(headers), end(headers),
                    [](const std::pair<std::string, std::string>& obg) {
@@ -115,7 +116,7 @@ std::time_t GetTimestampFromHeaders(const olp::http::Headers& headers) {
   if (it != end(headers)) {
     return ParseTime(it->second);
   }
-  return 0;
+  return boost::none;
 }
 
 void ExecuteOrSchedule(
@@ -257,13 +258,18 @@ UserAccountInfoResponse GetUserAccountInfoResponse(
 
 client::OlpClient CreateOlpClient(
     const AuthenticationSettings& auth_settings,
-    boost::optional<client::AuthenticationSettings> authentication_settings) {
+    boost::optional<client::AuthenticationSettings> authentication_settings,
+    bool retry) {
   client::OlpClientSettings settings;
   settings.network_request_handler = auth_settings.network_request_handler;
   settings.authentication_settings = authentication_settings;
   settings.proxy_settings = auth_settings.network_proxy_settings;
   settings.retry_settings.backdown_strategy =
       client::ExponentialBackdownStrategy();
+
+  if (!retry) {
+    settings.retry_settings.max_attempts = 0;
+  }
 
   client::OlpClient client;
   client.SetBaseUrl(auth_settings.token_endpoint_url);

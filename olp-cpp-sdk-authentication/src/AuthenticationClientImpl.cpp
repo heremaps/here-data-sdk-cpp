@@ -92,6 +92,21 @@ constexpr auto kOperator = "operator";
 constexpr auto kErrorWrongTimestamp = 401204;
 constexpr auto kLogTag = "AuthenticationClient";
 
+constexpr auto kDefaultRetryCount = 3;
+constexpr auto kDefaultRetryTime = std::chrono::milliseconds(200);
+
+bool HasWrongTimestamp(olp::authentication::SignInResult& result) {
+  const auto& error_response = result.GetErrorResponse();
+  const auto status = result.GetStatus();
+  return status == olp::http::HttpStatusCode::UNAUTHORIZED &&
+         error_response.code == kErrorWrongTimestamp;
+}
+
+void RetryDelay(size_t retry) {
+  client::ExponentialBackdownStrategy retry_delay;
+  std::this_thread::sleep_for(retry_delay(kDefaultRetryTime, retry));
+}
+
 }  // namespace
 
 namespace olp {
@@ -111,23 +126,20 @@ AuthenticationClientImpl::~AuthenticationClientImpl() {
 }
 
 olp::client::HttpResponse AuthenticationClientImpl::CallAuth(
-    const client::OlpClient& client, client::CancellationContext context,
+    const client::OlpClient& client, const std::string& endpoint,
+    client::CancellationContext context,
     const AuthenticationCredentials& credentials,
-    const SignInProperties& properties, std::time_t timestamp) {
-  const auto url = settings_.token_endpoint_url + kOauthEndpoint;
+    client::OlpClient::RequestBodyType body, std::time_t timestamp) {
+  const auto url = settings_.token_endpoint_url + endpoint;
 
   auto auth_header =
       GenerateAuthorizationHeader(credentials, url, timestamp, GenerateUid());
 
   client::OlpClient::ParametersType headers = {
       {http::kAuthorizationHeader, std::move(auth_header)}};
-  if (context.IsCancelled()) {
-    return {static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-            "Cancelled"};
-  }
-  auto auth_response =
-      client.CallApi(kOauthEndpoint, "POST", {}, std::move(headers), {},
-                     GenerateClientBody(properties), kApplicationJson, context);
+
+  auto auth_response = client.CallApi(endpoint, "POST", {}, std::move(headers),
+                                      {}, body, kApplicationJson, context);
   return auth_response;
 }
 
@@ -136,112 +148,146 @@ SignInResult AuthenticationClientImpl::ParseAuthResponse(
   auto document = std::make_shared<rapidjson::Document>();
   rapidjson::IStreamWrapper stream(auth_response);
   document->ParseStream(stream);
-  auto resp_impl = std::make_shared<SignInResultImpl>(
+  return std::make_shared<SignInResultImpl>(
       status, olp::http::HttpErrorToString(status), document);
-  SignInResult response(resp_impl);
-
-  return response;
 }
 
-SignInClientResponse AuthenticationClientImpl::FindSingInResponseInCache(
-    int status, const std::string& error_message,
+SignInUserResult AuthenticationClientImpl::ParseUserAuthResponse(
+    int status, std::stringstream& auth_response) {
+  auto document = std::make_shared<rapidjson::Document>();
+  rapidjson::IStreamWrapper stream(auth_response);
+  document->ParseStream(stream);
+  return std::make_shared<SignInUserResultImpl>(
+      status, olp::http::HttpErrorToString(status), document);
+}
+
+template <>
+boost::optional<SignInResult> AuthenticationClientImpl::FindInCache(
     const AuthenticationCredentials& credentials) {
-  if (status == static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
-    return {{status, error_message}};
-  }
-
-  auto cached_response = client_token_cache_->locked(
-      [&](utils::LruCache<std::string, SignInResult>& c)
-          -> boost::optional<SignInResult> {
-        auto it = c.Find(credentials.GetKey());
-        return it != c.end() ? boost::make_optional(it->value()) : boost::none;
+  return client_token_cache_->locked(
+      [&](utils::LruCache<std::string, SignInResult>& cache) {
+        auto it = cache.Find(credentials.GetKey());
+        return it != cache.end() ? boost::make_optional(it->value())
+                                 : boost::none;
       });
+}
 
-  if (!cached_response) {
-    return {{status, error_message}};
-  }
+template <>
+boost::optional<SignInUserResult> AuthenticationClientImpl::FindInCache(
+    const AuthenticationCredentials& credentials) {
+  return user_token_cache_->locked(
+      [&](utils::LruCache<std::string, SignInUserResult>& cache) {
+        auto it = cache.Find(credentials.GetKey());
+        return it != cache.end() ? boost::make_optional(it->value())
+                                 : boost::none;
+      });
+}
 
-  return *cached_response;
+template <>
+void AuthenticationClientImpl::StoreInCache(
+    const AuthenticationCredentials& credentials, SignInResult response) {
+  // Cache the response
+  client_token_cache_->locked(
+      [&](utils::LruCache<std::string, SignInResult>& cache) {
+        return cache.InsertOrAssign(credentials.GetKey(), response);
+      });
+}
+
+template <>
+void AuthenticationClientImpl::StoreInCache(
+    const AuthenticationCredentials& credentials, SignInUserResult response) {
+  // Cache the response
+  user_token_cache_->locked(
+      [&](utils::LruCache<std::string, SignInUserResult>& cache) {
+        return cache.InsertOrAssign(credentials.GetKey(), response);
+      });
 }
 
 client::CancellationToken AuthenticationClientImpl::SignInClient(
     AuthenticationCredentials credentials, SignInProperties properties,
     SignInClientCallback callback) {
-  auto sign_in_task =
-      [=](client::CancellationContext context) -> SignInClientResponse {
-    {
-      if (!settings_.network_request_handler) {
-        return {{static_cast<int>(http::ErrorCode::IO_ERROR),
-                 "Cannot sign in while offline"}};
-      }
+  auto task = [=](client::CancellationContext context) -> SignInClientResponse {
+    if (!settings_.network_request_handler) {
+      return client::ApiError::NetworkConnection(
+          "Cannot sign in while offline");
+    }
 
+    if (context.IsCancelled()) {
+      return client::ApiError::Cancelled();
+    }
+
+    client::OlpClient client = CreateOlpClient(settings_, boost::none, 0);
+
+    std::time_t timestamp =
+        std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+    if (!settings_.use_system_time) {
+      auto server_time = GetTimeFromServer(context, client);
+      if (server_time.IsSuccessful()) {
+        timestamp = server_time.GetResult();
+      } else {
+        OLP_SDK_LOG_WARNING(
+            kLogTag,
+            "Failed to get time from server, system time will be used");
+      }
+    }
+
+    const auto request_body = GenerateClientBody(properties);
+
+    SignInResult response;
+
+    for (auto retry = 0; retry < kDefaultRetryCount; ++retry) {
       if (context.IsCancelled()) {
-        return {
-            {static_cast<int>(http::ErrorCode::CANCELLED_ERROR), "Cancelled"}};
+        return client::ApiError::Cancelled();
       }
 
-      client::OlpClient client = CreateOlpClient(settings_, boost::none);
-      std::time_t timestamp = std::chrono::system_clock::to_time_t(
-          std::chrono::system_clock::now());
+      auto auth_response = CallAuth(client, kOauthEndpoint, context,
+                                    credentials, request_body, timestamp);
 
-      if (!settings_.use_system_time) {
-        auto server_time = GetTimeFromServer(context, client);
-        if (server_time.IsSuccessful()) {
-          timestamp = server_time.GetResult();
-        } else {
-          OLP_SDK_LOG_WARNING(
-              kLogTag,
-              "Failed to get time from server, system time will be used");
-        }
-      }
-
-      auto auth_response =
-          CallAuth(client, context, credentials, properties, timestamp);
-
-      auto status = auth_response.status;
+      const auto status = auth_response.status;
 
       if (status < 0) {
-        return FindSingInResponseInCache(status, auth_response.response.str(),
-                                         credentials);
+        if (context.IsCancelled()) {
+          return client::ApiError::Cancelled();
+        }
+
+        auto result = FindInCache<SignInResult>(credentials);
+        if (!result) {
+          return client::ApiError(status, auth_response.response.str());
+        }
+
+        return *result;
       }
 
-      if (context.IsCancelled()) {
-        return {{static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
-                 "Cancelled"}};
+      response = ParseAuthResponse(status, auth_response.response);
+
+      if (client::DefaultRetryCondition(auth_response)) {
+        RetryDelay(retry);
+        continue;
       }
 
-      auto response = ParseAuthResponse(status, auth_response.response);
-
-      if (settings_.use_system_time &&
-          status == http::HttpStatusCode::UNAUTHORIZED &&
-          response.GetErrorResponse().code == kErrorWrongTimestamp) {
-        timestamp = GetTimestampFromHeaders(auth_response.headers);
-        if (timestamp != 0) {
-          auth_response =
-              CallAuth(client, context, credentials, properties, timestamp);
-          status = auth_response.status;
-          if (status < 0) {
-            return FindSingInResponseInCache(
-                status, auth_response.response.str(), credentials);
-          }
-
-          response = ParseAuthResponse(status, auth_response.response);
+      // In case we can't authorize with system time, retry with the server
+      // time from response headers (if available).
+      if (settings_.use_system_time && HasWrongTimestamp(response)) {
+        auto server_time = GetTimestampFromHeaders(auth_response.headers);
+        if (server_time) {
+          timestamp = *server_time;
+          continue;
         }
       }
 
       if (status == http::HttpStatusCode::OK) {
-        // Cache the response
-        client_token_cache_->locked(
-            [&](utils::LruCache<std::string, SignInResult>& c) {
-              return c.InsertOrAssign(credentials.GetKey(), response);
-            });
+        StoreInCache(credentials, response);
       }
-      return response;
+
+      break;
     }
+
+    return response;
   };
 
-  return AddTask(settings_.task_scheduler, pending_requests_,
-                 std::move(sign_in_task), std::move(callback));
+  return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
+                 std::move(callback));
 }
 
 TimeResponse AuthenticationClientImpl::ParseTimeResponse(
@@ -318,117 +364,77 @@ client::CancellationToken AuthenticationClientImpl::AcceptTerms(
 
 client::CancellationToken AuthenticationClientImpl::HandleUserRequest(
     const AuthenticationCredentials& credentials, const std::string& endpoint,
-    const http::NetworkRequest::RequestBodyType& request_body,
+    const client::OlpClient::RequestBodyType& request_body,
     const SignInUserCallback& callback) {
-  if (!settings_.network_request_handler) {
-    ExecuteOrSchedule(settings_.task_scheduler, [callback] {
-      AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
-                                  "Cannot handle user request while offline"});
-      callback(result);
-    });
-    return client::CancellationToken();
-  }
-  std::weak_ptr<http::Network> weak_network(settings_.network_request_handler);
-  std::string url = settings_.token_endpoint_url;
-  url.append(endpoint);
-  http::NetworkRequest request(url);
-  http::NetworkSettings network_settings;
-  if (settings_.network_proxy_settings) {
-    network_settings.WithProxySettings(settings_.network_proxy_settings.get());
-  }
-  request.WithVerb(http::NetworkRequest::HttpVerb::POST);
-
-  auto auth_header = GenerateAuthorizationHeader(
-      credentials, url, std::time(nullptr), GenerateUid());
-
-  request.WithHeader(http::kAuthorizationHeader, std::move(auth_header));
-  request.WithHeader(http::kContentTypeHeader, kApplicationJson);
-  request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
-  request.WithSettings(std::move(network_settings));
-
-  std::shared_ptr<std::stringstream> payload =
-      std::make_shared<std::stringstream>();
-  request.WithBody(request_body);
-  auto cache = user_token_cache_;
-  auto send_outcome = settings_.network_request_handler->Send(
-      request, payload,
-      [callback, payload, credentials,
-       cache](const http::NetworkResponse& network_response) {
-        auto response_status = network_response.GetStatus();
-        auto error_msg = network_response.GetError();
-
-        // Network not available, use cached token if available
-        if (response_status < 0) {
-          // Request cancelled, return
-          if (response_status ==
-              static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)) {
-            callback({{response_status, error_msg}});
-            return;
-          }
-
-          auto cached_response_found = cache->locked(
-              [credentials,
-               callback](utils::LruCache<std::string, SignInUserResult>& c) {
-                auto it = c.Find(credentials.GetKey());
-                if (it != c.end()) {
-                  callback(it->value());
-                  return true;
-                }
-                return false;
-              });
-
-          if (!cached_response_found) {
-            // Return an error response
-            SignInUserResult response(std::make_shared<SignInUserResultImpl>(
-                response_status, error_msg));
-            callback(response);
-          }
-
-          return;
-        }
-
-        auto document = std::make_shared<rapidjson::Document>();
-        rapidjson::IStreamWrapper stream(*payload);
-        document->ParseStream(stream);
-
-        std::shared_ptr<SignInUserResultImpl> resp_impl =
-            std::make_shared<SignInUserResultImpl>(response_status, error_msg,
-                                                   document);
-        SignInUserResult response(resp_impl);
-
-        if (!resp_impl->IsValid()) {
-          callback(response);
-          return;
-        }
-
-        if (response_status == http::HttpStatusCode::OK) {
-          cache->locked([credentials, &response](
-                            utils::LruCache<std::string, SignInUserResult>& c) {
-            return c.InsertOrAssign(credentials.GetKey(), response);
-          });
-        }
-        callback(response);
-      });
-
-  if (!send_outcome.IsSuccessful()) {
-    ExecuteOrSchedule(settings_.task_scheduler, [send_outcome, callback] {
-      std::string error_message =
-          ErrorCodeToString(send_outcome.GetErrorCode());
-      AuthenticationError result({static_cast<int>(send_outcome.GetErrorCode()),
-                                  std::move(error_message)});
-      callback(result);
-    });
-    return client::CancellationToken();
-  }
-
-  auto request_id = send_outcome.GetRequestId();
-  return client::CancellationToken([weak_network, request_id]() {
-    auto network = weak_network.lock();
-
-    if (network) {
-      network->Cancel(request_id);
+  auto task = [=](client::CancellationContext context) -> SignInUserResponse {
+    if (!settings_.network_request_handler) {
+      return client::ApiError::NetworkConnection(
+          "Cannot handle user request while offline");
     }
-  });
+
+    if (context.IsCancelled()) {
+      return client::ApiError::Cancelled();
+    }
+
+    client::OlpClient client = CreateOlpClient(settings_, boost::none, 0);
+
+    std::time_t timestamp =
+        std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+    SignInUserResult response;
+
+    for (auto retry = 0; retry < kDefaultRetryCount; ++retry) {
+      if (context.IsCancelled()) {
+        return client::ApiError::Cancelled();
+      }
+
+      auto auth_response = CallAuth(client, endpoint, context, credentials,
+                                    request_body, timestamp);
+
+      auto status = auth_response.status;
+
+      if (status < 0) {
+        if (context.IsCancelled()) {
+          return client::ApiError::Cancelled();
+        }
+
+        auto result = FindInCache<SignInUserResult>(credentials);
+        if (!result) {
+          return client::ApiError(status, auth_response.response.str());
+        }
+
+        return *result;
+      }
+
+      response = ParseUserAuthResponse(status, auth_response.response);
+
+      if (client::DefaultRetryCondition(auth_response)) {
+        RetryDelay(retry);
+        continue;
+      }
+
+      // In case we can't authorize with system time, retry with the server
+      // time from response headers (if available).
+      if (settings_.use_system_time && HasWrongTimestamp(response)) {
+        auto server_time = GetTimestampFromHeaders(auth_response.headers);
+        if (server_time) {
+          timestamp = *server_time;
+          continue;
+        }
+      }
+
+      if (status == http::HttpStatusCode::OK) {
+        StoreInCache(credentials, response);
+      }
+
+      break;
+    }
+
+    return response;
+  };
+
+  return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
+                 callback);
 }
 
 client::CancellationToken AuthenticationClientImpl::SignUpHereUser(
@@ -436,9 +442,8 @@ client::CancellationToken AuthenticationClientImpl::SignUpHereUser(
     const SignUpProperties& properties, const SignUpCallback& callback) {
   if (!settings_.network_request_handler) {
     ExecuteOrSchedule(settings_.task_scheduler, [callback] {
-      AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
-                                  "Cannot sign up while offline"});
-      callback(result);
+      callback(
+          client::ApiError::NetworkConnection("Cannot sign up while offline"));
     });
     return client::CancellationToken();
   }
@@ -514,9 +519,8 @@ client::CancellationToken AuthenticationClientImpl::SignOut(
     const std::string& access_token, const SignOutUserCallback& callback) {
   if (!settings_.network_request_handler) {
     ExecuteOrSchedule(settings_.task_scheduler, [callback] {
-      AuthenticationError result({static_cast<int>(http::ErrorCode::IO_ERROR),
-                                  "Cannot sign out while offline"});
-      callback(result);
+      callback(
+          client::ApiError::NetworkConnection("Cannot sign out while offline"));
     });
     return client::CancellationToken();
   }
@@ -590,8 +594,8 @@ client::CancellationToken AuthenticationClientImpl::IntrospectApp(
   auto introspect_app_task =
       [=](client::CancellationContext context) -> ResponseType {
     if (!settings_.network_request_handler) {
-      return client::ApiError({static_cast<int>(http::ErrorCode::IO_ERROR),
-                               "Cannot introspect app while offline"});
+      return client::ApiError::NetworkConnection(
+          "Cannot introspect app while offline");
     }
 
     client::AuthenticationSettings auth_settings;
@@ -633,8 +637,8 @@ client::CancellationToken AuthenticationClientImpl::Authorize(
 
   auto task = [=](client::CancellationContext context) -> ResponseType {
     if (!settings_.network_request_handler) {
-      return client::ApiError({static_cast<int>(http::ErrorCode::IO_ERROR),
-                               "Can not send request while offline"});
+      return client::ApiError::NetworkConnection(
+          "Can not send request while offline");
     }
 
     client::AuthenticationSettings auth_settings;
@@ -689,8 +693,8 @@ client::CancellationToken AuthenticationClientImpl::GetMyAccount(
   auto task =
       [=](client::CancellationContext context) -> UserAccountInfoResponse {
     if (!settings_.network_request_handler) {
-      return client::ApiError({static_cast<int>(http::ErrorCode::IO_ERROR),
-                               "Can not send request while offline"});
+      return client::ApiError::NetworkConnection(
+          "Can not send request while offline");
     }
 
     client::AuthenticationSettings auth_settings;
@@ -740,8 +744,8 @@ client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateClientBody(
                                                       content + data.GetSize());
 }
 
-http::NetworkRequest::RequestBodyType
-AuthenticationClientImpl::GenerateUserBody(const UserProperties& properties) {
+client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateUserBody(
+    const UserProperties& properties) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();
@@ -767,7 +771,7 @@ AuthenticationClientImpl::GenerateUserBody(const UserProperties& properties) {
                                                       content + data.GetSize());
 }
 
-http::NetworkRequest::RequestBodyType
+client::OlpClient::RequestBodyType
 AuthenticationClientImpl::GenerateFederatedBody(
     const FederatedSignInType type, const FederatedProperties& properties) {
   rapidjson::StringBuffer data;
@@ -816,7 +820,7 @@ AuthenticationClientImpl::GenerateFederatedBody(
                                                       content + data.GetSize());
 }
 
-http::NetworkRequest::RequestBodyType
+client::OlpClient::RequestBodyType
 AuthenticationClientImpl::GenerateRefreshBody(
     const RefreshProperties& properties) {
   rapidjson::StringBuffer data;
@@ -844,8 +848,7 @@ AuthenticationClientImpl::GenerateRefreshBody(
                                                       content + data.GetSize());
 }
 
-http::NetworkRequest::RequestBodyType
-AuthenticationClientImpl::GenerateSignUpBody(
+client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateSignUpBody(
     const SignUpProperties& properties) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
@@ -902,7 +905,7 @@ AuthenticationClientImpl::GenerateSignUpBody(
                                                       content + data.GetSize());
 }
 
-http::NetworkRequest::RequestBodyType
+client::OlpClient::RequestBodyType
 AuthenticationClientImpl::GenerateAcceptTermBody(
     const std::string& reacceptance_token) {
   rapidjson::StringBuffer data;

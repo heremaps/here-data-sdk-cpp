@@ -36,6 +36,26 @@ namespace client {
  */
 class CORE_API ApiError {
  public:
+  /**
+   * @brief Creates the `ApiError` instance with the cancelled error code and
+   * description.
+   * @param description The optional description.
+   * @return The `ApiError` instance.
+   */
+  static ApiError Cancelled(const char* description = "Cancelled") {
+    return ApiError(ErrorCode::Cancelled, description);
+  }
+
+  /**
+   * @brief Creates the `ApiError` instance with the network connection error
+   * code and description.
+   * @param description The optional description.
+   * @return The `ApiError` instance.
+   */
+  static ApiError NetworkConnection(const char* description = "Offline") {
+    return ApiError(ErrorCode::NetworkConnection, description);
+  }
+
   ApiError() = default;
 
   /**
@@ -70,7 +90,7 @@ class CORE_API ApiError {
    * @param http_status_code The HTTP status code returned by the server.
    * @param message The text message of the error.
    */
-  ApiError(int http_status_code, std::string message = "") // NOLINT
+  ApiError(int http_status_code, std::string message = "")  // NOLINT
       : error_code_(http::HttpStatusCode::GetErrorCode(http_status_code)),
         http_status_code_(http_status_code),
         message_(std::move(message)),
