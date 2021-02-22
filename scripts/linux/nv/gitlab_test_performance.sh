@@ -71,7 +71,7 @@ else
 fi
 
 mkdir reports/heaptrack
-mkdir heaptrack
+mkdir reports/heaptrack_data
 
 # Third party dependency needed for pretty graph generation below
 git clone --depth=1 https://github.com/brendangregg/FlameGraph
@@ -83,14 +83,14 @@ t2=short_test_memory_cache
 for archive_name in PrefetchPartitionsFromVersionedLayer.$t1 PrefetchPartitionsFromVersionedLayer.$t2 ReadNPartitionsFromVersionedLayer.$t1 ReadNPartitionsFromVersionedLayer.$t2
 do
     heaptrack_print --print-leaks \
-      --print-flamegraph heaptrack/flamegraph_${archive_name}.data \
+      --print-flamegraph reports/heaptrack_data/flamegraph_${archive_name}.data \
       --file heaptrack.${archive_name}.gz > reports/heaptrack/report_${archive_name}.txt
     # Pretty graph generation
-    ./FlameGraph/flamegraph.pl --title="Flame Graph: ${archive_name}" heaptrack/flamegraph_${archive_name}.data > reports/heaptrack/flamegraph_${archive_name}.svg
+    ./FlameGraph/flamegraph.pl --title="Flame Graph: ${archive_name}" reports/heaptrack_data/flamegraph_${archive_name}.data > reports/heaptrack/flamegraph_${archive_name}.svg
     cat reports/heaptrack/flamegraph_${archive_name}.svg >> heaptrack_report.html
 done
 cp heaptrack_report.html reports
-ls -la heaptrack
+ls -la reports/heaptrack_data
 ls -la
 
 # TODO:

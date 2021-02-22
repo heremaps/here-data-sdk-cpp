@@ -59,6 +59,9 @@ build_test_linux_fv:
   - $CI_PROJECT_DIR/scripts/linux/fv/gitlab_build_fv.sh
   - $CI_PROJECT_DIR/scripts/linux/fv/gitlab_test_fv.sh
   - $CI_PROJECT_DIR/scripts/linux/fv/gitlab-olp-cpp-sdk-functional-network-test.sh
+  - if $(ls $CI_PROJECT_DIR/reports/*.xml &>/dev/null); then tar -czf ${CI_JOB_NAME}_test_reports.tar.gz $CI_PROJECT_DIR/reports ; fi;
+  - $CI_PROJECT_DIR/scripts/misc/artifactory_upload.sh edge-sdks/sdk-for-cpp/releases/test-reports/$CI_JOB_NAME/$CI_JOB_ID/${CI_JOB_NAME}_test_reports.tar.gz ${CI_JOB_NAME}_test_reports.tar.gz
+
   only:
     refs:
       - branches
@@ -82,6 +85,8 @@ build_test_nv:
   script:
   - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_build_valgrind.sh
   - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_test_valgrind.sh
+  - if $(ls $CI_PROJECT_DIR/reports/*.xml &>/dev/null); then tar -czvf ${CI_JOB_NAME}_test_reports.tar.gz $CI_PROJECT_DIR/reports ; fi;
+  - $CI_PROJECT_DIR/scripts/misc/artifactory_upload.sh edge-sdks/sdk-for-cpp/releases/test-reports/$CI_JOB_NAME/$CI_JOB_ID/${CI_JOB_NAME}_test_reports.tar.gz ${CI_JOB_NAME}_test_reports.tar.gz
   only:
     refs:
       - branches
@@ -103,6 +108,8 @@ test_performance_nv:
   image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_PERFORMANCE}:${DOCKER_IMAGE_PERFORMANCE_VERSION}
   script:
   - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_test_performance.sh
+  - if $(ls $CI_PROJECT_DIR/reports/*.xml &>/dev/null); then tar -czvf ${CI_JOB_NAME}_test_reports.tar.gz $CI_PROJECT_DIR/reports ; fi;
+  - $CI_PROJECT_DIR/scripts/misc/artifactory_upload.sh edge-sdks/sdk-for-cpp/releases/test-reports/$CI_JOB_NAME/$CI_JOB_ID/${CI_JOB_NAME}_test_reports.tar.gz ${CI_JOB_NAME}_test_reports.tar.gz
   only:
     refs:
       - branches
@@ -243,3 +250,4 @@ generate_api_compliance_job:
   artifacts:
     paths:
     - ./*.html
+    expire_in: 2 year
