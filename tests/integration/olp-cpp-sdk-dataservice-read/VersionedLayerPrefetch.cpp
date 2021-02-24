@@ -19,6 +19,7 @@
 
 #include "VersionedLayerTestBase.h"
 
+#include <olp/core/cache/KeyValueCache.h>
 #include <olp/dataservice/read/PrefetchTileResult.h>
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 
@@ -35,68 +36,128 @@ TEST_F(VersionedLayerPrefetch, AggregatedPrefetch) {
 
   const auto target_tile =
       olp::geo::TileKey::FromRowColumnLevel(6481, 8800, 14);
-  const auto aggregated_parent = target_tile.ChangedLevelTo(1);
-
-  // Mock a quad tree that bundles 0-14 levels, and a blob
   {
-    const auto tree_root = target_tile.ChangedLevelTo(0);
+    SCOPED_TRACE("Sparse tiles");
+
     const auto aggregated_parent = target_tile.ChangedLevelTo(1);
 
-    mockserver::QuadTreeBuilder tree_10(target_tile.ChangedLevelTo(10),
-                                        layer_version);
-    tree_10.WithParent(tree_root, "handle-0")
-        .WithParent(aggregated_parent, "handle-1");
+    // Mock a quad tree that bundles 0-14 levels, and a blob
+    {
+      const auto tree_root = target_tile.ChangedLevelTo(0);
 
-    mockserver::QuadTreeBuilder tree_5(target_tile.ChangedLevelTo(5),
-                                       layer_version);
-    tree_5.WithParent(tree_root, "handle-0")
-        .WithParent(aggregated_parent, "handle-1");
+      mockserver::QuadTreeBuilder tree_10(target_tile.ChangedLevelTo(10),
+                                          layer_version);
+      tree_10.WithParent(tree_root, "handle-0")
+          .WithParent(aggregated_parent, "handle-1");
 
-    mockserver::QuadTreeBuilder tree_0(target_tile.ChangedLevelTo(0),
-                                       layer_version);
-    tree_0.WithSubQuad(tree_root, "handle-0")
-        .WithSubQuad(aggregated_parent, "handle-1");
+      mockserver::QuadTreeBuilder tree_5(target_tile.ChangedLevelTo(5),
+                                         layer_version);
+      tree_5.WithParent(tree_root, "handle-0")
+          .WithParent(aggregated_parent, "handle-1");
 
-    ExpectQuadTreeRequest(layer_version, tree_10);
-    ExpectQuadTreeRequest(layer_version, tree_5);
-    ExpectQuadTreeRequest(layer_version, tree_0);
+      mockserver::QuadTreeBuilder tree_0(target_tile.ChangedLevelTo(0),
+                                         layer_version);
+      tree_0.WithSubQuad(tree_root, "handle-0")
+          .WithSubQuad(aggregated_parent, "handle-1");
 
-    // Expect to download handle-1
-    ExpectBlobRequest("handle-1", "A");
+      ExpectQuadTreeRequest(layer_version, tree_10);
+      ExpectQuadTreeRequest(layer_version, tree_5);
+      ExpectQuadTreeRequest(layer_version, tree_0);
+
+      // Expect to download handle-1
+      ExpectBlobRequest("handle-1", "A");
+    }
+
+    read::VersionedLayerClient client(kCatalogHrn, kLayerName, layer_version,
+                                      settings_);
+
+    auto api_call_outcome =
+        client.PrefetchTiles(read::PrefetchTilesRequest()
+                                 .WithTileKeys({target_tile})
+                                 .WithDataAggregationEnabled(true));
+
+    auto future = api_call_outcome.GetFuture();
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+
+    auto api_result = future.get();
+
+    ASSERT_TRUE(api_result.IsSuccessful());
+
+    const auto& prefetch_result = api_result.GetResult();
+
+    ASSERT_TRUE(!prefetch_result.empty());
+
+    const auto& prefetched_tile = prefetch_result.front();
+
+    ASSERT_TRUE(prefetched_tile->IsSuccessful());
+
+    ASSERT_EQ(prefetched_tile->tile_key_, aggregated_parent);
+
+    // Validate that all APIs can handle it.
+    ASSERT_TRUE(client.IsCached(target_tile, true));
+    ASSERT_TRUE(client.IsCached(aggregated_parent));
+    ASSERT_TRUE(client.Protect({aggregated_parent}));
+    ASSERT_TRUE(client.Release({aggregated_parent}));
+    ASSERT_TRUE(client.RemoveFromCache(aggregated_parent));
   }
 
-  read::VersionedLayerClient client(kCatalogHrn, kLayerName, layer_version,
-                                    settings_);
+  {
+    SCOPED_TRACE("Sparse tiles, close parent");
 
-  auto api_call_outcome =
-      client.PrefetchTiles(read::PrefetchTilesRequest()
-                               .WithTileKeys({target_tile})
-                               .WithDataAggregationEnabled(true));
+    const auto aggregated_parent = target_tile.ChangedLevelTo(12);
 
-  auto future = api_call_outcome.GetFuture();
+    // Mock a quad tree that bundles 0-14 levels, and a blob
+    {
+      const auto tree_root = target_tile.ChangedLevelTo(0);
 
-  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+      mockserver::QuadTreeBuilder tree_10(target_tile.ChangedLevelTo(10),
+                                          layer_version);
+      tree_10.WithParent(tree_root, "handle-0")
+          .WithSubQuad(aggregated_parent, "handle-1");
 
-  auto api_result = future.get();
+      ExpectQuadTreeRequest(layer_version, tree_10);
 
-  ASSERT_TRUE(api_result.IsSuccessful());
+      // Expect to download handle-1
+      ExpectBlobRequest("handle-1", "A");
+    }
 
-  const auto& prefetch_result = api_result.GetResult();
+    // clear cache
+    settings_.cache->RemoveKeysWithPrefix("");
 
-  ASSERT_TRUE(!prefetch_result.empty());
+    read::VersionedLayerClient client(kCatalogHrn, kLayerName, layer_version,
+                                      settings_);
 
-  const auto& prefetched_tile = prefetch_result.front();
+    auto api_call_outcome =
+        client.PrefetchTiles(read::PrefetchTilesRequest()
+                                 .WithTileKeys({target_tile})
+                                 .WithDataAggregationEnabled(true));
 
-  ASSERT_TRUE(prefetched_tile->IsSuccessful());
+    auto future = api_call_outcome.GetFuture();
 
-  ASSERT_EQ(prefetched_tile->tile_key_, aggregated_parent);
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
 
-  // Validate that all APIs can handle it.
-  ASSERT_TRUE(client.IsCached(target_tile, true));
-  ASSERT_TRUE(client.IsCached(aggregated_parent));
-  ASSERT_TRUE(client.Protect({aggregated_parent}));
-  ASSERT_TRUE(client.Release({aggregated_parent}));
-  ASSERT_TRUE(client.RemoveFromCache(aggregated_parent));
+    auto api_result = future.get();
+
+    ASSERT_TRUE(api_result.IsSuccessful());
+
+    const auto& prefetch_result = api_result.GetResult();
+
+    ASSERT_TRUE(!prefetch_result.empty());
+
+    const auto& prefetched_tile = prefetch_result.front();
+
+    ASSERT_TRUE(prefetched_tile->IsSuccessful());
+
+    ASSERT_EQ(prefetched_tile->tile_key_, aggregated_parent);
+
+    // Validate that all APIs can handle it.
+    ASSERT_TRUE(client.IsCached(target_tile, true));
+    ASSERT_TRUE(client.IsCached(aggregated_parent));
+    ASSERT_TRUE(client.Protect({aggregated_parent}));
+    ASSERT_TRUE(client.Release({aggregated_parent}));
+    ASSERT_TRUE(client.RemoveFromCache(aggregated_parent));
+  }
 }
 
 }  // namespace
