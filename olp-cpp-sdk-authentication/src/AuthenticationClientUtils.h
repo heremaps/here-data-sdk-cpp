@@ -78,9 +78,10 @@ inline client::CancellationToken AddTask(
 /*
  * @brief Search in headers date header and return parsed time.
  * @param headers http headers.
- * @return time_t time from headers.
+ * @return optional time_t time from headers.
  */
-std::time_t GetTimestampFromHeaders(const http::Headers& headers);
+boost::optional<std::time_t> GetTimestampFromHeaders(
+    const http::Headers& headers);
 
 /*
  * @brief Parse json document to IntrospectAppResult type.
@@ -131,11 +132,15 @@ std::time_t ParseTime(const std::string& value);
  * authentication settings which could be used for future requests.
  * @param auth_settings authentication settings.
  * @param authentication_settings olp client authentication settings.
+ * @param retry a flag that is used to disable retries the client will make for
+ * requests. For sign in requests we should disable retry since we should not
+ * retry requests with the same nonce value.
  * @return result olp client.
  */
 client::OlpClient CreateOlpClient(
     const AuthenticationSettings& auth_settings,
-    boost::optional<client::AuthenticationSettings> authentication_settings);
+    boost::optional<client::AuthenticationSettings> authentication_settings,
+    bool retry = true);
 
 /*
  * @brief Generate authorization header.

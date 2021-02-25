@@ -48,10 +48,11 @@ using SignUpProperties = AuthenticationClient::SignUpProperties;
 using RefreshProperties = AuthenticationClient::RefreshProperties;
 
 using SignInClientCallback = AuthenticationClient::SignInClientCallback;
+using SignInClientResponse = AuthenticationClient::SignInClientResponse;
 using SignInUserCallback = AuthenticationClient::SignInUserCallback;
+using SignInUserResponse = AuthenticationClient::SignInUserResponse;
 using SignUpCallback = AuthenticationClient::SignUpCallback;
 using SignOutUserCallback = AuthenticationClient::SignOutUserCallback;
-using SignInClientResponse = AuthenticationClient::SignInClientResponse;
 
 using TimeResponse = Response<time_t>;
 using TimeCallback = Callback<time_t>;
@@ -133,33 +134,43 @@ class AuthenticationClientImpl final {
 
   client::OlpClient::RequestBodyType GenerateClientBody(
       const SignInProperties& properties);
-  http::NetworkRequest::RequestBodyType GenerateUserBody(
+  client::OlpClient::RequestBodyType GenerateUserBody(
       const UserProperties& properties);
-  http::NetworkRequest::RequestBodyType GenerateFederatedBody(
+  client::OlpClient::RequestBodyType GenerateFederatedBody(
       const FederatedSignInType, const FederatedProperties& properties);
-  http::NetworkRequest::RequestBodyType GenerateRefreshBody(
+  client::OlpClient::RequestBodyType GenerateRefreshBody(
       const RefreshProperties& properties);
-  http::NetworkRequest::RequestBodyType GenerateSignUpBody(
+  client::OlpClient::RequestBodyType GenerateSignUpBody(
       const SignUpProperties& properties);
-  http::NetworkRequest::RequestBodyType GenerateAcceptTermBody(
+  client::OlpClient::RequestBodyType GenerateAcceptTermBody(
       const std::string& reacceptance_token);
   client::OlpClient::RequestBodyType GenerateAuthorizeBody(
       AuthorizeRequest properties);
 
   olp::client::HttpResponse CallAuth(
-      const client::OlpClient& client, client::CancellationContext context,
+      const client::OlpClient& client, const std::string& endpoint,
+      client::CancellationContext context,
       const AuthenticationCredentials& credentials,
-      const SignInProperties& properties, std::time_t timestamp);
+      client::OlpClient::RequestBodyType body, std::time_t timestamp);
+
   SignInResult ParseAuthResponse(int status, std::stringstream& auth_response);
-  SignInClientResponse FindSingInResponseInCache(
-      int status, const std::string& error_message,
+
+  SignInUserResult ParseUserAuthResponse(int status,
+                                         std::stringstream& auth_response);
+
+  template <typename SignInResponseType>
+  boost::optional<SignInResponseType> FindInCache(
       const AuthenticationCredentials& credentials);
+
+  template <typename SignInResponseType>
+  void StoreInCache(const AuthenticationCredentials& credentials,
+                    SignInResponseType);
 
   std::string GenerateUid() const;
 
   client::CancellationToken HandleUserRequest(
       const AuthenticationCredentials& credentials, const std::string& endpoint,
-      const http::NetworkRequest::RequestBodyType& request_body,
+      const client::OlpClient::RequestBodyType& request_body,
       const SignInUserCallback& callback);
 
   std::shared_ptr<SignInCacheType> client_token_cache_;

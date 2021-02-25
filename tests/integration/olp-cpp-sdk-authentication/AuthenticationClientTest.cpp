@@ -50,6 +50,7 @@ constexpr auto kTokenEndpointUrl = "https://authentication.server.url";
 constexpr unsigned int kExpirtyTime = 3600;
 constexpr unsigned int kMaxExpiryTime = kExpirtyTime + 30;
 constexpr unsigned int kMinExpiryTime = kExpirtyTime - 10;
+constexpr unsigned int kExpectedRetryCount = 3;
 
 // HTTP errors
 constexpr auto kErrorOk = "OK";
@@ -186,7 +187,8 @@ class AuthenticationClientTest : public ::testing::Test {
 
     // First is GetTimeFromServer(). Second is actual SignIn.
     // When the request is retriable, 3 more requests are fired.
-    const auto expected_number_of_calls = is_retriable ? 8 : 2;
+    const auto expected_number_of_calls =
+        1 + (is_retriable ? kExpectedRetryCount : 1);
 
     EXPECT_CALL(*network_, Send(_, _, _, _, _))
         .Times(expected_number_of_calls)
@@ -226,6 +228,8 @@ class AuthenticationClientTest : public ::testing::Test {
         EXPECT_EQ(error_code, response.GetResult().GetErrorResponse().code);
       }
     }
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
   }
 
  protected:
@@ -1601,4 +1605,72 @@ TEST_F(AuthenticationClientTest, GetMyAccount) {
 
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }
+}
+
+TEST_F(AuthenticationClientTest, UniqueNonce) {
+  auth::AuthenticationCredentials credentials(key_, secret_);
+
+  std::set<std::string> nonces;
+
+  auto extract_nonce = [&](const olp::http::Headers& headers) {
+    auto auth_it =
+        std::find_if(headers.begin(), headers.end(),
+                     [](const std::pair<std::string, std::string>& header) {
+                       return header.first == olp::http::kAuthorizationHeader;
+                     });
+    if (auth_it == headers.end()) {
+      return;
+    }
+
+    const auto& params = auth_it->second;
+    const auto prefix = "oauth_nonce=\"";
+    auto nonce_begin = params.find(prefix);
+    if (nonce_begin == std::string::npos) {
+      return;
+    }
+    nonce_begin += strlen(prefix);
+    auto nonce_end = params.find("\"", nonce_begin);
+    if (nonce_end == std::string::npos) {
+      return;
+    }
+    auto nonce = params.substr(nonce_begin, nonce_end - nonce_begin);
+    nonces.insert(nonce);
+  };
+
+  EXPECT_CALL(*network_, Send(_, _, _, _, _))
+      .Times(3)
+      .WillRepeatedly(
+          [&](olp::http::NetworkRequest request,
+              olp::http::Network::Payload /*payload*/,
+              olp::http::Network::Callback callback,
+              olp::http::Network::HeaderCallback /*header_callback*/,
+              olp::http::Network::DataCallback /*data_callback*/) {
+            olp::http::RequestId request_id(5);
+            extract_nonce(request.GetHeaders());
+            callback(
+                olp::http::NetworkResponse()
+                    .WithRequestId(request_id)
+                    .WithStatus(olp::http::HttpStatusCode::TOO_MANY_REQUESTS));
+            return olp::http::SendOutcome(request_id);
+          });
+
+  EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                                   kResponseTime));
+
+  std::promise<void> barrier;
+
+  client_->SignInClient(
+      credentials, {},
+      [&](const auth::AuthenticationClient::SignInClientResponse&) {
+        barrier.set_value();
+      });
+
+  auto future = barrier.get_future();
+
+  future.wait_for(std::chrono::seconds(5));
+
+  testing::Mock::VerifyAndClearExpectations(network_.get());
+
+  EXPECT_EQ(nonces.size(), kExpectedRetryCount);
 }
