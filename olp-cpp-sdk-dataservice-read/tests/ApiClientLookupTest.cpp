@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,9 +135,10 @@ TEST(ApiClientLookupTest, LookupApi) {
         .WillOnce([=](olp::http::NetworkRequest /*request*/,
                       olp::http::Network::Payload /*payload*/,
                       olp::http::Network::Callback /*callback*/,
-                      olp::http::Network::HeaderCallback /*header_callback*/,
-                      olp::http::Network::DataCallback /*data_callback*/)
-                      -> olp::http::SendOutcome {
+                      olp::http::Network::HeaderCallback
+                      /*header_callback*/,
+                      olp::http::Network::DataCallback
+                      /*data_callback*/) -> olp::http::SendOutcome {
           return olp::http::SendOutcome(olp::http::ErrorCode::CANCELLED_ERROR);
         });
 
@@ -158,9 +159,10 @@ TEST(ApiClientLookupTest, LookupApi) {
         .WillOnce([=](olp::http::NetworkRequest /*request*/,
                       olp::http::Network::Payload /*payload*/,
                       olp::http::Network::Callback /*callback*/,
-                      olp::http::Network::HeaderCallback /*header_callback*/,
-                      olp::http::Network::DataCallback /*data_callback*/)
-                      -> olp::http::SendOutcome {
+                      olp::http::Network::HeaderCallback
+                      /*header_callback*/,
+                      olp::http::Network::DataCallback
+                      /*data_callback*/) -> olp::http::SendOutcome {
           // note no network response thread spawns
           constexpr auto unused_request_id = 12;
           return olp::http::SendOutcome(unused_request_id);
@@ -179,17 +181,20 @@ TEST(ApiClientLookupTest, LookupApi) {
   {
     SCOPED_TRACE("Network request cancelled by user");
     client::CancellationContext context;
+    std::thread cancel_thread;
     EXPECT_CALL(*network, Send(IsGetRequest(lookup_url), _, _, _, _))
         .Times(1)
-        .WillOnce([=, &context](
+        .WillOnce([&context, &cancel_thread](
                       olp::http::NetworkRequest /*request*/,
                       olp::http::Network::Payload /*payload*/,
                       olp::http::Network::Callback /*callback*/,
-                      olp::http::Network::HeaderCallback /*header_callback*/,
-                      olp::http::Network::DataCallback /*data_callback*/)
-                      -> olp::http::SendOutcome {
+                      olp::http::Network::HeaderCallback
+                      /*header_callback*/,
+                      olp::http::Network::DataCallback
+                      /*data_callback*/) -> olp::http::SendOutcome {
           // spawn a 'user' response of cancelling
-          std::thread([&context]() { context.CancelOperation(); }).detach();
+          cancel_thread =
+              std::thread([&context]() { context.CancelOperation(); });
 
           // note no network response thread spawns
 
@@ -201,6 +206,8 @@ TEST(ApiClientLookupTest, LookupApi) {
     auto response = read::ApiClientLookup::LookupApi(
         catalog_hrn, context, service_name, service_version,
         read::FetchOptions::OnlineOnly, settings);
+
+    cancel_thread.join();
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),

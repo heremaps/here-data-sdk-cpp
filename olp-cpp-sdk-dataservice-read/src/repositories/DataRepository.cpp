@@ -28,7 +28,6 @@
 #include <olp/core/logging/Log.h>
 #include "CatalogRepository.h"
 #include "DataCacheRepository.h"
-#include "NamedMutex.h"
 #include "PartitionsCacheRepository.h"
 #include "PartitionsRepository.h"
 #include "generated/api/BlobApi.h"
@@ -130,14 +129,6 @@ BlobApi::DataResponse DataRepository::GetBlobData(
 
   if (!data_handle) {
     return {{client::ErrorCode::PreconditionFailed, "Data handle is missing"}};
-  }
-
-  NamedMutex mutex(catalog_.ToString() + layer + *data_handle);
-  std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);
-
-  // If we are not planning to go online or access the cache, do not lock.
-  if (fetch_option != CacheOnly && fetch_option != OnlineOnly) {
-    lock.lock();
   }
 
   repository::DataCacheRepository repository(

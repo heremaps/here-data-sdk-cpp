@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -506,9 +506,11 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     setup_online_only_mocks();
 
     client::CancellationContext context;
+    std::thread cancel_thread;
+
     EXPECT_CALL(*network, Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
         .Times(1)
-        .WillOnce([=, &context](
+        .WillOnce([&context, &cancel_thread](
                       olp::http::NetworkRequest /*request*/,
                       olp::http::Network::Payload /*payload*/,
                       olp::http::Network::Callback /*callback*/,
@@ -516,7 +518,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
                       olp::http::Network::DataCallback /*data_callback*/)
                       -> olp::http::SendOutcome {
           // spawn a 'user' response of cancelling
-          std::thread([&context]() { context.CancelOperation(); }).detach();
+          cancel_thread =
+              std::thread([&context]() { context.CancelOperation(); });
 
           // note no network response thread spawns
 
@@ -528,6 +531,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     auto response = repository.GetPartitionById(
         DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
         context);
+
+    cancel_thread.join();
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -540,10 +545,12 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     setup_positive_metadata_mocks();
 
     client::CancellationContext context;
+    std::thread cancel_thread;
+
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlPartitionById), _, _, _, _))
         .Times(1)
-        .WillOnce([=, &context](
+        .WillOnce([&context, &cancel_thread](
                       olp::http::NetworkRequest /*request*/,
                       olp::http::Network::Payload /*payload*/,
                       olp::http::Network::Callback /*callback*/,
@@ -551,7 +558,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
                       olp::http::Network::DataCallback /*data_callback*/)
                       -> olp::http::SendOutcome {
           // spawn a 'user' response of cancelling
-          std::thread([&context]() { context.CancelOperation(); }).detach();
+          cancel_thread =
+              std::thread([&context]() { context.CancelOperation(); });
 
           // note no network response thread spawns
 
@@ -563,6 +571,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     auto response = repository.GetPartitionById(
         DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
         context);
+
+    cancel_thread.join();
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),

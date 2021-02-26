@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -316,17 +316,18 @@ TEST_F(ApiLookupClientImplTest, LookupApi) {
   {
     SCOPED_TRACE("Network request cancelled by user");
     client::CancellationContext context;
+    std::thread cancel_job;
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
         .Times(1)
-        .WillOnce([=, &context](
-                      olp::http::NetworkRequest /*request*/,
+        .WillOnce([&](olp::http::NetworkRequest /*request*/,
                       olp::http::Network::Payload /*payload*/,
                       olp::http::Network::Callback /*callback*/,
                       olp::http::Network::HeaderCallback /*header_callback*/,
                       olp::http::Network::DataCallback /*data_callback*/)
                       -> olp::http::SendOutcome {
           // spawn a 'user' response of cancelling
-          std::thread([&context]() { context.CancelOperation(); }).detach();
+          cancel_job =
+              std::thread([=, &context]() { context.CancelOperation(); });
 
           // note no network response thread spawns
 
@@ -338,6 +339,7 @@ TEST_F(ApiLookupClientImplTest, LookupApi) {
     client::ApiLookupClientImpl client(catalog_hrn, settings_);
     auto response = client.LookupApi(service_name, service_version,
                                      client::FetchOptions::OnlineOnly, context);
+    cancel_job.join();
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::Cancelled);

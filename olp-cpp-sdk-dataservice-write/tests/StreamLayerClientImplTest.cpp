@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,6 +143,53 @@ class StreamLayerClientImplTest : public ::testing::Test {
 
     network_.reset();
     cache_.reset();
+  }
+
+  void CheckCancelOnRequest(const std::string& request_url,
+                            const std::string& response_body = "") {
+    auto data = std::make_shared<std::vector<unsigned char>>(1, 'a');
+    auto request =
+        model::PublishDataRequest().WithData(data).WithLayerId(kLayerName);
+
+    auto settings = settings_;
+    settings.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
+
+    MockStreamLayerClientImpl client{kHrn, write::StreamLayerClientSettings{},
+                                     settings};
+
+    EXPECT_CALL(*network_, Cancel(_)).Times(1);
+
+    auto cancel_context = std::make_shared<client::CancellationContext>();
+    auto cancel_request = [cancel_context](olp::http::NetworkRequest,
+                                           olp::http::Network::Payload,
+                                           olp::http::Network::Callback,
+                                           olp::http::Network::HeaderCallback,
+                                           olp::http::Network::DataCallback) {
+      std::thread([cancel_context]() { cancel_context->CancelOperation(); })
+          .detach();
+
+      constexpr auto unused_request_id = 5;
+      return olp::http::SendOutcome(unused_request_id);
+    };
+
+    if (response_body.empty()) {
+      EXPECT_CALL(*network_, Send(IsPostRequest(request_url), _, _, _, _))
+          .WillOnce(cancel_request);
+    } else {
+      EXPECT_CALL(*network_, Send(IsGetRequest(request_url), _, _, _, _))
+          .WillOnce(cancel_request)
+          .WillRepeatedly(
+              ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                     olp::http::HttpStatusCode::OK),
+                                 response_body));
+    }
+
+    auto response =
+        client.PublishDataLessThanTwentyMib(request, *cancel_context);
+
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(olp::client::ErrorCode::Cancelled,
+              response.GetError().GetErrorCode());
   }
 
   std::shared_ptr<CacheMock> cache_;
@@ -341,17 +388,18 @@ TEST_F(StreamLayerClientImplTest, FaliedPublishDataLessThanTwentyMib) {
 }
 
 TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMib) {
-  auto data = std::make_shared<std::vector<unsigned char>>(1, 'a');
-  auto request =
-      model::PublishDataRequest().WithData(data).WithLayerId(kLayerName);
-
-  auto settings = settings_;
-  settings.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
-
-  MockStreamLayerClientImpl client{kHrn, write::StreamLayerClientSettings{},
-                                   settings};
   {
     SCOPED_TRACE("Cancelled before publish call");
+
+    auto data = std::make_shared<std::vector<unsigned char>>(1, 'a');
+    auto request =
+        model::PublishDataRequest().WithData(data).WithLayerId(kLayerName);
+
+    auto settings = settings_;
+    settings.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
+
+    MockStreamLayerClientImpl client{kHrn, write::StreamLayerClientSettings{},
+                                     settings};
 
     client::CancellationContext cancel_context;
     cancel_context.CancelOperation();
@@ -364,22 +412,6 @@ TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMib) {
               response.GetError().GetErrorCode());
   }
 
-  EXPECT_CALL(*network_, Cancel(_)).Times(4);
-
-  auto cancel_context = std::make_shared<client::CancellationContext>();
-  auto cancel_request = [cancel_context](olp::http::NetworkRequest,
-                                         olp::http::Network::Payload,
-                                         olp::http::Network::Callback,
-                                         olp::http::Network::HeaderCallback,
-                                         olp::http::Network::DataCallback) {
-    std::thread([cancel_context]() {
-      cancel_context->CancelOperation();
-    }).detach();
-
-    constexpr auto unused_request_id = 5;
-    return olp::http::SendOutcome(unused_request_id);
-  };
-
   // Current expectations on NetworkMock will first cancel a response
   // and after each subsequent request with same URL will return correct
   // response. So, no need to clear mock expectations after each scoped trace,
@@ -387,78 +419,25 @@ TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMib) {
   {
     SCOPED_TRACE("Cancelled on getting a config");
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(kConfigRequestUrl), _, _, _, _))
-        .WillOnce(cancel_request)
-        .WillRepeatedly(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               kConfigHttpResponse));
-
-    auto response =
-        client.PublishDataLessThanTwentyMib(request, *cancel_context);
-
-    EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(olp::client::ErrorCode::Cancelled,
-              response.GetError().GetErrorCode());
-
-    *cancel_context = client::CancellationContext{};
+    CheckCancelOnRequest(kConfigRequestUrl, kConfigHttpResponse);
   }
 
   {
     SCOPED_TRACE("Cancelled on retrieving a catalog");
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(kGetCatalogRequest), _, _, _, _))
-        .WillOnce(cancel_request)
-        .WillRepeatedly(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               kGetCatalogResponse));
-
-    auto response =
-        client.PublishDataLessThanTwentyMib(request, *cancel_context);
-
-    EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(olp::client::ErrorCode::Cancelled,
-              response.GetError().GetErrorCode());
-
-    *cancel_context = client::CancellationContext{};
+    CheckCancelOnRequest(kGetCatalogRequest, kGetCatalogResponse);
   }
 
   {
     SCOPED_TRACE("Cancelled on retrieving the ingest API");
 
-    EXPECT_CALL(*network_, Send(IsGetRequest(kIngestRequestUrl), _, _, _, _))
-        .WillOnce(cancel_request)
-        .WillRepeatedly(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               kIngestHttpResponse));
-
-    auto response =
-        client.PublishDataLessThanTwentyMib(request, *cancel_context);
-
-    EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(olp::client::ErrorCode::Cancelled,
-              response.GetError().GetErrorCode());
-
-    *cancel_context = client::CancellationContext{};
+    CheckCancelOnRequest(kIngestRequestUrl, kIngestHttpResponse);
   }
 
   {
     SCOPED_TRACE("Cancelled on posting data via ingest API");
 
-    EXPECT_CALL(*network_,
-                Send(IsPostRequest(kPostIngestDataRequest), _, _, _, _))
-        .WillOnce(cancel_request);
-
-    auto response =
-        client.PublishDataLessThanTwentyMib(request, *cancel_context);
-
-    EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(olp::client::ErrorCode::Cancelled,
-              response.GetError().GetErrorCode());
-
-    *cancel_context = client::CancellationContext{};
+    CheckCancelOnRequest(kPostIngestDataRequest);
   }
 }
 
@@ -770,7 +749,7 @@ TEST_F(StreamLayerClientImplTest, QueueAndFlush) {
   auto response = client->Flush(model::FlushRequest()).GetFuture().get();
   EXPECT_EQ(response.size(), kBatchSize);
   std::unordered_set<std::string> trace_ids;
-  for (const auto &r : response) {
+  for (const auto& r : response) {
     EXPECT_TRUE(r.IsSuccessful());
     trace_ids.insert(r.GetResult().GetTraceID());
   }

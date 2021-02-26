@@ -27,7 +27,6 @@
 #include <olp/core/client/Condition.h>
 #include <olp/core/logging/Log.h>
 #include "CatalogRepository.h"
-#include "NamedMutex.h"
 #include "generated/api/MetadataApi.h"
 #include "generated/api/QueryApi.h"
 #include "olp/dataservice/read/CatalogRequest.h"
@@ -93,16 +92,6 @@ repository::PartitionResponse FindPartition(
 
   return std::move(aggregated_partition);
 }
-
-std::string HashPartitions(
-    const read::PartitionsRequest::PartitionIds& partitions) {
-  size_t seed = 0;
-  for (const auto& partition : partitions) {
-    boost::hash_combine(seed, partition);
-  }
-  return std::to_string(seed);
-}
-
 }  // namespace
 
 namespace olp {
@@ -167,18 +156,6 @@ PartitionsRepository::GetPartitionsExtendedResponse(
   const auto catalog_str = catalog_.ToCatalogHRNString();
 
   const auto& partition_ids = request.GetPartitionIds();
-
-  // Temporary workaround for merging the same requests. Should be removed after
-  // OlpClient could handle that.
-  const auto detail =
-      partition_ids.empty() ? "" : HashPartitions(partition_ids);
-  NamedMutex mutex(catalog_str + layer_id_ + detail);
-  std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);
-
-  // If we are not planning to go online or access the cache, do not lock.
-  if (fetch_option != CacheOnly && fetch_option != OnlineOnly) {
-    lock.lock();
-  }
 
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_partitions = cache_.Get(request, version);
@@ -266,14 +243,6 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
   const auto request_key =
       catalog_.ToString() + request.CreateKey(layer_id_, version);
 
-  NamedMutex mutex(request_key);
-  std::unique_lock<repository::NamedMutex> lock(mutex, std::defer_lock);
-
-  // If we are not planning to go online or access the cache, do not lock.
-  if (fetch_option != CacheOnly && fetch_option != OnlineOnly) {
-    lock.lock();
-  }
-
   std::chrono::seconds timeout{settings_.retry_settings.timeout};
   const auto key = request.CreateKey(layer_id_, version);
 
@@ -348,14 +317,6 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
 
   const auto& root_tile_key = tile_key.ChangedLevelBy(-kAggregateQuadTreeDepth);
   const auto root_tile_here = root_tile_key.ToHereTile();
-
-  NamedMutex mutex(catalog_.ToString() + layer_id_ + root_tile_here + "Index");
-  std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);
-
-  // If we are not planning to go online or access the cache, do not lock.
-  if (fetch_option != CacheOnly && fetch_option != OnlineOnly) {
-    lock.lock();
-  }
 
   // Look for QuadTree covering the tile in the cache
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
