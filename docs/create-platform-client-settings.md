@@ -1,5 +1,6 @@
 # Create platform client settings
 
+The `OlpClientSettings` class pulls together all the settings for customization of the client library behavior.
 You need to create the `OlpClientSettings` object to get catalog and partition metadata, retrieve versioned, volatile, and stream layer data, and publish data to the HERE platform.
 
 **To create `OlpClientSettings` object:**
@@ -21,7 +22,7 @@ You need to create the `OlpClientSettings` object to get catalog and partition m
    > #### Note
    > The `Network` client is designed and intended to be shared.
 
-3. To configure the handling of failed requests, create the `RetrySettings` object with the following parameters:
+3. To configure handling of failed requests, create the `RetrySettings` object with the following parameters:
 
    - `retry_condition` – the HTTP status codes that you want to retry.
    - `backdown_strategy` – the delay between retries.
@@ -34,31 +35,46 @@ You need to create the `OlpClientSettings` object to get catalog and partition m
 
    ```cpp
    olp::client::RetrySettings retry_settings;
-   retry_settings.retry_condition =
-         [](const olp::client::HttpResponse& response) {
-            return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
-            };
+   retry_settings.retry_condition = [](const olp::client::HttpResponse& response) {
+     return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
+   };
    retry_settings.backdown_strategy = ExponentialBackdownStrategy();
    retry_settings.max_attempts = 3;
    retry_settings.timeout = 60;
    retry_settings.initial_backdown_period = 200;
-   };
    ```
 
 4. [Authenticate](authenticate.md) to the HERE platform.
 
-5. (Optional) For data that is stored in the cache, to add expiration limit, set the `default_cache_expiration` to the needed expiration time.
+5. (Optional) To configure a cache:
+
+    a. Create the `CacheSettings` instance with the cache that you want to enable and, if needed, the maximum cache size in bytes.
+
+      > #### Note
+      > By default, the downloaded data is cached in memory, and the maximum size of it is 1 MB.
+
+      ```cpp
+      olp::cache::CacheSettings cache_settings;
+        //On iOS, the path is relative to the Application Data folder.
+      cache_settings.disk_path_mutable = "path to mutable cache";
+      cache_settings.disk_path_protected = "path to protected cache";
+      cache_settings.max_disk_storage = 1024ull * 1024ull * 32ull;
+      ```
+
+    b. Add the `CacheSettings` instance to the `DefaultCache` constructor.
+
+    ```cpp
+    olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
+    ```
+
+    To learn how to get or change cache size, see [Work with a cache](https://developer.here.com/documentation/sdk-cpp/dev_guide/docs/work-with-cache.html).
+
+6. Set up the `OlpClientSettings` object, and if you want to add the expiration limit for the data that is stored in the cache, set the `default_cache_expiration` to the needed expiration time.
 
    By default, expiration is disabled.
 
    > #### Note
    > You can only disable expiration for the mutable and in-memory cache. This setting does not affect the protected cache as no entries are added to the protected cache in the read-only mode.
-
-   ```cpp
-   std::chrono::seconds default_cache_expiration = std::chrono::seconds(200);
-   ```
-
-6. Set up the `OlpClientSettings` object.
 
    ```cpp
    olp::client::OlpClientSettings client_settings;
@@ -67,13 +83,6 @@ You need to create the `OlpClientSettings` object to get catalog and partition m
    client_settings.network_request_handler = http_client;
    client_settings.retry_settings = retry_settings;
    client_settings.cache =
-       olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+       olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
    client_settings.default_cache_expiration = std::chrono::seconds(200);
    ```
-
-The `OlpClientSettings` class pulls together all the settings for customization of the client library behavior:
-
-- `retry_settings` – sets `olp::client::RetrySettings` to use.
-- `proxy_settings` – sets `olp::authentication::NetworkProxySettings` to use.
-- `authentication_settings` – sets `olp::client::AuthenticationSettings` to use.
-- `network_request_handler` – sets the handler for asynchronous execution of network requests.
