@@ -169,6 +169,8 @@ OpenResult DiskCache::Open(const std::string& data_path,
     }
   }
 
+  enforce_immediate_flush_ = settings.enforce_immediate_flush;
+
   max_size_ = settings.max_disk_storage;
   auto open_options = CreateOpenOptions(settings, is_read_only);
   filter_policy_.reset(open_options.filter_policy);
@@ -240,8 +242,10 @@ bool DiskCache::Put(const std::string& key, leveldb::Slice slice) {
     return false;
   }
 
-  const auto status =
-      database_->Put(leveldb::WriteOptions(), ToLeveldbSlice(key), slice);
+  leveldb::WriteOptions write_options;
+  write_options.sync = enforce_immediate_flush_;
+
+  const auto status = database_->Put(write_options, ToLeveldbSlice(key), slice);
   if (!status.ok()) {
     OLP_SDK_LOG_ERROR(kLogTag, "Put: failed, status=" << status.ToString());
     return false;
@@ -314,7 +318,10 @@ bool DiskCache::Remove(const std::string& key, uint64_t& removed_data_size) {
     data_size = key.size() + it->value().size();
   }
 
-  auto result = database_->Delete(leveldb::WriteOptions(), key).ok();
+  leveldb::WriteOptions write_options;
+  write_options.sync = enforce_immediate_flush_;
+
+  auto result = database_->Delete(write_options, key).ok();
   if (result) {
     removed_data_size = data_size;
   }
@@ -361,7 +368,10 @@ DiskCache::OperationOutcome DiskCache::ApplyBatch(
     }
   }
 
-  const auto status = database_->Write(leveldb::WriteOptions(), batch.get());
+  leveldb::WriteOptions write_options;
+  write_options.sync = enforce_immediate_flush_;
+
+  const auto status = database_->Write(write_options, batch.get());
   if (!status.ok()) {
     OLP_SDK_LOG_WARNING(kLogTag,
                         "ApplyBatch: failed, status=" << status.ToString());

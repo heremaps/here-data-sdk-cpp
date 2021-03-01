@@ -165,6 +165,7 @@ class DiskCache {
   std::unique_ptr<LevelDBLogger> leveldb_logger_;
   uint64_t max_size_{kSizeMax};
   bool check_crc_{false};
+  bool enforce_immediate_flush_{false};
   /// Used to sync database_->CompactRange() calls.
   std::atomic<bool> compacting_{false};
   /// Used to asynchronously call database_->CompactRange().
