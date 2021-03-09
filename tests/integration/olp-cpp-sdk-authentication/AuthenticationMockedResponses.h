@@ -93,6 +93,9 @@ const std::string kFacebookSigninResponse = R"JSON(
 const std::string kArcgisSigninResponse = R"JSON(
     {"accessToken":"arcgis_grant_token","tokenType":"bearer","expiresIn":3599,"refreshToken":"5j687leur4njgb4osomifn55p0","userId":"HERE-5fa10eda-39ff-4cbc-9b0c-5acba4685649"}
     )JSON";
+const std::string kAppleSignInResponse = R"JSON(
+    {"accessToken":"apple_grant_token","tokenType":"bearer","expiresIn":3599,"refreshToken":"5j687leur4njgb4osomifn55p0","userId":"HERE-5fa10eda-39ff-4cbc-9b0c-5acba4685649"}
+    )JSON";
 const std::string kSigninUserFirstTimeResponse = R"JSON(
     {"termsReacceptanceToken":"h1.2nIUQOhp7...RfsAVQ==.D3qoGkpNQJm/+64mEcqgJ6ea3eAdBVNBrtzuB...Vmo2Cog/xOw==","url":{"tos":"http://here.com/terms?locale=en-US#mapsTermsDiv","pp":"http://here.com/terms?locale=en-US#privacyPolicyDiv","tosJSON": "http://here.com/terms/?cc=us&lang=en-US&out=json","ppJSON": "http://here.com/privacy/privacy-policy/us/?lang=en-US&out=json"}}
     )JSON";

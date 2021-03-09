@@ -97,6 +97,9 @@ class AuthenticationClientImpl final {
       const FederatedSignInType& type, const FederatedProperties& properties,
       const SignInUserCallback& callback);
 
+  client::CancellationToken SignInApple(AppleSignInProperties properties,
+                                        SignInUserCallback callback);
+
   client::CancellationToken SignInRefresh(
       const AuthenticationCredentials& credentials,
       const RefreshProperties& properties, const SignInUserCallback& callback);
@@ -153,18 +156,22 @@ class AuthenticationClientImpl final {
       const AuthenticationCredentials& credentials,
       client::OlpClient::RequestBodyType body, std::time_t timestamp);
 
+  olp::client::HttpResponse CallAuth(const client::OlpClient& client,
+                                     const std::string& endpoint,
+                                     client::CancellationContext context,
+                                     const std::string& auth_header,
+                                     client::OlpClient::RequestBodyType body);
+
   SignInResult ParseAuthResponse(int status, std::stringstream& auth_response);
 
   SignInUserResult ParseUserAuthResponse(int status,
                                          std::stringstream& auth_response);
 
   template <typename SignInResponseType>
-  boost::optional<SignInResponseType> FindInCache(
-      const AuthenticationCredentials& credentials);
+  boost::optional<SignInResponseType> FindInCache(const std::string& key);
 
   template <typename SignInResponseType>
-  void StoreInCache(const AuthenticationCredentials& credentials,
-                    SignInResponseType);
+  void StoreInCache(const std::string& key, SignInResponseType);
 
   std::string GenerateUid() const;
 
