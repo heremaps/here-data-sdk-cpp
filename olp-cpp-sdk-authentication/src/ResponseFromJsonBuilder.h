@@ -91,18 +91,30 @@ class ResponseFromJsonBuilder {
 
     TargetType Finish() {
       TargetType result;
+
       auto it = json_.MemberBegin();
       auto it_end = json_.MemberEnd();
       for (; it != it_end; ++it) {
         auto find_it = fields_.find(std::string{it->name.GetString()});
         if (find_it != fields_.end()) {
           find_it->second(result, it->value);
+          // erasing already processed value
+          fields_.erase(find_it);
           continue;
         }
+
         OLP_SDK_LOG_WARNING_F(kLogTag,
                               "Unexpected value, response=%s, field=%s",
                               kTargetTypeName.c_str(), it->name.GetString());
       }
+
+      // in the ideal scenario all fields should be processed
+      for (const auto& field : fields_) {
+        OLP_SDK_LOG_WARNING_F(kLogTag,
+                              "Absent value, response=%s, field=%s",
+                              kTargetTypeName.c_str(), field.first.c_str());
+      }
+
       return std::move(result);
     }
 
