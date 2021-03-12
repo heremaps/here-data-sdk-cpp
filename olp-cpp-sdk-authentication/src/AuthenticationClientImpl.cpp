@@ -48,6 +48,8 @@ namespace client = olp::client;
 
 using olp::authentication::Constants;
 
+using RequestBodyData = client::OlpClient::RequestBodyType::element_type;
+
 // Tags
 constexpr auto kApplicationJson = "application/json";
 const std::string kOauthEndpoint = "/oauth2/token";
@@ -74,12 +76,16 @@ constexpr auto kPassword = "password";
 constexpr auto kPhoneNumber = "phoneNumber";
 constexpr auto kRealm = "realm";
 constexpr auto kTermsReacceptanceToken = "termsReacceptanceToken";
+constexpr auto kClientId = "clientId";
+constexpr auto kGivenName = "givenName";
+constexpr auto kFamilyName = "familyName";
 
 constexpr auto kClientGrantType = "client_credentials";
 constexpr auto kUserGrantType = "password";
 constexpr auto kFacebookGrantType = "facebook";
 constexpr auto kGoogleGrantType = "google";
 constexpr auto kArcgisGrantType = "arcgis";
+constexpr auto kAppleGrantType = "jwtIssNotHERE";
 constexpr auto kRefreshGrantType = "refresh_token";
 
 constexpr auto kServiceId = "serviceId";
@@ -105,6 +111,34 @@ bool HasWrongTimestamp(olp::authentication::SignInResult& result) {
 void RetryDelay(size_t retry) {
   client::ExponentialBackdownStrategy retry_delay;
   std::this_thread::sleep_for(retry_delay(kDefaultRetryTime, retry));
+}
+
+client::OlpClient::RequestBodyType GenerateAppleSignInBody(
+    const olp::authentication::AppleSignInProperties& sign_in_properties) {
+  rapidjson::StringBuffer data;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
+  writer.StartObject();
+
+  writer.Key(kGrantType);
+  writer.String(kAppleGrantType);
+
+  auto write_field = [&writer](const char* key, const std::string& value) {
+    if (!value.empty()) {
+      writer.Key(key);
+      writer.String(value.c_str());
+    }
+  };
+
+  write_field(kClientId, sign_in_properties.GetClientId());
+  write_field(kRealm, sign_in_properties.GetRealm());
+  write_field(kGivenName, sign_in_properties.GetFirstname());
+  write_field(kFamilyName, sign_in_properties.GetLastname());
+  write_field(kCountryCode, sign_in_properties.GetCountryCode());
+  write_field(kLanguage, sign_in_properties.GetLanguage());
+
+  writer.EndObject();
+  auto content = data.GetString();
+  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
 }
 
 }  // namespace
@@ -138,9 +172,19 @@ olp::client::HttpResponse AuthenticationClientImpl::CallAuth(
   client::OlpClient::ParametersType headers = {
       {http::kAuthorizationHeader, std::move(auth_header)}};
 
-  auto auth_response = client.CallApi(endpoint, "POST", {}, std::move(headers),
-                                      {}, body, kApplicationJson, context);
-  return auth_response;
+  return client.CallApi(endpoint, "POST", {}, std::move(headers), {},
+                        std::move(body), kApplicationJson, std::move(context));
+}
+
+olp::client::HttpResponse AuthenticationClientImpl::CallAuth(
+    const client::OlpClient& client, const std::string& endpoint,
+    client::CancellationContext context, const std::string& auth_header,
+    client::OlpClient::RequestBodyType body) {
+  client::OlpClient::ParametersType headers{
+      {http::kAuthorizationHeader, auth_header}};
+
+  return client.CallApi(endpoint, "POST", {}, std::move(headers), {},
+                        std::move(body), kApplicationJson, std::move(context));
 }
 
 SignInResult AuthenticationClientImpl::ParseAuthResponse(
@@ -163,10 +207,10 @@ SignInUserResult AuthenticationClientImpl::ParseUserAuthResponse(
 
 template <>
 boost::optional<SignInResult> AuthenticationClientImpl::FindInCache(
-    const AuthenticationCredentials& credentials) {
+    const std::string& key) {
   return client_token_cache_->locked(
       [&](utils::LruCache<std::string, SignInResult>& cache) {
-        auto it = cache.Find(credentials.GetKey());
+        auto it = cache.Find(key);
         return it != cache.end() ? boost::make_optional(it->value())
                                  : boost::none;
       });
@@ -174,32 +218,32 @@ boost::optional<SignInResult> AuthenticationClientImpl::FindInCache(
 
 template <>
 boost::optional<SignInUserResult> AuthenticationClientImpl::FindInCache(
-    const AuthenticationCredentials& credentials) {
+    const std::string& key) {
   return user_token_cache_->locked(
       [&](utils::LruCache<std::string, SignInUserResult>& cache) {
-        auto it = cache.Find(credentials.GetKey());
+        auto it = cache.Find(key);
         return it != cache.end() ? boost::make_optional(it->value())
                                  : boost::none;
       });
 }
 
 template <>
-void AuthenticationClientImpl::StoreInCache(
-    const AuthenticationCredentials& credentials, SignInResult response) {
+void AuthenticationClientImpl::StoreInCache(const std::string& key,
+                                            SignInResult response) {
   // Cache the response
   client_token_cache_->locked(
       [&](utils::LruCache<std::string, SignInResult>& cache) {
-        return cache.InsertOrAssign(credentials.GetKey(), response);
+        return cache.InsertOrAssign(key, response);
       });
 }
 
 template <>
-void AuthenticationClientImpl::StoreInCache(
-    const AuthenticationCredentials& credentials, SignInUserResult response) {
+void AuthenticationClientImpl::StoreInCache(const std::string& key,
+                                            SignInUserResult response) {
   // Cache the response
   user_token_cache_->locked(
       [&](utils::LruCache<std::string, SignInUserResult>& cache) {
-        return cache.InsertOrAssign(credentials.GetKey(), response);
+        return cache.InsertOrAssign(key, response);
       });
 }
 
@@ -216,7 +260,7 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
       return client::ApiError::Cancelled();
     }
 
-    client::OlpClient client = CreateOlpClient(settings_, boost::none, 0);
+    client::OlpClient client = CreateOlpClient(settings_, boost::none, false);
 
     std::time_t timestamp =
         std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -251,7 +295,7 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
           return client::ApiError::Cancelled();
         }
 
-        auto result = FindInCache<SignInResult>(credentials);
+        auto result = FindInCache<SignInResult>(credentials.GetKey());
         if (!result) {
           return client::ApiError(status, auth_response.response.str());
         }
@@ -277,7 +321,7 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
       }
 
       if (status == http::HttpStatusCode::OK) {
-        StoreInCache(credentials, response);
+        StoreInCache(credentials.GetKey(), response);
       }
 
       break;
@@ -333,10 +377,56 @@ client::CancellationToken AuthenticationClientImpl::SignInHereUser(
 client::CancellationToken AuthenticationClientImpl::SignInFederated(
     AuthenticationCredentials credentials, std::string request_body,
     SignInUserCallback callback) {
-  auto payload =
-      std::make_shared<std::vector<unsigned char>>(request_body.size());
+  auto payload = std::make_shared<RequestBodyData>(request_body.size());
   std::memcpy(payload->data(), request_body.data(), payload->size());
   return HandleUserRequest(credentials, kOauthEndpoint, payload, callback);
+}
+
+client::CancellationToken AuthenticationClientImpl::SignInApple(
+    AppleSignInProperties properties, SignInUserCallback callback) {
+  auto request_body = GenerateAppleSignInBody(properties);
+
+  auto task = [=](client::CancellationContext context) -> SignInUserResponse {
+    if (!settings_.network_request_handler) {
+      return client::ApiError::NetworkConnection(
+          "Cannot handle user request while offline");
+    }
+
+    if (context.IsCancelled()) {
+      return client::ApiError::Cancelled();
+    }
+
+    client::OlpClient client = CreateOlpClient(settings_, boost::none);
+
+    auto auth_response = CallAuth(client, kOauthEndpoint, context,
+                                  properties.GetAccessToken(), request_body);
+
+    auto status = auth_response.GetStatus();
+
+    if (status < 0) {
+      if (context.IsCancelled()) {
+        return client::ApiError::Cancelled();
+      }
+
+      auto result = FindInCache<SignInUserResult>(properties.GetClientId());
+      if (!result) {
+        return client::ApiError(status, auth_response.response.str());
+      }
+
+      return *result;
+    }
+
+    auto response = ParseUserAuthResponse(status, auth_response.response);
+
+    if (status == http::HttpStatusCode::OK) {
+      StoreInCache(properties.GetClientId(), response);
+    }
+
+    return response;
+  };
+
+  return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
+                 std::move(callback));
 }
 
 client::CancellationToken AuthenticationClientImpl::SignInRefresh(
@@ -376,7 +466,7 @@ client::CancellationToken AuthenticationClientImpl::HandleUserRequest(
       return client::ApiError::Cancelled();
     }
 
-    client::OlpClient client = CreateOlpClient(settings_, boost::none, 0);
+    client::OlpClient client = CreateOlpClient(settings_, boost::none, false);
 
     std::time_t timestamp =
         std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -398,7 +488,7 @@ client::CancellationToken AuthenticationClientImpl::HandleUserRequest(
           return client::ApiError::Cancelled();
         }
 
-        auto result = FindInCache<SignInUserResult>(credentials);
+        auto result = FindInCache<SignInUserResult>(credentials.GetKey());
         if (!result) {
           return client::ApiError(status, auth_response.response.str());
         }
@@ -424,7 +514,7 @@ client::CancellationToken AuthenticationClientImpl::HandleUserRequest(
       }
 
       if (status == http::HttpStatusCode::OK) {
-        StoreInCache(credentials, response);
+        StoreInCache(credentials.GetKey(), response);
       }
 
       break;
@@ -740,8 +830,7 @@ client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateClientBody(
   }
   writer.EndObject();
   auto content = data.GetString();
-  return std::make_shared<std::vector<unsigned char>>(content,
-                                                      content + data.GetSize());
+  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
 }
 
 client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateUserBody(
@@ -767,8 +856,7 @@ client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateUserBody(
   }
   writer.EndObject();
   auto content = data.GetString();
-  return std::make_shared<std::vector<unsigned char>>(content,
-                                                      content + data.GetSize());
+  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
 }
 
 client::OlpClient::RequestBodyType
@@ -816,8 +904,7 @@ AuthenticationClientImpl::GenerateFederatedBody(
 
   writer.EndObject();
   auto content = data.GetString();
-  return std::make_shared<std::vector<unsigned char>>(content,
-                                                      content + data.GetSize());
+  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
 }
 
 client::OlpClient::RequestBodyType
@@ -844,8 +931,7 @@ AuthenticationClientImpl::GenerateRefreshBody(
   }
   writer.EndObject();
   auto content = data.GetString();
-  return std::make_shared<std::vector<unsigned char>>(content,
-                                                      content + data.GetSize());
+  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
 }
 
 client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateSignUpBody(
@@ -901,8 +987,7 @@ client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateSignUpBody(
 
   writer.EndObject();
   auto content = data.GetString();
-  return std::make_shared<std::vector<unsigned char>>(content,
-                                                      content + data.GetSize());
+  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
 }
 
 client::OlpClient::RequestBodyType
@@ -917,8 +1002,7 @@ AuthenticationClientImpl::GenerateAcceptTermBody(
 
   writer.EndObject();
   auto content = data.GetString();
-  return std::make_shared<std::vector<unsigned char>>(content,
-                                                      content + data.GetSize());
+  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
 }
 
 client::OlpClient::RequestBodyType
@@ -953,8 +1037,7 @@ AuthenticationClientImpl::GenerateAuthorizeBody(AuthorizeRequest properties) {
 
   writer.EndObject();
   auto content = data.GetString();
-  return std::make_shared<std::vector<unsigned char>>(content,
-                                                      content + data.GetSize());
+  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
 }
 
 std::string AuthenticationClientImpl::GenerateUid() const {

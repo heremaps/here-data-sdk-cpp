@@ -24,6 +24,7 @@
 #include <memory>
 #include <string>
 
+#include <olp/authentication/AppleSignInProperties.h>
 #include <olp/authentication/AuthenticationApi.h>
 #include <olp/authentication/AuthenticationCredentials.h>
 #include <olp/authentication/AuthenticationError.h>
@@ -433,6 +434,23 @@ class AUTHENTICATION_API AuthenticationClient {
       const SignInUserCallback& callback);
 
   /**
+   * @brief Signs in with your valid Apple token and requests your user access
+   * token.
+   *
+   * @param sign_in_properties The `AppleSignInProperties` instance.
+   * @param callback The `SignInUserCallback` method that is called when
+   * the user sign-in request is completed. If successful, the returned HTTP
+   * status is 200. If a new account is created as a part of the sign-in
+   * request, and terms must be accepted, the returned HTTP status is 201.
+   * Otherwise, check the response error.
+   *
+   * @return The `CancellationToken` instance that can be used to cancel
+   * the request.
+   */
+  client::CancellationToken SignInApple(AppleSignInProperties properties,
+                                        SignInUserCallback callback);
+
+  /**
    * @brief Signs in with the refresh token.
    *
    * Exchanges the user access token and refresh token for a new user access
@@ -494,7 +512,7 @@ class AUTHENTICATION_API AuthenticationClient {
    * @param credentials The `AuthenticationCredentials` instance.
    * @param reacceptance_token The terms re-acceptance token from the
    * HTTP 412 or HTTP 201 response:
-   * `SignInUserResponse::term_acceptance_token()`.
+   * `SignInUserResult::GetTermAcceptanceToken()`.
    * @param callback The `SignInUserCallback` method that is called when
    * the user sign-in request is completed. If successful, the returned HTTP
    * status is 204. Otherwise, check the response error.

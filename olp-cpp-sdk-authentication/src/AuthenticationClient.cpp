@@ -83,6 +83,11 @@ client::CancellationToken AuthenticationClient::SignInArcGis(
                                 properties, callback);
 }
 
+client::CancellationToken AuthenticationClient::SignInApple(
+    AppleSignInProperties properties, SignInUserCallback callback) {
+  return impl_->SignInApple(std::move(properties), std::move(callback));
+}
+
 client::CancellationToken AuthenticationClient::SignInRefresh(
     const AuthenticationCredentials& credentials,
     const RefreshProperties& properties, const SignInUserCallback& callback) {

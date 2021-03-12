@@ -189,7 +189,8 @@ class CORE_API HttpResponse {
   /**
    * @brief Return the response status.
    *
-   * The response status can either be a
+   * The response status can either be an `ErrorCode` if negative or a
+   * `HttpStatusCode` if positive.
    *
    * @return The response status.
    */
