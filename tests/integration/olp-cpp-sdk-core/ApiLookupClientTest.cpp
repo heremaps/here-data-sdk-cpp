@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -296,29 +296,35 @@ TEST_F(ApiLookupClientTest, LookupApi) {
 
   {
     SCOPED_TRACE("Network request cancelled by user");
+
     client::CancellationContext context;
+    std::thread cancel_thread;
+
     EXPECT_CALL(*network_, Send(IsGetRequest(lookup_url), _, _, _, _))
         .Times(1)
-        .WillOnce(
-            [=, &context](http::NetworkRequest /*request*/,
-                          http::Network::Payload /*payload*/,
-                          http::Network::Callback /*callback*/,
-                          http::Network::HeaderCallback /*header_callback*/,
-                          http::Network::DataCallback /*data_callback*/)
-                -> http::SendOutcome {
-              // spawn a 'user' response of cancelling
-              std::thread([&context]() { context.CancelOperation(); }).detach();
+        .WillOnce([&context, &cancel_thread](
+                      http::NetworkRequest /*request*/,
+                      http::Network::Payload /*payload*/,
+                      http::Network::Callback /*callback*/,
+                      http::Network::HeaderCallback /*header_callback*/,
+                      http::Network::DataCallback /*data_callback*/)
+                      -> http::SendOutcome {
+          // spawn a 'user' response of cancelling
+          cancel_thread =
+              std::thread([&context]() { context.CancelOperation(); });
 
-              // note no network response thread spawns
+          // note no network response thread spawns
 
-              constexpr auto unused_request_id = 12;
-              return http::SendOutcome(unused_request_id);
-            });
+          constexpr auto unused_request_id = 12;
+          return http::SendOutcome(unused_request_id);
+        });
     EXPECT_CALL(*network_, Cancel(_)).Times(1).WillOnce(Return());
 
     client::ApiLookupClient client(catalog_hrn, settings_);
     auto response = client.LookupApi(service_name, service_version,
                                      client::FetchOptions::OnlineOnly, context);
+
+    cancel_thread.join();
 
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::Cancelled);

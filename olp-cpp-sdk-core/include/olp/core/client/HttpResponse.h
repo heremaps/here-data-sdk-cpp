@@ -135,6 +135,7 @@ class CORE_API HttpResponse {
       // solution as a second step.
       response.str(other.response.str());
     }
+    network_statistics_ = other.GetNetworkStatistics();
   }
 
   /**
@@ -150,6 +151,7 @@ class CORE_API HttpResponse {
       status = other.status;
       response << other.response.rdbuf();
       headers = other.headers;
+      network_statistics_ = other.GetNetworkStatistics();
     }
 
     return *this;

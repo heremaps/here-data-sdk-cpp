@@ -230,18 +230,20 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyFound) {
 
 TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled1) {
   olp::client::CancellationContext context;
+  std::thread cancel_thread;
 
   auto request = read::CatalogVersionRequest();
 
   std::promise<bool> cancelled;
 
   ON_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
-      .WillByDefault([&context](olp::http::NetworkRequest,
-                                olp::http::Network::Payload,
-                                olp::http::Network::Callback,
-                                olp::http::Network::HeaderCallback,
-                                olp::http::Network::DataCallback) {
-        std::thread([&context]() { context.CancelOperation(); }).detach();
+      .WillByDefault([&context, &cancel_thread](
+                         olp::http::NetworkRequest, olp::http::Network::Payload,
+                         olp::http::Network::Callback,
+                         olp::http::Network::HeaderCallback,
+                         olp::http::Network::DataCallback) {
+        cancel_thread =
+            std::thread([&context]() { context.CancelOperation(); });
 
         constexpr auto unused_request_id = 5;
         return olp::http::SendOutcome(unused_request_id);
@@ -262,6 +264,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled1) {
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetLatestVersion(request, context);
 
+  cancel_thread.join();
+
   ASSERT_FALSE(response.IsSuccessful());
   EXPECT_EQ(olp::client::ErrorCode::Cancelled,
             response.GetError().GetErrorCode());
@@ -269,6 +273,7 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled1) {
 
 TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled2) {
   olp::client::CancellationContext context;
+  std::thread cancel_thread;
 
   auto request = read::CatalogVersionRequest();
 
@@ -278,11 +283,13 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled2) {
                                         kResponseLookupMetadata));
 
   ON_CALL(*network_, Send(IsGetRequest(kLatestCatalogVersion), _, _, _, _))
-      .WillByDefault([&](olp::http::NetworkRequest, olp::http::Network::Payload,
+      .WillByDefault([&context, &cancel_thread](
+                         olp::http::NetworkRequest, olp::http::Network::Payload,
                          olp::http::Network::Callback,
                          olp::http::Network::HeaderCallback,
                          olp::http::Network::DataCallback) {
-        std::thread([&]() { context.CancelOperation(); }).detach();
+        cancel_thread =
+            std::thread([&context]() { context.CancelOperation(); });
 
         constexpr auto unused_request_id = 10;
         return olp::http::SendOutcome(unused_request_id);
@@ -291,6 +298,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled2) {
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetLatestVersion(request, context);
+
+  cancel_thread.join();
 
   ASSERT_FALSE(response.IsSuccessful());
   EXPECT_EQ(olp::client::ErrorCode::Cancelled,
@@ -491,18 +500,20 @@ TEST_F(CatalogRepositoryTest, GetCatalogCancelledBeforeExecution) {
 
 TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyUserCancelled1) {
   olp::client::CancellationContext context;
+  std::thread cancel_thread;
 
   auto request = read::CatalogRequest();
 
   std::promise<bool> cancelled;
 
   ON_CALL(*network_, Send(IsGetRequest(kUrlLookupConfig), _, _, _, _))
-      .WillByDefault([&context](olp::http::NetworkRequest,
-                                olp::http::Network::Payload,
-                                olp::http::Network::Callback,
-                                olp::http::Network::HeaderCallback,
-                                olp::http::Network::DataCallback) {
-        std::thread([&context]() { context.CancelOperation(); }).detach();
+      .WillByDefault([&context, &cancel_thread](
+                         olp::http::NetworkRequest, olp::http::Network::Payload,
+                         olp::http::Network::Callback,
+                         olp::http::Network::HeaderCallback,
+                         olp::http::Network::DataCallback) {
+        cancel_thread =
+            std::thread([&context]() { context.CancelOperation(); });
 
         constexpr auto unused_request_id = 5;
         return olp::http::SendOutcome(unused_request_id);
@@ -523,6 +534,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyUserCancelled1) {
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetCatalog(request, context);
 
+  cancel_thread.join();
+
   ASSERT_FALSE(response.IsSuccessful());
   EXPECT_EQ(olp::client::ErrorCode::Cancelled,
             response.GetError().GetErrorCode());
@@ -530,6 +543,7 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyUserCancelled1) {
 
 TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyUserCancelled2) {
   olp::client::CancellationContext context;
+  std::thread cancel_thread;
 
   auto request = read::CatalogRequest();
 
@@ -539,11 +553,13 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyUserCancelled2) {
                                         kResponseLookupConfig));
 
   ON_CALL(*network_, Send(IsGetRequest(kUrlConfig), _, _, _, _))
-      .WillByDefault([&](olp::http::NetworkRequest, olp::http::Network::Payload,
+      .WillByDefault([&context, &cancel_thread](
+                         olp::http::NetworkRequest, olp::http::Network::Payload,
                          olp::http::Network::Callback,
                          olp::http::Network::HeaderCallback,
                          olp::http::Network::DataCallback) {
-        std::thread([&]() { context.CancelOperation(); }).detach();
+        cancel_thread =
+            std::thread([&context]() { context.CancelOperation(); });
 
         constexpr auto unused_request_id = 10;
         return olp::http::SendOutcome(unused_request_id);
@@ -552,6 +568,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyUserCancelled2) {
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetCatalog(request, context);
+
+  cancel_thread.join();
 
   ASSERT_FALSE(response.IsSuccessful());
   EXPECT_EQ(olp::client::ErrorCode::Cancelled,
