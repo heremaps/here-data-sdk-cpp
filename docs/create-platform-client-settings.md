@@ -48,26 +48,26 @@ You need to create the `OlpClientSettings` object to get catalog and partition m
 
 5. (Optional) To configure a cache:
 
-    a. Create the `CacheSettings` instance with the cache that you want to enable and, if needed, the maximum cache size in bytes.
+    1. Create the `CacheSettings` instance with the cache that you want to enable and, if needed, the maximum cache size in bytes.
 
-      > #### Note
-      > By default, the downloaded data is cached in memory, and the maximum size of it is 1 MB.
+         > #### Note
+         > By default, the downloaded data is cached in memory, and the maximum size of it is 1 MB.
 
-      ```cpp
-      olp::cache::CacheSettings cache_settings;
-        //On iOS, the path is relative to the Application Data folder.
-      cache_settings.disk_path_mutable = "path to mutable cache";
-      cache_settings.disk_path_protected = "path to protected cache";
-      cache_settings.max_disk_storage = 1024ull * 1024ull * 32ull;
-      ```
+         ```cpp
+         olp::cache::CacheSettings cache_settings;
+         //On iOS, the path is relative to the Application Data folder.
+         cache_settings.disk_path_mutable = "path to mutable cache";
+         cache_settings.disk_path_protected = "path to protected cache";
+         cache_settings.max_disk_storage = 1024ull * 1024ull * 32ull;
+         ```
 
-    b. Add the `CacheSettings` instance to the `DefaultCache` constructor.
+    2. Add the `CacheSettings` instance to the `DefaultCache` constructor.
 
-    ```cpp
-    olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
-    ```
+       ```cpp
+       olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
+       ```
 
-    To learn how to get or change cache size, see [Work with a cache](https://developer.here.com/documentation/sdk-cpp/dev_guide/docs/work-with-cache.html).
+       To learn how to get or change cache size, see [Work with a cache](https://developer.here.com/documentation/sdk-cpp/dev_guide/docs/work-with-cache.html).
 
 6. Set up the `OlpClientSettings` object, and if you want to add the expiration limit for the data that is stored in the cache, set the `default_cache_expiration` to the needed expiration time.
 
