@@ -168,7 +168,10 @@ class CORE_API HttpResponse {
    */
   void GetResponse(std::vector<unsigned char>& output) {
     response.seekg(0, std::ios::end);
-    output.resize(response.tellg());
+    const auto pos = response.tellg();
+    if (pos > 0) {
+      output.resize(pos);
+    }
     response.seekg(0, std::ios::beg);
     response.read(reinterpret_cast<char*>(output.data()), output.size());
     response.seekg(0, std::ios::beg);
