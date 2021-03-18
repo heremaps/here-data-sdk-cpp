@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,6 +95,7 @@ olp::http::ErrorCode ConvertNSURLErrorToNetworkErrorCode(NSInteger error_code) {
     case NSURLErrorCannotFindHost:
       return ErrorCode::INVALID_URL_ERROR;
     case NSURLErrorNotConnectedToInternet:
+    case NSURLErrorDataNotAllowed:
       return ErrorCode::OFFLINE_ERROR;
     case NSURLErrorTimedOut:
       return ErrorCode::TIMEOUT_ERROR;
