@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,13 +89,6 @@ class PendingUrlRequest {
 
   /// Will be called when the Network response arrives.
   void OnRequestCompleted(HttpResponse response);
-
-  /// Returns request's status. It is 'true' for merged requests or for requests
-  /// that are waiting for the Network callback
-  bool IsPending() const {
-    std::lock_guard<std::mutex> lock(mutex_);
-    return http_request_id_ != kInvalidRequestId || callbacks_.size() > 1u;
-  }
 
  private:
   /// Keeping the class thread safe.
