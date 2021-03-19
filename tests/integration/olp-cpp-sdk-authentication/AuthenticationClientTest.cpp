@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2020 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -202,13 +202,13 @@ class AuthenticationClientTest : public ::testing::Test {
               if (payload) {
                 *payload << data;
               }
-
+              callback(olp::http::NetworkResponse()
+                           .WithRequestId(request_id)
+                           .WithStatus(http));
               if (data_callback) {
                 auto raw = const_cast<char*>(data.c_str());
                 data_callback(reinterpret_cast<uint8_t*>(raw), 0, data.size());
               }
-
-              callback(olp::http::NetworkResponse().WithStatus(http));
 
               return olp::http::SendOutcome(request_id);
             });
@@ -349,20 +349,17 @@ TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
         if (payload) {
           *payload << kResponseWrongTimestamp;
         }
-
+        callback(olp::http::NetworkResponse()
+                     .WithRequestId(request_id)
+                     .WithStatus(olp::http::HttpStatusCode::UNAUTHORIZED));
         if (data_callback) {
           auto raw = const_cast<char*>(kResponseWrongTimestamp.c_str());
           data_callback(reinterpret_cast<uint8_t*>(raw), 0,
                         kResponseWrongTimestamp.size());
         }
-
         if (header_callback) {
           header_callback(kDate, kDateHeader);
         }
-
-        callback(olp::http::NetworkResponse()
-                     .WithRequestId(request_id)
-                     .WithStatus(olp::http::HttpStatusCode::UNAUTHORIZED));
 
         return olp::http::SendOutcome(request_id);
       })

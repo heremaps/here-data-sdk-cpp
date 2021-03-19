@@ -248,17 +248,13 @@ TEST_F(DataRepositoryTest, GetBlobDataInProgressCancel) {
                                    kUrlResponseLookup));
 
   olp::client::CancellationContext context;
-  std::thread cancel_thread;
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlBlobData269), _, _, _, _))
       .WillOnce(
-          [&context, &cancel_thread](
-              olp::http::NetworkRequest, olp::http::Network::Payload,
+          [&](olp::http::NetworkRequest, olp::http::Network::Payload,
               olp::http::Network::Callback, olp::http::Network::HeaderCallback,
               olp::http::Network::DataCallback) -> olp::http::SendOutcome {
-            cancel_thread =
-                std::thread([&context]() { context.CancelOperation(); });
-
+            std::thread([&]() { context.CancelOperation(); }).detach();
             constexpr auto unused_request_id = 12;
             return olp::http::SendOutcome(unused_request_id);
           });
@@ -272,8 +268,6 @@ TEST_F(DataRepositoryTest, GetBlobDataInProgressCancel) {
   ApiLookupClient lookup_client(hrn, *settings_);
   DataRepository repository(hrn, *settings_, lookup_client);
   auto response = repository.GetBlobData(kLayerId, kService, request, context);
-
-  cancel_thread.join();
 
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Cancelled);
@@ -408,18 +402,14 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileInProgressCancel) {
                                    kUrlResponseLookup));
 
   olp::client::CancellationContext context;
-  std::thread cancel_thread;
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(kUrlQueryTreeIndex), _, _, _, _))
       .WillOnce(
-          [&context, &cancel_thread](
-              olp::http::NetworkRequest, olp::http::Network::Payload,
+          [&](olp::http::NetworkRequest, olp::http::Network::Payload,
               olp::http::Network::Callback, olp::http::Network::HeaderCallback,
               olp::http::Network::DataCallback) -> olp::http::SendOutcome {
-            cancel_thread =
-                std::thread([&context]() { context.CancelOperation(); });
-
+            std::thread([&]() { context.CancelOperation(); }).detach();
             constexpr auto unused_request_id = 12;
             return olp::http::SendOutcome(unused_request_id);
           });
@@ -436,8 +426,6 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileInProgressCancel) {
   DataRepository repository(hrn, *settings_, lookup_client);
   auto response =
       repository.GetVersionedTile(kLayerId, request, version, context);
-
-  cancel_thread.join();
 
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Cancelled);
