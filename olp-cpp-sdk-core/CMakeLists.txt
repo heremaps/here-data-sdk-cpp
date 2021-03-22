@@ -21,9 +21,14 @@ set(DESCRIPTION "Core network and utility library for the HERE OLP SDK C++")
 
 find_package(RapidJSON 1.1.0 REQUIRED CMAKE_FIND_ROOT_PATH_BOTH)
 find_package(Boost REQUIRED)
-find_package(leveldb REQUIRED)
-find_package(Snappy REQUIRED)
 find_package(Threads REQUIRED)
+
+if(OLP_SDK_ENABLE_DEFAULT_CACHE)
+    find_package(Snappy REQUIRED)
+    find_package(leveldb REQUIRED)
+endif()
+
+configure_file(./include/olp/core/Config.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/olp/core/Config.h)
 
 include(configs/ConfigNetwork.cmake)
 include(cmake/CompileChecks.cmake)
@@ -178,6 +183,10 @@ set(OLP_SDK_GEOTILING_HEADERS
 
 set(OLP_SDK_GEOTYPE_HEADER
     ./include/olp/core/geo/Types.h
+)
+
+set(OLP_SDK_CONFIG_HEADER
+    ${CMAKE_CURRENT_BINARY_DIR}/include/olp/core/Config.h
 )
 
 set(OLP_SDK_MATH_HEADERS
@@ -343,10 +352,10 @@ set(OLP_SDK_CORE_HEADERS
     ${OLP_SDK_GEOTILING_HEADERS}
     ${OLP_SDK_COREAPI_HEADERS}
     ${OLP_SDK_GEOTYPE_HEADER}
+    ${OLP_SDK_CONFIG_HEADER}
 )
 
 set(OLP_SDK_CORE_SOURCES
-    ${OLP_SDK_CACHE_SOURCES}
     ${OLP_SDK_CLIENT_SOURCES}
     ${OLP_SDK_HTTP_SOURCES}
     ${OLP_SDK_PLATFORM_SOURCES}
@@ -356,11 +365,11 @@ set(OLP_SDK_CORE_SOURCES
     ${OLP_SDK_GEO_SOURCES}
 )
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+if(OLP_SDK_ENABLE_DEFAULT_CACHE)
+    set(OLP_SDK_CORE_SOURCES ${OLP_SDK_CORE_SOURCES} ${OLP_SDK_CACHE_SOURCES})
+endif()
 
 add_library(${PROJECT_NAME} ${OLP_SDK_CORE_SOURCES} ${OLP_SDK_CORE_HEADERS})
-
 
 if (OLP_SDK_DISABLE_DEBUG_LOGGING)
     target_compile_definitions(${PROJECT_NAME}
@@ -385,7 +394,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${RapidJSON_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${RAPIDJSON_INCLUDE_DIRS}>
 
-    $<BUILD_INTERFACE:${leveldb_INCLUDE_DIR}>
     $<INSTALL_INTERFACE:include>)
 
 if (ANDROID)
@@ -404,9 +412,18 @@ target_link_libraries(${PROJECT_NAME}
         ${OLP_SDK_NETWORK_CURL_LIBRARIES}
         ${NETWORK_WINHTTP_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
-    PRIVATE
-        leveldb::leveldb
 )
+
+if(OLP_SDK_ENABLE_DEFAULT_CACHE)
+    target_include_directories(${PROJECT_NAME}
+        PUBLIC
+            $<BUILD_INTERFACE:${leveldb_INCLUDE_DIR}>
+    )
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+            leveldb::leveldb
+    )
+endif()
 
 if(IOS)
     if (CMAKE_GENERATOR MATCHES "Xcode")
@@ -475,8 +492,9 @@ install (FILES ${OLP_SDK_GEOCOORDINATES_HEADERS} DESTINATION ${INCLUDE_DIRECTORY
 install (FILES ${OLP_SDP_GEOPROJECTION_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo/projection)
 install (FILES ${OLP_SDK_GEOTILING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo/tiling)
 install (FILES ${OLP_SDK_LOGGING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/logging)
-install (FILES ${OLP_SDK_COREAPI_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/)
+install (FILES ${OLP_SDK_COREAPI_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core)
 install (FILES ${OLP_SDK_GEOTYPE_HEADER} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo)
+install (FILES ${OLP_SDK_CONFIG_HEADER} DESTINATION ${INCLUDE_DIRECTORY}/olp/core)
 
 export_config()
 

@@ -34,3 +34,16 @@ jobs:
       run: ./scripts/linux/psv/test_psv.sh
       shell: bash
 
+  linux-gcc-psv-build-no-cache:
+    name: Linux Build using gcc & tests & code coverage
+    runs-on: ubuntu-18.04
+    steps:
+
+    - name: Check out repository
+      uses: actions/checkout@v2
+    - name: Install Ubuntu dependencies
+      run: sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
+      shell: bash
+    - name: Compile project without cache
+      run: ./scripts/linux/psv/build_psv_no_cache.sh
+      shell: bash

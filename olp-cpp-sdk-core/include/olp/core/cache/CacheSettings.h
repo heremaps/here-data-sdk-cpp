@@ -21,12 +21,17 @@
 
 #include <string>
 
+#include <olp/core/Config.h>
+
 #include <olp/core/CoreApi.h>
+
 #include <olp/core/porting/deprecated.h>
 #include <boost/optional.hpp>
 
 namespace olp {
 namespace cache {
+
+#ifdef OLP_SDK_ENABLE_DEFAULT_CACHE
 
 /**
  * @brief Options for opening a disk cache.
@@ -151,6 +156,15 @@ struct CORE_API CacheSettings {
    */
   boost::optional<std::string> disk_path_protected = boost::none;
 };
+
+#else
+
+/**
+ * @brief Dummy settings for default cache factory.
+ */
+struct CORE_API CacheSettings {};
+
+#endif  // OLP_SDK_ENABLE_DEFAULT_CACHE
 
 }  // namespace cache
 }  // namespace olp
