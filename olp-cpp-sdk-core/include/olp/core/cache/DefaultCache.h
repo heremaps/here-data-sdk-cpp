@@ -23,8 +23,11 @@
 #include <mutex>
 #include <string>
 
+#include <olp/core/Config.h>
 #include "CacheSettings.h"
 #include "KeyValueCache.h"
+
+#ifdef OLP_SDK_ENABLE_DEFAULT_CACHE
 
 namespace olp {
 namespace cache {
@@ -273,3 +276,5 @@ class CORE_API DefaultCache : public KeyValueCache {
 
 }  // namespace cache
 }  // namespace olp
+
+#endif // OLP_SDK_ENABLE_DEFAULT_CACHE

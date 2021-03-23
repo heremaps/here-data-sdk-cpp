@@ -19,6 +19,7 @@
 
 #include "olp/core/client/OlpClientSettingsFactory.h"
 
+#include "olp/core/Config.h"
 #include "olp/core/cache/CacheSettings.h"
 #include "olp/core/cache/DefaultCache.h"
 #include "olp/core/client/OlpClientSettings.h"
@@ -47,6 +48,7 @@ OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler(
 
 std::unique_ptr<cache::KeyValueCache>
 OlpClientSettingsFactory::CreateDefaultCache(cache::CacheSettings settings) {
+#ifdef OLP_SDK_ENABLE_DEFAULT_CACHE
   auto cache = std::make_unique<cache::DefaultCache>(std::move(settings));
   auto error = cache->Open();
   if (error == cache::DefaultCache::StorageOpenResult::OpenDiskPathFailure) {
@@ -59,6 +61,11 @@ OlpClientSettingsFactory::CreateDefaultCache(cache::CacheSettings settings) {
     return nullptr;
   }
   return cache;
+#else
+  OLP_SDK_CORE_UNUSED(settings);
+  OLP_SDK_LOG_FATAL(kLogTag, "Default cache implementation is disabled.");
+  return nullptr;
+#endif // OLP_SDK_ENABLE_DEFAULT_CACHE
 }
 
 void OlpClientSettingsFactory::PrewarmConnection(
