@@ -27,97 +27,101 @@
 namespace olp {
 namespace utils {
 
+/** @brief Manages directories.
+*/
 class CORE_API Dir {
  public:
-  /// Alias for filter function.
+  /// An alias for the filter function.
   using FilterFunction = std::function<bool(const std::string&)>;
 
   /**
-   * @brief Checks if directory exists.
+   * @brief Checks whether a directory exists.
    *
-   * @param path Path of the directory.
+   * @param path The path of the directory.
    *
-   * @return \c true if directory exists, \c false otherwise.
+   * @return True if the directory exists; false otherwise.
    *
-   * @deprecated Will be removed by 10.2020. Please use Exists() instead.
+   * @deprecated Will be removed by 10/2020. Use `Exists()` instead.
    */
   static bool exists(const std::string& path);
 
   /**
-   * @brief Checks if directory exists.
+   * @brief Checks whether a directory exists.
    *
-   * @param path Path of the directory.
+   * @param path The path of the directory.
    *
-   * @return true if directory exists, false otherwise.
+   * @return True if the directory exists; false otherwise.
    */
   static bool Exists(const std::string& path);
 
   /**
-   * @brief Removes the directory, deleting all subfolders and files.
+   * @brief Removes a directory and deletes all its subfolders and files.
    *
-   * @param path Path of the directory.
+   * @param path The path of the directory.
    *
-   * @return true if operation is successfull, false otherwise.
+   * @return True if the operation is successful; false otherwise.
    *
-   *  @deprecated Will be removed by 10.2020. Please use Remove() instead.
+   * @deprecated Will be removed by 10/2020. Use `Remove()` instead.
    */
   static bool remove(const std::string& path);
 
   /**
-   * @brief Removes the directory, deleting all subfolders and files.
+   * @brief Removes a directory and deletes all its subfolders and files.
    *
-   * @param path Path of the directory.
+   * @param path The path of the directory.
    *
-   * @return \c true if operation is successfull, \c false otherwise.
+   * @return True if the operation is successful; false otherwise.
    */
   static bool Remove(const std::string& path);
 
   /**
-   * @brief Creates the directory including all required directories on
-   * the path.
+   * @brief Creates a directory and all required directories specified
+   * in the path.
    *
-   * @param path Path of the directory.
+   * @param path The path of the directory.
    *
-   * @return \c true if operation is successfull, \c false otherwise.
+   * @return True if the operation is successful; false otherwise.
    *
-   * @deprecated Will be removed by 10.2020. Please use Create() instead.
+   * @deprecated Will be removed by 10/2020. Use `Create()` instead.
    */
   static bool create(const std::string& path);
 
   /**
-   * @brief Creates the directory including all required directories on
-   * the path.
+   * @brief Creates a directory and all required directories specified
+   * in the path.
    *
-   * @param path Path of the directory.
+   * @param path The path of the directory.
    *
-   * @return \c true if operation is successfull, \c false otherwise.
+   * @return True if the operation is successful; false otherwise.
    */
   static bool Create(const std::string& path);
 
   /**
-   * @brief Returns the platform-specific temporary path.
+   * @brief Gets a platform-specific temporary path.
    *
-   * @return The platform specific temporary directory path.
+   * @return The platform-specific temporary path of the directory.
    */
   static std::string TempDirectory();
 
   /**
-   * @brief Check whether the provided file exists.
+   * @brief Checks whether the provided file exists.
    *
-   * @param file_path Path to the file.
+   * @param file_path The path of the file.
    *
-   * @return \c true if any file with the given path exists, \c false otherwise.
+   * @return True if the file with the given path exists; false otherwise.
    */
   static bool FileExists(const std::string& file_path);
 
   /**
-   * @brief Calculates size of the directory. Filter may be applied to exclude
-   * unnecessary files or directories from calculation.
+   * @brief Calculates the size of a directory.
    *
-   * @param path Path of the directory.
-   * @param filter_fn Filter function.
+   * Use a filter to exclude
+   * unnecessary files or directories from the calculation.
    *
-   * @return Calculated size.
+   * @param path The path of the directory.
+   * @param filter_fn The filter function.
+   *
+   * @return The calculated size.
    */
   static uint64_t Size(const std::string& path, FilterFunction filter_fn = {});
 };

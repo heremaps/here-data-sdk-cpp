@@ -30,37 +30,37 @@ namespace olp {
 namespace utils {
 
 /**
- * Class used for building and parsing Urls.
+ * @brief Builds and parses URLs.
  */
 class CORE_API Url {
  public:
   /**
-   * @brief Performs URL decoding on a given input string by replacing
-   * percent-encoded characters with the actual ones.
+   * @brief Decodes a URL on a given input string by replacing
+   * percent-encoded characters with actual ones.
    *
-   * @param in URL encoded string.
+   * @param in The URL-encoded string.
    *
-   * @return URL decoded result string.
+   * @return The URL-decoded result string.
    */
   static std::string Decode(const std::string& in);
 
   /**
    * @brief Encodes a given input string by escaping non-ASCII characters.
    *
-   * @param in URL string to be encoded.
+   * @param in The URL string to be encoded.
    *
-   * @return URL encoded result string.
+   * @return The URL-encoded result string.
    */
   static std::string Encode(const std::string& in);
 
   /**
-   * @brief Produces full URL from url base, path and query parameters.
+   * @brief Produces a full URL from a URL base, path, and query parameters.
    *
-   * @param base Base of the URL.
-   * @param path Path part of the URL.
-   * @param query_params Multipam of query parameters.
+   * @param base The base of the URL.
+   * @param path The path part of the URL.
+   * @param query_params The multimap of query parameters.
    *
-   * @return URL encoded result string.
+   * @return The URL-encoded result string.
    */
   static std::string Construct(
       const std::string& base, const std::string& path,

@@ -30,24 +30,37 @@
 namespace olp {
 namespace utils {
 /**
- * @brief Cost operator for LruCache
+ * @brief The default cost operator for `LruCache`.
  *
- * Specializations should return a non-zero value for any given object.
+ * The default implementation returns "1" for every object,
+ * which means that each object in the cache is treated as equally sized.
  *
- * Default implementation returns "1" for every object, meaning that each object
- * in the cache is treated as equally sized.
+ * @return The non-zero value for the specified object.
  */
 template <typename T>
 struct CacheCost {
+  /// Gets the size of the specified object.
   std::size_t operator()(const T&) const { return 1; }
 };
 
 /**
- * @brief Generic key-value LRU cache
+ * @brief A generic key-value LRU cache.
  *
- * This cache stores up to maxSize elements in a map. The cache eviction
- * follows the LRU principle, the element that has been accessed last will
- * be evicted last.
+ * This cache stores elements in a map up to the specified maximum size.
+ * The cache eviction follows the LRU principle: the element that was accessed last
+ * is evicted last.
+ *
+ * The specializations return a non-zero value for any given object.
+ * 
+ * @tparam Key The `LruCache` key type.
+ * @tparam Value The `LruCache` value type.
+ * @tparam CacheCostFunc The cache cost functor.
+ * The specializations should return a non-zero value for any given object.
+ * The default implementation returns "1" as the size for each object.
+ * @tparam Compare The comparison function to be used for sorting keys.
+ * The default value of `std::less` is used, which sorts the keys in ascending order.
+ * @tparam Alloc The allocator to be used for allocating internal data.
+ * The default value of `std::allocator` is used. 
  */
 template <typename Key, typename Value,
           typename CacheCostFunc = CacheCost<Value>,
@@ -59,48 +72,125 @@ class LruCache {
       std::map<Key, Bucket, Compare, Alloc<std::pair<const Key, Bucket> > >;
 
  public:
-  /// typedef for eviction function
+  /// An alias for the eviction function.
   using EvictionFunction = std::function<void(const Key&, Value&&)>;
 
-  /// Typedef for the key comparison function.
+  /// An alias for the key comparison function.
   using CompareType = typename MapType::key_compare;
 
-  /// Typedef for cache allocator type.
+  /// An alias for the cache allocator type.
   using AllocType = typename MapType::allocator_type;
 
+  /**
+   * @brief A type of objects to be stored.
+   *
+   * Each object is defined by a key-value pair.
+   */
   class ValueType {
    public:
+   /**
+    * @brief Gets the key of the `ValueType` object.
+    * 
+    * @return The key of the `ValueType` object.
+    */
     inline const Key& key() const;
+
+    /**
+     * @brief Gets the value of the `ValueType` object.
+     * 
+     * @return The value of the `ValueType` object.
+     */
     inline const Value& value() const;
 
    protected:
+    /// A typename of the map constant iterator.
     typename MapType::const_iterator m_it;
   };
 
+  /// A constant iterator of the `LruCache` object.
   class const_iterator : public ValueType {
    public:
+    /// A typedef for the iterator category.
     typedef std::bidirectional_iterator_tag iterator_category;
+    /// A typedef for the difference type.
     typedef std::ptrdiff_t difference_type;
+    /// A typedef for the `ValueType` type.
     typedef ValueType value_type;
+    /// A typedef for the `ValueType` constant reference.
     typedef const value_type& reference;
+    /// A typedef for the `ValueType` constant pointer.
     typedef const value_type* pointer;
 
+    ///Creates a constant iterator object.
     const_iterator() = default;
+    ///Creates a constant iterator object.
     const_iterator(const const_iterator&) = default;
+    /**
+     * @brief Copies this and the specified iterator to this.
+     * 
+     * @return A refenrence to this object.
+     */
     const_iterator& operator=(const const_iterator&) = default;
 
+    /**
+     * @brief Checks whether the values of the `const_iterator`
+     * parameter are the same as the values of the `other` parameter.
+     * 
+     * @param other The `const_iterator` instance.
+     *
+     * @return True if the values are the same; false otherwise.
+     */
     inline bool operator==(const const_iterator& other) const;
+    /**
+     * @brief Checks whether the values of the `const_iterator`
+     * parameter are not the same as the values of the `other` parameter.
+     * 
+     * @param other The `const_iterator` instance.
+     * 
+     * @return True if the values are not the same; false otherwise.
+     */
     inline bool operator!=(const const_iterator& other) const {
       return !operator==(other);
     }
 
+    /**
+     * @brief Iterates to the next `LruCache` object.
+     * 
+     * @return A reference to this.
+     */
     inline const_iterator& operator++();
+    /**
+     * @brief Iterates the specified number of times to the next `LruCache` object.
+     * 
+     * @return A new constant iterator.
+     */
     inline const_iterator operator++(int);
 
+    /**
+     * @brief Iterates to the previous `LruCache` object.
+     * 
+     * @return A reference to this.
+     */
     inline const_iterator& operator--();
+    /**
+     * @brief Iterates the specified number of times to the previous `LruCache` object.
+     * 
+     * @return A new constant iterator.
+     */
     inline const_iterator operator--(int);
 
+    /**
+     * @brief Gets a reference to this object.
+     * 
+     * @return The reference to this.
+     */
     reference operator*() const { return *this; }
+
+    /**
+     * @brief Gets a pointer to this object.
+     * 
+     * @return The pointer to this.
+     */
     pointer operator->() const { return this; }
 
    private:
@@ -117,9 +207,12 @@ class LruCache {
   };
 
   /**
-   * @brief LruCache default constructor
-   * Constructs an invalid LruCache with maxSize 0 that caches nothing
-   * @param alloc Allocator for the cache
+   * @brief Creates an `LruCache` instance.
+   *
+   * Creates an invalid `LruCache` with the maximum size of `0`
+   * that caches nothing.
+   *
+   * @param alloc The allocator for the cache.
    */
   explicit LruCache(const AllocType& alloc = AllocType())
       : map_(alloc),
@@ -129,12 +222,13 @@ class LruCache {
         size_(0) {}
 
   /**
-   * @brief LruCache constructor
-   * @param maxSize the maximum size of values this cache will keep
-   * @param cacheCostFunc the function this cache uses to compute the
-   *        caching cost of each cached value
-   * @param compare Function object for comparing keys
-   * @param alloc Allocator for the cache
+   * @brief Creates an `LruCache` instance.
+   *
+   * @param maxSize The maximum size of values this cache can keep.
+   * @param cacheCostFunc The function this cache uses to compute the
+   *        caching cost of each cached value.
+   * @param compare The function object for comparing keys.
+   * @param alloc The allocator for the cache.
    */
   LruCache(std::size_t maxSize, CacheCostFunc cacheCostFunc = CacheCostFunc(),
            const CompareType& compare = CompareType(),
@@ -146,10 +240,10 @@ class LruCache {
         max_size_(maxSize),
         size_(0) {}
 
-  /// deleted copy constructor
+  /// The deleted copy constructor.
   LruCache(const LruCache&) = delete;
 
-  /// default move constructor
+  /// The default move constructor.
   LruCache(LruCache&& other) noexcept
       : eviction_callback_(std::move(other.eviction_callback_)),
         cache_cost_func_(std::move(other.cache_cost_func_)),
@@ -161,10 +255,10 @@ class LruCache {
         max_size_(other.max_size_),
         size_(other.size_) {}
 
-  /// deleted assignment operator
+  /// The deleted assignment operator.
   LruCache& operator=(const LruCache&) = delete;
 
-  /// default move assignment operator
+  /// The default move assignment operator.
   LruCache& operator=(LruCache&& other) noexcept {
     eviction_callback_ = std::move(other.eviction_callback_);
     cache_cost_func_ = std::move(other.cache_cost_func_);
@@ -180,51 +274,54 @@ class LruCache {
   }
 
   /**
-   * @brief insert a key/value to the cache
+   * @brief Inserts a key-value pair in the cache.
    *
-   * Note - if the key already exists in the cache, it will be promoted in the
-   * LRU, but its value and cost will not be updated. Use insertOrAssign instead
-   * to update/insert existing values.
+   * @note If the key already exists in the cache, it is promoted in the
+   * LRU, but its value and cost are not updated. To update or insert existing values,
+   * use `InsertOrAssign` instead.
    *
-   * If key or value are rvalue references, they will be moved, otherwise,
-   * copied.
+   * If the key or value is an rvalue reference, they are moved;
+   * copied otherwise.
    *
-   * Note - this function behaves analoguous to std::map. Even if insertion
-   * fails, key and value might already be moved, do not access them further.
+   * @note This function behaves analogously to `std::map`. Even if the insertion
+   * fails, the key and value can be moved. Do not access them further.
    *
-   * @param key the key to add
-   * @param value the value to add
-   * @return a pair of bool and iterator, analoguous to std::map::insert().
-   *         If the bool is true, the item was inserted and the iterator points
+   * @param key The key to add.
+   * @param value The value to add.
+   *
+   * @return A pair of bool and an iterator, analogously to `std::map::insert()`.
+   *         If the bool is true, the item is inserted, and the iterator points
    * to the newly inserted item. If the bool is false and the iterator points to
-   * end(), the item couldn't be inserted. Otherwise, the bool will be false and
-   * the iterator will point to the item that prevented the insertion.
+   * `end()`, the item cannot be inserted. Otherwise, the bool is false, and
+   * the iterator points to the item that prevented the insertion.
    */
   template <typename _Key, typename _Value>
   std::pair<const_iterator, bool> Insert(_Key&& key, _Value&& value);
 
   /**
-   * @brief insert a key/value to the cache or update an existing key/value pair
+   * @brief Inserts a key-value pair in the cache or updates an existing key-value pair.
    *
-   * Note - if the key already exists in the cache, its value and cost will be
-   * updated, use insert() instead to not update existing key/value pairs.
+   * @note If the key already exists in the cache, its value and cost are
+   * updated. Not to update the existing key-value pair, use `Insert` instead.
    *
-   * @param key the key to add
-   * @param value the value to add
-   * @return a pair of bool and iterator, analoguous to
-   * std::map::insert_or_assign(). If the bool is true, the item was inserted
+   * @param key The key to add.
+   * @param value The value to add.
+   *
+   * @return A pair of bool and an iterator, analogously to
+   * `std::map::insert_or_assign()`. If the bool is true, the item is inserted,
    * and the iterator points to the newly inserted item. If the bool is false
-   * and the iterator points to end(), the item couldn't be inserted. Otherwise,
-   * the bool will be false and the iterator will point to the item that was
-   * assigned.
+   * and the iterator points to `end()`, the item cannot be inserted. Otherwise,
+   * the bool is false, and the iterator points to the item that is assigned.
    */
   template <typename _Value>
   std::pair<const_iterator, bool> InsertOrAssign(Key key, _Value&& value);
 
   /**
-   * @brief erase - removes an item from the cache
-   * @param key the key to erase
-   * @return true if the key existed and was removed from the cache, false
+   * @brief Removes a key from the cache.
+   *
+   * @param key The key to remove.
+   *
+   * @return True if the key exists and is removed from the cache; false
    * otherwise.
    */
   bool Erase(const Key& key) {
@@ -236,6 +333,13 @@ class LruCache {
     return true;
   }
 
+  /**
+   * @brief Removes a key from the cache.
+   * 
+   * @param it The iterator of the key that should be removed.
+   *
+   * @return A new iterator.
+   */
   const_iterator Erase(const_iterator& it) {
     auto prev = it++;
 
@@ -245,24 +349,26 @@ class LruCache {
   }
 
   /**
-   * @brief size the current size of the cache
-   * @return the size
+   * @brief Gets the current size of the cache.
+   *
+   * @return The current cache size.
    */
   std::size_t Size() const { return size_; }
 
   /**
-   * @brief size the maximum size of the cache
-   * @return the maximum size
+   * @brief Gets the maximum size of the cache.
+   *
+   * @return The maximum cache size.
    */
   std::size_t GetMaxSize() const { return max_size_; }
 
   /**
-   * @brief resize sets a new maximum size of the cache.
+   * @brief Sets the new maximum size of the cache.
    *
    * If the new maximum size is smaller than the current size, items are evicted
-   * until the cache shrinks to less than or equal the new maximum size.
+   * until the cache shrinks to less than or equal to the new maximum size.
    *
-   * @param maxSize the new maximum size of the cache
+   * @param maxSize The new maximum size of the cache.
    */
   void Resize(size_t maxSize) {
     max_size_ = maxSize;
@@ -270,13 +376,14 @@ class LruCache {
   }
 
   /**
-   * @brief find an value in the cache
+   * @brief Finds a value in the cache.
    *
-   * Note - this function will promote the item pointed to by key if found
+   * @note This function promotes the item pointed to by a key if found.
    *
-   * @param key the key to find
-   * @return an iterator to the value if found, otherwise, an iterator pointing
-   * to end()
+   * @param key The key to find.
+   *
+   * @return If found, the iterator to the value; the iterator pointing
+   * to `end()` otherwise.
    */
   const_iterator Find(const Key& key) {
     auto it = map_.find(key);
@@ -286,13 +393,14 @@ class LruCache {
   }
 
   /**
-   * @brief find an value in the cache
+   * @brief Finds a value in the cache.
    *
-   * Note - this function will NOT promote the item pointed to by key if found
+   * @note This function does NOT promote the item pointed to by a key if found.
    *
-   * @param key the key to find
-   * @return an iterator to the value if found, otherwise, an iterator pointing
-   * to end()
+   * @param key The key to find.
+   *
+   * @return If found, the iterator to the value; the iterator pointing
+   * to `end()` otherwise.
    */
   const_iterator FindNoPromote(const Key& key) const {
     auto it = map_.find(key);
@@ -300,36 +408,37 @@ class LruCache {
   }
 
   /**
-   * @brief find an value in the cache
+   * @brief Finds a value in the cache.
    *
-   * Note - this function will promote the item pointed to by key if found
+   * @note This function promotes the item pointed to by a key if found.
    *
-   * @param key the key to find
-   * @param nullValue the value to return if the key/value pair is not in the
+   * @param key The key to find.
+   * @param nullValue The value to return if the key-value pair is not in the
    * cache
-   * @return a const reference to the value, or nullValue if not found
+   * @return If found, a constant reference to the value; `nullValue` otherwise.
    */
   const Value& Find(const Key& key, const Value& nullValue) {
     auto it = Find(key);
     return it == end() ? nullValue : it.value();
   }
 
-  /// returns the begin iterator.
+  /// Returns a constant iterator to the beginning.
   const_iterator begin() const { return const_iterator{first_}; }
 
-  /// returns the end iterator
+  /// Returns a constant iterator to the end.
   const_iterator end() const { return const_iterator{map_.end()}; }
 
-  /// reverse begin iterator
+  /// Returns a reverse constant iterator to the beginning.
   const_iterator rbegin() const { return const_iterator{last_}; }
 
-  /// reverse end iterator
+  /// Returns a reverse constant iterator to the end.
   const_iterator rend() const { return const_iterator{map_.end()}; }
 
   /**
-   * @brief clear removes all items from cache
-   * Removes all content, but does not reset the eviction callback or maximum
-   * size
+   * @brief Removes all items from the cache.
+   *
+   * Removes all content but does not reset the eviction callback
+   * or maximum size.
    */
   void Clear() {
     map_.clear();
@@ -338,14 +447,16 @@ class LruCache {
   }
 
   /**
-   * @brief setEvictionCallback set a function that is invoked when a value is
-   * evicted from the cache Note - the function must not modify the cache in the
-   * callback. The value can be safely moved, if not, it will be destroyed when
+   * @brief Sets a function that is invoked when a value is
+   * evicted from the cache.
+   *
+   * @note The function must not modify the cache in the
+   * callback. The value can be safely moved. If not, it is destroyed when
    * the function returns.
    *
-   * To reset the eviction callback, pass a nullptr
+   * To reset the eviction callback, pass `nullptr`.
    *
-   * @param func the function to be called on eviction
+   * @param func The function to be called on eviction.
    */
   void SetEvictionCallback(EvictionFunction func) {
     eviction_callback_ = std::move(func);
@@ -362,15 +473,15 @@ class LruCache {
   std::size_t max_size_;
   std::size_t size_;
 
-  // helper, figuring out if two keys are equal using only the comparison
-  // operator
+  // Checks whether two keys are equal using only the comparison
+  // operator.
   inline bool IsEqual(const Key& key1, const Key& key2) {
     auto comp = map_.key_comp();
     return !comp(key1, key2) && !comp(key2, key1);
   }
 
-  // Bucket contains the value and the pointer to previous and next items in the
-  // LRU chain
+  // The bucket that contains the value and the pointer to the previous
+  // and next items in the LRU chain.
   struct Bucket {
     using Iterator = typename MapType::iterator;
 
@@ -415,12 +526,35 @@ class LruCache {
 template <typename Key, typename Value, typename CacheCostFunc,
           typename Compare, template <typename> class Alloc>
 template <typename _Key, typename _Value>
+
+/**
+ * @brief Inserts a key-value pair in the cache.
+ *
+ * @note If the key already exists in the cache, it is promoted in the
+ * LRU, but its value and cost are not updated. To update or insert existing values,
+ * use `InsertOrAssign` instead.
+ *
+ * If the key or value is an rvalue reference, they are moved;
+ * copied otherwise.
+ *
+ * @note This function behaves analogously to `std::map`. Even if the insertion
+ * fails, the key and value can be moved. Do not access them further.
+ *
+ * @param key The key to add.
+ * @param value The value to add.
+ *
+ * @return A pair of bool and an iterator, analogously to `std::map::insert()`.
+ *         If the bool is true, the item is inserted, and the iterator points
+ * to the newly inserted item. If the bool is false and the iterator points to
+ * `end()`, the item cannot be inserted. Otherwise, the bool is false, and
+ * the iterator points to the item that prevented the insertion.
+ */
 auto LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::Insert(_Key&& key,
                                                                  _Value&& value)
     -> std::pair<const_iterator, bool> {
   Bucket bucket{map_.end(), map_.end(), std::forward<_Value>(value)};
 
-  // item too large, do not insert
+  // If the item is too large, do not insert it.
   std::size_t valueCost = cache_cost_func_(bucket.value_);
   if (valueCost > max_size_)
     return std::make_pair(const_iterator{end()}, false);
@@ -439,6 +573,22 @@ auto LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::Insert(_Key&& key,
 template <typename Key, typename Value, typename CacheCostFunc,
           typename Compare, template <typename> class Alloc>
 template <typename _Value>
+
+/**
+ * @brief Inserts a key-value pair in the cache or updates an existing key-value pair.
+ *
+ * @note If the key already exists in the cache, its value and cost are
+ * updated. Not to update existing key-value pairs, use `Insert` instead.
+ *
+ * @param key The key to add.
+ * @param value The value to add.
+ *
+ * @return A pair of bool and an iterator, analogously to
+ * `std::map::insert_or_assign()`. If the bool is true, the item is inserted,
+ * and the iterator points to the newly inserted item. If the bool is false
+ * and the iterator points to `end()`, the item cannot be inserted. Otherwise,
+ * the bool is false, and the iterator points to the item that is assigned.
+ */
 auto LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::InsertOrAssign(
     Key key, _Value&& value) -> std::pair<const_iterator, bool> {
   // as we need "key" with the right type a couple of times, create a temp
