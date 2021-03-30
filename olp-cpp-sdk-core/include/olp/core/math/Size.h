@@ -23,62 +23,67 @@
 
 namespace olp {
 namespace math {
-/**
- * Represents two-dimensional size.
- */
+/// Represents the 2D size.
 template <typename T>
 class Size2 {
  public:
+  /// An alias for the value type.
   using Value = T;
 
-  /**
-   * Construct uninitialized size.
-   */
+  /// Creates an uninitialized `Size2` instance.
   Size2();
 
   /**
-   * Construct the size from another type.
-   * @param size Size of another type.
+   * @brief Creates a `Size2` instance from another type.
+   *
+   * @param size The size of the other type to create from.
    */
   template <typename U>
   Size2(const Size2<U>& size);
 
   /**
-   * Construct the size from vector.
-   * @param[in] vector Vector.
+   * @brief Creates a `Size2` instance from a vector.
+   *
+   * @param[in] vector The vector to create from.
    */
   template <typename U>
   explicit Size2(const Vector2<U>& vector);
 
   /**
-   * Construct the size.
-   * @param[in] width Width.
-   * @param[in] height Height.
+   * @brief Creates a `Size2` instance from the value width and height.
+   *
+   * @param[in] width The value width to create from.
+   * @param[in] height The value height to create from.
    */
   Size2(Value width, Value height);
 
   /**
-   * Convert to vector.
-   * @return Vector.
+   * @brief Converts a type to a vector.
+   *
+   * @return The vector.
    */
   template <typename U>
   explicit operator Vector2<U>() const;
 
   /**
-   * Check whether the size is empty.
-   * @return True if any of the size components is zero.
+   * @brief Checks whether the size is empty.
+   *
+   * @return True if any of the size components is zero;
+   * false otherwise.
    */
   bool empty() const;
 
   /**
-   * Get width.
-   * @return Width.
+   * @brief Gets the width of the `Size2` object.
+   *
+   * @return The width of the `Size2` object.
    */
   Value Width() const;
 
   /**
-   * Get height.
-   * @return Height.
+   * @brief Gets the height of the `Size2` object.
+   *
+   * @return The height of the `Size2` object.
    */
   Value Height() const;
 
