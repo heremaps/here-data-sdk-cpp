@@ -20,26 +20,24 @@
 #pragma once
 
 /**
- * @file
- * Contains utilities to work around compiler warnings.
+ * @file WarningWorkarounds.h
+ * @brief Contains utilities used to work around compiler warnings.
  */
 
-/**
- * Marks arbitrary many variables as unused to avoid compiler warnings.
- */
+/// Arbitrarily marks many variables as unused to avoid compiler warnings.
 #define OLP_SDK_CORE_UNUSED(...) olp::core::Unused(__VA_ARGS__)
 
 namespace olp {
 namespace core {
 template <typename... Args>
+
+/// A workaround for unused variables.
 void Unused(Args&&...) {}
 }  // namespace core
 }  // namespace olp
 
-/**
- * While statement for "do {} while (0)" used for macros that bypasses compiler
- * warnings.
- */
+/// A while statement for "do {} while (0)" used for macros that bypass compiler
+/// warnings.
 #ifdef _MSC_VER
 #define OLP_SDK_CORE_LOOP_ONCE()                                                  \
   __pragma(warning(push)) __pragma(warning(disable : 4127)) while (false) \

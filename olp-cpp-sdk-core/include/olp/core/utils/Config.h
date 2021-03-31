@@ -20,13 +20,11 @@
 #pragma once
 
 /**
- * @file
- * Contains macros to determine the compile-time configuration.
+ * @file Config.h
+ * @brief Contains macros that determine the compile-time configuration.
  */
 
-/**
- * Defined to 1 if exceptions are enabled, 0 if disabled.
- */
+/// Set to 1 if the exceptions are enabled; 0 if disabled.
 #define CORE_EXCEPTIONS_ENABLED 0
 
 #if defined(__EXCEPTIONS) || defined(_CPPUNWIND) || defined(__CPPUNWIND)
@@ -34,9 +32,7 @@
 #define CORE_EXCEPTIONS_ENABLED 1
 #endif
 
-/**
- * Defined to 1 if C++ RTTI is enabled, 0 if disabled.
- */
+/// Set to 1 if C++ RTTI is enabled; 0 if disabled.
 #define CORE_RTTI_ENABLED 0
 
 #if defined(__GNUC__)

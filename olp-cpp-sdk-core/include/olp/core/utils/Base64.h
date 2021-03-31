@@ -30,42 +30,42 @@ namespace olp {
 namespace utils {
 
 /**
- * @brief Encodes binary stream into base64 text.
+ * @brief Encodes a binary stream into a Base64 text.
  *
- * @param bytes Data to be encoded.
+ * @param bytes The data to be encoded.
  *
- * @return Base64 encoded string.
+ * @return The Base64 encoded string.
  */
 CORE_API std::string Base64Encode(const std::vector<std::uint8_t>& bytes);
 
 /**
- * @brief Encodes binary stream into base64 text.
+ * @brief Encodes a string into a Base64 text.
  *
- * @param bytes Data to be encoded.
+ * @param bytes The data to be encoded.
  *
- * @return Base64 encoded string.
+ * @return The Base64 encoded string.
  */
 CORE_API std::string Base64Encode(const std::string& bytes);
 
 /**
- * @brief Encodes binary stream into base64 text.
+ * @brief Encodes a binary stream into a Base64 text.
  *
- * @param bytes Data to be encoded.
- * @param size The length of the bytes array.
+ * @param bytes The data to be encoded.
+ * @param size The length of the byte array.
  *
- * @return Base64 encoded string.
+ * @return The Base64 encoded string.
  */
 CORE_API std::string Base64Encode(const void* bytes, size_t size);
 
 /**
- * @brief Decodes base64 into a binary stream.
+ * @brief Decodes a Base64 string into a binary stream.
  *
- * @param[in] string Base64 string to be decoded.
- * @param[out] bytes Vector containing decoded bytes.
- * @param[in] write_null_bytes True if decoded null bytes should be written to
- * the output, false otherwise. Default is true.
+ * @param[in] string The Base64 string to be decoded.
+ * @param[out] bytes The vector containing the decoded bytes.
+ * @param[in] write_null_bytes True if the decoded NULL bytes should be written to
+ * the output; false otherwise. The default value is true.
  *
- * @return \c true if decoding was successful, \c false otherwise.
+ * @return True if the decoding was successful; false otherwise.
  */
 CORE_API bool Base64Decode(const std::string& string,
                            std::vector<std::uint8_t>& bytes,
