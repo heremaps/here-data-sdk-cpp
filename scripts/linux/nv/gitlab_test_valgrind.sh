@@ -52,7 +52,7 @@ do
     source ${FV_HOME}/olp-cpp-sdk-${test_group_name}-test.variables
 
     test_command="$REPO_HOME/build/tests/${test_group_name}/olp-cpp-sdk-${test_group_name}-tests --gtest_output=xml:${REPO_HOME}/reports/olp-cpp-sdk-${test_group_name}-test-report.xml ${EXCEPTION} ${FLAKY_CHECK}"
-    valgrind_command="valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all --xml=yes"
+    valgrind_command="valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all --num-callers=500 --xml=yes"
 
     if [[ ! -z "$misc_folder_path" ]]; then
         valgrind_result_file_path="${REPO_HOME}/${misc_folder_path}/${test_group_name}_memcheck.xml"
@@ -82,7 +82,7 @@ do
     test_command="$REPO_HOME/build/${test_name%?????}/tests/${test_name}s \
     --gtest_output="xml:${REPO_HOME}/reports/${test_name}-report.xml" $EXCEPTION $FLAKY_CHECK "
 
-    valgrind_command="valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all --xml=yes"
+    valgrind_command="valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all --num-callers=500 --xml=yes"
     if [[ ! -z "$misc_folder_path" ]]; then
         valgrind_result_file_path="${REPO_HOME}/${misc_folder_path}/${test_name}_memcheck.xml"
         valgrind_command="$valgrind_command --xml-file=$valgrind_result_file_path"
