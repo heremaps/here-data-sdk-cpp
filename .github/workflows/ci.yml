@@ -17,7 +17,6 @@ jobs:
   linux-gcc-psv-build-test-codecov:
     name: Linux Build using gcc & tests & code coverage
     runs-on: ubuntu-18.04
-
     steps:
     - name: Check out repository
       uses: actions/checkout@v2
@@ -25,7 +24,7 @@ jobs:
       run: ./scripts/misc/cpplint_ci.sh
       shell: bash
     - name: Install Ubuntu dependencies
-      run: sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
+      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
       shell: bash
     - name: Compile project with cmake and ccache
       run: gcc --version && ./scripts/linux/psv/build_psv.sh
@@ -34,15 +33,16 @@ jobs:
       run: ./scripts/linux/psv/test_psv.sh
       shell: bash
 
-  linux-gcc-psv-build-no-cache:
+  linux-gcc-psv-build-relwithdebinfo-no-cache:
     name: Linux Build using gcc & tests & code coverage
     runs-on: ubuntu-18.04
+    env:
+      BUILD_TYPE: RelWithDebInfo
     steps:
-
     - name: Check out repository
       uses: actions/checkout@v2
     - name: Install Ubuntu dependencies
-      run: sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
+      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev --no-install-recommends
       shell: bash
     - name: Compile project without cache
       run: ./scripts/linux/psv/build_psv_no_cache.sh
