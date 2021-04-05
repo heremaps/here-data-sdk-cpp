@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (C) 2019 HERE Europe B.V.
+# Copyright (C) 2019-2021 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,10 +21,10 @@
 mkdir -p build && cd build
 cmake ../ -GXcode \
     -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/iOS.cmake \
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DPLATFORM=iphoneos \
     -DOLP_SDK_ENABLE_TESTING=NO \
     -DSIMULATOR=YES \
     -DOLP_SDK_BUILD_EXAMPLES=ON
 
 xcodebuild
-cd ..
