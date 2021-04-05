@@ -222,6 +222,8 @@ set(OLP_SDK_CACHE_SOURCES
     ./src/cache/DefaultCacheImpl.h
     ./src/cache/DiskCache.cpp
     ./src/cache/DiskCache.h
+    ./src/cache/DiskCacheEnv.cpp
+    ./src/cache/DiskCacheEnv.h
     ./src/cache/DiskCacheSizeLimitEnv.cpp
     ./src/cache/DiskCacheSizeLimitEnv.h
     ./src/cache/DiskCacheSizeLimitWritableFile.cpp

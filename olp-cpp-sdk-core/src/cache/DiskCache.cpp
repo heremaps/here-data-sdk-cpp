@@ -30,6 +30,7 @@
 #include <leveldb/iterator.h>
 #include <leveldb/options.h>
 #include <leveldb/write_batch.h>
+#include "DiskCacheEnv.h"
 #include "DiskCacheSizeLimitEnv.h"
 #include "ReadOnlyEnv.h"
 #include "olp/core/logging/Log.h"
@@ -51,7 +52,7 @@ static bool RepairCache(const std::string& data_path) {
   auto status = leveldb::RepairDB(data_path, leveldb::Options());
   if (status.ok()) {
     OLP_SDK_LOG_INFO(kLogTag, "RepairCache: repaired - " << data_path);
-    leveldb::Env::Default()->DeleteDir(data_path + "/lost");
+    DiskCacheEnv::Env()->DeleteDir(data_path + "/lost");
     return true;
   }
   OLP_SDK_LOG_ERROR(kLogTag,
@@ -73,7 +74,7 @@ static bool RepairCache(const std::string& data_path) {
 void RemoveOtherDB(const std::string& data_path,
                    const std::string& data_path_to_keep) {
   std::vector<std::string> path_contents;
-  auto status = leveldb::Env::Default()->GetChildren(data_path, &path_contents);
+  auto status = DiskCacheEnv::Env()->GetChildren(data_path, &path_contents);
   if (!status.ok()) {
     OLP_SDK_LOG_WARNING(kLogTag, "RemoveOtherDB: failed to list folder \""
                                      << data_path << "\" contents - "
@@ -183,12 +184,12 @@ OpenResult DiskCache::Open(const std::string& data_path,
 
     if (max_size_ != kSizeMax) {
       environment_ = std::make_unique<DiskCacheSizeLimitEnv>(
-          leveldb::Env::Default(), versioned_data_path,
+          DiskCacheEnv::Env(), versioned_data_path,
           settings.enforce_immediate_flush);
       open_options.env = environment_.get();
     }
   } else {
-    environment_ = std::make_unique<ReadOnlyEnv>(leveldb::Env::Default());
+    environment_ = std::make_unique<ReadOnlyEnv>(DiskCacheEnv::Env());
     open_options.env = environment_.get();
   }
 
