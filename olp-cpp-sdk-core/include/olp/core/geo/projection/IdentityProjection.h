@@ -25,8 +25,11 @@
 namespace olp {
 namespace geo {
 /**
- * @brief Identity projection. This passes the coordinates through unchanged.
- * This is usually used to send lat/long coordinates through unchanged.
+ * @brief The identity projection used to work with geographic
+ * and world coordinates.
+ * 
+ * Passes the coordinates through unchanged.
+ * It is usually used to send latitude and longitude coordinates through unchanged.
  */
 class CORE_API IdentityProjection final : public IProjection {
  public:

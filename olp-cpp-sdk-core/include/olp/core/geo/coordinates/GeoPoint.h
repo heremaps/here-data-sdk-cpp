@@ -27,20 +27,20 @@ namespace olp {
 namespace geo {
 
 /**
- * @brief A geographic location that uses WGS84 coordinates encoded in
- * a 32-bit unsigned integer.
+ * @brief A geographic location that uses the WGS84 Coordinate System
+ * encoded in a 32-bit unsigned integer.
  *
- * Latitude values range from 0 at the equator to 90&nbsp;degrees northwards and
- * -90&nbsp;degrees southwards. Longitude values range from 0 at the prime
- * meridian to 180&nbsp;degrees eastwards and -180&nbsp;degrees westwards.
+ * Latitude values range from 0 at the equator to 90 degrees north and
+ * -90 degrees south. Longitude values range from 0 at the prime
+ * meridian to 180 degrees east and -180 degrees west.
  *
  * The X-Y coordinates system is used to get the geographic location:
- * * x &ndash; a longitude represented as a 32-bit unsigned integer.
- * * y &ndash; a latitude represented as a 32-bit unsigned integer.
+ * - x – a longitude represented as a 32-bit unsigned integer.
+ * - y – a latitude represented as a 32-bit unsigned integer.
  *
  * The internal representation of angles is radians:
- * * x rad = -180 ... +180 (-Pi ... +Pi)
- * * y rad = -90 ... +90 (-Pi/2 ... +Pi/2)
+ * - x rad = -180 ... +180 (-pi ... pi)
+ * - y rad = -90 ... +90 (-pi/2 ... pi/2)
  *
  * To get `GeoPoint` from geographic coordinates, you can use the `ToGeoPoint`
  * method of the `GeoCoordinates` class.
@@ -53,10 +53,8 @@ class CORE_API GeoPoint {
    * @brief Creates the `GeoPoint` instance that uses the location longitude
    * (`x`) and latitude (`y`) values represented as 32-bit unsigned integers.
    *
-   * @param[in] xx The X-coordinate value of the location longitude represented
-   * as a 32-bit unsigned integer.
-   * @param[in] yy The Y-coordinate value of the location latitude represented
-   * as a 32-bit unsigned integer.
+   * @param[in] xx The X-coordinate value of the location longitude.
+   * @param[in] yy The Y-coordinate value of the location latitude.
    */
   GeoPoint(uint32_t xx, uint32_t yy);
 
@@ -66,7 +64,7 @@ class CORE_API GeoPoint {
    * The value range for each component is a 32-bit unsigned integer.
    *
    * The `x` value can be calculated using the following formula:
-   * `x = (x rad + Pi) * max(uint32_t) / 2*Pi`
+   * `x = (x rad + pi) * max(uint32_t) / 2 * pi`.
    */
   std::uint32_t x;
 
@@ -75,39 +73,35 @@ class CORE_API GeoPoint {
    *
    * The value range for each component is a 32-bit unsigned integer.
    *
-   * The y value can be calculated using the following formula:
-   * `y = (y rad + Pi/2) * max(uint32_t) / 2 * Pi`
+   * The `y` value can be calculated using the following formula:
+   * `y = (y rad + pi/2) * max(uint32_t) / 2 * pi`.
    */
   std::uint32_t y;
 
   /**
-   * @brief Compares if the `x` and `y` values of the `GeoPoint` parameter are
-   * the same as the `x` and `y` values of the `other` parameter.
+   * @brief Checks whether the values of the `GeoPoint` and the `other`
+   * parameters are equal.
    *
    * @param other The `GeoPoint` instance.
    *
-   * @return True if the `x` and `y` values of the `GeoPoint` and `other`
-   * parameters are equal; false otherwise.
+   * @return True if the values are equal; false otherwise.
    */
   bool operator==(const GeoPoint& other) const;
 
   /**
-   * @brief Compares if the `x` and `y` values of the `GeoPoint` parameter are
-   * not the same as the `x` and `y` values of the `other` parameter.
+   * @brief Checks whether the values of the `GeoPoint` and the `other`
+   * parameters are not equal.
    *
    * @param other The `GeoPoint` instance.
    *
-   * @return True if the `x` and `y` values of the `GeoPoint` and `other`
-   * parameters are not equal; false otherwise.
+   * @return True if the values are not equal; false otherwise.
    */
   inline bool operator!=(const GeoPoint& other) const {
     return !operator==(other);
   }
 
   /**
-   * @brief Adds the `x` and `y` values of the
-   * `GeoPoint` parameter to the `x` and `y` values of the `other` parameter,
-   * respectively.
+   * @brief Adds the values of the `GeoPoint` and `other` parameters.
    *
    * @param other The `GeoPoint` instance.
    *

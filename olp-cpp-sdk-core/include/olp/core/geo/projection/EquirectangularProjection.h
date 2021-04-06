@@ -25,15 +25,17 @@
 namespace olp {
 namespace geo {
 /**
- * @brief Equirectangular (plate carree) projection.
+ * @brief The equirectangular (plate carree) projection.
  *
- * http://en.wikipedia.org/wiki/Equirectangular_projection
+ * @see [Equirectangular projection](http://en.wikipedia.org/wiki/Equirectangular_projection)
+ * on Wikipedia.
  *
- * Latitude between -90 and 90 map to Y world axis with range:
- *    [0, 0.5]
- * Longitude between -180 and 180 map to X world axis with range:
- *    [0, 1]
- * Altitude maps to Z world axis and is not scaled.
+ * The world and geographic coordinates are related in the following way:
+ * - Latitude between -90 and 90 maps to the `Y` world axis of
+ * the following range: [0, 0.5].
+ * - Longitude between -180 and 180 maps to the `X` world axis of
+ * the following range: [0, 1].
+ * - Altitude maps to the `Z` world axis and is not scaled.
  */
 class CORE_API EquirectangularProjection final : public IProjection {
  public:

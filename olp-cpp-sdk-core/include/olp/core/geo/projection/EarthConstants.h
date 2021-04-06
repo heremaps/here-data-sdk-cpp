@@ -24,50 +24,57 @@
 namespace olp {
 namespace geo {
 /**
- * @brief Various WGS84 Earth's constants.
+ * @brief Represents WGS84 Earth's constants.
  */
 class CORE_API EarthConstants {
  public:
   /**
-   * @brief The Earth's equatorial radius is the distance from its center
-   * to the equator.
-   * @see https://en.wikipedia.org/wiki/Earth_radius
-   * @return Earth's equatorial radius.
+   * @brief Gets the Earth's equatorial radius, which is the distance from
+   * its center to the equator.
+   *
+   * @see [Earth radius](https://en.wikipedia.org/wiki/Earth_radius) on Wikipedia.
+   *
+   * @return The Earth's equatorial radius.
    */
   static double EquatorialRadius();
   /**
-   * @brief The Earth's polar radius is the distance from its center to the
-   * North and South Poles.
-   * @see https://en.wikipedia.org/wiki/Earth_radius
-   * @return Earth's polar radius.
+   * @brief Gets the Earth's polar radius, which is the distance from
+   * its center to the North and South Poles.
+   *
+   * @see [Polar radius](https://en.wikipedia.org/wiki/Earth_radius#Polar_radius)
+   * on Wikipedia.
+   *
+   * @return The Earth's polar radius.
    */
   static double PolarRadius();
   /**
-   * @brief The Earth's circumference is the distance around the Earth equator.
-   * @see https://en.wikipedia.org/wiki/Earth%27s_circumference
-   * @return Earth's circumference.
+   * @brief Gets the Earth's circumference, which is the distance
+   * around the Earth equator.
+   *
+   * @see [Earth circumference](https://en.wikipedia.org/wiki/Earth%27s_circumference)
+   * on Wikipedia.
+   *
+   * @return The Earth's circumference.
    */
   static double EquatorialCircumference();
 
   /**
-   * @brief Lowest, natural dry-land elevation
+   * @brief Gets the lowest natural dry-land elevation.
    *
-   * Area surrounding the Dead Sea in Israel.
-   *
+   * The area surrounding the Dead Sea in Israel.
    * Measured in meters relative to MSL.
    *
-   * @return elevation value.
+   * @return The elevation value.
    */
   static double MinimumElevation();
 
   /**
-   * @brief Highest natural dry-land elevation
+   * @brief Gets the highest natural dry-land elevation.
    *
-   * Peak of Mount Everest.
-   *
+   * The peak of Mount Everest.
    * Measured in meters relative to MSL.
    *
-   * @return elevation value.
+   * @return The elevation value.
    */
   static double MaximumElevation();
 };

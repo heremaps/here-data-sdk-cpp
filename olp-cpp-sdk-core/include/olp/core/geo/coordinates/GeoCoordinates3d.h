@@ -26,185 +26,192 @@ namespace olp {
 namespace geo {
 
 /**
- * Geodetic coordinates with longitude, latitude and altitude.
+ * @brief Geodetic coordinates with longitude, latitude, and altitude.
  */
 class CORE_API GeoCoordinates3d {
  public:
   /**
-   * @brief Construct invalid geodetic coordinates.
+   * @brief Creates a `GeoCoordinates3d` instance with invalid geodetic coordinates.
    *
-   * @post Latitude, longitude and altitude are undefined (NaN).
+   * @post The latitude, longitude, and altitude are undefined (NaN).
    */
   GeoCoordinates3d();
 
   /**
-   * @brief Construct geodetic coordinates from latitude, longitude and
-   * altitude.
+   * @brief Creates a `GeoCoordinates3d` instance from latitude,
+   * longitude, and altitude.
    *
-   * @param[in] latitude_radians Latitude in radians.
-   * @param[in] longitude_radians Longitude in radians.
-   * @param[in] altitude_meters Altitude in meters.
+   * @param[in] latitude_radians The latitude in radians.
+   * @param[in] longitude_radians The longitude in radians.
+   * @param[in] altitude_meters The altitude in meters.
    */
   GeoCoordinates3d(double latitude_radians, double longitude_radians,
                    double altitude_meters);
 
   /**
-   * @brief Construct geodetic coordinates from latitude, longitude and
-   * altitude.
-   *
-   * @param[in] latitudeDegrees Latitude in degrees.
-   * @param[in] longitudeDegrees Longitude in degrees.
-   * @param[in] altitude_meters Altitude in meters.
-   * @param[in] degrees Degree tag.
+   * @brief Creates a `GeoCoordinates3d` instance from latitude,
+   * longitude, and altitude.
+   * 
+   * @param latitude_degrees The latitude in degrees.
+   * @param longitude_degrees The longitude in degrees.
+   * @param altitude_meters The altitude in meters.
+   * @param degrees The degree tag.
    */
   GeoCoordinates3d(double latitude_degrees, double longitude_degrees,
                    double altitude_meters, DegreeType degrees);
 
   /**
-   * @brief Construct geodetic coordinates from 2D coordinates with undefined
-   * altitude.
+   * @brief Creates a `GeoCoordinates3d` instance from 2D coordinates
+   * with undefined altitude.
    *
-   * @param[in] geo_coordinates 2D geodetic coordinates.
-   * @post Altitude is undefined (NaN).
+   * @param[in] geo_coordinates The 2D geodetic coordinates.
+   *
+   * @post The altitude is undefined (NaN).
    */
   explicit GeoCoordinates3d(const GeoCoordinates& geo_coordinates);
 
   /**
-   * @brief Construct geodetic coordinates from 2D coordinates and an altitude.
+   * @brief Creates a `GeoCoordinates3d` instance from 2D coordinates
+   * and altitude.
    *
-   * @param[in] geo_coordinates 2D geodetic coordinates.
-   * @param[in] altitude_meters Altitude in meters.
+   * @param[in] geo_coordinates The 2D geodetic coordinates.
+   * @param[in] altitude_meters The altitude in meters.
    */
   GeoCoordinates3d(const GeoCoordinates& geo_coordinates,
                    double altitude_meters);
 
   /**
-   * @brief Create geodetic coordinates from latitude and longitude in degrees.
+   * @brief Creates a `GeoCoordinates3d` instance from latitude,
+   * longitude, and altitude.
    *
-   * @param[in] latitude Latitude in degrees.
-   * @param[in] longitude Longitude in degrees.
-   * @param[in] altitude Altitude in meters.
-   * @return Geodetic coordinates.
+   * @param[in] latitude The latitude in degrees.
+   * @param[in] longitude The longitude in degrees.
+   * @param[in] altitude The altitude in meters.
+   *
+   * @return The `GeoCoordinates3d` instance.
    */
   static GeoCoordinates3d FromDegrees(double latitude, double longitude,
                                       double altitude = 0.0);
 
   /**
-   * @brief Create geodetic coordinates from latitude and longitude in radians.
+   * @brief Creates a `GeoCoordinates3d` instance from latitude,
+   * longitude, and altitude.
    *
-   * @param[in] latitude Latitude in radians.
-   * @param[in] longitude Longitude in radians.
-   * @param[in] altitude Altitude in meters.
-   * @return Geodetic coordinates.
+   * @param[in] latitude The latitude in radians.
+   * @param[in] longitude The longitude in radians.
+   * @param[in] altitude The altitude in meters.
+   *
+   * @return The `GeoCoordinates3d` instance.
    */
   static GeoCoordinates3d FromRadians(double latitude, double longitude,
                                       double altitude = 0.0);
 
   /**
-   * @brief Get latitude and longitude as 2D geodetic coordinates.
+   * @brief Gets the latitude and longitude as 2D geodetic coordinates.
    *
-   * @return 2D geodetic coordinates.
+   * @return The 2D geodetic coordinates.
    */
   const GeoCoordinates& GetGeoCoordinates() const;
 
   /**
-   * @brief Set latitude and longitude from 2D geodetic coordinates.
+   * @brief Sets the latitude and longitude from the 2D geodetic coordinates.
    *
-   * @param[in] geo_coordinates 2D geodetic coordinates.
+   * @param[in] geo_coordinates The 2D geodetic coordinates.
    */
   void SetGeoCoordinates(const GeoCoordinates& geo_coordinates);
 
   /**
-   * @brief Get latitude.
+   * @brief Gets the latitude in radians.
    *
-   * @return Latitude in radians.
+   * @return The latitude in radians.
    */
   double GetLatitude() const;
 
   /**
-   * @brief Set latitude.
+   * @brief Sets the latitude in radians.
    *
-   * @param[in] latitude_radians Latitude in radians.
+   * @param[in] latitude_radians The latitude in radians.
    */
   void SetLatitude(double latitude_radians);
 
   /**
-   * @brief Get longitude.
+   * @brief Gets the longitude in radians.
    *
-   * @return Longitude in radians.
+   * @return The longitude in radians.
    */
   double GetLongitude() const;
 
   /**
-   * @brief Set longitude.
+   * @brief Sets the longitude in radians.
    *
-   * @param[in] longitude_radians Longitude in radians.
+   * @param[in] longitude_radians The longitude in radians.
    */
   void SetLongitude(double longitude_radians);
 
   /**
-   * @brief Get latitude in degrees.
+   * @brief Gets the latitude in degrees.
    *
-   * @return Latitude in degrees.
+   * @return The latitude in degrees.
    */
   double GetLatitudeDegrees() const;
 
   /**
-   * @brief Set latitude in degrees.
+   * @brief Sets the latitude in degrees.
    *
-   * @param[in] latitude_degrees Latitude in degrees.
+   * @param[in] latitude_degrees The latitude in degrees.
    */
   void setLatitudeDegrees(double latitude_degrees);
 
   /**
-   * @brief Get longitude in degrees.
-   * @return Longitude in degrees.
+   * @brief Gets the longitude in degrees.
+   *
+   * @return The longitude in degrees.
    */
   double GetLongitudeDegrees() const;
 
   /**
-   * @brief Set longitude in degrees.
+   * @brief Sets the longitude in degrees.
    *
-   * @param[in] longitude_degrees Longitude in degrees.
+   * @param[in] longitude_degrees The longitude in degrees.
    */
   void SetLongitudeDegrees(double longitude_degrees);
 
   /**
-   * @brief Get altitude.
+   * @brief Gets the altitude in meters.
    *
-   * @return Altitude in meters.
+   * @return The altitude in meters.
    */
   double GetAltitude() const;
 
   /**
-   * @brief Set altitude.
+   * @brief Sets the altitude in meters.
    *
-   * @param[in] altitude_meters Altitude in meters.
+   * @param[in] altitude_meters The altitude in meters.
    */
   void SetAltitude(double altitude_meters);
 
   /**
-   * @brief Check whether coordinates and altitude are valid.
+   * @brief Checks whether the coordinates and altitude are valid.
    *
-   * @return True if all valid, false if latitude, longitude or altitude is
-   * undefined.
+   * @return True if the coordinates and altitude are valid;
+   * false if the latitude, longitude, or altitude is undefined.
    */
   explicit operator bool() const;
 
   /**
-   * @brief Check whether coordinates and altitude are valid.
+   * @brief Checks whether the coordinates and altitude are valid.
    *
-   * @return True if all valid, false if latitude, longitude or altitude is
-   * undefined.
+   * @return True if the coordinates and altitude are valid;
+   * false if the latitude, longitude, or altitude is undefined.
    */
   bool IsValid() const;
 
  protected:
-  /// 2D geodetic coordinates.
+  /// The 2D geodetic coordinates.
   GeoCoordinates geo_coordinates_;
-  /// Altitude in meters.
+  /// The altitude in meters.
   double altitude_;
-  /// Const being used to signalize an invalid altitude.
+  /// The const that signalizes invalid altitudes.
   static const double kNaN_;
 };
 
