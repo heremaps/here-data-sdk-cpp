@@ -10,6 +10,7 @@ variables:
   LD_PRELOAD: "/lib/x86_64-linux-gnu/libSegFault.so"
   SEGFAULT_SIGNALS: "all"
   ADB_INSTALL_TIMEOUT: "8"
+  SAST_EXCLUDED_PATHS: "tests, examples, docs, scripts"
 
 stages:
   - build
