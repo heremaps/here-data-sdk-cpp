@@ -27,260 +27,273 @@
 namespace olp {
 namespace math {
 /**
- * This type trait tries to map a type to another one which can handle
- * arithmetic overflows.
+ * @brief Maps an integer type to the one that
+ * can handle arithmetic overflows.
  *
- * For integer types less than 64 bits, it maps to a larger type which can
- * handle overflows. The default implementation handles types including
- * floating-point ones. Specialization is used to handle integer types.
- * @note for float, it can overflow as well. However, the overflow case in
- * reality is relatively rare compared to the integer types. Also if T itself is
- * 64-bit integer type, it can overflow as well.
+ * For integer types less than 64 bits, it maps to a larger type that can
+ * handle overflows. The default implementation handles types, including
+ * the floating-point ones. Specifications are used to handle integer types.
+ *
+ * @note For float, it can overflow as well. However, the overflow case
+ * is relatively rare compared to the integer types. Also if `T` itself is
+ * a 64-bit integer type, it can overflow as well.
  */
 template <typename T,
           int IntegerBits = std::is_integral<T>::value ? sizeof(T) * 8 : 0,
           bool IsSigned = std::numeric_limits<T>::is_signed>
 struct OverflowTrait {
+  /// An alias for the integer type.
   using Type = T;
 };
 
-/** Specialization for 8-bit signed integers */
+/// A specialization for 8-bit signed integers.
 template <typename T>
 struct OverflowTrait<T, 8, true> {
+  /// An alias for the `int16_t` integer type.
   using Type = int16_t;
 };
 
-/** Specialization for 8-bit unsigned integers */
+/// A specialization for 8-bit unsigned integers.
 template <typename T>
 struct OverflowTrait<T, 8, false> {
+  /// An alias for the `uint16_t` integer type.
   using Type = uint16_t;
 };
 
-/** Specialization for 16-bit signed integers */
+/// A specialization for 16-bit signed integers.
 template <typename T>
 struct OverflowTrait<T, 16, true> {
+  /// An alias for the `int32_t` integer type.
   using Type = int32_t;
 };
 
-/** Specialization for 16-bit unsigned integers */
+/// A specialization for 16-bit unsigned integers.
 template <typename T>
 struct OverflowTrait<T, 16, false> {
+  /// An alias for `uint32_t` integer type.
   using Type = uint32_t;
 };
 
-/** Specialization for 32-bit signed integers */
+/// A specialization for 32-bit signed integers.
 template <typename T>
 struct OverflowTrait<T, 32, true> {
+  /// An alias for the `int64_t` integer type.
   using Type = int64_t;
 };
 
-/** Specialization for 32-bit unsigned integers */
+/// A specialization for 32-bit unsigned integers.
 template <typename T>
 struct OverflowTrait<T, 32, false> {
+  /// An alias for the `uint64_t` integer type.
   using Type = uint64_t;
 };
 
 /**
- * An aligned bounding-box implementation.
+ * @brief The aligned bounding-box implementation.
  *
- * @tparam T - The real type.
- * @tparam N - The box dimensions.
+ * @tparam T The real type.
+ * @tparam N The box dimensions.
  */
 template <typename T, unsigned int N>
 class AlignedBox {
  public:
-  static const unsigned int numCorners =
-      1 << N; /*!< Number of corners for the box. */
-  static const unsigned int dimensions = N; /*!< Box dimensions. */
+  /// The number of corners for the box.
+  static const unsigned int numCorners = 1 << N;
+  /// The box dimensions.
+  static const unsigned int dimensions = N;
 
-  using ValueType = T; /*!< The box value type. */
+  /// An alias for the box value type.
+  using ValueType = T;
+  /// An alias for the overflow trait.
   using OverflowType = typename OverflowTrait<T>::Type;
-  using VectorType = Vector<ValueType, N>; /*!< VectorType of the box. */
+  /// An alias for the vector type of the box.
+  using VectorType = Vector<ValueType, N>;
+  /// An alias for the overflow vector type.
   using OverflowVectorType = Vector<OverflowType, N>;
 
+  /// An alias for the corner points array type.
   using CornerArrayType =
       typename std::array<VectorType,
-                          numCorners>; /*!< Corner points array type. */
+                          numCorners>;
 
   /**
-   * Default constructor.
+   * @brief Creates an `AlignedBox` instance.
    *
-   * An empty box is constructed.
+   * An empty box is created.
    */
   AlignedBox();
 
   /**
-   * @brief Constructor.
+   * @brief Creates an `AlignedBox` instance.
    *
-   * If the any components of min are greater than max an
-   * empty box will result.
+   * If any component of `min` is greater than `max`,
+   * an empty box is created.
    *
-   * @param[in] min - The box minimum point.
-   * @param[in] max - The box maximum point.
+   * @param[in] min The box minimum point.
+   * @param[in] max The box maximum point.
    */
   AlignedBox(const VectorType& min, const VectorType& max);
 
   /**
-   * @brief Copy constructor.
+   * @brief Creates a copy of the `AlignedBox` instance.
    *
-   * @tparam OtherT - Real type of the box being copied.
-   * @param[in] other - The box to be copied.
+   * @tparam OtherT The real type of the box being copied.
+   * @param[in] other The box to be copied.
    */
   template <typename OtherT>
   AlignedBox(const AlignedBox<OtherT, N>& other);
 
   /**
-   * @brief Reset the box to empty.
+   * @brief Resets the box to empty.
    */
   void Reset();
 
   /**
-   * @brief Reset the box to a new min/max.
+   * @brief Resets the box to the new minimum and maximum points.
    *
-   * If the any components of min are greater than max an
-   * empty box will result.
+   * If any component of `min` is greater than `max`,
+   * an empty box is created.
    *
-   * @param[in] min - The box minimum point.
-   * @param[in] max - The box maximum point.
+   * @param[in] min The box minimum point.
+   * @param[in] max The box maximum point.
    */
   void Reset(const VectorType& min, const VectorType& max);
 
   /**
-   * @brief Test if the box is empty.
+   * @brief Tests whether the box is empty.
    *
-   * @return - True if the box is empty.
+   * @return True if the box is empty; false otherwise.
    */
   bool Empty() const;
 
   /**
-   * @brief Get the center of the box.
+   * @brief Gets the center point of the box.
    *
    * The center of an empty box is undefined.
    *
-   * @return - Box center point.
+   * @return The box center point.
    */
   VectorType Center() const;
 
   /**
-   * @brief Get the size of the box.
+   * @brief Gets the size of the box.
    *
    * The size of an empty box is zero.
    *
-   * @return - The size along each dimension.
-   * @note overflow might happen. E.g. max is INT_MAX and min is INT_MIN.
+   * @return The size of each dimension.
+   *
+   * @note An overflow might happen. For example,
+   * when `max` is `INT_MAX` and `min` is `INT_MIN`.
    */
   VectorType Size() const;
 
   /**
-   * @brief Get the box minimum corner point.
+   * @brief Gets the box minimum corner point.
    *
    * The minimum corner point of an empty box is undefined.
    *
-   * @return - Box minimum point.
+   * @return The minimum point of the box.
    */
   const VectorType& Minimum() const;
 
   /**
-   * @brief Get the box maximum corner point.
+   * @brief Gets the box maximum corner point.
    *
    * The maximum corner point of an empty box is undefined.
    *
-   * @return - Box maximum point.
+   * @return The maximum point of the box.
    */
   const VectorType& Maximum() const;
 
   /**
-   * @brief Get the corner points of the box.
+   * @brief Gets the corner points of the box.
    *
    * The corner points of an empty box are undefined.
    *
-   * @return - An array containing the box corner points.
+   * @return An array containing the box corner points.
    */
   CornerArrayType Corners() const;
   /**
-   * @brief Test if a box contains a point.
+   * @brief Tests whether the box contains a point.
    *
    * This test is inclusive.
+   * 
+   * @param point The point to be tested.
+   * @param epsilon The epsilon around the point.
    *
-   * @param[in] point - The point to be tested.
-   *
-   * @return - True if the point is contained by the box.
+   * @return True if the box contains the point; false otherwise.
    */
   bool Contains(const VectorType& point, T epsilon = T()) const;
 
   /**
-   * @brief Test if a box contains another box
+   * @brief Tests whether the box contains another box.
    *
-   * @param[in] box Aligned box
+   * @param[in] box The aligned box.
    *
-   * @return True if the box is contained by the box.
+   * @return True if the box contains another box; false otherwise.
    */
   bool Contains(const AlignedBox& box) const;
 
   /**
-   * @brief Test if a box intersects another box.
+   * @brief Tests whether the box intersects another box.
    *
-   * The test box is considered to be insecting if it is
-   * contained by the box.
+   * A test box is considered to be intersecting if 
+   * another box contains it.
    *
-   * @param[in] box - The box to be tested.
+   * @param[in] box The box to be tested.
    *
-   * @return - True if the boxes intersect.
+   * @return True if the boxes intersect; false otherwise.
    */
   bool Intersects(const AlignedBox& box) const;
 
   /**
-   * @brief Compute the nearest point on the box to a point.
+   * @brief Computes the nearest point on the box to a point.
    *
    * The nearest point to an empty box is undefined.
    *
-   * @param[in] point - Point from which to find the nearest point.
+   * @param[in] point The point from which to find the nearest point.
    *
-   * @return - The nearest point on the box to the specified point.
+   * @return The nearest point on the box to the specified point.
    */
   VectorType NearestPoint(const VectorType& point) const;
 
   /**
-   * @brief Compute the distance to the box.
+   * @brief Computes the distance from a point to the box.
    *
-   * A point on or inside the box will have a distance of zero.
+   * A point on or inside the box has a distance of zero.
    *
    * The distance to an empty box is undefined.
    *
-   * @param[in] point - Point from which to find the distance.
+   * @param[in] point The point from which to find the distance.
    *
-   * @return - The distance between the point and the box.
+   * @return The distance between the point and the box.
    */
   ValueType Distance(const VectorType& point) const;
 
   /**
-   * @brief Compute the squared distance to the box.
+   * @brief Computes the squared distance from a point to the box.
    *
-   * A point on or inside the box will have a squared distance of zero.
+   * A point on or inside the box has a squared distance of zero.
    *
    * The squared distance to an empty box is undefined.
    *
-   * @param[in] point - Point from which to find the squared distance.
+   * @param[in] point The point from which to find the squared distance.
    *
-   * @return - The squared distance between the point and the box.
+   * @return The squared distance between the point and the box.
    */
   ValueType Distance2(const VectorType& point) const;
 
   /**
-   * @brief Equality operator.
+   * @brief Checks whether two boxes are equal.
    *
-   * @param[in] box - Other box.
-   *
-   * @return - True if the boxes are equal.
+   * @param[in] box The other box.
    */
   bool operator==(const AlignedBox& box) const;
 
   /**
-   * @brief Inequality operator.
+   * @brief Checks whether two boxes are not equal.
    *
-   * @param[in] box - Other box.
-   *
-   * @return - True if the boxes are not equal.
+   * @param[in] box The other box.
    */
   bool operator!=(const AlignedBox& box) const;
 
@@ -288,8 +301,10 @@ class AlignedBox {
   template <typename U, unsigned int X>
   friend class AlignedBox;
 
-  VectorType minimum_; /*!< Box min point. */
-  VectorType maximum_; /*!< Box max point. */
+  /// The box minimum point.
+  VectorType minimum_;
+  /// The box maximum point.
+  VectorType maximum_;
 };
 
 #ifndef NDEBUG
@@ -300,8 +315,9 @@ bool CheckAddOperationOverflow(T a, T b) {
 }
 #endif
 
+/// The 3D double-precision box type.
 using AlignedBox3d =
-    AlignedBox<double, 3>; /*!< Three dimension double-precision box type. */
+    AlignedBox<double, 3>;
 
 template <typename T, unsigned int N>
 AlignedBox<T, N>::AlignedBox()
@@ -332,7 +348,7 @@ void AlignedBox<T, N>::Reset(const VectorType& min, const VectorType& max) {
 template <typename T, unsigned int N>
 typename AlignedBox<T, N>::VectorType AlignedBox<T, N>::Center() const {
 #ifndef NDEBUG
-  // Check for possible 64-bit integer overflow/underflow
+  // Checks for possible 64-bit integer overflows or underflows.
   if (std::numeric_limits<OverflowType>::is_integer &&
       sizeof(OverflowType) * 8 == 64) {
     for (unsigned dim = 0; dim < dimensions; ++dim) {
@@ -442,7 +458,7 @@ auto AlignedBox<T, N>::Distance2(const VectorType& point) const -> ValueType {
 template <typename T, unsigned int N>
 bool AlignedBox<T, N>::operator==(const AlignedBox& box) const {
   //
-  // If either box is empty than check which ones are
+  // If either box is empty, checks which ones are
   // empty.
   //
   bool thisEmpty = Empty();

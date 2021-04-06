@@ -54,16 +54,14 @@ CORE_API inline double Clamp(double const& x, double const& minVal,
   return min(max(x, minVal), maxVal);
 }
 
-//
-// Provide integeral type modulus computation.
-
+/// Provides the integral type modulus computation.
 CORE_API inline double Wrap(double value, double lower, double upper) {
-  // Return lower bound if the range is singular
+  // Returns the lower bound if the range is singular.
   if (EpsilonEqual(lower, upper)) {
     return lower;
   }
 
-  // Wrap around range or return exact unmodified value
+  // Wraps around the range or returns the exact unmodified value.
   if (value < lower) {
     return upper - std::fmod((lower - value), (upper - lower));
   }
