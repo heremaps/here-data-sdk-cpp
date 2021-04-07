@@ -26,17 +26,17 @@ namespace olp {
 namespace geo {
 
 /**
- * @brief Projection of geo coordinates onto a sphere using earth radius.
+ * @brief A projection of geographic coordinates onto a sphere using the Earth radius.
  *
- * The sphere projection defines Earth Centric Earth Fixed coordinate system
- * ECEF http://en.wikipedia.org/wiki/ECEF by projecting geo coordinates onto a
- * sphere with radius equal to earth radius - the unit of world coordinates is
- * meter.
+ * The spherical projection defines the [Earth-Centered, Earth-Fixed (ECEF) coordinate system
+ * (ECEF)](http://en.wikipedia.org/wiki/ECEF) by projecting geographic coordinates onto
+ * a sphere with a radius equal to the earth radius.
+ * The unit of world coordinates is meter.
  *
- * The geo coordinates map to ECEF axes as follows:
- * lat = 0, long = 0 -> X
- * lat = 0, long = 90 -> Y
- * lat = 90, long = 0 -> Z
+ * The geographic coordinates map to the ECEF axes as follows:
+ * - lat = 0, long = 0 -> X
+ * - lat = 0, long = 90 -> Y
+ * - lat = 90, long = 0 -> Z
  */
 class CORE_API SphereProjection final : public IProjection {
  public:

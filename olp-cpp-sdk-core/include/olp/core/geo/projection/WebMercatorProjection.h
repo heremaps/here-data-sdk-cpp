@@ -25,13 +25,14 @@
 namespace olp {
 namespace geo {
 /**
- * @brief Web mercator projection.
+ * @brief The Web Mercator projection.
  *
- * Latitude between -MaximumLatitude() and MaximumLatitude() map to Y world axis
- * with range: [0, EarthConstants::EquatorialCircumference()] Longitude between
- * -180 and 180 map to X world axis with range: [0,
- * EarthConstants::EquatorialCircumference()] Altitude maps to Z world axis and
- * is not scaled.
+ * The world and geographic coordinates are related in the following way:
+ * - Latitude between `-MaximumLatitude()` and `MaximumLatitude()` maps to
+ * the `Y` world axis of the following range: [0, `EarthConstants::EquatorialCircumference()`].
+ * - Longitude between -180 and 180 maps to the `X` world axis of the following range:
+ * [0, `EarthConstants::EquatorialCircumference()`].
+ * - Altitude maps to the `Z` world axis and is not scaled.
  */
 class CORE_API WebMercatorProjection final : public IProjection {
  public:
