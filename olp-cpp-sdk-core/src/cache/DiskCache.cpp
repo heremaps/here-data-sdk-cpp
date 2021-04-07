@@ -187,6 +187,8 @@ OpenResult DiskCache::Open(const std::string& data_path,
           DiskCacheEnv::Env(), versioned_data_path,
           settings.enforce_immediate_flush);
       open_options.env = environment_.get();
+    } else {
+      open_options.env = DiskCacheEnv::Env();
     }
   } else {
     environment_ = std::make_unique<ReadOnlyEnv>(DiskCacheEnv::Env());

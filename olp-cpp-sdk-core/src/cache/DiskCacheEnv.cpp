@@ -65,7 +65,7 @@ int MaxOpenFiles() {
 class Limiter {
  public:
   // Limit maximum number of resources to |max_acquires|.
-  Limiter(int max_acquires) : acquires_allowed_(max_acquires) {}
+  explicit Limiter(int max_acquires) : acquires_allowed_(max_acquires) {}
 
   Limiter(const Limiter&) = delete;
   Limiter operator=(const Limiter&) = delete;
