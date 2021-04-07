@@ -28,43 +28,44 @@ namespace olp {
 namespace geo {
 
 /**
- * Abstract tiling subdivision scheme.
+ * @brief An abstract tiling subdivision scheme.
  */
 class CORE_API ISubdivisionScheme {
  public:
   virtual ~ISubdivisionScheme() = default;
 
   /**
-   * Check whether two schemes are equal.
+   * @brief Checks whether two schemes are equal.
    *
-   * @param[in] other Other scheme.
+   * @param[in] other The other scheme.
    *
-   * @return True if equal, false otherwise.
+   * @return True if the schemes are equal; false otherwise.
    */
   virtual bool IsEqualTo(const ISubdivisionScheme& other) const = 0;
 
   /**
-   * Get unique scheme name.
+   * @brief Gets the unique scheme name.
    *
-   * @return Scheme name.
+   * @return The scheme name.
    */
   virtual const std::string& GetName() const = 0;
 
   /**
-   * Get number of subtiles a tile splits into at given level.
+   * @brief Gets the number of child tiles into which a tile splits
+   * at a given level.
    *
-   * @param[in] level Subdivision level.
+   * @param[in] level The subdivision level.
    *
-   * @return Horizontal and vertical number of subtiles (e.g. 2x2).
+   * @return The horizontal and vertical numbers of child tiles (for example, 2 × 2).
    */
   virtual math::Size2u GetSubdivisionAt(unsigned level) const = 0;
 
   /**
-   * Get size of a given level.
+   * @brief Gets the size of a given level.
    *
-   * @param[in] level Subdivision level.
+   * @param[in] level The subdivision level.
    *
-   * @return Horizontal and vertical number of tiles (e.g. 2^level x 2^level).
+   * @return The horizontal and vertical numbers of tiles (for example, 2^level × 2^level).
    */
   virtual math::Size2u GetLevelSize(unsigned level) const = 0;
 };

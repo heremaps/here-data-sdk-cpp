@@ -28,54 +28,58 @@
 namespace olp {
 namespace geo {
 
+/**
+ * @brief Used to get geographic coordinates from tile keys and vise versa.
+ */
 class CORE_API TileKeyUtils {
  public:
   /**
-   * @brief Get a TileKey containing specified geo point.
+   * @brief Gets the key of the tile that contains geographic coordinates.
    *
-   * @param[in] tiling_scheme Tiling scheme.
-   * @param[in] geo_point Geo coordinates to find container tile key for.
-   * @param[in] level Level of the tile key.
+   * @param[in] tiling_scheme The tiling scheme.
+   * @param[in] geo_point The geographic coordinates for which
+   * you want to find the container tile key.
+   * @param[in] level The level of the tile.
    *
-   * @return Tile key at specified level containing geoPoint. When tile can not
-   * be calculated invalid tile is returned.
+   * @return The key of the tile that contains the geographic coordinates.
+   * If the tile cannot be calculated, an invalid tile is returned.
    */
   static TileKey GeoCoordinatesToTileKey(const ITilingScheme& tiling_scheme,
                                          const GeoCoordinates& geo_point,
                                          const std::uint32_t level);
 
   /**
-   * @brief Get a tile keys overlapping with specified geo rectangle.
+   * @brief Gets the keys of the tile that overlaps with a geographic rectangle.
    *
-   * @param[in] tiling_scheme Tiling scheme.
-   * @param[in] geo_rectangle rectangle to find overlapping tile keys for.
-   * @param[in] level Level of the tile key.
+   * @param[in] tiling_scheme The tiling scheme.
+   * @param[in] geo_rectangle The rectangle for which to find overlapping tile keys.
+   * @param[in] level The level of the tile key.
    *
-   * @return Tile keys at specified level overlapping with provided geo
-   * rectangle. When tile can not be calculated empty container is returned.
+   * @return The keys of the tile at the specified level overlapping with the provided
+   * geographic rectangle. If the tile cannot be calculated, an empty container is returned.
    */
   static std::vector<TileKey> GeoRectangleToTileKeys(
       const ITilingScheme& tiling_scheme, const GeoRectangle& geo_rectangle,
       const std::uint32_t level);
 
   /**
-   * @brief Returns the tile key relative to a given parent.
+   * @brief Gets the tile key that is a relative of a given parent.
    *
-   * @param key The tile key to convert.
-   * @param parent_level The parent level. Parent level is expected to be less
-   * or equal to key.Level().
+   * @param key The tile key to convert to.
+   * @param parent_level The level of the parent tile. It is expected to be less than
+   * or equal to `key.Level()`.
    *
-   * @return Tile key relative to the parent level.
+   * @return The tile key a relative of the parent level.
    */
   static TileKey GetRelativeSubTileKey(const geo::TileKey& key,
                                        std::uint32_t parent_level);
 
   /**
-   * @brief Merges the given parent tile key and the sub tile key to an absolute
+   * @brief Merges the given parent tile key and the child tile key into an absolute
    * tile key.
    *
    * @param parent The parent tile key.
-   * @param sub_tile The sub tile key.
+   * @param sub_tile The child tile key.
    *
    * @return The absolute tile key.
    */
@@ -84,12 +88,12 @@ class CORE_API TileKeyUtils {
 };
 
 /**
- * @brief Calculate tiling-space box of a tile.
+ * @brief Calculates the space box of a tile.
  *
- * @param[in] tiling_scheme The tiling scheme used.
- * @param[in] tile_key Tile key.
+ * @param[in] tiling_scheme The tiling scheme.
+ * @param[in] tile_key The tile key.
  *
- * @return Tile box
+ * @return The tile box.
  */
 math::AlignedBox3d CORE_API CalculateTileBox(const ITilingScheme& tiling_scheme,
                                              const TileKey& tile_key);

@@ -27,9 +27,9 @@ namespace olp {
 namespace geo {
 
 /**
- * @brief Quadtree subdivision scheme.
+ * @brief A quadtree subdivision scheme.
  *
- * Subdivides tiles on all levels into four equal-sized subtiles.
+ * Subdivides tiles at all levels into four equal-sized sub-tiles.
  */
 class CORE_API QuadTreeSubdivisionScheme final : public ISubdivisionScheme {
  public:

@@ -29,22 +29,58 @@
 namespace olp {
 namespace geo {
 
+/**
+ * @brief A container of child tiles.
+ */
 class CORE_API SubTiles {
   friend class Iterator;
 
  public:
+  /// The tile key iterator.
   class Iterator : public std::iterator<std::forward_iterator_tag, TileKey> {
     friend class SubTiles;
 
    public:
+    /// An alias for the tile key.
     using ValueType = TileKey;
 
+    /**
+     * @brief Gets a reference to the tile key.
+     *
+     * @return The reference to the tile key.
+     */
     ValueType operator*() const;
 
+    /**
+     * @brief Iterates to the next tile.
+     *
+     * @return A reference to this.
+     */
     Iterator& operator++();
+
+    /**
+     * @brief Iterates the specified number of times to the next tile.
+     *
+     * @return A new iterator.
+     */
     Iterator operator++(int);
 
+    /**
+     * @brief Checks whether the iterators are equal.
+     *
+     * @param other The other iterator.
+     *
+     * @return True if the iterators are equal; false otherwise.
+     */
     bool operator==(Iterator& other) const;
+
+    /**
+     * @brief Checks whether the iterators are not equal.
+     *
+     * @param other The other iterator.
+     *
+     * @return True if the iterators are not equal; false otherwise.
+     */
     bool operator!=(Iterator& other) const;
 
    private:
@@ -54,20 +90,39 @@ class CORE_API SubTiles {
     std::uint32_t index_{0};
   };
 
+  /// An alias for the iterator.
   using ConstIterator = Iterator;
 
+  /**
+   * @brief Creates a `SubTiles` instance.
+   *
+   * @param tile_key The tile key.
+   * @param level The tile level.
+   * @param mask The mask that indicates how many tiles should be included.
+   */
   SubTiles(const TileKey& tile_key, std::uint32_t level = 1,
            std::uint16_t mask = ~0);
 
+  /**
+   * @brief Gets the size of the child tile.
+   *
+   * @return The size of the child tile.
+   */
   size_t Size() const;
 
+  /// Returns an iterator to the beginning.
   Iterator begin();
+  /// Returns an iterator to the end.
   Iterator end();
 
+  /// Returns a constant iterator to the beginning.
   ConstIterator begin() const;
+  /// Returns a constant iterator to the end.
   ConstIterator end() const;
 
+  /// Returns a constant iterator to the beginning of the container.
   ConstIterator cbegin() const;
+  /// Returns a constant iterator to the end of the container.
   ConstIterator cend() const;
 
  private:

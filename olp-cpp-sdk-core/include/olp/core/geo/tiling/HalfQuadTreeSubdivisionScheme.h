@@ -27,10 +27,10 @@ namespace olp {
 namespace geo {
 
 /**
- * @brief Half-quadtree subdivision scheme.
+ * @brief A subdivision scheme used to represent half quadtrees.
  *
- * Subdivides 0-th level tile into left and right parts; on other levels same as
- * quadtree.
+ * Subdivides tiles of level 0 into left and right parts.
+ * At other levels, it subdivides tiles into four equal-sized child tiles.
  */
 class CORE_API HalfQuadTreeSubdivisionScheme final : public ISubdivisionScheme {
  public:
