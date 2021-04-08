@@ -384,34 +384,46 @@ DiskCache::OperationOutcome DiskCache::ApplyBatch(
 }
 
 bool DiskCache::RemoveKeysWithPrefix(const std::string& prefix,
-                                     uint64_t& removed_data_size) {
+                                     uint64_t& removed_data_size,
+                                     const RemoveFilterFunc& filter) {
   uint64_t data_size = 0u;
-  if (!database_) {
-    removed_data_size = 0u;
-    OLP_SDK_LOG_ERROR(kLogTag,
-                      "RemoveKeysWithPrefix: Database is uninitialized");
+  removed_data_size = 0u;
+
+  // As we remove data probably it is not wise to flood the leveldb memory cache
+  leveldb::ReadOptions opts;
+  opts.verify_checksums = check_crc_;
+  opts.fill_cache = false;
+  auto iterator = NewIterator(opts);
+  if (!iterator) {
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "RemoveKeysWithPrefix: Database is uninitialized");
     return false;
   }
 
   auto batch = std::make_unique<leveldb::WriteBatch>();
+  auto prefix_slice = leveldb::Slice(prefix);
+  const bool prefix_empty = prefix_slice.empty();
 
-  leveldb::ReadOptions opts;
-  opts.verify_checksums = check_crc_;
-  opts.fill_cache = true;
-  auto iterator = NewIterator(opts);
-
-  if (prefix.empty()) {
-    for (iterator->SeekToFirst(); iterator->Valid(); iterator->Next()) {
-      batch->Delete(iterator->key());
-      data_size += iterator->value().size() + iterator->key().size();
-    }
+  if (prefix_empty) {
+    iterator->SeekToFirst();
   } else {
-    for (iterator->Seek(prefix);
-         iterator->Valid() && iterator->key().starts_with(prefix);
-         iterator->Next()) {
-      batch->Delete(iterator->key());
-      data_size += iterator->value().size() + iterator->key().size();
+    iterator->Seek(prefix_slice);
+  }
+
+  auto condition = [&](const leveldb::Iterator& it) {
+    return it.Valid() && (prefix_empty || it.key().starts_with(prefix_slice));
+  };
+
+  for (; condition(*iterator); iterator->Next()) {
+    auto key = iterator->key();
+
+    // Do not delete if protected
+    if (filter && filter(key.ToString())) {
+      continue;
     }
+
+    batch->Delete(key);
+    data_size += iterator->value().size() + key.size();
   }
 
   auto result = ApplyBatch(std::move(batch));

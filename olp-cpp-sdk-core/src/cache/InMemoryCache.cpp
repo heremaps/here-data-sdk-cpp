@@ -93,10 +93,18 @@ bool InMemoryCache::Remove(const std::string& key) {
   return item_tuples_.Erase(key);
 }
 
-void InMemoryCache::RemoveKeysWithPrefix(const std::string& key_prefix) {
+void InMemoryCache::RemoveKeysWithPrefix(const std::string& key_prefix,
+                                         const RemoveFilterFunc& filter) {
   std::lock_guard<std::mutex> lock{mutex_};
+
   for (auto it = item_tuples_.begin(); it != item_tuples_.end();) {
     if (it->key().substr(0, key_prefix.length()) == key_prefix) {
+      // Check if this key is not protected, and if it is do not remove
+      if (filter && filter(it->key())) {
+        ++it;
+        continue;
+      }
+
       // we allow concurrent modifications.
       it = item_tuples_.Erase(it);
     } else {

@@ -47,6 +47,9 @@ class InMemoryCache {
   using TimeProvider = std::function<time_t()>;
   using ModelCacheCostFunc = std::function<std::size_t(const ItemTuple&)>;
 
+  /// Will be used to filter out keys to be removed in case they are protected.
+  using RemoveFilterFunc = std::function<bool(const std::string&)>;
+
   /// Default cache cost based on size.
   struct DefaultCacheCost {
     std::size_t operator()(const ItemTuple& value) const {
@@ -75,7 +78,8 @@ class InMemoryCache {
   void Clear();
 
   bool Remove(const std::string& key);
-  void RemoveKeysWithPrefix(const std::string& key_prefix);
+  void RemoveKeysWithPrefix(const std::string& key_prefix,
+                            const RemoveFilterFunc& filter = nullptr);
   bool Contains(const std::string& key) const;
 
  protected:

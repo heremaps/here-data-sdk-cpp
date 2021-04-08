@@ -346,15 +346,25 @@ KeyValueCache::ValueTypePtr DefaultCacheImpl::Get(const std::string& key) {
 
     return value;
   }
-
   return nullptr;
 }
 
 bool DefaultCacheImpl::Remove(const std::string& key) {
   std::lock_guard<std::mutex> lock(cache_lock_);
+
   if (!is_open_) {
     return false;
   }
+
+  // In case the key is protected do not remove it
+  if (protected_keys_.IsProtected(key)) {
+    OLP_SDK_LOG_INFO_F(kLogTag,
+                       "Remove() called on a protected key, ignoring, key='%s'",
+                       key.c_str());
+
+    return false;
+  }
+
   // protected data could be removed by user
   if (memory_cache_) {
     memory_cache_->Remove(key);
@@ -374,19 +384,27 @@ bool DefaultCacheImpl::Remove(const std::string& key) {
 
 bool DefaultCacheImpl::RemoveKeysWithPrefix(const std::string& key) {
   std::lock_guard<std::mutex> lock(cache_lock_);
+
   if (!is_open_) {
     return false;
   }
 
+  auto filter = [&](const std::string& cache_key) {
+    return protected_keys_.IsProtected(cache_key);
+  };
+
   if (memory_cache_) {
-    memory_cache_->RemoveKeysWithPrefix(key);
+    memory_cache_->RemoveKeysWithPrefix(key, filter);
   }
 
+  // No need to check here for protected key as these are not added to LRU from
+  // the start
   RemoveKeysWithPrefixLru(key);
 
   if (mutable_cache_) {
     uint64_t removed_data_size = 0;
-    auto result = mutable_cache_->RemoveKeysWithPrefix(key, removed_data_size);
+    auto result =
+        mutable_cache_->RemoveKeysWithPrefix(key, removed_data_size, filter);
     mutable_cache_data_size_ -= removed_data_size;
     return result;
   }
@@ -1037,5 +1055,6 @@ uint64_t DefaultCacheImpl::Size(uint64_t new_size) {
   mutable_cache_->Compact();
   return evicted;
 }
+
 }  // namespace cache
 }  // namespace olp
