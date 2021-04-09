@@ -38,6 +38,7 @@
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/ApiError.h>
+#include <olp/core/client/ApiNoResult.h>
 #include <olp/core/client/ApiResponse.h>
 
 namespace leveldb {
@@ -91,10 +92,13 @@ class DiskCache {
   static constexpr uint64_t kSizeMax = std::numeric_limits<uint64_t>::max();
 
   /// No error type
-  struct NoError {};
+  using NoError = client::ApiNoResult;
 
   /// Operation result type
   using OperationOutcome = client::ApiResponse<NoError, client::ApiError>;
+
+  /// Will be used to filter out keys to be removed in case they are protected.
+  using RemoveFilterFunc = std::function<bool(const std::string&)>;
 
   /// Logger that forwards leveldb log messages to our logging framework.
   class LevelDBLogger : public leveldb::Logger {
@@ -140,7 +144,8 @@ class DiskCache {
 
   /// Empty prefix deleted everything from DB. Returns size of removed data.
   bool RemoveKeysWithPrefix(const std::string& prefix,
-                            uint64_t& removed_data_size);
+                            uint64_t& removed_data_size,
+                            const RemoveFilterFunc& filter = nullptr);
 
   /// Check if cache contains data with the key.
   bool Contains(const std::string& key);

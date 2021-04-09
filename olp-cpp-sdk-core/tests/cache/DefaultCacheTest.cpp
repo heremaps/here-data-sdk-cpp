@@ -26,10 +26,15 @@
 
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/cache/DefaultCache.h>
+#include <olp/core/porting/make_unique.h>
 #include <olp/core/utils/Dir.h>
 
 namespace {
 using CacheType = olp::cache::DefaultCache::CacheType;
+using KeyValueCache = olp::cache::KeyValueCache;
+using OptionalString = boost::optional<std::string>;
+auto kDefaultExpiry = std::numeric_limits<time_t>::max();
+const auto kTempDirMutable = olp::utils::Dir::TempDirectory() + "/unittest";
 
 void BasicCacheTestWithSettings(const olp::cache::CacheSettings& settings) {
   {
@@ -261,42 +266,6 @@ TEST(DefaultCacheTest, MemSizeTest) {
         cache.Get(key1, [](const std::string& data) { return data; });
     ASSERT_TRUE(key1DataRead.empty());
   }
-}
-
-TEST(DefaultCacheTest, RemoveWithPrefix) {
-  olp::cache::DefaultCache cache;
-  ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
-  std::string dataString{"this is the data"};
-  for (int i = 0; i < 11; i++) {
-    cache.Put("key" + std::to_string(i), dataString,
-              [=]() { return dataString; },
-              (std::numeric_limits<time_t>::max)());
-  }
-  auto key10DataRead =
-      cache.Get("key10", [](const std::string& data) { return data; });
-  ASSERT_FALSE(key10DataRead.empty());
-  cache.RemoveKeysWithPrefix("key1");  // removes "key1", "key10"
-  key10DataRead =
-      cache.Get("key10", [](const std::string& data) { return data; });
-  ASSERT_TRUE(key10DataRead.empty());
-  auto key4DataRead =
-      cache.Get("key4", [](const std::string& data) { return data; });
-  ASSERT_FALSE(key4DataRead.empty());
-  cache.RemoveKeysWithPrefix("key4");  // removes "key4"
-  key4DataRead =
-      cache.Get("key4", [](const std::string& data) { return data; });
-  ASSERT_TRUE(key4DataRead.empty());
-  auto key2DataRead =
-      cache.Get("key2", [](const std::string& data) { return data; });
-  ASSERT_FALSE(key2DataRead.empty());
-  cache.RemoveKeysWithPrefix("doesnotexist");  // removes nothing
-  key2DataRead =
-      cache.Get("key2", [](const std::string& data) { return data; });
-  ASSERT_FALSE(key2DataRead.empty());
-  cache.RemoveKeysWithPrefix("key");  // removes all
-  key2DataRead =
-      cache.Get("key2", [](const std::string& data) { return data; });
-  ASSERT_TRUE(key2DataRead.empty());
 }
 
 TEST(DefaultCacheTest, BasicDiskTest) {
@@ -716,5 +685,276 @@ TEST(DefaultCacheTest, OpenTypeCache) {
     ASSERT_FALSE(cache.Contains(key2));
   }
 }
+
+struct TestParameters {
+  OptionalString disk_path_mutable = kTempDirMutable;
+  OptionalString disk_path_protected = boost::none;
+  size_t max_memory_cache_size = 1024u * 1024u;
+};
+
+class DefaultCacheParamTest : public ::testing::TestWithParam<TestParameters> {
+ public:
+  void SetUp() override {
+    const auto& parameters = GetParam();
+    olp::cache::CacheSettings settings;
+    settings.disk_path_mutable = parameters.disk_path_mutable;
+    settings.disk_path_protected = parameters.disk_path_protected;
+    settings.max_memory_cache_size = parameters.max_memory_cache_size;
+
+    // If folders are set, clear them first to make sure no dirty stuff is left
+    // behind
+    if (parameters.disk_path_mutable) {
+      olp::utils::Dir::Remove(*parameters.disk_path_mutable);
+    }
+
+    if (parameters.disk_path_protected) {
+      olp::utils::Dir::Remove(*parameters.disk_path_protected);
+    }
+
+    cache_ = std::make_unique<olp::cache::DefaultCache>(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache_->Open());
+  }
+
+  void TearDown() override {
+    const auto& parameters = GetParam();
+
+    // Delete folders, before we leave.
+    if (parameters.disk_path_mutable) {
+      olp::utils::Dir::Remove(*parameters.disk_path_mutable);
+    }
+
+    if (parameters.disk_path_protected) {
+      olp::utils::Dir::Remove(*parameters.disk_path_protected);
+    }
+  }
+
+  std::unique_ptr<olp::cache::DefaultCache> cache_;
+};
+
+TEST_P(DefaultCacheParamTest, Remove) {
+  const auto& params = GetParam();
+
+  auto fill_data = [&] {
+    std::string cache_data{"this is the data"};
+    for (int i = 0; i < 11; ++i) {
+      cache_->Put("key" + std::to_string(i), cache_data,
+                  [&]() { return cache_data; }, kDefaultExpiry);
+    }
+  };
+
+  auto decoder = [](const std::string& data) { return data; };
+
+  {
+    SCOPED_TRACE("No protection");
+
+    fill_data();
+
+    // Removes "key1", "key10"
+    ASSERT_FALSE(cache_->Get("key1", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key10", decoder).empty());
+
+    cache_->Remove("key1");
+    ASSERT_FALSE(cache_->Get("key10", decoder).empty());
+    ASSERT_TRUE(cache_->Get("key1", decoder).empty());
+
+    cache_->Remove("key10");
+    ASSERT_TRUE(cache_->Get("key10", decoder).empty());
+
+    // Removes "key4"
+    ASSERT_FALSE(cache_->Get("key4", decoder).empty());
+    cache_->Remove("key4");
+    ASSERT_TRUE(cache_->Get("key4", decoder).empty());
+
+    // Remove nothing
+    ASSERT_FALSE(cache_->Get("key2", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key3", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key5", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key7", decoder).empty());
+    cache_->Remove("doesnotexist");
+    ASSERT_FALSE(cache_->Get("key2", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key3", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key5", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key7", decoder).empty());
+
+    // Remove all
+    ASSERT_TRUE(cache_->Clear());
+    ASSERT_TRUE(cache_->Get("key2", decoder).empty());
+    ASSERT_TRUE(cache_->Get("key3", decoder).empty());
+    ASSERT_TRUE(cache_->Get("key5", decoder).empty());
+    ASSERT_TRUE(cache_->Get("key7", decoder).empty());
+  }
+
+  {
+    SCOPED_TRACE("With protection");
+
+    // If there is no mutable cache the protection is not working
+    if (!params.disk_path_mutable) {
+      return;
+    }
+
+    fill_data();
+
+    // Protect key2, key3 and key1 (covering also key10)
+    ASSERT_TRUE(cache_->Protect({"key2", "key3", "key1"}));
+
+    // Try remove "key1" && "key10"
+    ASSERT_FALSE(cache_->Get("key1", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key10", decoder).empty());
+
+    cache_->Remove("key1");
+    ASSERT_FALSE(cache_->Get("key10", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key1", decoder).empty());
+
+    cache_->Remove("key10");
+    ASSERT_FALSE(cache_->Get("key10", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key1", decoder).empty());
+
+    // Removes "key4"
+    ASSERT_FALSE(cache_->Get("key4", decoder).empty());
+    cache_->Remove("key4");
+    ASSERT_TRUE(cache_->Get("key4", decoder).empty());
+
+    // Try remove "key2" && "key3"
+    ASSERT_FALSE(cache_->Get("key2", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key3", decoder).empty());
+
+    cache_->Remove("key2");
+    cache_->Remove("key3");
+
+    ASSERT_FALSE(cache_->Get("key2", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key3", decoder).empty());
+
+    // Remove nothing
+    ASSERT_FALSE(cache_->Get("key2", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key3", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key5", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key7", decoder).empty());
+    cache_->Remove("doesnotexist");
+    ASSERT_FALSE(cache_->Get("key2", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key3", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key5", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key7", decoder).empty());
+
+    // Remove all
+    ASSERT_TRUE(cache_->Clear());
+    ASSERT_TRUE(cache_->Get("key2", decoder).empty());
+    ASSERT_TRUE(cache_->Get("key3", decoder).empty());
+    ASSERT_TRUE(cache_->Get("key5", decoder).empty());
+    ASSERT_TRUE(cache_->Get("key7", decoder).empty());
+  }
+}
+
+TEST_P(DefaultCacheParamTest, RemoveWithPrefix) {
+  const auto& params = GetParam();
+
+  auto fill_data = [&] {
+    std::string cache_data{"this is the data"};
+    for (int i = 0; i < 11; ++i) {
+      cache_->Put("key" + std::to_string(i), cache_data,
+                  [&]() { return cache_data; }, kDefaultExpiry);
+    }
+  };
+
+  auto decoder = [](const std::string& data) { return data; };
+
+  {
+    SCOPED_TRACE("No protection");
+
+    fill_data();
+
+    // Removes "key1", "key10"
+    ASSERT_FALSE(cache_->Get("key10", decoder).empty());
+    cache_->RemoveKeysWithPrefix("key1");
+    ASSERT_TRUE(cache_->Get("key1", decoder).empty());
+    ASSERT_TRUE(cache_->Get("key10", decoder).empty());
+
+    // Removes "key4"
+    ASSERT_FALSE(cache_->Get("key4", decoder).empty());
+    cache_->RemoveKeysWithPrefix("key4");
+    ASSERT_TRUE(cache_->Get("key4", decoder).empty());
+
+    // Remove nothing
+    ASSERT_FALSE(cache_->Get("key2", decoder).empty());
+    cache_->RemoveKeysWithPrefix("doesnotexist");
+    ASSERT_FALSE(cache_->Get("key2", decoder).empty());
+
+    // Removes all
+    cache_->RemoveKeysWithPrefix("key");
+    ASSERT_TRUE(cache_->Get("key2", decoder).empty());
+    ASSERT_TRUE(cache_->Get("key3", decoder).empty());
+    ASSERT_TRUE(cache_->Get("key5", decoder).empty());
+    ASSERT_TRUE(cache_->Get("key7", decoder).empty());
+  }
+
+  {
+    SCOPED_TRACE("With protection");
+
+    // If there is no mutable cache the protection is not working
+    if (!params.disk_path_mutable) {
+      return;
+    }
+
+    fill_data();
+
+    // Protect key2, key3 and key1 (covering also key10)
+    ASSERT_TRUE(cache_->Protect({"key2", "key3", "key1"}));
+
+    // Try remove key1 && key10
+    ASSERT_FALSE(cache_->Get("key1", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key10", decoder).empty());
+    cache_->RemoveKeysWithPrefix("key1");
+    ASSERT_FALSE(cache_->Get("key1", decoder).empty());
+    ASSERT_FALSE(cache_->Get("key10", decoder).empty());
+
+    // Removes "key4"
+    ASSERT_FALSE(cache_->Get("key4", decoder).empty());
+    cache_->RemoveKeysWithPrefix("key4");
+    ASSERT_TRUE(cache_->Get("key4", decoder).empty());
+
+    // Try remove key2
+    ASSERT_FALSE(cache_->Get("key2", decoder).empty());
+    cache_->RemoveKeysWithPrefix("key2");
+    ASSERT_FALSE(cache_->Get("key2", decoder).empty());
+
+    ASSERT_FALSE(cache_->Get("key3", decoder).empty());
+  }
+}
+
+std::string TestName(const testing::TestParamInfo<TestParameters>& info) {
+  std::stringstream ss;
+  ss << (info.param.disk_path_mutable ? "M" : "")
+     << (info.param.disk_path_protected ? "P" : "")
+     << (info.param.max_memory_cache_size > 0u ? "I" : "");
+
+  return ss.str();
+}
+
+std::vector<TestParameters> Configuration() {
+  std::vector<TestParameters> config;
+  TestParameters params;
+
+  // Mutable, no protected, no in-memory
+  params.disk_path_mutable = kTempDirMutable;
+  params.disk_path_protected = boost::none;
+  params.max_memory_cache_size = 0u;
+  config.emplace_back(params);
+
+  // Mutable, no protected, in-memory
+  params.disk_path_mutable = kTempDirMutable;
+  params.disk_path_protected = boost::none;
+  params.max_memory_cache_size = 1024u * 1024u;
+  config.emplace_back(params);
+
+  // No mutable, no protected, in-memory
+  params.disk_path_mutable = boost::none;
+  params.disk_path_protected = boost::none;
+  params.max_memory_cache_size = 1024u * 1024u;
+  config.emplace_back(params);
+
+  return config;
+}
+
+INSTANTIATE_TEST_SUITE_P(DefaultCacheTest, DefaultCacheParamTest,
+                         ::testing::ValuesIn(Configuration()), TestName);
 
 }  // namespace
