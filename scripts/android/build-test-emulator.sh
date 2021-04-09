@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 #
-# Copyright (C) 2020 HERE Europe B.V.
+# Copyright (C) 2020-2021 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ mkdir -p build && cd build
 echo ""
 echo ""
 echo "*************** $VARIANT Build SDK for C++ ********** Start ***************"
-CMAKE_COMMAND="cmake .. -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake \
+CMAKE_COMMAND="cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake \
 -DANDROID_PLATFORM=android-$ANDROID_API -DANDROID_STL=c++_static -DANDROID_ABI=$ANDROID_ABI"
 BUILD_COMMAND="cmake --build . -- -j4"
 

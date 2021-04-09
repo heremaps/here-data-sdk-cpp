@@ -36,6 +36,7 @@ ls -la $ANDROID_NDK_HOME/platforms
 
 mkdir -p build && cd build
 cmake .. -DCMAKE_TOOLCHAIN_FILE="$ANDROID_HOME/ndk/21.3.6528147/build/cmake/android.toolchain.cmake" \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DANDROID_PLATFORM=android-28 \
   -DANDROID_ABI=arm64-v8a \
   -DANDROID_NDK="$ANDROID_HOME/ndk/21.3.6528147" \
