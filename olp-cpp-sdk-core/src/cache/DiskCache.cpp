@@ -151,7 +151,7 @@ bool DiskCache::Clear() {
 void DiskCache::Compact() {
   // Lets make sure that the parallel thread which is running the compact is not
   // doing it already. We don't need two at the same time.
-  if (!compacting_.exchange(true)) {
+  if (database_ && !compacting_.exchange(true)) {
     OLP_SDK_LOG_INFO(kLogTag, "Compact: Compacting database started");
     database_->CompactRange(nullptr, nullptr);
     compacting_ = false;
