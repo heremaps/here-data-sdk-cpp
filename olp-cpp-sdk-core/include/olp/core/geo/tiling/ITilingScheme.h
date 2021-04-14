@@ -24,10 +24,24 @@
 namespace olp {
 namespace geo {
 
+/**
+ * @brief Represents how data is tiled.
+ */
 class CORE_API ITilingScheme {
  public:
   virtual ~ITilingScheme() = default;
+  /**
+   * @brief Gets the subdivision scheme.
+   *
+   * @return The subdivision scheme.
+   */
   virtual const ISubdivisionScheme& GetSubdivisionScheme() const = 0;
+
+  /**
+   * @brief Gets the identity projection.
+   *
+   * @return The identity projection.
+   */
   virtual const IProjection& GetProjection() const = 0;
 };
 

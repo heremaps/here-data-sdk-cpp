@@ -24,10 +24,18 @@
 namespace olp {
 namespace geo {
 
+/**
+ * @brief Represents how data is tiled.
+ *
+ * @tparam TSubdivisionScheme The subdivision scheme.
+ * @tparam TProjection The identity projection.
+ */
 template <class TSubdivisionScheme, class TProjection>
 class TilingScheme : public ITilingScheme {
  public:
+  /// An alias for the subdivision scheme used by this tiling scheme.
   using SubdivisionScheme = TSubdivisionScheme;
+  /// An alias for the projection used by this tiling scheme.
   using Projection = TProjection;
 
   TilingScheme() = default;

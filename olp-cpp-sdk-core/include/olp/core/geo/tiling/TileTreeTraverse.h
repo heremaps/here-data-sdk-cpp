@@ -23,13 +23,30 @@
 namespace olp {
 namespace geo {
 
+/**
+ * @brief A container of subtiles for a tile.
+ */
 class CORE_API TileTreeTraverse {
  public:
+  /// An alias for the tile key.
   using Node = TileKey;
+  /// An alias for the child tiles.
   using NodeContainer = SubTiles;
 
+  /**
+   * @brief Creates a `TileTreeTraverse` instance.
+   *
+   * @param sub_division_scheme The subdivision scheme.
+   */
   explicit TileTreeTraverse(const ISubdivisionScheme& sub_division_scheme);
 
+  /**
+   * @brief Creates a container of subtiles for a tile.
+   *
+   * @param node The tile key.
+   *
+   * @return The container of subtiles.
+   */
   NodeContainer SubNodes(const Node& node) const;
 
  private:

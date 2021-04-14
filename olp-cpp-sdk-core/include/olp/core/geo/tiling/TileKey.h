@@ -30,35 +30,34 @@ namespace olp {
 namespace geo {
 
 /**
- * @brief The TileKey instances used to address a tile in a quad tree.
+ * @brief Addresses a tile in a quadtree.
  *
- * A tile key is defined by a row, a column, and a level.
- * The tree has a root at level 0, with one single tile. On every level,
- * each tile is divided into four children (ergo the name quad tree).
+ * Each tile key is defined by a row, a column, and a level.
+ * The tree has a root at level 0 with one single tile. At every level,
+ * each tile is divided into four child tiles (hence the name quadtree).
  *
- * Within each level(), any particular tile is addressed with Row() and
- * Column().
+ * Within a level, each tile has its unique row and column numbers.
  * The number of rows and columns in each level is 2 to the power of the level.
- * This means: On level 0, only one tile exists, ColumnCount() and RowCount()
- * are both 1. On level 1, 4 tiles exist, in 2 rows and 2 columns. On level 2 we
- * have 16 tiles,in 4 rows and 4 columns. And so on.
+ * It means that on level 0, there is only one tile in
+ * one row and one column. At level 1, there are four tiles
+ * in two rows and two columns. At level 2, there are
+ * 16 tiles in four rows and four columns. And so on.
  *
- * A tile key is usually created FromRowColumnLevel().
-
- * Utility functions like Parent(), ChangedLevelBy(), and ChangedLevelTo() allow
- * for easy vertical navigation of the tree. Within a level you can navigate
- * with HasNextRow(),NextRow(), HasNextColumn(), and NextColumn(). The number of
- * available rows and columns in the tile's level is given with RowCount() and
- * ColumnCount().
+ * To create a tile key, use `FromRowColumnLevel()`.
  *
- * Tile keys can be created from and converted into various alternative formats:
+ * For vertical navigation within the tree, use the following functions:
+ * `Parent()`, `ChangedLevelBy()`, and `ChangedLevelTo()`. To navigate within a level, use
+ * the `HasNextRow()`, `NextRow()`, `HasNextColumn()`, and `NextColumn()` functions.
+ * To get the number of available rows and columns on the tile level, use `RowCount()` and
+ * `ColumnCount()`.
  *
- *  - ToQuadKey() / FromQuadKey() - string representation 4-based
+ * You can also create tile keys from and converted them into various alternative formats:
  *
- *  - ToHereTile() / FromHereTile() - string representation 10-based
+ *  - `ToQuadKey()` / `FromQuadKey()` – 4-based string representation.
  *
- *  - ToQuadKey64() / FromQuadKey64() - 64-bit morton code representation.
+ *  - `ToHereTile()` / `FromHereTile()` – 10-based string representation.
  *
+ *  - `ToQuadKey64()` / `FromQuadKey64()` – 64-bit Morton code representation.
  */
 class CORE_API TileKey {
  public:
@@ -66,39 +65,32 @@ class CORE_API TileKey {
   enum { MaxLevel = LevelCount - 1 };
 
   /**
-   * @brief Cardinal direction, used to find child node by such direction or for
-   * the relationship to the parent, corresponds directly to the index in the
-   * function GetChild.
+   * @brief The main direction used to find a child node or 
+   * the relationship to the parent.
+   *
+   * Corresponds directly to the index in the `GetChild` function.
    */
   enum class TileKeyQuadrant : uint8_t { SW, SE, NW, NE, Invalid };
 
-  /**
-   * @brief Creates an invalid tile key.
-   */
+  /// Creates an invalid tile key.
   constexpr TileKey() : row_(0), column_(0), level_(LevelCount) {}
 
-  /**
-   * @brief Default copy constructor.
-   */
+  /// The default copy constructor.
   constexpr TileKey(const TileKey&) = default;
 
-  /**
-   * @brief Default copy operator.
-   */
+  /// The default copy operator.
   TileKey& operator=(const TileKey&) = default;
 
-  /**
-   * @brief Check whether the tile key is valid.
-   */
+  /// Checks whether the tile key is valid.
   constexpr bool IsValid() const {
     return level_ < LevelCount && row_ < (1u << level_) &&
            column_ < (1u << level_);
   }
 
   /**
-   * @brief Equality operator.
+   * @brief Checks whether the tile keys are equal.
    *
-   * @param other TileKey to be compared to this.
+   * @param other The other tile key.
    */
   constexpr bool operator==(const TileKey& other) const {
     return level_ == other.level_ && row_ == other.row_ &&
@@ -106,20 +98,20 @@ class CORE_API TileKey {
   }
 
   /**
-   * @brief Inequality operator.
+   * @brief Checks whether the tile keys are not equal.
    *
-   * \param other TileKey to be compared to this.
+   * @param other The other tile key.
    */
   constexpr bool operator!=(const TileKey& other) const {
     return !operator==(other);
   }
 
   /**
-   * @brief Implements an order on tile keys, so they can be used in maps:
-   * first level, then row, then column.
+   * @brief Implements the following order on tile keys so they
+   * can be used in maps: first level, row, and then column.
    *
-   * If you need more locality, you should use the 64bit morton encoding
-   * instead (ToQuadKey64()).
+   * If you need more locality, use the 64-bit Morton encoding
+   * instead (`ToQuadKey64()`).
    */
   constexpr bool operator<(const TileKey& other) const {
     return level_ != other.level_
@@ -129,149 +121,166 @@ class CORE_API TileKey {
   }
 
   /**
-   * @brief Converts the tile key into a string for using in REST API calls
+   * @brief Creates a quad string from a tile key to later use it in REST API calls.
    *
-   * If the tile is the root tile, the quad key is '-'.
-   * Otherwise the string is a number to the base of 4, but without the leading
-   * 1, with the following properties:
-   *  1. the number of digits equals the level
-   *  2. removing the last digit gives the parent tile's quad key string, i.e.
-   *     appending 0,1,2,3 to a quad key string gives the tile's children
+   * If the tile is the root tile, the quadkey is '-'.
+   * Otherwise, the string is a number to the base of 4 without the leading
+   * 1 and has the following properties:
+   *  - The number of digits is equal to the level.
+   *  - Removing the last digit gives the parent tile's quadkey string.
+   * For example, to get the child tile, add 0, 1, 2, or 3 to a quadkey string.
    *
-   * You can convert back from a quad key string with FromQuadKey().
+   * To convert the quadkey string back into the tile key, use `FromQuadKey()`.
    */
   std::string ToQuadKey() const;
 
   /**
-   * @brief Creates a tile key from a quadstring.
+   * @brief Creates a tile key from a quad string.
    *
-   * The quadstring can be created with ToQuadKey().
+   * To convert the tile key back into the quad string, use `ToQuadKey()`.
    */
   static TileKey FromQuadKey(const std::string& quad_key);
 
   /**
-   * @brief Converts the tile key into a string for using in REST API calls
+   * @brief Creates a HERE tile code string from a tile key to later use it in REST API calls.
    *
-   * The string is quad key morton code representation as a string.
+   * The string is a quadkey Morton code.
    *
-   * You can convert back from a quad key string with FromHereTile().
+   * To convert the HERE tile code string back into the tile key, use `FromHereTile()`.
    */
   std::string ToHereTile() const;
 
   /**
-   * @brief Creates a tile key from a heretile codes string.
+   * @brief Creates a tile key from a HERE tile code string.
    *
-   * The string can be created with ToHereTile().
+   * To convert the tile key back into the string, use `ToHereTile()`.
    */
   static TileKey FromHereTile(const std::string& key);
 
   /**
-   * @brief Converts the tile key to a 64-bit morton code representation.
+   * @brief Creates a 64-bit Morton code from a tile key.
    *
-   * You can create a tile key from a 64-bit morton code with FromQuadKey64().
+   * To convert the 64-bit Morton code back into the tile key, use `FromQuadKey64()`.
    */
   std::uint64_t ToQuadKey64() const;
 
   /**
-   * @brief Creates a tile key from a 64-bit morton code representation.
+   * @brief Creates a tile key from a 64-bit Morton code.
    *
-   * You can convert a tile key into 64-bit morton code with ToQuadKey64().
+   * To convert a tile key back into a 64-bit Morton code, use `ToQuadKey64()`.
    */
   static TileKey FromQuadKey64(std::uint64_t quad_key);
 
   /**
    * @brief Creates a tile key.
    *
-   * @param row the requested row. Must be less than 2 to the power of level.
-   * @param column the requested column. Must be less than 2 to the power of
-   * level.
-   * @param level the requested level.
+   * @param row The requested row. Must be less than 2 to the power of the level.
+   * @param column The requested column. Must be less than 2 to the power of
+   * the level.
+   * @param level The requested level.
    */
   static TileKey FromRowColumnLevel(std::uint32_t row, std::uint32_t column,
                                     std::uint32_t level);
 
   /**
-   * @brief Returns the tile's level.
+   * @brief Gets the tile level.
+   *
+   * @return The tile level.
    */
   constexpr std::uint32_t Level() const { return level_; }
 
   /**
-   * @brief Returns the tile's row. The number of available rows in the tile's
-   * level() is returned by RowCount().
+   * @brief Gets the tile row.
+   *
+   * To get the number of rows at a level, use `RowCount()`.
+   *
+   * @return The tile row.
    */
   constexpr std::uint32_t Row() const { return row_; }
 
   /**
-   * @brief Returns the number of available rows in the tile's Level().
+   * @brief Gets the number of available rows at the tile level.
    *
-   * This is 2 to the power of the level.
+   * It is 2 to the power of the level.
+   *
+   * @return The number of available rows.
    */
   constexpr std::uint32_t RowCount() const { return 1 << level_; }
 
   /**
-   * @brief Returns the tile's column. The number of available columns in the
-   * tile's Level() is returned by ColumnCount().
+   * @brief Gets the tile column.
+   *
+   * To get the number of available columns on a
+   * tile level, use `ColumnCount()`.
+   *
+   * @return The tile column.
    */
   constexpr std::uint32_t Column() const { return column_; }
 
   /**
-   * @brief Returns the number of available columns in the tile's Level().
+   * @brief Gets the number of available columns at the tile level.
    *
-   * This is 2 to the power of the level.
+   * It is 2 to the power of the level.
+   *
+   * @returns The number of available columns.
    */
   constexpr std::uint32_t ColumnCount() const { return 1 << level_; }
 
   /**
-   * @brief Returns a tile key representing the paren of the tile addressed by
-   * this tile key
+   * @brief Gets the key of the parent tile.
    *
-   * If the tile was the root tile, the invalid tile key is returned.
+   * If the tile is the root tile, an invalid tile key is returned.
+   *
+   * @return The key of the parent tile.
    */
   TileKey Parent() const;
 
   /**
-   * @brief Checks the current tile is a child of another tile.
+   * @brief Checks whether the current tile is a child of another tile.
    *
-   * @param[in] tile_key tile key of a possible parent.
+   * @param[in] tile_key The key of the possible parent tile.
    *
-   * @return a value indicating whether the current tile is a child of the
-   * specified tile.
+   * @return A value indicating whether the current tile is a child of
+   * the specified tile.
    */
   bool IsChildOf(const TileKey& tile_key) const;
 
   /**
-   * @brief Checks the current tile is a parent of another tile.
+   * @brief Checks whether the current tile is a parent of another tile.
    *
-   * @param[in] tile_key tile key of a possible child.
+   * @param[in] tile_key The key of the child tile.
    *
-   * @return a value indicating whether the current tile is a parent of the
-   * specified tile.
+   * @return A value indicating whether the current tile is a parent of
+   * the specified tile.
    */
   bool IsParentOf(const TileKey& tile_key) const;
 
   /**
-   * @brief Returns a new tile key at a level that differs from this tile's
+   * @brief Gets a new tile key at a level that differs from this tile
    * level by delta.
    *
-   * Equivalent to changedLevelTo(Level() + delta)
+   * Equivalent to `changedLevelTo(Level() + delta)`
    *
-   * @param delta the numeric difference between the current level and the
-   * requested level
+   * @param delta The numeric difference between the current level and
+   * the requested level.
+   *
+   * @return The tile key at the level that differs from this tile
+   * level by delta.
    */
   TileKey ChangedLevelBy(int delta) const;
 
   /**
-   * @brief Returns a new tile key at the requested level.
-   *
-   * If the requested level is smaller then the tile's level, then
-   * the key of an ancestor of this tile is returned.
-   * If the requested level is larger then the tile's level, then
-   * the key of first child or grandchild of this tile is returned, i.e. the
-   * child with the lowest row and column number.
-   * If the requested level equals this tile's level, then the tile key itself
-   * is returned.
+   * @brief Gets a new tile key at the requested level.
    *
    * @param level The requested level.
+   *
+   * @return If the requested level is smaller than the tile level,
+   * the key of the tile ancestor is returned.
+   * If the requested level is larger than the tile level,
+   * the returned value is the key of the first child or grandchild,
+   * which is the child with the lowest row and column number.
+   * If the requested level equals the level of this tile, the tile key itself
+   * is returned.
    */
   TileKey ChangedLevelTo(std::uint32_t level) const;
 
@@ -280,86 +289,113 @@ class CORE_API TileKey {
    */
   std::uint64_t GetSubkey64(int delta) const;
 
-  /**
-   * @copydoc QuadKey64Helper::AddedSubkey()
-   */
+  /// @copydoc TileKey::AddedSubkey()
   TileKey AddedSubkey64(std::uint64_t sub_quad_key) const;
 
   /**
-   * @copydoc QuadKey64Helper::AddedSubkey()
+   * @brief Gets the absolute quadkey that is constructed from its subquadkey.
+   *
+   * It is the reverse function of `GetSubkey()`. It returns the absolute
+   * quadkey in the tree based on the subquadkey.
+   *
+   * @param sub_quad_key The subquadkey generated with `ToSubQuadKey()`.
+   *
+   * @return The absolute quadkey in the quadtree.
    */
   TileKey AddedSubkey(const std::string& sub_quad_key) const;
 
   /**
-   * @copydoc QuadKey64Helper::AddedSubkey()
+   * @brief Gets the absolute quadkey that is constructed
+   * from its HERE child tile key.
+   *
+   * @param sub_here_tile The HERE child tile key.
+   *
+   * @return The absolute tile key in the quadtree.
    */
   TileKey AddedSubHereTile(const std::string& sub_here_tile) const;
 
   /**
-   * @brief Returns true if there is a NextRow() in this level; otherwise
-   * returns false.
+   * @brief Checks whether there is the next row at this level.
+   *
+   * @return True if there is the next row; false otherwise.
    */
   constexpr bool HasNextRow() const { return row_ < (1u << level_) - 1; }
 
   /**
-   * @brief Returns a tile key with identical Level() and Column(), but Row()
-   * plus one.
+   * @brief Gets the key of the tile that has the same level
+   * and column numbers but belongs to the next row.
+   *
+   * @return The tile key with the row number increased by one.
    */
   TileKey NextRow() const;
 
   /**
-   * @brief Returns true if there is a NextColumn() in this level; otherwise
-   * returns false.
+   * @brief Checks whether there is the next column at this level.
+   *
+   * @return True if there is the next column; false otherwise.
    */
   constexpr bool HasNextColumn() const { return column_ < (1u << level_) - 1; }
 
   /**
-   * @brief Returns a tile key with identical Level() and Row(), but Column()
-   * plus one.
+   * @brief Gets the key of the tile that has the same level
+   * and row numbers but belongs to the next column.
+   *
+   * @return The tile key with the column number increased by one.
    */
   TileKey NextColumn() const;
 
   /**
-   * @brief Returns true if there is a PreviousRow() in this level; otherwise
-   * returns false.
+   * @brief Checks whether there is the previous row at this level.
+   *
+   * @return True if there is the previous row; false otherwise.
    */
   constexpr bool HasPreviousRow() const { return (row_ > 0); }
 
   /**
-   * @brief Returns a tile key with identical Level() and Column(), but Row()
-   * minus one.
+   * @brief Gets the key of the tile that has the same level
+   * and column numbers but belongs to the previous row.
+   *
+   * @return The tile key with the row number decreased by one.
    */
   TileKey PreviousRow() const;
 
   /**
-   * @brief Returns true if there is a PreviousColumn() in this level; otherwise
-   * returns false.
+   * @brief Checks whether there is the previous column at this level.
+   *
+   * @return True if there is the previous column; false otherwise.
    */
   constexpr bool HasPreviousColumn() const { return (column_ > 0); }
 
   /**
-   * @brief Returns a tile key with identical Level() and Row(), but Column()
-   * minus one.
+   * @brief Gets the key of the tile that has the same level
+   * and row numbers but belongs to the previous column.
+   *
+   * @return The tile key with the column number decreased by one.
    */
   TileKey PreviousColumn() const;
 
   /**
-   * @brief Returns n-th child of the current tile.
+   * @brief Gets the child of the current tile by its index.
    *
-   * @param index the child index from [0, 3] range.
+   * @param index The child index from the [0, 3] range.
+   *
+   * @return The child of the current child.
    */
   TileKey GetChild(std::uint8_t index) const;
 
   /**
-   * @brief Returns child of the current tile by direction.
+   * @brief Gets the child of the current tile using a direction.
    *
-   * @param direction which child to return.
+   * @param direction The direction to get the child tile.
+   *
+   * @return The child of the current tile.
    */
   TileKey GetChild(TileKeyQuadrant direction) const;
 
   /**
-   * @brief Computes the direction in relationship to the parent, returns
-   * Invalid if the TileKey represents the root.
+   * @brief Computes the direction of the relationship to the parent.
+   *
+   * @return `Invalid` if the tile key represents the root.
    */
   TileKeyQuadrant RelationshipToParent() const;
 
@@ -370,130 +406,130 @@ class CORE_API TileKey {
 };
 
 /**
- * @brief The QuadKey64Helper struct is a helper structure for basic operations
- * on 64 bit morton quad keys.
+ * @brief A helper structure for basic operations on 64-bit Morton quadkeys.
  *
- * This class can be used to prevent conversions between tile keys and quad keys
+ * This class can be used to prevent conversions between tile keys and quadkeys
  * for basic operations.
  */
 struct CORE_API QuadKey64Helper {
   /**
-   * @brief Value/default constructor.
+   * @brief The default constructor.
    */
   explicit constexpr QuadKey64Helper(std::uint64_t key) : key(key) {}
 
   /**
-   * @brief Returns the quad key representing this quad key's parent.
+   * @brief Gets the quadkey of the parent.
    *
-   * @return The parent quad key.
+   * @return The parent quadkey.
    */
   constexpr QuadKey64Helper Parent() const { return QuadKey64Helper{key >> 2}; }
 
   /**
-   * @brief returns the quad key representing this quad's first child
-   * @return the child
+   * @brief Gets the quadkey representing the first child of this quad.
+   *
+   * @return The quadkey of the first child.
    */
   constexpr QuadKey64Helper Child() const { return QuadKey64Helper{key << 2}; }
 
   /**
-   * @brief Returns a sub quad key that is relative to its parent
+   * @brief Gets a subquadkey that is a relative of its parent.
    *
-   * This function can be used to generate sub keys that are relative to a
-   * parent that is delta levels up in the sub tree.
+   * Use this function to generate subkeys that are relatives of
+   * a parent that is delta levels up in the subtree.
    *
-   * This function can be used to create shortened keys for quads on lower
-   * levels if the parent is known.
+   * You can also use this function to create shortened keys for quads
+   * on lower levels if the parent is known.
    *
-   * Note - the sub quad keys fit in a 16 bit unsigned integer if the delta is
-   * smaller than 8. If delta is smaller than 16, the sub quad key fits into an
-   * unsigned 32 bit integer.
+   * @note The subquadkeys fit in a 16-bit unsigned integer if the delta is
+   * smaller than 8. If the delta is smaller than 16, the subquadkey fits into
+   * a 32-bit unsigned integer.
    *
-   * @param delta the amount of levels relative to its parent quad key. Must be
-   *              greater or equal to 0 and smaller than 32.
+   * @param delta The number of levels that are relatives of the parent quadkey.
+   * Must be greater or equal to 0 and smaller than 32.
    *
-   * @return The quad key relative to its parent that is delta levels up the
+   * @return The quadkey relative of its parent that is delta levels up the
    * tree.
    */
   QuadKey64Helper GetSubkey(int delta) const;
 
   /**
-   * @brief Returns a quad key that is constructed from its sub quad key.
+   * @brief Gets the absolute quadkey that is constructed from its subquadkey.
    *
-   * This function is the reverse of GetSubkey(). It returns the absolute quad
-   * key in the tree based on a sub quad key.
+   * It is the reverse function of `GetSubkey()`. It returns the absolute quad
+   * key in the tree based on a subquadkey.
    *
-   * @param sub_key The sub quad key that was generated with ToSubQuadKey().
+   * @param sub_key The subquadkey generated with `ToSubQuadKey()`.
    *
-   * @return the absolute quad key in the quad tree.
+   * @return The absolute quadkey in the quadtree.
    */
   QuadKey64Helper AddedSubkey(QuadKey64Helper sub_key) const;
 
   /**
-   * @brief Returns the rows at a given level.
+   * @brief Gets the number of rows at a given level.
    *
-   * This is 2 to the power of the level.
+   * It is 2 to the power of the level.
    *
    * @param level The requested level.
    *
-   * @return Amount of rows on the level.
+   * @return The number of rows at the level.
    */
   static inline constexpr std::uint32_t RowsAtLevel(std::uint32_t level) {
     return 1u << level;
   }
 
   /**
-   * @brief Returns the amount of children at the given level.
+   * @brief Gets the number of children at a level.
    *
-   * This is 4 to the power of the level.
+   * It is 4 to the power of the level.
    *
    * @param level The requested level.
    *
-   * @return Amount of children on the level.
+   * @return The number of children at the level.
    */
   static inline constexpr std::uint32_t ChildrenAtLevel(std::uint32_t level) {
     return 1u << (level << 1u);
   }
 
-  /// The representation of this quad key
+  /// The representation of this quadkey.
   std::uint64_t key{0};
 };
 
 using TileKeyLevels = std::bitset<TileKey::LevelCount>;
 
 /**
- * @brief Return the minimum level in the given level set.
+ * @brief Gets the minimum level in a level set.
  *
- * @param levels The levels set to be considered.
+ * @param levels The set of levels.
  *
- * @return The minimum level or core::None if the set is empty.
+ * @return The minimum level or `core::None` if the set is empty.
  */
 CORE_API boost::optional<std::uint32_t> GetMinTileKeyLevel(
     const TileKeyLevels& levels);
 
 /**
- * @brief Return the maximum level in the given level set.
+ * @brief Gets the maximum level in a level set.
  *
- * @param levels The levels set to be considered.
+ * @param levels The set of levels.
  *
- * @return The maximum level or core::None if the set is empty.
+ * @return The maximum level or `core::None` if the set is empty.
  */
 CORE_API boost::optional<std::uint32_t> GetMaxTileKeyLevel(
     const TileKeyLevels& levels);
 
 /**
- * @brief Return the tile level of the given level set that is nearest to a
- * given reference level.
+ * @brief Gets the tile level of a level set that is nearest to a
+ * reference level.
  *
- * If distance is equal to the next upper and lower
- * level, then the upper level is returned.
+ * @param levels The set of levels.
+ * @param reference_level The reference level.
  *
- * @return The nearest level or core::None if the set is empty.
+ * @return The nearest level or `core::None` if the set is empty.
  */
 CORE_API boost::optional<std::uint32_t> GetNearestAvailableTileKeyLevel(
     const TileKeyLevels& levels, const std::uint32_t reference_level);
 
 /**
- * @brief The stream operator to print or serialize the given TileKey.
+ * @brief The stream operator to print or serialize the given tile key.
  */
 CORE_API std::ostream& operator<<(std::ostream& out,
                                   const geo::TileKey& tile_key);
@@ -503,14 +539,13 @@ CORE_API std::ostream& operator<<(std::ostream& out,
 
 namespace std {
 
-/**
- * @brief Specialization of std::hash.
- */
+///@brief The specialization of `std::hash`.
 template <>
 struct hash<olp::geo::TileKey> {
   /**
-   * @brief Hash function for tile keys, uses the 64-bit morton code
-   * (TileKey::ToQuadKey64()).
+   * @brief The hash function for tile keys.
+   *
+   * Uses the 64-bit Morton code (`TileKey::ToQuadKey64()`).
    */
   std::size_t operator()(const olp::geo::TileKey& tile_key) const {
     return std::hash<std::uint64_t>()(tile_key.ToQuadKey64());
