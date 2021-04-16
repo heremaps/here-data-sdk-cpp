@@ -122,8 +122,9 @@ class PrefetchTilesRepository {
       client::CancellationContext context);
 
  private:
-  client::HRN catalog_;
-  std::string layer_id_;
+  const client::HRN catalog_;
+  const std::string catalog_str_;
+  const std::string layer_id_;
   client::OlpClientSettings settings_;
   client::ApiLookupClient lookup_client_;
   PartitionsCacheRepository cache_repository_;

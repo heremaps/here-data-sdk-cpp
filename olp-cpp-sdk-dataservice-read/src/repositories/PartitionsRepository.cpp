@@ -172,7 +172,8 @@ PartitionsRepository::GetPartitionsExtendedResponse(
   // OlpClient could handle that.
   const auto detail =
       partition_ids.empty() ? "" : HashPartitions(partition_ids);
-  NamedMutex mutex(catalog_str + layer_id_ + detail);
+  const auto version_str = version ? std::to_string(*version) : "";
+  NamedMutex mutex(catalog_str + layer_id_ + version_str + detail);
   std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);
 
   // If we are not planning to go online or access the cache, do not lock.
@@ -349,7 +350,10 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
   const auto& root_tile_key = tile_key.ChangedLevelBy(-kAggregateQuadTreeDepth);
   const auto root_tile_here = root_tile_key.ToHereTile();
 
-  NamedMutex mutex(catalog_.ToString() + layer_id_ + root_tile_here + "Index");
+  const auto quad_cache_key =
+      cache_.CreateQuadKey(root_tile_key, kAggregateQuadTreeDepth, version);
+
+  NamedMutex mutex(quad_cache_key);
   std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);
 
   // If we are not planning to go online or access the cache, do not lock.
