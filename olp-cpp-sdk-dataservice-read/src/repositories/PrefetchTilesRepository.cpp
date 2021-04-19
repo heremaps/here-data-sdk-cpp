@@ -32,6 +32,7 @@
 #include <olp/core/thread/Atomic.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include "ExtendedApiResponseHelpers.h"
+#include "NamedMutex.h"
 #include "PartitionsRepository.h"
 #include "QuadTreeIndex.h"
 #include "generated/api/QueryApi.h"
@@ -63,6 +64,7 @@ PrefetchTilesRepository::PrefetchTilesRepository(
     client::OlpClientSettings settings, client::ApiLookupClient client,
     boost::optional<std::string> billing_tag)
     : catalog_(std::move(catalog)),
+      catalog_str_(catalog_.ToString()),
       layer_id_(layer_id),
       settings_(std::move(settings)),
       lookup_client_(std::move(client)),
@@ -195,6 +197,12 @@ client::NetworkStatistics PrefetchTilesRepository::LoadAggregatedSubQuads(
     while (root.Level() > aggregated_tile_key.Level()) {
       root = root.ChangedLevelBy(-kMaxQuadTreeIndexDepth - 1);
 
+      const auto quad_cache_key = cache_repository_.CreateQuadKey(
+          root, kMaxQuadTreeIndexDepth, version);
+
+      NamedMutex mutex(quad_cache_key);
+      std::unique_lock<NamedMutex> lock(mutex);
+
       if (!cache_repository_.ContainsTree(root, kMaxQuadTreeIndexDepth,
                                           version)) {
         QuadTreeResponse response = DownloadVersionedQuadTree(
@@ -216,6 +224,12 @@ SubQuadsResponse PrefetchTilesRepository::GetVersionedSubQuads(
   // check if quad tree with requested tile and depth already in cache
   QuadTreeIndex quad_tree;
   client::NetworkStatistics network_stats;
+
+  const auto quad_cache_key =
+      cache_repository_.CreateQuadKey(tile, kMaxQuadTreeIndexDepth, version);
+
+  NamedMutex mutex(quad_cache_key);
+  std::unique_lock<NamedMutex> lock(mutex);
 
   if (cache_repository_.Get(tile, depth, version, quad_tree)) {
     OLP_SDK_LOG_DEBUG_F(kLogTag,
