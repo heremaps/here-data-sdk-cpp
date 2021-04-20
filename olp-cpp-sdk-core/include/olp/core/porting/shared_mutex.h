@@ -60,7 +60,7 @@ exchange(T& obj, U&& new_value)
 
 #if defined(HAVE_PTHREAD_RWLOCK)
 
-/// A shared mutex type implemented using pthread_rwlock_t.
+/// A shared mutex type implemented using `pthread_rwlock_t`.
 class shared_mutex_pthread {
 #if defined(PTHREAD_RWLOCK_INITIALIZER)
   pthread_rwlock_t _M_rwlock = PTHREAD_RWLOCK_INITIALIZER;
@@ -141,7 +141,7 @@ class shared_mutex_pthread {
   bool try_lock_shared() {
     int __ret = pthread_rwlock_tryrdlock(&_M_rwlock);
     // If the maximum number of read locks has been exceeded, we just fail
-    // to acquire the lock.  Unlike for lock(), we are not allowed to throw
+    // to acquire the lock. Unlike for lock(), we are not allowed to throw
     // an exception.
     if (__ret == EBUSY || __ret == EAGAIN)
       return false;
@@ -157,7 +157,7 @@ class shared_mutex_pthread {
 
 #else
 
-/// A shared mutex type implemented using std::condition_variable.
+/// A shared mutex type implemented using `std::condition_variable`.
 class shared_mutex_cv {
   // Based on Howard Hinnant's reference implementation from N2406.
 
@@ -213,6 +213,7 @@ class shared_mutex_cv {
 
   // Exclusive ownership
 
+  /// @copydoc shared_mutex::lock()
   void lock() {
     unique_lock<mutex> __lk(_M_mut);
     // Wait until we can set the write-entered flag.
@@ -222,6 +223,7 @@ class shared_mutex_cv {
     _M_gate2.wait(__lk, [=] { return _M_readers() == 0; });
   }
 
+  /// @copydoc shared_mutex::try_lock()
   bool try_lock() {
     unique_lock<mutex> __lk(_M_mut, try_to_lock);
     if (__lk.owns_lock() && _M_state == 0) {
@@ -231,6 +233,7 @@ class shared_mutex_cv {
     return false;
   }
 
+  /// @copydoc shared_mutex::unlock()
   void unlock() {
     lock_guard<mutex> __lk(_M_mut);
     assert(_M_write_entered());
@@ -242,12 +245,14 @@ class shared_mutex_cv {
 
   // Shared ownership
 
+  /// @copydoc shared_mutex::lock_shared()
   void lock_shared() {
     unique_lock<mutex> __lk(_M_mut);
     _M_gate1.wait(__lk, [=] { return _M_state < _S_max_readers; });
     ++_M_state;
   }
 
+  /// @copydoc shared_mutex::try_lock_shared()
   bool try_lock_shared() {
     unique_lock<mutex> __lk(_M_mut, try_to_lock);
     if (!__lk.owns_lock())
@@ -259,6 +264,7 @@ class shared_mutex_cv {
     return false;
   }
 
+  /// @copydoc shared_mutex::unlock_shared()
   void unlock_shared() {
     lock_guard<mutex> __lk(_M_mut);
     assert(_M_readers() > 0);
@@ -280,6 +286,10 @@ class shared_mutex_cv {
 #endif
 }  // namespace detail
 
+/**
+ * @brief A shared mutex type that can be locked exclusively
+ * by one thread or shared non-exclusively by multiple threads.
+ */
 class shared_mutex {
  public:
   shared_mutex() = default;
@@ -288,12 +298,33 @@ class shared_mutex {
   shared_mutex(const shared_mutex&) = delete;
   shared_mutex& operator=(const shared_mutex&) = delete;
 
+  /// Takes ownership of the associated mutex.
   void lock() { _M_impl.lock(); }
+
+  /**
+   * @brief Tries to take ownership of the mutex without blocking.
+   *
+   * @return True if the method takes ownership; false otherwise.
+   */
   bool try_lock() { return _M_impl.try_lock(); }
+
+  /// Releases the ownership of the mutex from the calling thread.
   void unlock() { _M_impl.unlock(); }
 
+  /**
+   * @brief Blocks the calling thread until
+   * the thread obtains shared ownership of the mutex.
+   */
   void lock_shared() { _M_impl.lock_shared(); }
+
+  /**
+   * @brief Tries to take shared ownership of the mutex without blocking.
+   *
+   * @return True if the method takes ownership; false otherwise.
+   */
   bool try_lock_shared() { return _M_impl.try_lock_shared(); }
+
+  /// Releases the shared ownership of the mutex from the calling thread.
   void unlock_shared() { _M_impl.unlock_shared(); }
 
 #if defined(HAVE_PTHREAD_RWLOCK)
@@ -310,33 +341,78 @@ class shared_mutex {
 };
 
 template <typename Mutex>
+/**
+ * @brief A shared mutex wrapper that supports timed lock operations
+ * and non-exclusive sharing by multiple threads.
+ */
 class shared_lock {
  public:
+  /// A typedef for the mutex type.
   typedef Mutex mutex_type;
 
   shared_lock() noexcept : _M_pm(nullptr), _M_owns(false) {}
 
+  /**
+   * @brief Creates a `shared_lock` instance and locks
+   * the associated mutex.
+   *
+   * @param __m The associated mutex.
+   */
   explicit shared_lock(mutex_type& __m)
       : _M_pm(std::addressof(__m)), _M_owns(true) {
     __m.lock_shared();
   }
 
+  /**
+   * @brief Creates a `shared_lock` instance and does not lock
+   * the associated mutex.
+   *
+   * @param __m The associated mutex.
+   */
   shared_lock(mutex_type& __m, defer_lock_t) noexcept
       : _M_pm(std::addressof(__m)), _M_owns(false) {}
 
+  /**
+   * @brief Creates a `shared_lock` instance and tries to lock
+   * the associated mutex without blocking.
+   *
+   * @param __m The associated mutex.
+   */
   shared_lock(mutex_type& __m, try_to_lock_t)
       : _M_pm(std::addressof(__m)), _M_owns(__m.try_lock_shared()) {}
 
+  /**
+   * @brief Creates a `shared_lock` instance and assumes
+   * that the calling thread already owns the associated mutex.
+   *
+   * @param __m The associated mutex.
+   */
   shared_lock(mutex_type& __m, adopt_lock_t)
       : _M_pm(std::addressof(__m)), _M_owns(true) {}
 
   template <typename _Clock, typename _Duration>
+
+  /**
+   * @brief Creates a `shared_lock` instance and tries to lock
+   * the associated mutex until the specified absolute time has passed.
+   *
+   * @param __m The associated mutex.
+   * @param __abs_time The absolute time.
+   */
   shared_lock(mutex_type& __m,
               const chrono::time_point<_Clock, _Duration>& __abs_time)
       : _M_pm(std::addressof(__m)),
         _M_owns(__m.try_lock_shared_until(__abs_time)) {}
 
   template <typename _Rep, typename _Period>
+
+  /**
+   * @brief Creates a `shared_lock` instance and tries to lock
+   * the associated mutex until the specified duration has passed.
+   *
+   * @param __m The associated mutex.
+   * @param __rel_time The time duration.
+   */
   shared_lock(mutex_type& __m,
               const chrono::duration<_Rep, _Period>& __rel_time)
       : _M_pm(std::addressof(__m)),
@@ -350,36 +426,67 @@ class shared_lock {
   shared_lock(shared_lock const&) = delete;
   shared_lock& operator=(shared_lock const&) = delete;
 
+  /**
+   * @brief Creates a `shared_lock` instance based on the other shared lock.
+   *
+   * @param __sl The other `shared_lock` instance.
+   */
   shared_lock(shared_lock&& __sl) noexcept : shared_lock() { swap(__sl); }
 
+  /**
+   * @brief The default move assignment operator.
+   *
+   * @param __sl The other `shared_lock` instance.
+   */
   shared_lock& operator=(shared_lock&& __sl) noexcept {
     shared_lock(std::move(__sl)).swap(*this);
     return *this;
   }
 
+  /// @copydoc shared_mutex::lock()
   void lock() {
     _M_lockable();
     _M_pm->lock_shared();
     _M_owns = true;
   }
 
+  /// @copydoc shared_mutex::try_lock()
   bool try_lock() {
     _M_lockable();
     return _M_owns = _M_pm->try_lock_shared();
   }
 
   template <typename _Rep, typename _Period>
+
+  /**
+   * @brief Tries to take shared ownership of the mutex
+   * and blocks it until the specified time elapses.
+   *
+   * @param __rel_time The time duration.
+   *
+   * @return True if the method takes ownership; false otherwise.
+   */
   bool try_lock_for(const chrono::duration<_Rep, _Period>& __rel_time) {
     _M_lockable();
     return _M_owns = _M_pm->try_lock_shared_for(__rel_time);
   }
 
   template <typename _Clock, typename _Duration>
+
+  /**
+   * @brief Tries to take shared ownership of the mutex
+   * and blocks it until the absolute time has passed.
+   *
+   * @param __abs_time The absolute time.
+   *
+   * @return True if the method takes ownership; false otherwise.
+   */
   bool try_lock_until(const chrono::time_point<_Clock, _Duration>& __abs_time) {
     _M_lockable();
     return _M_owns = _M_pm->try_lock_shared_until(__abs_time);
   }
 
+  /// @copydoc shared_mutex::unlock()
   void unlock() {
     if (!_M_owns)
       THROW_OR_ABORT(std::system_error(
@@ -388,20 +495,44 @@ class shared_lock {
     _M_owns = false;
   }
 
+  /**
+   * @brief Exchanges the data members of two `shared_lock` instances.
+   *
+   * @param __u The other `shared_lock` instance.
+   */
   void swap(shared_lock& __u) noexcept {
     std::swap(_M_pm, __u._M_pm);
     std::swap(_M_owns, __u._M_owns);
   }
 
+  /**
+   * @brief Disassociates the mutex without unlocking.
+   *
+   * @return A pointer to the associated mutex
+   * or a null pointer if there is no associated mutex.
+   */
   mutex_type* release() noexcept {
     _M_owns = false;
     return detail::exchange(_M_pm, nullptr);
   }
 
+  /**
+   * @brief Checks whether the lock owns its associated mutex.
+   *
+   * @return True if the lock has the associated mutex and owns it;
+   * false otherwise.
+   */
   bool owns_lock() const noexcept { return _M_owns; }
 
+  /// @copydoc shared_lock::owns_lock()
   explicit operator bool() const noexcept { return _M_owns; }
 
+  /**
+   * @brief Gets a pointer to the associated mutex.
+   *
+   * @return The pointer to the associated mutex,
+   * or the null pointer if there is no associated mutex.
+   */
   mutex_type* mutex() const noexcept { return _M_pm; }
 
  private:
