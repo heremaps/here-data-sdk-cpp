@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/ApiLookupClient.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
@@ -109,7 +110,14 @@ class VersionedLayerClientImpl {
 
   virtual bool Release(const TileKeys& tiles);
 
+  virtual bool Protect(const std::string& partition_id);
+
+  virtual bool Release(const std::string& partition_id);
+
  private:
+  cache::KeyValueCache::KeyListType GetRelatedPartitionKeys(
+      const std::string& partition_id);
+
   CatalogVersionResponse GetVersion(boost::optional<std::string> billing_tag,
                                     const FetchOptions& fetch_options,
                                     const client::CancellationContext& context);

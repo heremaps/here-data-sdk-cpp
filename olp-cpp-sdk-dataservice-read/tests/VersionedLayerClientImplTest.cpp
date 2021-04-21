@@ -340,6 +340,106 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
   }
 }
 
+TEST(VersionedLayerClientTest, ProtectThanReleasePartition) {
+  olp::client::OlpClientSettings settings;
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
+  settings.cache = cache_mock;
+
+  // successfull mock cache calls
+  auto found_cache_response = [](const std::string& /*key*/,
+                                 const olp::cache::Decoder& /*encoder*/) {
+    auto partition = model::Partition();
+    partition.SetPartition(kPartitionId);
+    partition.SetDataHandle(kBlobDataHandle);
+    return partition;
+  };
+
+  auto partition_keys =
+      [&](const olp::cache::KeyValueCache::KeyListType& keys) {
+        std::string expected_metadata =
+            kHrn.ToCatalogHRNString() + "::" + kLayerId + "::" + kPartitionId +
+            "::" + std::to_string(kCatalogVersion) + "::partition";
+        std::string expected_data_handle = kHrn.ToCatalogHRNString() +
+                                           "::" + kLayerId +
+                                           "::" + kBlobDataHandle + "::Data";
+        EXPECT_EQ(keys.size(), 2u);
+        EXPECT_EQ(keys[0], expected_metadata);
+        EXPECT_EQ(keys[1], expected_data_handle);
+        return true;
+      };
+
+  read::VersionedLayerClient client(kHrn, kLayerId, kCatalogVersion, settings);
+  {
+    SCOPED_TRACE("Successfull protect partition");
+
+    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Protect(_)).WillOnce(partition_keys);
+    ASSERT_TRUE(client.Protect(kPartitionId));
+  }
+
+  {
+    SCOPED_TRACE("Successfull release partition");
+
+    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Release(_)).WillOnce(partition_keys);
+    ASSERT_TRUE(client.Release(kPartitionId));
+  }
+
+  {
+    SCOPED_TRACE("Protect not existing partition");
+    EXPECT_CALL(*cache_mock, Get(_, _))
+        .WillOnce([](const std::string&, const olp::cache::Decoder&) {
+          return boost::any();
+        });
+    ASSERT_FALSE(client.Protect(kPartitionId));
+  }
+
+  {
+    SCOPED_TRACE("Release not existing partition");
+    EXPECT_CALL(*cache_mock, Get(_, _))
+        .WillOnce([](const std::string&, const olp::cache::Decoder&) {
+          return boost::any();
+        });
+    ASSERT_FALSE(client.Release(kPartitionId));
+  }
+
+  {
+    SCOPED_TRACE("Partition protect failure");
+    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Protect(_))
+        .WillOnce([](const olp::cache::KeyValueCache::KeyListType&) {
+          return false;
+        });
+    ASSERT_FALSE(client.Protect(kPartitionId));
+  }
+
+  {
+    SCOPED_TRACE("Partition release failure");
+    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Release(_))
+        .WillOnce([](const olp::cache::KeyValueCache::KeyListType&) {
+          return false;
+        });
+    ASSERT_FALSE(client.Release(kPartitionId));
+  }
+
+  {
+    SCOPED_TRACE("Empty cache");
+    read::VersionedLayerClient client_without_cache(
+        kHrn, kLayerId, kCatalogVersion, olp::client::OlpClientSettings());
+    ASSERT_FALSE(client_without_cache.Protect(kPartitionId));
+    ASSERT_FALSE(client_without_cache.Release(kPartitionId));
+  }
+
+  {
+    SCOPED_TRACE("invalid version");
+    read::VersionedLayerClient client_without_version(
+        kHrn, kLayerId, boost::none, olp::client::OlpClientSettings());
+    ASSERT_FALSE(client_without_version.Protect(kPartitionId));
+    ASSERT_FALSE(client_without_version.Release(kPartitionId));
+  }
+}
+
 TEST(VersionedLayerClientTest, ProtectThanRelease) {
   std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
   olp::cache::CacheSettings cache_settings;
@@ -426,7 +526,7 @@ TEST(VersionedLayerClientTest, ProtectThanRelease) {
   {
     SCOPED_TRACE("Protect");
     auto other_tile_key = olp::geo::TileKey::FromHereTile(kOtherHereTile);
-    auto response = client.Protect({tile_key, other_tile_key});
+    auto response = client.Protect(read::TileKeys{tile_key, other_tile_key});
     ASSERT_TRUE(response);
     std::this_thread::sleep_for(std::chrono::seconds(3));
     ASSERT_TRUE(client.IsCached(tile_key));
@@ -436,7 +536,7 @@ TEST(VersionedLayerClientTest, ProtectThanRelease) {
   {
     SCOPED_TRACE("Protect tile which not in cache but has known data handle");
     auto tile_key2 = olp::geo::TileKey::FromHereTile(kOtherHereTile2);
-    auto response = client.Protect({tile_key2});
+    auto response = client.Protect(read::TileKeys{tile_key2});
     ASSERT_TRUE(response);
     ASSERT_FALSE(client.IsCached(tile_key2));
 
@@ -459,14 +559,14 @@ TEST(VersionedLayerClientTest, ProtectThanRelease) {
     SCOPED_TRACE("Protect tile which not in cache");
     auto some_tile_key = olp::geo::TileKey::FromHereTile("6904592");
 
-    auto response = client.Protect({some_tile_key});
+    auto response = client.Protect(read::TileKeys{some_tile_key});
     ASSERT_FALSE(response);
   }
   {
     SCOPED_TRACE("Release tiles without releasing quad tree");
     auto other_tile_key = olp::geo::TileKey::FromHereTile(kOtherHereTile);
     auto other_tile_key2 = olp::geo::TileKey::FromHereTile(kOtherHereTile2);
-    auto response = client.Release({tile_key, other_tile_key2});
+    auto response = client.Release(read::TileKeys{tile_key, other_tile_key2});
     ASSERT_TRUE(response);
     ASSERT_FALSE(client.IsCached(tile_key));
     // other_tile_key is still protected, quad tree should ce in cache
@@ -477,7 +577,7 @@ TEST(VersionedLayerClientTest, ProtectThanRelease) {
     auto other_tile_key = olp::geo::TileKey::FromHereTile(kOtherHereTile);
     // release last protected tile for quad
     // 2 keys should be released(tile and quad)
-    auto response = client.Release({other_tile_key});
+    auto response = client.Release(read::TileKeys{other_tile_key});
     ASSERT_TRUE(response);
     ASSERT_FALSE(client.IsCached(other_tile_key));
   }
@@ -486,7 +586,7 @@ TEST(VersionedLayerClientTest, ProtectThanRelease) {
     auto other_tile_key = olp::geo::TileKey::FromHereTile(kOtherHereTile);
     // release last protected tile for quad
     // 2 keys should be released(tile and quad)
-    auto response = client.Release({other_tile_key});
+    auto response = client.Release(read::TileKeys{other_tile_key});
     ASSERT_FALSE(response);
   }
   {
@@ -516,12 +616,14 @@ TEST(VersionedLayerClientTest, ProtectThanRelease) {
     const auto& response_other = future.get();
     ASSERT_TRUE(response_other.IsSuccessful());
 
-    auto protect_response = client.Protect({tile_key, other_tile_key});
+    auto protect_response =
+        client.Protect(read::TileKeys{tile_key, other_tile_key});
     ASSERT_TRUE(protect_response);
     ASSERT_TRUE(client.IsCached(tile_key));
     ASSERT_TRUE(client.IsCached(other_tile_key));
 
-    auto release_response = client.Release({tile_key, other_tile_key});
+    auto release_response =
+        client.Release(read::TileKeys{tile_key, other_tile_key});
     ASSERT_TRUE(release_response);
     std::this_thread::sleep_for(std::chrono::seconds(3));
     ASSERT_FALSE(client.IsCached(tile_key));

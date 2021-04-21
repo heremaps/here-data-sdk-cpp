@@ -2094,15 +2094,15 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithStatus) {
 
   auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
   auto future = promise->get_future();
-  auto token = client.PrefetchTiles(
-      request,
-      [promise](PrefetchTilesResponse response) {
-        promise->set_value(std::move(response));
-      },
-      [&](read::PrefetchStatus status) {
-        status_object.Op(status);
-        bytes_transferred = status.bytes_transferred;
-      });
+  auto token = client.PrefetchTiles(request,
+                                    [promise](PrefetchTilesResponse response) {
+                                      promise->set_value(std::move(response));
+                                    },
+                                    [&](read::PrefetchStatus status) {
+                                      status_object.Op(status);
+                                      bytes_transferred =
+                                          status.bytes_transferred;
+                                    });
 
   ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
   PrefetchTilesResponse response = future.get();
@@ -4158,6 +4158,53 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ProtectAndReleaseTileKeys) {
   ASSERT_FALSE(client.IsCached(tile_key));
   // remove cache
   olp::utils::Dir::remove(cache_path);
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, ProtectAndReleasePartition) {
+  EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   HTTP_RESPONSE_LOOKUP))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kHttpResponsePartition_269))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kHttpResponseBlobData_269));
+
+  olp::cache::CacheSettings cache_settings;
+  const std::string cache_path =
+      olp::utils::Dir::TempDirectory() + "/integration_test";
+  olp::utils::Dir::remove(cache_path);
+  cache_settings.disk_path_mutable = cache_path;
+  std::shared_ptr<olp::cache::KeyValueCache> cache =
+      olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
+
+  auto settings = settings_;
+  settings.cache = cache;
+  settings.default_cache_expiration = std::chrono::seconds(2);
+
+  cache->RemoveKeysWithPrefix({});
+  auto client =
+      read::VersionedLayerClient(kCatalog, kTestLayer, kTestVersion, settings);
+
+  auto promise = std::make_shared<std::promise<DataResponse>>();
+  std::future<DataResponse> future = promise->get_future();
+
+  auto token = client.GetData(
+      read::DataRequest().WithPartitionId(kTestPartition),
+      [promise](DataResponse response) { promise->set_value(response); });
+
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  DataResponse response = future.get();
+
+  ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+  ASSERT_NE(response.GetResult(), nullptr);
+  ASSERT_NE(response.GetResult()->size(), 0u);
+
+  // protect tile and check that it is not expire
+  ASSERT_TRUE(client.Protect(kTestPartition));
+  std::this_thread::sleep_for(std::chrono::seconds(3));
+  ASSERT_TRUE(client.IsCached(kTestPartition));
+  ASSERT_TRUE(client.Release(kTestPartition));
+  ASSERT_FALSE(client.IsCached(kTestPartition));
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, ProtectAndReleaseWithEviction) {

@@ -500,6 +500,52 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    */
   bool Release(const TileKeys& tiles);
 
+  /**
+   * @brief Protect partition from eviction.
+   *
+   * Protecting partition means that its data and metadata keys are added to the
+   * protected list and stored in the cache. These keys are removed from the LRU
+   * cache, so they could not be evicted. Also, they do not expire. The quadtree
+   * stays protected if at least one tile key is protected.
+   *
+   * @note You can only protect partitions which data handles are present in the
+   * cache at the time of the call.
+   *
+   * @note Please do not call `Protect` while the `Release` call for the same
+   * catalog and layer is in progress.
+   *
+   * @note Before calling the API, specify a layer version. You can set it using
+   * the constructor or after the first online request.
+   *
+   * @param partition_id Partition id to be protected.
+   *
+   * @return True if some keys were successfully added to the protected list;
+   * false otherwise.
+   */
+  bool Protect(const std::string& partition_id);
+
+  /**
+   * @brief Removes partition  from protection.
+   *
+   * Releasing partition id removes data handle and metadata keys from the
+   * protected list. The keys are added to the LRU cache, so they could be
+   * evicted. Expiration value is restored, and keys can expire. The quadtree
+   * can be removed from the protected list if all tile keys are no longer
+   * protected.
+   *
+   * @note Please make sure that `Protect` will not be called for the same
+   * catalog and layer while the `Release` call is in progress.
+   *
+   * @note Before calling the API, specify a layer version. You can set it using
+   * the constructor or after the first online request.
+   *
+   * @param partition_id Partition id to be removed from protection.
+   *
+   * @return True if some keys were successfully removed from the protected
+   * list; false otherwise.
+   */
+  bool Release(const std::string& partition_id);
+
  private:
   std::unique_ptr<VersionedLayerClientImpl> impl_;
 };

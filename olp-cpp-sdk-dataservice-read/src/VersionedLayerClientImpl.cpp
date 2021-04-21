@@ -790,6 +790,53 @@ bool VersionedLayerClientImpl::Release(const TileKeys& tiles) {
 
   return settings_.cache->Release(keys_to_release);
 }
+cache::KeyValueCache::KeyListType
+VersionedLayerClientImpl::GetRelatedPartitionKeys(
+    const std::string& partition_id) {
+  if (!settings_.cache) {
+    return {};
+  }
+
+  auto version = catalog_version_.load();
+  if (version == kInvalidVersion) {
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "Method Protect failed, version is not initialized");
+    return {};
+  }
+
+  auto cache = settings_.cache;
+
+  repository::PartitionsCacheRepository partitions_repo(catalog_, layer_id_,
+                                                        cache);
+  std::string handle;
+  if (partitions_repo.GetPartitionHandle(partition_id, version, handle)) {
+    repository::DataCacheRepository data_repo(catalog_, cache);
+
+    return cache::KeyValueCache::KeyListType{
+        partitions_repo.CreatePartitionKey(partition_id, version),
+        data_repo.CreateKey(layer_id_, handle)};
+  }
+
+  return {};
+}
+
+bool VersionedLayerClientImpl::Protect(const std::string& partition_id) {
+  auto keys_to_protect = GetRelatedPartitionKeys(partition_id);
+  if (keys_to_protect.empty()) {
+    return false;
+  }
+
+  return settings_.cache->Protect(keys_to_protect);
+}
+
+bool VersionedLayerClientImpl::Release(const std::string& partition_id) {
+  auto keys_to_protect = GetRelatedPartitionKeys(partition_id);
+  if (keys_to_protect.empty()) {
+    return false;
+  }
+
+  return settings_.cache->Release(keys_to_protect);
+}
 
 }  // namespace read
 }  // namespace dataservice

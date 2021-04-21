@@ -92,6 +92,9 @@ class PartitionsCacheRepository final {
   bool ContainsTree(geo::TileKey key, int32_t depth,
                     const boost::optional<int64_t>& version) const;
 
+  std::string CreatePartitionKey(const std::string& partitionId,
+                                 const boost::optional<int64_t>& version) const;
+
  private:
   const std::string catalog_;
   const std::string layer_id_;
