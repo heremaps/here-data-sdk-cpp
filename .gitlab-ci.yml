@@ -246,6 +246,21 @@ test_android_emulator:
     - master
     - branches
 
+# TO DO: OLPEDGE-2543
+# Currently job below just build HERE Data SDK for iOS and start iOS emulator. Application fails to work with mock-server.
+# Job is prepared for running on local MacMini hardware: tagged as `edge-macos`
+test_ios_emulator_fv_network:
+  stage: test
+  tags:
+  - edge-macos
+  script:
+  - $CI_PROJECT_DIR/scripts/ios/fv/gh-actions-build-with-tests-fv.sh
+  - $CI_PROJECT_DIR/scripts/ios/fv/gh-actions-functional-network-test.sh
+  when: manual
+  only:
+    - master
+    - branches
+
 # Manual job to generate API/ABI Backward Compatibility Reports:
 # build current SDK and previous tagged SDK, then generate 4 html reports (for every lib)
 generate_api_compliance_job:

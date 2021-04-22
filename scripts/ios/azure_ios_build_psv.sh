@@ -23,7 +23,7 @@ cmake ../ -GXcode \
     -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/iOS.cmake \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DPLATFORM=iphoneos \
-    -DOLP_SDK_ENABLE_TESTING=NO \
+    -DOLP_SDK_ENABLE_TESTING=ON \
     -DSIMULATOR=YES \
     -DOLP_SDK_BUILD_EXAMPLES=ON
 
