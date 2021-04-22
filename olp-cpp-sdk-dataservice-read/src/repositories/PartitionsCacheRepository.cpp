@@ -50,6 +50,7 @@ std::string CreateKey(const std::string& hrn, const std::string& layer_id,
   return hrn + "::" + layer_id + "::" + partitionId +
          "::" + (version ? std::to_string(*version) + "::" : "") + "partition";
 }
+
 std::string CreateKey(const std::string& hrn, const std::string& layer_id,
                       const boost::optional<int64_t>& version) {
   return hrn + "::" + layer_id +
@@ -57,6 +58,11 @@ std::string CreateKey(const std::string& hrn, const std::string& layer_id,
 }
 std::string CreateKey(const std::string& hrn, const int64_t catalogVersion) {
   return hrn + "::" + std::to_string(catalogVersion) + "::layerVersions";
+}
+
+std::string CreateKey(const std::string& hrn, const std::string& layer_id,
+                      const std::string& datahandle) {
+  return hrn + "::" + layer_id + "::" + datahandle + "::Data";
 }
 
 time_t ConvertTime(std::chrono::seconds time) {
@@ -325,6 +331,40 @@ bool PartitionsCacheRepository::ContainsTree(
     geo::TileKey key, int32_t depth,
     const boost::optional<int64_t>& version) const {
   return cache_->Contains(CreateQuadKey(key, depth, version));
+}
+
+cache::KeyValueCache::KeyListType
+PartitionsCacheRepository::CreatePartitionKeys(
+    const std::string& partition_id, const boost::optional<int64_t>& version) {
+  std::string handle;
+
+  if (GetPartitionHandle(partition_id, version, handle)) {
+    return cache::KeyValueCache::KeyListType{
+        CreateKey(catalog_, layer_id_, partition_id, version),
+        CreateKey(catalog_, layer_id_, handle)};
+  }
+
+  return {};
+}
+
+bool PartitionsCacheRepository::Protect(
+    const std::string& partition_id, const boost::optional<int64_t>& version) {
+  const auto keys = CreatePartitionKeys(partition_id, version);
+  if (keys.empty()) {
+    return false;
+  }
+
+  return cache_->Protect(keys);
+}
+
+bool PartitionsCacheRepository::Release(
+    const std::string& partition_id, const boost::optional<int64_t>& version) {
+  const auto keys = CreatePartitionKeys(partition_id, version);
+  if (keys.empty()) {
+    return false;
+  }
+
+  return cache_->Release(keys);
 }
 
 }  // namespace repository

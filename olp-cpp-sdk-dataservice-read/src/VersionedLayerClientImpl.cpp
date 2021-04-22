@@ -791,6 +791,42 @@ bool VersionedLayerClientImpl::Release(const TileKeys& tiles) {
   return settings_.cache->Release(keys_to_release);
 }
 
+bool VersionedLayerClientImpl::Protect(const std::string& partition_id) {
+  if (!settings_.cache) {
+    return {};
+  }
+
+  auto version = catalog_version_.load();
+  if (version == kInvalidVersion) {
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "Method Protect failed, version is not initialized");
+    return {};
+  }
+
+  repository::PartitionsCacheRepository repository(catalog_, layer_id_,
+                                                   settings_.cache);
+
+  return repository.Protect(partition_id, version);
+}
+
+bool VersionedLayerClientImpl::Release(const std::string& partition_id) {
+  if (!settings_.cache) {
+    return {};
+  }
+
+  auto version = catalog_version_.load();
+  if (version == kInvalidVersion) {
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "Method Release failed, version is not initialized");
+    return {};
+  }
+
+  repository::PartitionsCacheRepository repository(catalog_, layer_id_,
+                                                   settings_.cache);
+
+  return repository.Release(partition_id, version);
+}
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

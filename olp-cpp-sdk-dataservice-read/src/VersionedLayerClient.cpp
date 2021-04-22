@@ -141,6 +141,14 @@ bool VersionedLayerClient::Release(const TileKeys& tiles) {
   return impl_->Release(tiles);
 }
 
+bool VersionedLayerClient::Protect(const std::string& partition_id) {
+  return impl_->Protect(partition_id);
+}
+
+bool VersionedLayerClient::Release(const std::string& partition_id) {
+  return impl_->Release(partition_id);
+}
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp
