@@ -409,8 +409,8 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * @param partition_id The partition ID that should be removed.
    *
-   * @note Before calling the API, specify a layer version. You can set it using
-   * the constructor or after the first online request.
+   * @note Before calling the API, specify a catalog version. You can set it
+   * using the constructor or after the first online request.
    *
    * @return True if partition data is removed successfully; false otherwise.
    */
@@ -421,8 +421,8 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * @param tile The tile key that should be removed.
    *
-   * @note Before calling the API, specify a layer version. You can set it using
-   * the constructor or after the first online request.
+   * @note Before calling the API, specify a catalog version. You can set it
+   * using the constructor or after the first online request.
    *
    * @return True if tile data is removed successfully; false otherwise.
    */
@@ -433,8 +433,8 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    *
    * @param partition_id The partition ID.
    *
-   * @note Before calling the API, specify a layer version. You can set it using
-   * the constructor or after the first online request.
+   * @note Before calling the API, specify a catalog version. You can set it
+   * using the constructor or after the first online request.
    *
    * @return True if the partition data is cached; false otherwise.
    */
@@ -447,8 +447,8 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * @param aggregated The aggregated flag, used to specify whether the tile is
    * aggregated or not.
    *
-   * @note Before calling the API, specify a layer version. You can set it using
-   * the constructor or after the first online request.
+   * @note Before calling the API, specify a catalog version. You can set it
+   * using the constructor or after the first online request.
    *
    * @return True if the tile data is cached; false otherwise.
    */
@@ -463,14 +463,14 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * not expire. The quadtree stays protected if at least one tile key is
    * protected.
    *
+   * @note Before calling the API, specify a catalog version. You can set it
+   * using the constructor or after the first online request.
+   *
    * @note You can only protect tiles which data handles are present in the
    * cache at the time of the call.
    *
    * @note Please do not call `Protect` while the `Release` call for the same
    * catalog and layer is in progress.
-   *
-   * @note Before calling the API, specify a layer version. You can set it using
-   * the constructor or after the first online request.
    *
    * @param tiles The list of tile keys to be protected.
    *
@@ -480,6 +480,29 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   bool Protect(const TileKeys& tiles);
 
   /**
+   * @brief Protect partition from eviction.
+   *
+   * Protecting partition means that its data and metadata keys are added to the
+   * protected list and stored in the cache. These keys are removed from the LRU
+   * cache, so they could not be evicted. Also, they do not expire.
+   *
+   * @note Before calling the API, specify a catalog version. You can set it
+   * using the constructor or after the first online request.
+   *
+   * @note You can only protect partitions which data handles are present in the
+   * cache at the time of the call.
+   *
+   * @note Please do not call `Protect` while the `Release` call for the same
+   * catalog and layer is in progress.
+   *
+   * @param partition_id Partition id to be protected.
+   *
+   * @return True if partition keys were successfully added to the protected
+   * list; false otherwise.
+   */
+  bool Protect(const std::string& partition_id);
+
+  /**
    * @brief Removes a list of tiles from protection.
    *
    * Releasing tile keys removes data and quadtree keys from the protected
@@ -487,11 +510,11 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * Expiration value is restored, and keys can expire. The quadtree can be
    * removed from the protected list if all tile keys are no longer protected.
    *
+   * @note Before calling the API, specify a catalog version. You can set it
+   * using the constructor or after the first online request.
+   *
    * @note Please make sure that `Protect` will not be called for the same
    * catalog and layer while the `Release` call is in progress.
-   *
-   * @note Before calling the API, specify a layer version. You can set it using
-   * the constructor or after the first online request.
    *
    * @param tiles The list of tile keys to be removed from protection.
    *
@@ -501,48 +524,23 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   bool Release(const TileKeys& tiles);
 
   /**
-   * @brief Protect partition from eviction.
-   *
-   * Protecting partition means that its data and metadata keys are added to the
-   * protected list and stored in the cache. These keys are removed from the LRU
-   * cache, so they could not be evicted. Also, they do not expire. The quadtree
-   * stays protected if at least one tile key is protected.
-   *
-   * @note You can only protect partitions which data handles are present in the
-   * cache at the time of the call.
-   *
-   * @note Please do not call `Protect` while the `Release` call for the same
-   * catalog and layer is in progress.
-   *
-   * @note Before calling the API, specify a layer version. You can set it using
-   * the constructor or after the first online request.
-   *
-   * @param partition_id Partition id to be protected.
-   *
-   * @return True if some keys were successfully added to the protected list;
-   * false otherwise.
-   */
-  bool Protect(const std::string& partition_id);
-
-  /**
-   * @brief Removes partition  from protection.
+   * @brief Removes partition from protection.
    *
    * Releasing partition id removes data handle and metadata keys from the
    * protected list. The keys are added to the LRU cache, so they could be
-   * evicted. Expiration value is restored, and keys can expire. The quadtree
-   * can be removed from the protected list if all tile keys are no longer
-   * protected.
+   * evicted. Expiration value is restored, and related to partition keys can
+   * expire.
+   *
+   * @note Before calling the API, specify a catalog version. You can set it
+   * using the constructor or after the first online request.
    *
    * @note Please make sure that `Protect` will not be called for the same
    * catalog and layer while the `Release` call is in progress.
    *
-   * @note Before calling the API, specify a layer version. You can set it using
-   * the constructor or after the first online request.
-   *
    * @param partition_id Partition id to be removed from protection.
    *
-   * @return True if some keys were successfully removed from the protected
-   * list; false otherwise.
+   * @return True if keys related to partition were successfully removed from
+   * the protected list; false otherwise.
    */
   bool Release(const std::string& partition_id);
 
