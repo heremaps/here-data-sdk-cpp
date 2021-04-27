@@ -111,8 +111,8 @@ constexpr auto kLogTag = "OLPHttpClient";
                                                 andURLSession:session
                                                         andId:identifier];
 
-  self.urlSessions[@(identifier)] = session;
   @synchronized(self.tasks) {
+    self.urlSessions[@(identifier)] = session;
     self.tasks[@(identifier)] = task;
   }
 
