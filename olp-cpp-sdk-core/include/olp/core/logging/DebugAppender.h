@@ -25,14 +25,14 @@
 namespace olp {
 namespace logging {
 /**
- * @brief Appender for printing to the debug output.
+ * @brief An appender that prints messages to the debug output.
  */
 class CORE_API DebugAppender : public IAppender {
  public:
   /**
-   * @brief Returns whether or not the debug appender is implemented for this
-   * platform.
-   * @return Whether or not this is implemented.
+   * @brief Checks whether this platform has the debug appender implemented.
+   *
+   * @return True if this platform has the debug appender; false otherwise.
    */
   static bool isImplemented();
 

@@ -28,12 +28,13 @@
 namespace olp {
 namespace logging {
 /**
- * @brief Appender for printing to the console.
+ * @brief An appender that prints messages to the console.
  */
 class CORE_API ConsoleAppender : public IAppender {
  public:
   /**
-   * @brief Constructs this with the message formatter.
+   * @brief Creates a `ConsoleAppender` instance with a message formatter.
+   *
    * @param formatter The message formatter.
    */
   inline explicit ConsoleAppender(
@@ -41,12 +42,14 @@ class CORE_API ConsoleAppender : public IAppender {
 
   /**
    * @brief Gets the message formatter.
+   *
    * @return The message formatter.
    */
   inline const MessageFormatter& getMessageFormatter() const;
 
   /**
    * @brief Sets the message formatter.
+   *
    * @param formatter The message formatter.
    */
   inline ConsoleAppender& setMessageFormatter(MessageFormatter formatter);

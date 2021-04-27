@@ -26,17 +26,34 @@
 namespace olp {
 namespace logging {
 /**
- * @brief Structure holding the data used for a log message.
+ * @brief Contains data used for a log message.
  */
 struct CORE_API LogMessage {
+  /// The log level.
   Level level{Level::Off};
+
+  /// The tag for the log component.
   const char* tag{nullptr};
+
+  /// The log message.
   const char* message{nullptr};
+
+  /// The file that generated the message.
   const char* file{nullptr};
+
+  /// The line in the file where the message was logged.
   unsigned int line{0};
+
+  /// The function that generated the message.
   const char* function{nullptr};
+
+  /// The fully qualified function that generated the message.
   const char* fullFunction{nullptr};
+
+  /// The timestamp of the message.
   std::chrono::time_point<std::chrono::system_clock> time{};
+
+  /// The thread ID for the thread that generated the message.
   unsigned long threadId{0};
 };
 

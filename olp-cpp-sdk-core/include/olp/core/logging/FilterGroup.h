@@ -33,98 +33,120 @@
 namespace olp {
 namespace logging {
 /**
- * @brief Class that groups together log levels for different tags. This makes
- * it easier to apply groups of level filters together.
+ * @brief Groups together log levels for different tags.
+ *
+ * It helps to apply groups of level filters together.
  */
 class CORE_API FilterGroup {
  public:
   inline FilterGroup();
+
+  /// The default copy constructor.
   FilterGroup(const FilterGroup&) = default;
+
+  /// The default copy assignment operator.
   FilterGroup& operator=(const FilterGroup&) = default;
+
+  /// The default move constructor.
   inline FilterGroup(FilterGroup&& other) noexcept;
+
+  /// The default move assignment operator.
   inline FilterGroup& operator=(FilterGroup&& other) noexcept;
 
   /**
    * @brief Gets the default log level.
-   * @return The default log level, or boost::none if not set.
+   *
+   * @return The default log level or `boost::none` if the level is not set.
    */
   inline boost::optional<Level> getLevel() const;
 
   /**
    * @brief Sets the default log level.
+   *
    * @param level The default log level.
    */
   inline FilterGroup& setLevel(Level level);
 
   /**
-   * @brief Clears the default log level to be unset.
+   * @brief Clears the default log level.
    *
-   * Leaving the default log level unset prevents the default level in Log from
-   * changing when the filter group is applied.
+   * If the default log level is unset, it does not change
+   * when the filter group is applied.
    */
   inline FilterGroup& clearLevel();
 
   /**
-   * @brief Gets the log level for a tag
-   * @param tag The tag to get the log level for.
-   * @return The log level for the tag, or boost::none if not set.
+   * @brief Gets the log level for a tag.
+   *
+   * @param tag The tag for which to get the log level.
+   *
+   * @return The log level for the tag, or `boost::none` if the level is not set.
    */
   inline boost::optional<Level> getLevel(const std::string& tag) const;
 
   /**
    * @brief Sets the log level for a tag.
+   *
    * @param level The log level for a tag.
-   * @param tag The tag to set the level for.
+   * @param tag The tag for which to set the level.
    */
   inline FilterGroup& setLevel(Level level, const std::string& tag);
 
   /**
-   * @brief Clears the log level to be unset for a tag.
+   * @brief Clears the log level for a tag.
    *
-   * Leaving the log level for a tag unset causes it to use the default log
-   * level instead.
+   * If the log level for a tag is unset, the default log
+   * level is used instead.
    */
   inline FilterGroup& clearLevel(const std::string& tag);
 
   /**
-   * @brief Clears the filter group to be unset.
+   * @brief Clears the filter group.
    */
   inline FilterGroup& clear();
 
   /**
    * @brief Loads the filter group from a file.
-   * @param fileName The file to load the configuration from.
-   * @return Whether or not the load was successful. If unsuccessful, this will
-   * be cleared.
+   *
+   * @param fileName The file from which to load the configuration.
+   *
+   * @return True if the load was successful; false otherwise. If unsuccessful,
+   * this is cleared.
    */
   bool load(const std::string& fileName);
 
   /**
    * @brief Loads the filter group from a stream.
    *
-   * The stream is expected contain text data. The format is as follows:
-   *     - Blank lines, or lines that start with # are ignored.
-   *     - Setting the log level for the tag is of the format "tag: level". For
-   * example:
-   *         - mylib: warning
-   *         - theirlib: info
-   *         - otherlib: off
-   *     - Setting the default log level is of the format ": level". For
-   * example: ": error"
-   *     - Whitespace is trimmed and case is ignored for the levels.
+   * The stream should contain text data.
+   * The format of the stream:
+   * - Blank lines or lines that start with "#" are ignored.
+   * - Use the following format for tag log levels: `tag: level`.
+   * For example:
+   *    - `mylib: warning`
+   *    - `theirlib: info`
+   *    - `otherlib: off`
+   * - Use the following format for the default log level: `: level`.
+   * For example: `: error`
+   * - Whitespaces are trimmed.
+   * - The case is ignored for levels.
    *
-   * The filter group will be cleared before the contents of the stream are
+   * The filter groups are cleared before the content of the stream is
    * applied.
-   * @param stream The stream to load the configuration from.
-   * @return Whether or not the load was successful. If unsuccessful, this will
-   * be cleared.
+   *
+   * @param stream The stream from which to load the configuration.
+   *
+   * @return True if the load was successful; false otherwise. If unsuccessful,
+   * this is cleared.
    */
   bool load(std::istream& stream);
 
   /**
-   * @brief Converts string logging level to enum Level format.
-   * @param levelStr string level to convert.
-   * @return Converted level
+   * @brief Converts the string log level to the enum level format.
+   *
+   * @param levelStr The string level to convert.
+   *
+   * @return The converted level.
    */
   static boost::optional<Level> stringToLevel(const std::string& levelStr);
 

@@ -30,20 +30,19 @@
 namespace olp {
 namespace logging {
 /**
- * @brief Class for configuring the appenders and loggers available by the
- * logging system.
+ * @brief Configures appenders and loggers available in
+ * the logging system.
  */
 class CORE_API Configuration {
  public:
   /**
-   * @brief Struct containing an appender and a log level that the appender is
-   * enabled with.
+   * @brief Contains an appender and its log level.
    */
   struct AppenderWithLogLevel {
     /**
-     * @brief The log level the appender is enabled with.
+     * @brief The log level of the appender.
      *
-     * Any log levels less than this level will be ignored.
+     * Any log level that is less than this level is ignored.
      */
     logging::Level logLevel;
 
@@ -53,7 +52,8 @@ class CORE_API Configuration {
     std::shared_ptr<IAppender> appender;
 
     /**
-     * @brief Checks to see if the appender is enabled for a log level.
+     * @brief Checks whether the appender is enabled for the log level.
+     *
      * @param level The log level.
      */
     bool isEnabled(logging::Level level) const {
@@ -62,27 +62,30 @@ class CORE_API Configuration {
   };
 
   /**
-   * @brief Typedef for a list of appenders
+   * @brief A typedef for a list of appenders.
    */
   using AppenderList = std::vector<AppenderWithLogLevel>;
 
   /**
-   * @brief Creates a default configuration by adding the DebugAppender and the
-   * ConsoleAppender as appenders.
+   * @brief Creates a default configuration by adding
+   * an instance of `DebugAppender` and `ConsoleAppender` as appenders.
+   *
    * @return The default configuration.
    */
   static Configuration createDefault();
 
   /**
-   * @brief Returns whether or not the configuration is valid.
-   * @return Whether or not the configuration is valid.
+   * @brief Checks whether the configuration is valid.
+   *
+   * @return True if the configuration is valid; false otherwise.
    */
   inline bool isValid() const;
 
   /**
-   * @brief Adds an appender along with its logging level to the configuration.
+   * @brief Adds the appender along with its log level to the configuration.
+   *
    * @param appender The appender to add.
-   * @param level The log level belonging to appender.
+   * @param level The log level of the appender.
    */
   inline Configuration& addAppender(
       std::shared_ptr<IAppender> appender,
@@ -95,7 +98,8 @@ class CORE_API Configuration {
 
   /**
    * @brief Gets the appenders from the configuration.
-   * @return The appenders and belonging log levels.
+   *
+   * @return The appenders and their log levels.
    */
   inline const AppenderList& getAppenders() const;
 
