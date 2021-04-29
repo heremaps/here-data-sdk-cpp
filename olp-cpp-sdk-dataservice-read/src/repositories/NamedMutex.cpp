@@ -19,7 +19,10 @@
 
 #include "NamedMutex.h"
 
+#include <memory>
 #include <unordered_map>
+
+#include <olp/core/porting/make_unique.h>
 
 namespace olp {
 namespace dataservice {
@@ -31,7 +34,9 @@ namespace {
 static std::mutex gMutex;
 
 struct RefCounterMutex {
-  std::mutex mutex;
+  explicit RefCounterMutex() : mutex(std::make_unique<std::mutex>()) {}
+
+  std::unique_ptr<std::mutex> mutex;
   uint32_t use_count{0};
 };
 
@@ -41,7 +46,7 @@ std::mutex& AquireLock(const std::string& resource) {
   std::unique_lock<std::mutex> lock(gMutex);
   RefCounterMutex& ref_mutex = gMutexes[resource];
   ref_mutex.use_count++;
-  return ref_mutex.mutex;
+  return *ref_mutex.mutex;
 }
 
 void ReleaseLock(const std::string& resource) {
