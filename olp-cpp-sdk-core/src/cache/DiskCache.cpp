@@ -42,6 +42,7 @@ namespace cache {
 
 namespace {
 constexpr auto kLogTag = "DiskCache";
+constexpr auto kLevelDbLostFolder = "/lost";
 
 leveldb::Slice ToLeveldbSlice(const std::string& slice) {
   return leveldb::Slice(slice);
@@ -52,7 +53,13 @@ static bool RepairCache(const std::string& data_path) {
   auto status = leveldb::RepairDB(data_path, leveldb::Options());
   if (status.ok()) {
     OLP_SDK_LOG_INFO(kLogTag, "RepairCache: repaired - " << data_path);
-    DiskCacheEnv::Env()->DeleteDir(data_path + "/lost");
+    const auto lost_folder_path = data_path + kLevelDbLostFolder;
+    if (utils::Dir::Exists(lost_folder_path)) {
+      OLP_SDK_LOG_INFO_F(
+          kLogTag, "RepairCache: some data may have been lost - deleting '%s'",
+          kLevelDbLostFolder);
+      utils::Dir::Remove(lost_folder_path);
+    }
     return true;
   }
   OLP_SDK_LOG_ERROR(kLogTag,
@@ -120,6 +127,22 @@ client::ApiError GetApiError(const leveldb::Status& status) {
   return client::ApiError(code, status.ToString());
 }
 
+int CheckCompactionFinished(leveldb::DB& db) {
+  std::string property_result;
+  db.GetProperty("leveldb.num-files-at-level0", &property_result);
+
+  const auto files_at_level0 = std::stoi(property_result);
+  if (files_at_level0 == 0) {
+    return true;
+  }
+
+  OLP_SDK_LOG_INFO_F(
+      kLogTag, "CheckCompactionFinished: L0 files present, files_at_level0=%d",
+      files_at_level0);
+
+  return false;
+}
+
 }  // anonymous namespace
 
 DiskCache::DiskCache() = default;
@@ -153,8 +176,13 @@ void DiskCache::Compact() {
   // doing it already. We don't need two at the same time.
   if (database_ && !compacting_.exchange(true)) {
     OLP_SDK_LOG_INFO(kLogTag, "Compact: Compacting database started");
-    database_->CompactRange(nullptr, nullptr);
+
+    do {
+      database_->CompactRange(nullptr, nullptr);
+    } while (!CheckCompactionFinished(*database_));
+
     compacting_ = false;
+
     OLP_SDK_LOG_INFO(kLogTag, "Compact: Compacting database finished");
   }
 }
@@ -216,13 +244,18 @@ OpenResult DiskCache::Open(const std::string& data_path,
     status = leveldb::DB::Open(open_options, versioned_data_path, &db);
   }
 
-  // If the database is r/w and corrupted, attempt to repair & reopen
-  if ((status.IsCorruption() || status.IsIOError()) &&
-      RepairCache(versioned_data_path) == true) {
-    status = leveldb::DB::Open(open_options, versioned_data_path, &db);
-    if (status.ok()) {
-      database_.reset(db);
-      return OpenResult::Repaired;
+  if (status.IsCorruption() || status.IsIOError()) {
+    if (is_read_only) {
+      OLP_SDK_LOG_ERROR_F(
+          kLogTag, "Open: cache corrupted, cache_path='%s', error='%s'",
+          versioned_data_path.c_str(), status.ToString().c_str());
+      return OpenResult::Corrupted;
+    } else if (RepairCache(versioned_data_path)) {
+      status = leveldb::DB::Open(open_options, versioned_data_path, &db);
+      if (status.ok()) {
+        database_.reset(db);
+        return OpenResult::Repaired;
+      }
     }
   }
 
@@ -235,7 +268,13 @@ OpenResult DiskCache::Open(const std::string& data_path,
     error_ = NoError{};
   }
 
+  if (is_read_only && !CheckCompactionFinished(*db)) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Open: interrupted compaction detected");
+    return OpenResult::Corrupted;
+  }
+
   database_.reset(db);
+
   return OpenResult::Success;
 }
 

@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <time.h>
 #include <atomic>
+#include <ctime>
 #include <functional>
 #include <limits>
 #include <map>
@@ -55,6 +55,8 @@ class SizeCountingEnv;
 enum class OpenResult {
   /// Opening the store failed. Use openError() for details.
   Fail,
+  /// The store was corrupted or store compaction was interrupted.
+  Corrupted,
   /// The store was corrupted and has been repaired. Internal integrity might be
   /// broken.
   Repaired,
@@ -138,7 +140,7 @@ class DiskCache {
   /// scans.
   std::unique_ptr<leveldb::Iterator> NewIterator(leveldb::ReadOptions options);
 
-  /// Allow batch writting so that we can delete and write multiple values at
+  /// Allow batch writing so that we can delete and write multiple values at
   /// the same time.
   OperationOutcome ApplyBatch(std::unique_ptr<leveldb::WriteBatch> batch);
 
