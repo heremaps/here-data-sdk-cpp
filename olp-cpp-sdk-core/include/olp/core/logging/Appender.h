@@ -24,18 +24,18 @@
 namespace olp {
 namespace logging {
 /**
- * @brief Abstract base class for an appender, which appends a message to the
- * log.
+ * @brief Appends a message to the log.
  *
- * Subclasses should derive from Appender instead of IAppender in order for the
- * type to be automatically registered.
+ * To automatically register the type, base subclasses on
+ * `Appender` instead of `IAppender`.
  */
 class CORE_API IAppender {
  public:
   virtual ~IAppender() = default;
 
   /**
-   * @brief Appends a message using char strings.
+   * @brief Appends the message using char strings.
+   *
    * @param message The message to append.
    */
   virtual IAppender& append(const LogMessage& message) = 0;

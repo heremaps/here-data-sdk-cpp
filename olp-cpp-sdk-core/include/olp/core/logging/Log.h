@@ -35,11 +35,11 @@
 
 /**
  * @file
- * @brief The file that provides the main interface to the logging library.
+ * @brief Provides the main interface for the logging library.
  */
 
 /**
- * @brief Macro to get the current's function signature for different compilers
+ * @brief Gets the current function signature for different compilers.
  */
 #if __GNUC__ >= 3 || defined(__clang__)
 #define OLP_SDK_LOG_FUNCTION_SIGNATURE __PRETTY_FUNCTION__
@@ -50,14 +50,14 @@
 #endif
 
 /**
- * @brief Log a message using C++ style streams.
+ * @brief Logs a message using C++ style streams.
  *
- * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
- * this will not check to see if the tag is disabled.
+ * `OLP_SDK_LOGGING_DISABLED` does not disable this functionality.
+ * Additionally, it does not check to see if the tag is disabled.
  *
- * @param level Logging level.
- * @param tag Log component name.
- * @param message The message to log.
+ * @param level The log level.
+ * @param tag The tag for the log component.
+ * @param message The log message.
  */
 #define OLP_SDK_DO_LOG(level, tag, message)                             \
   do {                                                                  \
@@ -70,71 +70,72 @@
   OLP_SDK_CORE_LOOP_ONCE()
 
 /**
- * @brief Log a critical message using C++ style streams.
+ * @brief Logs a "Critical" message using C++ style streams.
  *
- * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
- * this will not check to see if the tag is disabled.
+ * `OLP_SDK_LOGGING_DISABLED` does not disable this functionality.
+ * Additionally, it does not check to see if the tag is disabled.
  *
- * @param level Logging level.
- * @param tag Log component name.
- * @param message The message to log.
+ * @param level The log level.
+ * @param tag The tag for the log component.
+ * @param message The log message.
  */
 #define OLP_SDK_LOG_CRITICAL(level, tag, message) \
   OLP_SDK_DO_LOG(level, tag, message)
 
 /**
- * @brief Log a critical info message using C++ style streams.
+ * @brief Logs a "Critical info" message using C++ style streams.
  *
- * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
- * this will not check to see if the tag is disabled.
+ * `OLP_SDK_LOGGING_DISABLED` does not disable this functionality.
+ * Additionally, it does not check to see if the tag is disabled.
  *
- * @param tag Log component name.
- * @param message The message to log.
+ * @param tag The tag for the log component.
+ * @param message The log message.
  */
 #define OLP_SDK_LOG_CRITICAL_INFO(tag, message) \
   OLP_SDK_LOG_CRITICAL(::olp::logging::Level::Info, tag, message)
 
 /**
- * @brief Log a critical warning message using C++ style streams.
+ * @brief Logs a "Critical warning" message using C++ style streams.
  *
- * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
- * this will not check to see if the tag is disabled.
+ * `OLP_SDK_LOGGING_DISABLED` does not disable this functionality.
+ * Additionally, it does not check to see if the tag is disabled.
  *
- * @param tag Log component name.
- * @param message The message to log.
+ * @param tag The tag for the log component.
+ * @param message The log message.
  */
 #define OLP_SDK_LOG_CRITICAL_WARNING(tag, message) \
   OLP_SDK_LOG_CRITICAL(::olp::logging::Level::Warning, tag, message)
 
 /**
- * @brief Log a critical error message using C++ style streams.
+ * @brief Logs a "Critical error" message using C++ style streams.
  *
- * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
- * this will not check to see if the tag is disabled.
+ * `OLP_SDK_LOGGING_DISABLED` does not disable this functionality.
+ * Additionally, it does not check to see if the tag is disabled.
  *
- * @param tag Log component name.
- * @param message The message to log.
+ * @param tag The tag for the log component.
+ * @param message The log message.
  */
 #define OLP_SDK_LOG_CRITICAL_ERROR(tag, message) \
   OLP_SDK_LOG_CRITICAL(::olp::logging::Level::Error, tag, message)
 
 /**
- * @brief Log a fatal error message using C++ style streams.
+ * @brief Logs a "Fatal error" message using C++ style streams.
  *
- * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
- * this will not check to see if the tag is disabled.
+ * `OLP_SDK_LOGGING_DISABLED` does not disable this functionality.
+ * Additionally, it does not check to see if the tag is disabled.
  *
- * @param tag Log component name.
- * @param message The message to log.
+ * @param tag The tag for the log component.
+ * @param message The log message.
  */
 #define OLP_SDK_LOG_FATAL(tag, message) \
   OLP_SDK_LOG_CRITICAL(::olp::logging::Level::Fatal, tag, message)
 
 /**
- * @brief Log a critical fatal error message using C++ style streams, then abort
- * the program.
- * @param tag Log component name.
- * @param message The message to log.
+ * @brief Logs a "Critical fatal error" message using C++ style streams,
+ * and then aborts the program.
+ *
+ * @param tag The tag for the log component.
+ * @param message The log message.
  */
 #define OLP_SDK_LOG_ABORT(tag, message) \
   do {                                  \
@@ -144,13 +145,13 @@
   OLP_SDK_CORE_LOOP_ONCE()
 
 /**
- * @brief Log a message using printf style formatting.
+ * @brief Logs a message using the printf-style formatting.
  *
- * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
- * this will not check to see if the tag is disabled.
+ * `OLP_SDK_LOGGING_DISABLED` does not disable this functionality.
+ * Additionally, it does not check to see if the tag is disabled.
  *
- * @param level Logging level.
- * @param tag Log component name.
+ * @param level The log level.
+ * @param tag The tag for the log component.
  */
 #define OLP_SDK_DO_LOG_F(level, tag, ...)                                      \
   do {                                                                         \
@@ -162,65 +163,66 @@
   OLP_SDK_CORE_LOOP_ONCE()
 
 /**
- * @brief Log a critical message using printf style formatting.
+ * @brief Logs a "Critical" message using the printf-style formatting.
  *
- * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
- * this will not check to see if the tag is disabled.
+ * `OLP_SDK_LOGGING_DISABLED` does not disable this functionality.
+ * Additionally, it does not check to see if the tag is disabled.
  *
- * @param level Logging level.
- * @param tag Log component name.
+ * @param level The log level.
+ * @param tag The tag for the log component.
  */
 #define OLP_SDK_LOG_CRITICAL_F(level, tag, ...) \
   OLP_SDK_DO_LOG_F(level, tag, __VA_ARGS__)
 
 /**
- * @brief Log a critical info message using printf style formatting.
+ * @brief Logs a "Critical info" message using the printf-style formatting.
  *
- * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
- * this will not check to see if the tag is disabled.
+ * `OLP_SDK_LOGGING_DISABLED` does not disable this functionality.
+ * Additionally, it does not check to see if the tag is disabled.
  *
- * @param tag Log component name.
+ * @param tag The tag for the log component.
  */
 #define OLP_SDK_LOG_CRITICAL_INFO_F(tag, ...) \
   OLP_SDK_LOG_CRITICAL_F(::olp::logging::Level::Info, tag, __VA_ARGS__)
 
 /**
- * @brief Log a critical warning message using printf style formatting.
+ * @brief Logs a "Critical warning" message using the printf-style formatting.
  *
- * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
- * this will not check to see if the tag is disabled.
+ * `OLP_SDK_LOGGING_DISABLED` does not disable this functionality.
+ * Additionally, it does not check to see if the tag is disabled.
  *
- * @param tag Log component name.
+ * @param tag The tag for the log component.
  */
 #define OLP_SDK_LOG_CRITICAL_WARNING_F(tag, ...) \
   OLP_SDK_LOG_CRITICAL_F(::olp::logging::Level::Warning, tag, __VA_ARGS__)
 
 /**
- * @brief Log a critical error message using printf style formatting.
+ * @brief Logs a "Critical error" message using the printf-style formatting.
  *
- * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
- * this will not check to see if the tag is disabled.
+ * `OLP_SDK_LOGGING_DISABLED` does not disable this functionality.
+ * Additionally, it does not check to see if the tag is disabled.
  *
- * @param tag Log component name.
+ * @param tag The tag for the log component.
  */
 #define OLP_SDK_LOG_CRITICAL_ERROR_F(tag, ...) \
   OLP_SDK_LOG_CRITICAL_F(::olp::logging::Level::Error, tag, __VA_ARGS__)
 
 /**
- * @brief Log a critical fatal error message using printf style formatting.
+ * @brief Logs a "Critical fatal error" message using the printf-style formatting.
  *
- * OLP_SDK_LOGGING_DISABLED does not disable this functionality. Additionally,
- * this will not check to see if the tag is disabled.
+ * `OLP_SDK_LOGGING_DISABLED` does not disable this functionality.
+ * Additionally, it does not check to see if the tag is disabled.
  *
- * @param tag Log component name.
+ * @param tag The tag for the log component.
  */
 #define OLP_SDK_LOG_FATAL_F(tag, ...) \
   OLP_SDK_LOG_CRITICAL_F(::olp::logging::Level::Fatal, tag, __VA_ARGS__)
 
 /**
- * @brief Log a critical fatal error message using printf style formatting, then
- * abort the program.
- * @param tag Log component name.
+ * @brief Logs a "Critical fatal error" message using the printf-style formatting,
+ * and then abort sthe program.
+ *
+ * @param tag The tag for the log component.
  */
 #define OLP_SDK_LOG_ABORT_F(tag, ...)      \
   do {                                     \
@@ -237,10 +239,11 @@
 #else
 
 /**
- * @brief Log a message using C++ style streams.
- * @param level Logging level.
- * @param tag Log component name.
- * @param message The message to log.
+ * @brief Logs a message using C++ style streams.
+ *
+ * @param level The log level.
+ * @param tag The tag for the log component.
+ * @param message The log message.
  */
 #define OLP_SDK_LOG(level, tag, message)              \
   do {                                                \
@@ -271,17 +274,19 @@
 
 #else
 /**
- * @brief Log a trace message using C++ style streams.
- * @param tag Log component name.
- * @param message The message to log.
+ * @brief Logs a "Trace" message using C++ style streams.
+ *
+ * @param tag The tag for the log component.
+ * @param message The log message.
  */
 #define OLP_SDK_LOG_TRACE(tag, message) \
   OLP_SDK_LOG(::olp::logging::Level::Trace, tag, message)
 
 /**
- * @brief Log a debug message using C++ style streams.
- * @param tag Log component name.
- * @param message The message to log.
+ * @brief Logs a "Debug" message using C++ style streams.
+ *
+ * @param tag The tag for the log component.
+ * @param message The log message.
  */
 #define OLP_SDK_LOG_DEBUG(tag, message) \
   OLP_SDK_LOG(::olp::logging::Level::Debug, tag, message)
@@ -289,25 +294,28 @@
 #endif  // LOGGING_DISABLE_DEBUG_LEVEL
 
 /**
- * @brief Log an info message using C++ style streams.
- * @param tag Log component name.
- * @param message The message to log.
+ * @brief Logs an "Info" message using C++ style streams.
+ *
+ * @param tag The tag for the log component.
+ * @param message The log message.
  */
 #define OLP_SDK_LOG_INFO(tag, message) \
   OLP_SDK_LOG(::olp::logging::Level::Info, tag, message)
 
 /**
- * @brief Log a warning message using C++ style streams.
- * @param tag Log component name.
- * @param message The message to log.
+ * @brief Logs a "Warning" message using C++ style streams.
+ *
+ * @param tag The tag for the log component.
+ * @param message The log message.
  */
 #define OLP_SDK_LOG_WARNING(tag, message) \
   OLP_SDK_LOG(::olp::logging::Level::Warning, tag, message)
 
 /**
- * @brief Log an error message using C++ style streams.
- * @param tag Log component name.
- * @param message The message to log.
+ * @brief Logs an "Error" message using C++ style streams.
+ *
+ * @param tag The tag for the log component.
+ * @param message The log message.
  */
 #define OLP_SDK_LOG_ERROR(tag, message) \
   OLP_SDK_LOG(::olp::logging::Level::Error, tag, message)
@@ -319,9 +327,10 @@
   OLP_SDK_CORE_LOOP_ONCE()
 #else
 /**
- * @brief Log a message using printf style formatting.
- * @param level Logging level.
- * @param tag Log component name.
+ * @brief Logs a message using the printf style formatting.
+ *
+ * @param level The log level.
+ * @param tag The tag for the log component.
  */
 #define OLP_SDK_LOG_F(level, tag, ...)                \
   do {                                                \
@@ -338,15 +347,17 @@
 #define OLP_SDK_LOG_DEBUG_F(tag, ...) OLP_SDK_CORE_UNUSED(tag, __VA_ARGS__)
 #else
 /**
- * @brief Log a trace message using printf style formatting.
- * @param tag Log component name.
+ * @brief Logs a "Trace" message using the printf style formatting.
+ *
+ * @param tag The tag for the log component.
  */
 #define OLP_SDK_LOG_TRACE_F(tag, ...) \
   OLP_SDK_LOG_F(::olp::logging::Level::Trace, tag, __VA_ARGS__)
 
 /**
- * @brief Log a debug message using printf style formatting.
- * @param tag Log component name.
+ * @brief Logs a "Debug" message using the printf style formatting.
+ *
+ * @param tag The tag for the log component.
  */
 #define OLP_SDK_LOG_DEBUG_F(tag, ...) \
   OLP_SDK_LOG_F(::olp::logging::Level::Debug, tag, __VA_ARGS__)
@@ -354,28 +365,31 @@
 #endif  // LOGGING_DISABLE_DEBUG_LEVEL
 
 /**
- * @brief Log an info message using printf style formatting.
- * @param tag Log component name.
+ * @brief Logs an "Info" message using the printf style formatting.
+ *
+ * @param tag The tag for the log component.
  */
 #define OLP_SDK_LOG_INFO_F(tag, ...) \
   OLP_SDK_LOG_F(::olp::logging::Level::Info, tag, __VA_ARGS__)
 
 /**
- * @brief Log a warning message using printf style formatting.
- * @param tag Log component name.
+ * @brief Logs a "Warning" message using the printf style formatting.
+ *
+ * @param tag The tag for the log component.
  */
 #define OLP_SDK_LOG_WARNING_F(tag, ...) \
   OLP_SDK_LOG_F(::olp::logging::Level::Warning, tag, __VA_ARGS__)
 
 /**
- * @brief Log an error message using printf style formatting.
- * @param tag Log component name.
+ * @brief Logs an "Eror" message using the printf style formatting.
+ *
+ * @param tag The tag for the log component.
  */
 #define OLP_SDK_LOG_ERROR_F(tag, ...) \
   OLP_SDK_LOG_F(::olp::logging::Level::Error, tag, __VA_ARGS__)
 
 /**
- * @brief Namespace for the logging library.
+ * @brief A namespace for the logging library.
  */
 namespace olp {
 namespace logging {
@@ -383,36 +397,40 @@ class Configuration;
 class FilterGroup;
 
 /**
- * @brief The NullLogStream class
- *
- * This is used for disabled logs at compile time
+ * @brief Used for disabled logs at compile time.
  */
 class NullLogStream {
  public:
   template <typename T>
+
+  /**
+   * @brief The stream operator to print or serialize the given log stream.
+   */
   NullLogStream& operator<<(const T&) {
     return *this;
   }
 };
 
 /**
- * @brief Primary interface for logging messages.
+ * @brief A primary interface for log messages.
  */
 class CORE_API Log {
  public:
   /**
-   * @brief Configures the logging system.
+   * @brief Configures the log system.
    *
-   * This will override the previous configuration.
-   * @return False if the configuration is invalid. The configuration will not
-   * be changed in this case.
+   * It overrides the previous configuration.
+   *
+   * @return False if the configuration is invalid.
+   * The configuration does not change in this case.
    */
   static bool configure(Configuration configuration);
 
   /**
    * @brief Gets a copy of the current configuration.
    *
-   * This can be used to add an appender and re-configure the system.
+   * Use it to add an appender and reconfigure the system.
+   *
    * @return A copy of the current configuration.
    */
   static Configuration getConfiguration();
@@ -420,90 +438,109 @@ class CORE_API Log {
   /**
    * @brief Sets the default log level.
    *
-   * No messages below this level will be displayed unless overridden by
+   * No messages below this level are displayed unless overridden by
    * specific log tags.
+   *
    * @param level The log level.
    */
   static void setLevel(Level level);
 
   /**
    * @brief Gets the default log level.
+   *
    * @return The log level.
    */
   static Level getLevel();
 
   /**
-   * @brief Sets the log level for a particular tag. This overrides the default.
+   * @brief Sets the log level for a tag.
+   *
+   * It overrides the default configurations.
+   *
    * @param level The log level.
-   * @param tag Tag for the logging component. If empty, this will set the
+   * @param tag The tag for the log component. If empty, it sets the
    * default level.
    */
   static void setLevel(Level level, const std::string& tag);
 
   /**
-   * @brief Sets the log level for a particular tag. This overrides the default.
+   * @brief Sets the log level for a tag.
+   *
+   * It overrides the default configurations.
+   *
    * @param level The log level.
-   * @param tag Tag for the logging component. If empty, this will set the
+   * @param tag The tag for the log component. If empty, it sets the
    * default level.
    */
   static void setLevel(const std::string& level, const std::string& tag);
 
   /**
-   * @brief Gets the log level for a particular tag.
-   * @param tag Tag for the logging component. If empty, this will get the
+   * @brief Gets the log level for a tag.
+   *
+   * @param tag The tag for the log component. If empty, it sets the
    * default level.
-   * @return The log level for the tag, or core::None if unset.
+   *
+   * @return The log level for the tag or `core::None` if the log level is unset.
    */
   static boost::optional<Level> getLevel(const std::string& tag);
 
   /**
-   * @brief Clears the log level for a particular tag, setting it to use the
-   * default.
-   * @param tag Tag for the logging component.
+   * @brief Clears the log level for a tag and sets it to
+   * the default value.
+   *
+   * @param tag The tag for the log component.
    */
   static void clearLevel(const std::string& tag);
 
   /**
-   * @brief Clears the log levels for all tags, setting them to use the default.
+   * @brief Clears the log levels for all tags and sets them to
+   * the default value.
    */
   static void clearLevels();
 
   /**
    * @brief Applies a filter group.
    *
-   * This will clear all of the log levels for specific tags and replace them
+   * It clears all the log levels for tags and replaces them
    * with the levels set in the filter group. If the default log level is set in
-   * the filter group, this will also be applied.
+   * the filter group, it is also applied.
+   *
    * @param filters The filter group to apply.
    */
   static void applyFilterGroup(const FilterGroup& filters);
 
   /**
-   * @brief Returns whether a specific level is enabled by default.
+   * @brief Checks whether a level is enabled by default.
+   *
    * @param level The log level.
-   * @return Whether or not the log is enabled.
+   *
+   * @return True if the log is enabled; false otherwise.
    */
   static bool isEnabled(Level level);
 
   /**
-   * @brief Returns whether or not a log tag is enabled for a specific level.
-   * @param tag Tag for the logging component.
+   * @brief Checks whether a log tag is enabled for a level.
+   *
+   * @param tag The tag for the log component.
    * @param level The log level.
-   * @return Whether or not the log is enabled.
+   *
+   * @return True if the log is enabled; false otherwise.
    */
   static bool isEnabled(Level level, const std::string& tag);
 
   /**
-   * @brief Logs a message to the registered appenders. Outputting to a specific
-   * appender is dependant on whether the appender is enabled for this specific
-   * level.
-   * @param level Log level
-   * @param tag Tag for the logging component.
-   * @param message The log message
-   * @param file Filename of the log caller
-   * @param line Line of the log caller
-   * @param function Function name of the log caller.
-   * @param fullFunction The fully qualified function name of the log caller.
+   * @brief Logs a message to the registered appenders.
+   *
+   * Outputting to the appender depends on whether
+   * the appender is enabled for this level.
+   *
+   * @param level The log level.
+   * @param tag The tag for the log component.
+   * @param message The log message.
+   * @param file The file that generated the message.
+   * @param line The line in the file where the message was logged.
+   * @param function The function that generated the message.
+   * @param fullFunction The fully qualified function that generated the message.
    */
   static void logMessage(Level level, const std::string& tag,
                          const std::string& message, const char* file,

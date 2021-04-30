@@ -33,14 +33,14 @@
 namespace olp {
 namespace logging {
 /**
- * @brief Utility for specifying how messages are formatted.
+ * @brief Specifies how messages are formatted.
  *
- * This provides a common way to declare any message format, which can be
+ * It provides a common way to declare any message format, which can be
  * re-used across appenders that utilize this class.
  *
  * Example: if you want the message to be set to "LOG: level tag - file:line
- * [time] message", where the file is limited to 30 characters (cutting off on
- * the left), line always prints to 5 characters, and time set to HH:MM in UTC
+ * [time] message" where the file is limited to 30 characters (cutting off on
+ * the left), the line always prints up to 5 characters, and time is set to HH:MM in UTC
  * time:
  *
  * @code
@@ -61,10 +61,10 @@ namespace logging {
 class CORE_API MessageFormatter {
  public:
   /**
-   * @brief A mapping from the log level to the name to use.
+   * @brief Maps the log level to its name.
    *
-   * Cast the log level enum value to size_t to use as an index. Off is not a
-   * valid name.
+   * Casts the log level enum value to `size_t` to use as an index.
+   * `Off` is not a valid name.
    */
   using LevelNameMap = std::array<std::string, levelCount>;
 
@@ -72,30 +72,27 @@ class CORE_API MessageFormatter {
    * @brief The type of the element to print out.
    */
   enum class ElementType {
-    String,   ///< A string literal.
-    Level,    ///< The log level for the message. This is formatted as a string.
-    Tag,      ///< The tag for the message. This is formatted as a string. This
-              ///< element will
-              ///  be ommitted if the tag is null or an empty string.
-    Message,  ///< The message for the log. This is formatted as a string.
-    File,     ///< The file that generated the message. This is formatted as a
+    String,   ///< The string literal.
+    Level,    ///< The log level for the message. It is formatted as a string.
+    Tag,      ///< The tag for the log component. It is formatted as a string. This
+              ///< element is
+              ///  omitted if the tag is null or an empty string.
+    Message,  ///< The log message. It is formatted as a string.
+    File,     ///< The file that generated the message. It is formatted as a
               ///< string.
-    Line,     ///< The line that generated the message. This is formatted as an
-              ///< unsigned int.
-    Function,  ///< The function that generated the message. This is formatted
+    Line,     ///< The line in the file where the message was logged. It is formatted as an
+              ///< unsigned integer.
+    Function,  ///< The function that generated the message. It is formatted
                ///< as a string.
     FullFunction,  ///< The fully qualified function that generated the message.
-                   ///< This is
+                   ///< It is
                    ///  formatted as a string.
-    Time,    ///< The timestamp of the message. This is formatted as a time as
-             ///< with
-             ///  strftime().
-    TimeMs,  ///< The millisecond portion of the timestamp. This is formatted as
-             ///< an
-             ///  unsigned int.
-    ThreadId  ///< The thread ID for the thread that generated the message. This
-              ///< is
-              ///  formatted as an unsigned long.
+    Time,    ///< The timestamp of the message. It is formatted as a time using
+             ///  `strftime()`.
+    TimeMs,  ///< The millisecond portion of the timestamp. It is formatted as
+             ///< an unsigned integer.
+    ThreadId  ///< The thread ID of the thread that generated the message.
+              ///< It is formatted as an unsigned long.
   };
 
   /**
@@ -103,33 +100,57 @@ class CORE_API MessageFormatter {
    */
   struct CORE_API Element {
     /**
-     * @brief Constructs this with the element type.
+     * @brief Creates an `Element` instance with the element type.
      *
-     * The format string will be set automatically based on the type.
+     * The format string is set automatically based on the type.
      *
      * @param type_ The element type.
      */
     explicit Element(ElementType type_);
 
     /**
-     * @brief Constructs this with all of the members.
+     * @brief Creates an `Element` instance with all of the members.
+     *
      * @param type_ The element type.
-     * @param format_ The format string. This is a literal when type_ is
-     * ElementType::String.
+     * @param format_ The format string. It is a literal when `type_` is
+     * `ElementType::String`.
      * @param limit_ The number of characters to limit string types before
-     * passing to the formatter. A negative number will cut off from the
-     * beginning of a string, while a positive number will cut off from the end
-     * of the string. A value of zero will leave the input string untouched.
+     * passing to the formatter. A negative number cuts off from the
+     * beginning of the string. A positive number cuts off from the end
+     * of the string. A value of zero leaves the input string untouched.
      */
     inline Element(ElementType type_, std::string format_, int limit_ = 0);
 
+    /// The default copy constructor.
     Element(const Element&) = default;
+
+    /// The default copy operator.
     Element& operator=(const Element&) = default;
 
+    /// The move operator overload.
     inline Element(Element&& other) noexcept;
+
+    /// The move assignment operator overload.
     inline Element& operator=(Element&& other) noexcept;
 
+    /**
+     * @brief Checks whether the values of two `Element` instances
+     * are the same.
+     *
+     * @param other The other `Element` instance.
+     *
+     * @return True if the values are the same; false otherwise.
+     */
     inline bool operator==(const Element& other) const;
+
+    /**
+     * @brief Checks whether the values of two `Element` instances
+     * are not the same.
+     * 
+     * @param other The other `Element` instance.
+     * 
+     * @return True if the values are not the same; false otherwise.
+     */
     inline bool operator!=(const Element& other) const;
 
     /**
@@ -138,10 +159,10 @@ class CORE_API MessageFormatter {
     ElementType type;
 
     /**
-     * @brief The format string for printing out the element.
+     * @brief The format for printing out the element.
      *
-     * This is used as a literal for ElementType::String without passing through
-     * printf.
+     * It is used as a literal for `ElementType::String` without passing through
+     * `printf`.
      */
     std::string format;
 
@@ -149,44 +170,46 @@ class CORE_API MessageFormatter {
      * @brief The number of characters to limit string types before passing to
      * the formatter.
      *
-     * A negative number will cut off from the beginning of a string, while a
-     * positive number will cut off from the end of the string. A value of zero
-     * will leave the input string untouched.
+     * A negative number cuts off from the beginning of a string.
+     * A positive number cuts off from the end of the string. A value of zero
+     * leaves the input string untouched.
      */
     int limit;
   };
 
   /**
-   * @brief Enum for the timezone when printing timestamps.
+   * @brief The timezone used to print timestamps.
    */
   enum class Timezone {
-    Local,  ///< Print times in local time.
-    Utc     ///< Print times in UTC.
+    Local,  ///< Prints time in the local time standard.
+    Utc     ///< Prints time in the UTC standard.
   };
 
   /**
    * @brief Gets the default level name map.
+   *
    * @return The level name map.
    */
   static const LevelNameMap& defaultLevelNameMap();
 
   /**
-   * @brief Makes the default message formatter.
+   * @brief Creates the default message formatter.
    *
-   * This will be of the format "level tag - message".
+   * Format: "level tag - message".
    */
   static MessageFormatter createDefault();
 
   /**
-   * @brief Default constructor.
+   * @brief The default constructor.
    *
-   * The element list will be empty, the level name map will be set to default,
-   * and the timezone will be set to local.
+   * The element list is empty, the level name map is set to default,
+   * and the timezone is set to local.
    */
   inline MessageFormatter();
 
   /**
-   * @brief Constructs this with the elements, level name mapping, and timezone.
+   * @brief Creates the `MessageFormatter` instance with the elements, level name mapping, and timezone.
+   *
    * @param elements The elements for the formatted message.
    * @param levelNameMap The level name map.
    * @param timezone The timezone for timestamps. Defaults to local time.
@@ -196,51 +219,65 @@ class CORE_API MessageFormatter {
       LevelNameMap levelNameMap = defaultLevelNameMap(),
       Timezone timezone = Timezone::Local);
 
+  /// The default copy constructor.
   MessageFormatter(const MessageFormatter&) = default;
+
+  /// The default copy assignment operator.
   MessageFormatter& operator=(const MessageFormatter&) = default;
 
+  /// The move constructor overload.
   inline MessageFormatter(MessageFormatter&& other) noexcept;
+
+  /// The default move assignment operator overload.
   inline MessageFormatter& operator=(MessageFormatter&& other) noexcept;
 
   /**
    * @brief Gets the elements for the format.
+   *
    * @return The elements.
    */
   inline const std::vector<Element>& getElements() const;
 
   /**
    * @brief Sets the elements for the format.
+   *
    * @param elements The elements.
    */
   inline MessageFormatter& setElements(std::vector<Element> elements);
 
   /**
    * @brief Gets the level name map.
+   *
    * @return The level name map.
    */
   inline const LevelNameMap& getLevelNameMap() const;
 
   /**
    * @brief Sets the level name map.
+   *
    * @param map The level name map.
    */
   inline MessageFormatter& setLevelNameMap(LevelNameMap map);
 
   /**
    * @brief Gets the timezone for timestamps.
+   *
    * @return The timezone.
    */
   inline Timezone getTimezone() const;
 
   /**
    * @brief Sets the timezone for timestamps.
+   *
    * @param timezone The timezone.
    */
   inline MessageFormatter& setTimezone(Timezone timezone);
 
   /**
    * @brief Formats a log message.
+   *
    * @param message The message to format.
+   *
    * @return The formatted message.
    */
   std::string format(const LogMessage& message) const;

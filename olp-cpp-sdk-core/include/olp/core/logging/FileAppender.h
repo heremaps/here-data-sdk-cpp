@@ -30,14 +30,15 @@
 namespace olp {
 namespace logging {
 /**
- * @brief Appender for printing to a file.
+ * @brief An appender that prints messages to a file.
  */
 class CORE_API FileAppender : public IAppender {
  public:
   /**
-   * @brief Constructs a file appender.
+   * @brief Creates a `FileAppender` instance.
+   *
    * @param fileName The name of the file to write to.
-   * @param append True to append to an existing file if it exists.
+   * @param append True to append to an existing file; false otherwise.
    * @param formatter The message formatter.
    */
   explicit FileAppender(
@@ -46,31 +47,36 @@ class CORE_API FileAppender : public IAppender {
   ~FileAppender() override;
 
   /**
-   * @brief Returns whether or not the stream is opened and can be written to.
-   * @return True if this is valid.
+   * @brief Checks whether the stream is open and can be written to.
+   *
+   * @return True if the stream is open and can be written to; false otherwise.
    */
   bool isValid() const;
 
   /**
-   * @brief Gets the name of the file this was created with.
+   * @brief Gets the name of the file.
+   *
    * @return The file name.
    */
   inline const std::string& getFileName() const;
 
   /**
-   * @brief Returns whether or not the file is being appended to.
-   * @return True if appending to the file.
+   * @brief Checks whether the file has the appender.
+   *
+   * @return True if the file has the appender; false otherwise.
    */
   inline bool getAppendFile() const;
 
   /**
    * @brief Gets the message formatter.
+   *
    * @return The message formatter.
    */
   inline const MessageFormatter& getMessageFormatter() const;
 
   /**
    * @brief Sets the message formatter.
+   *
    * @param formatter The message formatter.
    */
   inline FileAppender& setMessageFormatter(MessageFormatter formatter);

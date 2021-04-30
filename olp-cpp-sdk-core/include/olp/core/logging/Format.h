@@ -36,23 +36,27 @@
 namespace olp {
 namespace logging {
 /**
- * @brief Typedef for a time point from the system clock.
+ * @brief A typedef for a time point from the system clock.
  */
 using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
 
 /**
- * @brief Formats a string using a printf style format string.
+ * @brief Formats a string using a printf-style format string.
+ *
  * @param formatStr The format string.
+ *
  * @return The formatted string.
  */
 CORE_API std::string format(const char* formatStr, ...)
     CHECK_PRINTF_FORMAT_STRING(1, 2);
 
 /**
- * @brief Formats a string using a printf style format string with an already
- * created va_list.
+ * @brief Formats a string using a printf-style format string with an already
+ * created `va_list` object.
+ *
  * @param formatStr The format string.
- * @param args The va_list that contains the arguments.
+ * @param args The `va_list` object that contains the arguments.
+ *
  * @return The formatted string.
  */
 CORE_API std::string formatv(const char* formatStr, va_list args);
@@ -61,61 +65,73 @@ CORE_API std::string formatv(const char* formatStr, va_list args);
  * @brief Creates a string for a timestamp using local time with the default
  * format string.
  *
- * The default format string is "%Y-%m-%d %H:%M:%S".
+ * The default format string is `%Y-%m-%d %H:%M:%S`.
+ *
  * @param timestamp The timestamp to format as seconds from epoch.
+ *
  * @return The formatted string.
  */
 CORE_API std::string formatLocalTime(const TimePoint& timestamp);
 
 /**
  * @brief Creates a string for a timestamp using local time.
- * @param timestamp The time stamp to format as seconds from epoch.
- * @param formatStr The format string to use, conforming to strftime.
+ *
+ * @param timestamp The timestamp to format as seconds from epoch.
+ * @param formatStr The format string to use, conforming to `strftime`.
+ *
  * @return The formatted string.
  */
 CORE_API std::string formatLocalTime(const TimePoint& timestamp,
                                     const char* formatStr);
 
 /**
- * @brief Creates a string for a timestamp using UTC time with the default
+ * @brief Creates a string for a timestamp using the UTC time standard with the default
  * format string.
  *
- * The default format string is "%Y-%m-%d %H:%M:%S".
+ * The default format string is `%Y-%m-%d %H:%M:%S`.
+ *
  * @param timestamp The timestamp to format as seconds from epoch.
+ *
  * @return The formatted string.
  */
 CORE_API std::string formatUtcTime(const TimePoint& timestamp);
 
 /**
- * @brief Creates a string for a timestamp using UTC time.
- * @param timestamp The time stamp to format as seconds from epoch.
- * @param formatStr The format string to use, conforming to strftime.
+ * @brief Creates a string for a timestamp using the UTC time standard.
+ *
+ * @param timestamp The timestamp to format as seconds from epoch.
+ * @param formatStr The format string to use, conforming to `strftime`.
+ *
  * @return The formatted string.
  */
 CORE_API std::string formatUtcTime(const TimePoint& timestamp,
                                   const char* formatStr);
 
 /**
- * @brief Class that attempts to format a string to a buffer before falling back
+ * @brief Attempts to format a string to a buffer before falling back
  * to a dynamically allocated string.
  *
- * This can be used to avoid allocating and std::string for smaller strings.
+ * This can be used to avoid allocating `std::string` for smaller strings.
  */
 class CORE_API FormatBuffer {
  public:
   /**
-   * @brief Formats a string using a printf style format string.
+   * @brief Formats a string using a printf-style format string.
+   *
    * @param formatStr The format string.
+   *
    * @return The formatted string.
    */
   const char* format(const char* formatStr, ...)
       CHECK_PRINTF_FORMAT_STRING(2, 3);
 
   /**
-   * @brief Formats a string using a printf style format string with an already
-   * created va_list.
+   * @brief Formats a string using a printf-style format string with an already
+   * created `va_list`.
+   *
    * @param formatStr The format string.
    * @param args The va_list that contains the arguments.
+   *
    * @return The formatted string.
    */
   const char* formatv(const char* formatStr, va_list args);
@@ -124,35 +140,43 @@ class CORE_API FormatBuffer {
    * @brief Creates a string for a timestamp using local time with the default
    * format string.
    *
-   * The default format string is "%Y-%m-%d %H:%M:%S".
+   * The default format string is `%Y-%m-%d %H:%M:%S`.
+   *
    * @param timestamp The timestamp to format as seconds from epoch.
+   *
    * @return The formatted string.
    */
   const char* formatLocalTime(const TimePoint& timestamp);
 
   /**
    * @brief Creates a string for a timestamp using local time.
-   * @param timestamp The time stamp to format as seconds from epoch.
+   *
+   * @param timestamp The timestamp to format as seconds from epoch.
    * @param formatStr The format string to use, conforming to strftime.
+   *
    * @return The formatted string.
    */
   const char* formatLocalTime(const TimePoint& timestamp,
                               const char* formatStr);
 
   /**
-   * @brief Creates a string for a timestamp using UTC time with the default
+   * @brief Creates a string for a timestamp using the UTC time standard with the default
    * format string.
    *
-   * The default format string is "%Y-%m-%d %H:%M:%S".
+   * The default format string is `%Y-%m-%d %H:%M:%S`.
+   *
    * @param timestamp The timestamp to format as seconds from epoch.
+   *
    * @return The formatted string.
    */
   const char* formatUtcTime(const TimePoint& timestamp);
 
   /**
-   * @brief Creates a string for a timestamp using UTC time.
-   * @param timestamp The time stamp to format as seconds from epoch.
+   * @brief Creates a string for a timestamp using the UTC time standard.
+   *
+   * @param timestamp The timestamp to format as seconds from epoch.
    * @param formatStr The format string to use, conforming to strftime.
+   *
    * @return The formatted string.
    */
   const char* formatUtcTime(const TimePoint& timestamp, const char* formatStr);
