@@ -60,9 +60,10 @@ class CORE_API DefaultCache : public KeyValueCache {
    * @brief The storage open result type.
    */
   enum StorageOpenResult {
-    Success,             /*!< The operation succeeded. */
-    OpenDiskPathFailure, /*!< The disk cache failure. */
-    NotReady             /*!< The DefaultCache is closed. */
+    Success,                 /*!< The operation succeeded. */
+    OpenDiskPathFailure,     /*!< The disk cache failure. */
+    ProtectedCacheCorrupted, /*!< The protected disk cache is corrupted. */
+    NotReady                 /*!< The DefaultCache is closed. */
   };
 
   /**
@@ -140,6 +141,10 @@ class CORE_API DefaultCache : public KeyValueCache {
    * operation in parallel for the time of the compacting operation. Be aware
    * that automatic asynchronous compacting operation is triggered internally
    * once the database size exceeds the CacheSettings::max_disk_storage size.
+   *
+   * @note After the compaction is finished the cache is checked on level-0 file
+   * presence. If there are still some files present another round of compaction
+   * is performed.
    */
   void Compact();
 

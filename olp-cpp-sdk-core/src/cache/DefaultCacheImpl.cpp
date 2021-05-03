@@ -31,6 +31,7 @@
 
 namespace {
 using CacheType = olp::cache::DefaultCache::CacheType;
+using StorageOpenResult = olp::cache::DefaultCache::StorageOpenResult;
 
 constexpr auto kLogTag = "DefaultCache";
 constexpr auto kExpirySuffix = "::expiry";
@@ -118,6 +119,21 @@ int64_t GetElapsedTime(std::chrono::steady_clock::time_point start) {
 
 bool IsInternalKey(const std::string& key) {
   return key.find(kInternalKeysPrefix) == 0u;
+}
+
+olp::cache::DefaultCache::StorageOpenResult ToStorageOpenResult(
+    olp::cache::OpenResult input) {
+  switch (input) {
+    case olp::cache::OpenResult::Fail:
+      return StorageOpenResult::OpenDiskPathFailure;
+    case olp::cache::OpenResult::Corrupted:
+      return StorageOpenResult::ProtectedCacheCorrupted;
+    case olp::cache::OpenResult::Repaired:
+    case olp::cache::OpenResult::Success:
+      return StorageOpenResult::Success;
+  }
+
+  return {};
 }
 }  // namespace
 
@@ -817,13 +833,13 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupProtectedCache() {
   auto status = protected_cache_->Open(
       settings_.disk_path_protected.get(), settings_.disk_path_protected.get(),
       protected_storage_settings, OpenOptions::ReadOnly);
-  if (status == OpenResult::Fail) {
-    OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to reopen protected cache %s",
+  if (status != OpenResult::Success) {
+    OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to open protected cache %s",
                         settings_.disk_path_protected.get().c_str());
 
     protected_cache_.reset();
     settings_.disk_path_protected = boost::none;
-    return DefaultCache::OpenDiskPathFailure;
+    return ToStorageOpenResult(status);
   }
 
   return DefaultCache::Success;
@@ -836,13 +852,15 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupMutableCache() {
   auto status = mutable_cache_->Open(settings_.disk_path_mutable.get(),
                                      settings_.disk_path_mutable.get(),
                                      storage_settings, OpenOptions::Default);
-  if (status == OpenResult::Fail) {
+  if (status == OpenResult::Repaired) {
+    OLP_SDK_LOG_INFO(kLogTag, "Mutable cache was repaired");
+  } else if (status == OpenResult::Fail) {
     OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to open the mutable cache %s",
                         settings_.disk_path_mutable.get().c_str());
 
     mutable_cache_.reset();
     settings_.disk_path_mutable = boost::none;
-    return DefaultCache::OpenDiskPathFailure;
+    return StorageOpenResult::OpenDiskPathFailure;
   }
 
   // read protected keys
