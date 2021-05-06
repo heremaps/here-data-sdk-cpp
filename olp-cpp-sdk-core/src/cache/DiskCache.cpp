@@ -268,12 +268,14 @@ OpenResult DiskCache::Open(const std::string& data_path,
     error_ = NoError{};
   }
 
-  if (is_read_only && !CheckCompactionFinished(*db)) {
+  std::unique_ptr<leveldb::DB> tmp_db{db};
+
+  if (is_read_only && !CheckCompactionFinished(*tmp_db)) {
     OLP_SDK_LOG_ERROR(kLogTag, "Open: interrupted compaction detected");
     return OpenResult::Corrupted;
   }
 
-  database_.reset(db);
+  database_.swap(tmp_db);
 
   return OpenResult::Success;
 }
