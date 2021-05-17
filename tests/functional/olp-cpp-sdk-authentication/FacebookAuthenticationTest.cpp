@@ -17,14 +17,14 @@
  * License-Filename: LICENSE
  */
 
+#include <thread>
+
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
 #include "AuthenticationCommonTestFixture.h"
 #include "AuthenticationTestUtils.h"
 #include "TestConstants.h"
-
-using namespace ::olp::authentication;
 
 namespace {
 

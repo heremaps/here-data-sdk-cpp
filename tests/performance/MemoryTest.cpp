@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include <memory>
+#include <thread>
 
 #include <gtest/gtest.h>
 #include <olp/core/client/HRN.h>

@@ -17,8 +17,10 @@
  * License-Filename: LICENSE
  */
 
-#include <gtest/gtest.h>
 #include <chrono>
+#include <thread>
+
+#include <gtest/gtest.h>
 
 #include <cache/DefaultCacheImpl.h>
 #include <olp/core/utils/Dir.h>

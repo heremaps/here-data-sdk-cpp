@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+#include <thread>
+
 #include <gtest/gtest.h>
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/client/ApiError.h>

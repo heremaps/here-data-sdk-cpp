@@ -20,6 +20,7 @@
 #include "CatalogClientTestBase.h"
 
 #include <regex>
+#include <thread>
 
 #include <gmock/gmock.h>
 #include <matchers/NetworkUrlMatchers.h>

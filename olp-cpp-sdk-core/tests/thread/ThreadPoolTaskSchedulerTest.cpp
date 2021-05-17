@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+#include <thread>
 #include <unordered_map>
 
 #include <gmock/gmock.h>
