@@ -125,8 +125,9 @@ PartitionsRepository::PartitionsRepository(client::HRN catalog,
 QueryApi::PartitionsExtendedResponse
 PartitionsRepository::GetVersionedPartitionsExtendedResponse(
     const read::PartitionsRequest& request, std::int64_t version,
-    client::CancellationContext context) {
-  return GetPartitionsExtendedResponse(request, version, std::move(context));
+    client::CancellationContext context, const bool fail_on_cache_error) {
+  return GetPartitionsExtendedResponse(request, version, std::move(context),
+                                       boost::none, fail_on_cache_error);
 }
 
 PartitionsResponse PartitionsRepository::GetVersionedPartitions(
@@ -161,7 +162,8 @@ PartitionsResponse PartitionsRepository::GetVolatilePartitions(
 QueryApi::PartitionsExtendedResponse
 PartitionsRepository::GetPartitionsExtendedResponse(
     const PartitionsRequest& request, boost::optional<std::int64_t> version,
-    client::CancellationContext context, boost::optional<time_t> expiry) {
+    client::CancellationContext context, boost::optional<time_t> expiry,
+    const bool fail_on_cache_error) {
   auto fetch_option = request.GetFetchOption();
   const auto key = request.CreateKey(layer_id_);
 
@@ -233,7 +235,14 @@ PartitionsRepository::GetPartitionsExtendedResponse(
     OLP_SDK_LOG_DEBUG_F(kLogTag,
                         "GetPartitions put to cache, hrn='%s', key='%s'",
                         catalog_str.c_str(), key.c_str());
-    cache_.Put(response.GetResult(), version, expiry, is_layer_metadata);
+    const auto put_result =
+        cache_.Put(response.GetResult(), version, expiry, is_layer_metadata);
+    if (!put_result.IsSuccessful() && fail_on_cache_error) {
+      OLP_SDK_LOG_ERROR_F(kLogTag,
+                          "Failed to write data to cache, hrn='%s', key='%s'",
+                          catalog_.ToCatalogHRNString().c_str(), key.c_str());
+      return put_result.GetError();
+    }
   }
   if (!response.IsSuccessful()) {
     const auto& error = response.GetError();

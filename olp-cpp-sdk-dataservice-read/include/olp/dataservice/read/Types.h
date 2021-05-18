@@ -24,6 +24,7 @@
 #include <vector>
 
 #include <olp/core/client/ApiError.h>
+#include <olp/core/client/ApiNoResult.h>
 #include <olp/core/client/ApiResponse.h>
 
 #include <olp/dataservice/read/AggregatedDataResult.h>

@@ -22,6 +22,7 @@
 #include <chrono>
 #include <memory>
 
+#include <olp/core/client/ApiNoResult.h>
 #include <olp/core/client/HRN.h>
 #include <olp/dataservice/read/model/Data.h>
 #include <boost/optional.hpp>
@@ -42,8 +43,9 @@ class DataCacheRepository final {
 
   ~DataCacheRepository() = default;
 
-  void Put(const model::Data& data, const std::string& layer_id,
-           const std::string& data_handle);
+  client::ApiNoResponse Put(const model::Data& data,
+                            const std::string& layer_id,
+                            const std::string& data_handle);
 
   boost::optional<model::Data> Get(const std::string& layer_id,
                                    const std::string& data_handle);

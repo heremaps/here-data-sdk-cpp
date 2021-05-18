@@ -49,16 +49,19 @@ class DataRepository final {
   BlobApi::DataResponse GetVersionedData(const std::string& layer_id,
                                          const DataRequest& request,
                                          int64_t version,
-                                         client::CancellationContext context);
+                                         client::CancellationContext context,
+                                         bool fail_on_cache_error = false);
 
   BlobApi::DataResponse GetVolatileData(const std::string& layer_id,
                                         const DataRequest& request,
-                                        client::CancellationContext context);
+                                        client::CancellationContext context,
+                                        bool fail_on_cache_error = false);
 
   BlobApi::DataResponse GetBlobData(const std::string& layer,
                                     const std::string& service,
                                     const DataRequest& request,
-                                    client::CancellationContext context);
+                                    client::CancellationContext context,
+                                    bool fail_on_cache_error = false);
 
  private:
   client::HRN catalog_;

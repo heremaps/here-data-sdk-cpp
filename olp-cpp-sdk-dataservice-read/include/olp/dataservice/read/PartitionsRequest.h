@@ -135,7 +135,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
    */
   inline PartitionsRequest& WithBillingTag(
       boost::optional<std::string> billingTag) {
-    billing_tag_ = billingTag;
+    billing_tag_ = std::move(billingTag);
     return *this;
   }
 

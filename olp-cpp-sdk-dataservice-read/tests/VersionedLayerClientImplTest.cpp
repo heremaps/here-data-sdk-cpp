@@ -24,6 +24,7 @@
 #include <mocks/CacheMock.h>
 #include <mocks/NetworkMock.h>
 
+#include <cache/DefaultCacheImpl.h>
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/cache/KeyValueCache.h>
@@ -31,6 +32,7 @@
 #include <olp/core/utils/Dir.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include "ApiDefaultResponses.h"
+#include "KeyValueCacheTestable.h"
 #include "PlatformUrlsGenerator.h"
 #include "ReadDefaultResponses.h"
 #include "ResponseGenerator.h"
@@ -58,6 +60,7 @@ const auto kHrn = olp::client::HRN::FromString(kCatalog);
 const auto kPartitionId = "269";
 const auto kCatalogVersion = 108;
 const auto kTimeout = std::chrono::seconds(5);
+const auto kMutableCachePath = olp::utils::Dir::TempDirectory() + "/unittest";
 constexpr auto kBlobDataHandle = R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)";
 constexpr auto kHereTile = "23618364";
 constexpr auto kOtherHereTile = "1476147";
@@ -1123,4 +1126,122 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsCancel) {
   Mock::VerifyAndClearExpectations(network_mock.get());
 }
 
+TEST(VersionedLayerClientTest, CacheErrorsDuringPrefetch) {
+  olp::utils::Dir::Remove(kMutableCachePath);
+
+  olp::cache::CacheSettings cache_settings;
+  cache_settings.disk_path_mutable = kMutableCachePath;
+  auto base_cache =
+      std::make_shared<olp::cache::DefaultCache>(std::move(cache_settings));
+
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  olp::client::OlpClientSettings settings;
+  settings.network_request_handler = network_mock;
+  settings.cache = std::make_shared<CacheWithPutErrors>(base_cache);
+
+  auto apis = ApiDefaultResponses::GenerateResourceApisResponse(kCatalog);
+  auto api_response = ResponseGenerator::ResourceApis(apis);
+  PlatformUrlsGenerator generator(apis, kLayerId);
+
+  const auto kVersion = 4u;
+  read::VersionedLayerClientImpl client(kHrn, kLayerId, kVersion, settings);
+
+  {
+    SCOPED_TRACE("Prefetch partitions");
+
+    const auto kPartitionsCount = 2u;
+    std::vector<std::string> partitions;
+    partitions.reserve(kPartitionsCount);
+    for (auto i = 0u; i < kPartitionsCount; ++i) {
+      partitions.emplace_back(std::to_string(i));
+    }
+
+    const auto partitions_response =
+        ReadDefaultResponses::GeneratePartitionsResponse(kPartitionsCount);
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     api_response));
+
+    const auto partitions_path =
+        generator.PartitionsQuery(partitions, kVersion);
+    ASSERT_FALSE(partitions_path.empty());
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(partitions_path), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(
+                olp::http::HttpStatusCode::OK),
+            olp::serializer::serialize(partitions_response)));
+
+    const auto request =
+        read::PrefetchPartitionsRequest().WithPartitionIds(partitions);
+
+    std::promise<read::PrefetchPartitionsResponse> promise;
+
+    auto token = client.PrefetchPartitions(
+        request,
+        [&promise](read::PrefetchPartitionsResponse response) {
+          promise.set_value(std::move(response));
+        },
+        nullptr);
+
+    auto future = promise.get_future();
+    ASSERT_NE(future.wait_for(std::chrono::seconds(kTimeout)),
+              std::future_status::timeout);
+
+    auto response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::CacheIO);
+
+    Mock::VerifyAndClearExpectations(network_mock.get());
+  }
+
+  {
+    SCOPED_TRACE("Prefetch tiles");
+
+    const auto kDepth = 4;
+    const auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
+    const auto root_tile_key = tile_key.ChangedLevelBy(-kDepth);
+
+    auto quad_tree_path =
+        generator.VersionedQuadTree("92259", kVersion, kDepth);
+    auto quad_tree_response = ReadDefaultResponses::GenerateQuadTreeResponse(
+        root_tile_key, kDepth, {9, 10, 11, 12});
+
+    const std::vector<olp::geo::TileKey> tile_keys = {
+        olp::geo::TileKey::FromHereTile(kHereTile)};
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(quad_tree_path), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     quad_tree_response));
+
+    const auto request = read::PrefetchTilesRequest()
+                             .WithTileKeys(tile_keys)
+                             .WithMinLevel(8)
+                             .WithMaxLevel(12);
+
+    std::promise<read::PrefetchTilesResponse> promise;
+
+    auto token =
+        client.PrefetchTiles(request,
+                             [&promise](read::PrefetchTilesResponse response) {
+                               promise.set_value(std::move(response));
+                             },
+                             nullptr);
+
+    auto future = promise.get_future();
+    ASSERT_NE(future.wait_for(std::chrono::seconds(kTimeout)),
+              std::future_status::timeout);
+
+    auto response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::CacheIO);
+
+    Mock::VerifyAndClearExpectations(network_mock.get());
+  }
+}
 }  // namespace

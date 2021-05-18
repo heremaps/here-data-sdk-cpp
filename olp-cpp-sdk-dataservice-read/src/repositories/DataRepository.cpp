@@ -79,12 +79,12 @@ DataResponse DataRepository::GetVersionedTile(
                                 .WithDataHandle(partition.GetDataHandle())
                                 .WithFetchOption(request.GetFetchOption());
 
-  return GetBlobData(layer_id, kBlobService, data_request, context);
+  return GetBlobData(layer_id, kBlobService, data_request, std::move(context));
 }
 
 BlobApi::DataResponse DataRepository::GetVersionedData(
     const std::string& layer_id, const DataRequest& request, int64_t version,
-    client::CancellationContext context) {
+    client::CancellationContext context, const bool fail_on_cache_error) {
   if (request.GetDataHandle() && request.GetPartitionId()) {
     return {{client::ErrorCode::PreconditionFailed,
              "Both data handle and partition id specified"}};
@@ -119,13 +119,15 @@ BlobApi::DataResponse DataRepository::GetVersionedData(
   }
 
   // finally get the data using a data handle
-  return repository::DataRepository::GetBlobData(layer_id, kBlobService,
-                                                 blob_request, context);
+  return repository::DataRepository::GetBlobData(
+      layer_id, kBlobService, blob_request, std::move(context),
+      fail_on_cache_error);
 }
 
 BlobApi::DataResponse DataRepository::GetBlobData(
     const std::string& layer, const std::string& service,
-    const DataRequest& request, client::CancellationContext context) {
+    const DataRequest& request, client::CancellationContext context,
+    const bool fail_on_cache_error) {
   auto fetch_option = request.GetFetchOption();
   const auto& data_handle = request.GetDataHandle();
 
@@ -181,7 +183,16 @@ BlobApi::DataResponse DataRepository::GetBlobData(
   }
 
   if (storage_response.IsSuccessful() && fetch_option != OnlineOnly) {
-    repository.Put(storage_response.GetResult(), layer, data_handle.value());
+    const auto put_result = repository.Put(storage_response.GetResult(), layer,
+                                           data_handle.value());
+    if (!put_result.IsSuccessful() && fail_on_cache_error) {
+      OLP_SDK_LOG_ERROR_F(kLogTag,
+                          "Failed to write data to cache, hrn='%s', "
+                          "layer='%s', data_handle='%s'",
+                          catalog_.ToCatalogHRNString().c_str(), layer.c_str(),
+                          data_handle->c_str());
+      return put_result.GetError();
+    }
   }
 
   if (!storage_response.IsSuccessful()) {
@@ -200,7 +211,7 @@ BlobApi::DataResponse DataRepository::GetBlobData(
 
 BlobApi::DataResponse DataRepository::GetVolatileData(
     const std::string& layer_id, const DataRequest& request,
-    client::CancellationContext context) {
+    client::CancellationContext context, const bool fail_on_cache_error) {
   if (request.GetDataHandle() && request.GetPartitionId()) {
     return {{client::ErrorCode::PreconditionFailed,
              "Both data handle and partition id specified"}};
@@ -232,7 +243,8 @@ BlobApi::DataResponse DataRepository::GetVolatileData(
     blob_request.WithDataHandle(partitions.front().GetDataHandle());
   }
 
-  return GetBlobData(layer_id, kVolatileBlobService, blob_request, context);
+  return GetBlobData(layer_id, kVolatileBlobService, blob_request,
+                     std::move(context), fail_on_cache_error);
 }
 
 }  // namespace repository

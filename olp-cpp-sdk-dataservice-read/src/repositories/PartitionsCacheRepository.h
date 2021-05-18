@@ -22,6 +22,7 @@
 #include <chrono>
 #include <memory>
 
+#include <olp/core/client/ApiNoResult.h>
 #include <olp/core/client/HRN.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/model/Partitions.h>
@@ -46,9 +47,10 @@ class PartitionsCacheRepository final {
 
   ~PartitionsCacheRepository() = default;
 
-  void Put(const model::Partitions& partitions,
-           const boost::optional<int64_t>& version,
-           const boost::optional<time_t>& expiry, bool layer_metadata = false);
+  client::ApiNoResponse Put(const model::Partitions& partitions,
+                            const boost::optional<int64_t>& version,
+                            const boost::optional<time_t>& expiry,
+                            bool layer_metadata = false);
 
   model::Partitions Get(const std::vector<std::string>& partition_ids,
                         const boost::optional<int64_t>& version);
@@ -61,8 +63,9 @@ class PartitionsCacheRepository final {
 
   boost::optional<model::LayerVersions> Get(int64_t catalog_version);
 
-  void Put(geo::TileKey tile_key, int32_t depth, const QuadTreeIndex& quad_tree,
-           const boost::optional<int64_t>& version);
+  client::ApiNoResponse Put(geo::TileKey tile_key, int32_t depth,
+                            const QuadTreeIndex& quad_tree,
+                            const boost::optional<int64_t>& version);
 
   bool Get(geo::TileKey tile_key, int32_t depth,
            const boost::optional<int64_t>& version, QuadTreeIndex& tree);
