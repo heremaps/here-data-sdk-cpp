@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+#include <thread>
+
 #include <gmock/gmock.h>
 
 #include <olp/authentication/AuthenticationClient.h>

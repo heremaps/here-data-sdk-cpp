@@ -851,7 +851,7 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupMutableCache() {
   mutable_cache_ = std::make_unique<DiskCache>();
   auto status = mutable_cache_->Open(settings_.disk_path_mutable.get(),
                                      settings_.disk_path_mutable.get(),
-                                     storage_settings, OpenOptions::Default);
+                                     storage_settings, settings_.openOptions);
   if (status == OpenResult::Repaired) {
     OLP_SDK_LOG_INFO(kLogTag, "Mutable cache was repaired");
   } else if (status == OpenResult::Fail) {

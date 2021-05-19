@@ -20,6 +20,7 @@
 #include <chrono>
 #include <iostream>
 #include <string>
+#include <thread>
 
 #include <gtest/gtest.h>
 #include <olp/authentication/Settings.h>

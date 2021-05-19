@@ -17,6 +17,8 @@
  * License-Filename: LICENSE
  */
 
+#include <thread>
+
 #include <gtest/gtest.h>
 
 #include <matchers/NetworkUrlMatchers.h>

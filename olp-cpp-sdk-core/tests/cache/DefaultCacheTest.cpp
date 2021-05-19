@@ -17,12 +17,12 @@
  * License-Filename: LICENSE
  */
 
-#include <gtest/gtest.h>
-
 #include <chrono>
 #include <fstream>
 #include <string>
 #include <thread>
+
+#include <gtest/gtest.h>
 
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/cache/DefaultCache.h>

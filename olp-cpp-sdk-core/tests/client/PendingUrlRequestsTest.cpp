@@ -17,14 +17,15 @@
  * License-Filename: LICENSE
  */
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
 #include <chrono>
 #include <future>
 #include <queue>
 #include <sstream>
 #include <string>
+#include <thread>
+
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/OlpClient.h>

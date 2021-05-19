@@ -22,6 +22,7 @@
 #include <chrono>
 #include <iomanip>
 #include <sstream>
+#include <thread>
 
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>

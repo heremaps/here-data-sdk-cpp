@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include "AuthenticationCommonTestFixture.h"
+#include <thread>
 
 #include <gmock/gmock.h>
 
@@ -25,6 +25,7 @@
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/porting/warning_disable.h>
 #include <testutils/CustomParameters.hpp>
+#include "AuthenticationCommonTestFixture.h"
 #include "AuthenticationTestUtils.h"
 #include "TestConstants.h"
 

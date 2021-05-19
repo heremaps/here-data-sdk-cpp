@@ -17,11 +17,12 @@
  * License-Filename: LICENSE
  */
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 #include <atomic>
 #include <chrono>
 #include <thread>
+
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include <olp/core/thread/SyncQueue.h>
 
@@ -34,8 +35,7 @@ using SyncQueueIncFifo = olp::thread::SyncQueueFifo<SyncIncType>;
 using SharedQueueType = std::shared_ptr<std::string>;
 using SyncQueueShared = olp::thread::SyncQueueFifo<SharedQueueType>;
 
-using namespace ::testing;
-using namespace std::chrono;
+using milliseconds = std::chrono::milliseconds;
 
 TEST(SyncQueueTest, Initialize) {
   SCOPED_TRACE("Default initialized not closed");
@@ -190,11 +190,12 @@ TEST(SyncQueueTest, ConcurrentUsage) {
   }
 
   // Wait for threads to finish but do not exceed 1min
-  const auto start = system_clock::now();
+  const auto start = std::chrono::system_clock::now();
   auto check_condition = [&]() {
     return counter.load() < kNumThreads &&
-           duration_cast<milliseconds>(system_clock::now() - start).count() <
-               1000u;
+           std::chrono::duration_cast<milliseconds>(
+               std::chrono::system_clock::now() - start)
+                   .count() < 1000u;
   };
 
   while (check_condition()) {
@@ -203,7 +204,7 @@ TEST(SyncQueueTest, ConcurrentUsage) {
 
   // Each thread should have run once, each task executed
   const std::vector<uint32_t> expected(kNumThreads, 1u);
-  EXPECT_THAT(thread_counter, ContainerEq(expected));
+  EXPECT_THAT(thread_counter, ::testing::ContainerEq(expected));
   EXPECT_EQ(kNumThreads, counter.load());
 
   // Close and join all threads

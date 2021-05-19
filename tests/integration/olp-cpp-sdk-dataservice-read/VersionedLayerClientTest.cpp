@@ -24,6 +24,7 @@
 #include <memory>
 #include <numeric>
 #include <string>
+#include <thread>
 
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/CacheMock.h>
