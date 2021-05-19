@@ -27,6 +27,7 @@
 #include "olp/dataservice/read/DataRequest.h"
 #include "olp/dataservice/read/Types.h"
 
+#include "NamedMutex.h"
 #include "generated/api/BlobApi.h"
 
 namespace olp {
@@ -38,7 +39,8 @@ namespace repository {
 class DataRepository final {
  public:
   DataRepository(client::HRN catalog, client::OlpClientSettings settings,
-                 client::ApiLookupClient client);
+                 client::ApiLookupClient client,
+                 NamedMutexStorage storage = NamedMutexStorage());
 
   DataResponse GetVersionedTile(const std::string& layer_id,
                                 const TileRequest& request, int64_t version,
@@ -62,6 +64,7 @@ class DataRepository final {
   client::HRN catalog_;
   client::OlpClientSettings settings_;
   client::ApiLookupClient lookup_client_;
+  NamedMutexStorage storage_;
 };
 
 }  // namespace repository

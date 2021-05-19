@@ -19,9 +19,6 @@
 
 #include "NamedMutex.h"
 
-#include <memory>
-#include <unordered_map>
-
 #include <olp/core/porting/make_unique.h>
 
 namespace olp {
@@ -29,40 +26,55 @@ namespace dataservice {
 namespace read {
 namespace repository {
 
-namespace {
+class NamedMutexStorage::Impl {
+ public:
+  std::mutex& AquireLock(const std::string& resource);
+  void ReleaseLock(const std::string& resource);
 
-static std::mutex gMutex;
+ private:
+  struct RefCounterMutex {
+    std::mutex mutex;
+    uint32_t use_count{0u};
+  };
 
-struct RefCounterMutex {
-  explicit RefCounterMutex() : mutex(std::make_unique<std::mutex>()) {}
-
-  std::unique_ptr<std::mutex> mutex;
-  uint32_t use_count{0};
+  std::mutex mutex_;
+  std::unordered_map<std::string, RefCounterMutex> mutexes_;
 };
 
-static std::unordered_map<std::string, RefCounterMutex> gMutexes;
-
-std::mutex& AquireLock(const std::string& resource) {
-  std::unique_lock<std::mutex> lock(gMutex);
-  RefCounterMutex& ref_mutex = gMutexes[resource];
+std::mutex& NamedMutexStorage::Impl::AquireLock(const std::string& resource) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  RefCounterMutex& ref_mutex = mutexes_[resource];
   ref_mutex.use_count++;
-  return *ref_mutex.mutex;
+  return ref_mutex.mutex;
 }
 
-void ReleaseLock(const std::string& resource) {
-  std::unique_lock<std::mutex> lock(gMutex);
-  RefCounterMutex& ref_mutex = gMutexes[resource];
-  if (--ref_mutex.use_count == 0) {
-    gMutexes.erase(resource);
+void NamedMutexStorage::Impl::ReleaseLock(const std::string& resource) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  auto mutex_it = mutexes_.find(resource);
+  if (mutex_it == mutexes_.end()) {
+    return;
+  }
+
+  RefCounterMutex& ref_mutex = mutex_it->second;
+  if (--ref_mutex.use_count == 0u) {
+    mutexes_.erase(mutex_it);
   }
 }
 
-}  // namespace
+NamedMutexStorage::NamedMutexStorage() : impl_(std::make_shared<Impl>()) {}
 
-NamedMutex::NamedMutex(const std::string& name)
-    : name_{name}, mutex_{AquireLock(name_)} {}
+std::mutex& NamedMutexStorage::AquireLock(const std::string& resource) {
+  return impl_->AquireLock(resource);
+}
 
-NamedMutex::~NamedMutex() { ReleaseLock(name_); }
+void NamedMutexStorage::ReleaseLock(const std::string& resource) {
+  impl_->ReleaseLock(resource);
+}
+
+NamedMutex::NamedMutex(NamedMutexStorage& storage, const std::string& name)
+    : storage_{storage}, name_{name}, mutex_{storage_.AquireLock(name_)} {}
+
+NamedMutex::~NamedMutex() { storage_.ReleaseLock(name_); }
 
 void NamedMutex::lock() { mutex_.lock(); }
 

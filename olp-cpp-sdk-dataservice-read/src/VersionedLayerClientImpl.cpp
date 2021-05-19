@@ -101,7 +101,7 @@ client::CancellationToken VersionedLayerClientImpl::GetPartitions(
     const auto version = version_response.GetResult().GetVersion();
 
     repository::PartitionsRepository repository(catalog_, layer_id_, settings_,
-                                                lookup_client_);
+                                                lookup_client_, mutex_storage_);
     return repository.GetVersionedPartitionsExtendedResponse(
         std::move(partitions_request), version, context);
   };
@@ -124,11 +124,6 @@ VersionedLayerClientImpl::GetPartitions(PartitionsRequest partitions_request) {
 
 client::CancellationToken VersionedLayerClientImpl::GetData(
     DataRequest request, DataResponseCallback callback) {
-  auto catalog = catalog_;
-  auto layer_id = layer_id_;
-  auto settings = settings_;
-  auto lookup_client = lookup_client_;
-
   auto data_task =
       [=](client::CancellationContext context) mutable -> DataResponse {
     if (request.GetFetchOption() == CacheWithUpdate) {
@@ -147,9 +142,9 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
       version = version_response.GetResult().GetVersion();
     }
 
-    repository::DataRepository repository(
-        std::move(catalog), std::move(settings), std::move(lookup_client));
-    return repository.GetVersionedData(layer_id, request, version, context);
+    repository::DataRepository repository(catalog_, settings_, lookup_client_,
+                                          mutex_storage_);
+    return repository.GetVersionedData(layer_id_, request, version, context);
   };
 
   return task_sink_.AddTask(std::move(data_task), std::move(callback),
@@ -212,7 +207,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
                        catalog_.ToCatalogHRNString().c_str(), key.c_str());
 
     repository::PartitionsRepository repository(catalog_, layer_id_, settings_,
-                                                lookup_client_);
+                                                lookup_client_, mutex_storage_);
 
     auto query = [=](std::vector<std::string> partitions,
                      client::CancellationContext inner_context) mutable
@@ -256,8 +251,8 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
         return BlobApi::DataResponse(nullptr);
       }
 
-      repository::DataRepository repository(catalog_, settings_,
-                                            lookup_client_);
+      repository::DataRepository repository(catalog_, settings_, lookup_client_,
+                                            mutex_storage_);
       // Fetch from online
       return repository.GetVersionedData(
           layer_id_,
@@ -367,7 +362,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
 
         repository::PrefetchTilesRepository repository(
             catalog_, layer_id_, settings_, lookup_client_,
-            request.GetBillingTag());
+            request.GetBillingTag(), mutex_storage_);
 
         auto sliced_tiles = repository.GetSlicedTiles(request.GetTileKeys(),
                                                       min_level, max_level);
@@ -427,7 +422,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
           }
 
           repository::DataRepository repository(catalog_, settings_,
-                                                lookup_client_);
+                                                lookup_client_, mutex_storage_);
           // Fetch from online
           return repository.GetVersionedData(layer_id_,
                                              DataRequest()
@@ -514,11 +509,6 @@ CatalogVersionResponse VersionedLayerClientImpl::GetVersion(
 
 client::CancellationToken VersionedLayerClientImpl::GetData(
     TileRequest request, DataResponseCallback callback) {
-  auto catalog = catalog_;
-  auto layer_id = layer_id_;
-  auto settings = settings_;
-  auto lookup_client = lookup_client_;
-
   auto data_task = [=](client::CancellationContext context) -> DataResponse {
     if (request.GetFetchOption() == CacheWithUpdate) {
       return {{client::ErrorCode::InvalidArgument,
@@ -535,10 +525,10 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
       return version_response.GetError();
     }
 
-    repository::DataRepository repository(
-        std::move(catalog), std::move(settings), std::move(lookup_client));
+    repository::DataRepository repository(catalog_, settings_, lookup_client_,
+                                          mutex_storage_);
     return repository.GetVersionedTile(
-        layer_id, request, version_response.GetResult().GetVersion(), context);
+        layer_id_, request, version_response.GetResult().GetVersion(), context);
   };
 
   return task_sink_.AddTask(std::move(data_task), std::move(callback),
@@ -667,11 +657,6 @@ bool VersionedLayerClientImpl::IsCached(const geo::TileKey& tile,
 
 client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     TileRequest request, AggregatedDataResponseCallback callback) {
-  auto catalog = catalog_;
-  auto layer_id = layer_id_;
-  auto settings = settings_;
-  auto lookup_client = lookup_client_;
-
   auto data_task =
       [=](client::CancellationContext context) -> AggregatedDataResponse {
     const auto fetch_option = request.GetFetchOption();
@@ -693,8 +678,8 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     }
 
     auto version = version_response.GetResult().GetVersion();
-    repository::PartitionsRepository repository(catalog_, layer_id, settings_,
-                                                lookup_client_);
+    repository::PartitionsRepository repository(catalog_, layer_id_, settings_,
+                                                lookup_client_, mutex_storage_);
     auto partition_response =
         repository.GetAggregatedTile(std::move(request), version, context);
     if (!partition_response.IsSuccessful()) {
@@ -710,10 +695,10 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
                             .WithFetchOption(fetch_option)
                             .WithBillingTag(billing_tag);
 
-    repository::DataRepository data_repository(
-        std::move(catalog), std::move(settings), std::move(lookup_client));
+    repository::DataRepository data_repository(catalog_, settings_,
+                                               lookup_client_, mutex_storage_);
     auto data_response = data_repository.GetVersionedData(
-        layer_id, data_request, version, context);
+        layer_id_, data_request, version, context);
 
     if (!data_response.IsSuccessful()) {
       OLP_SDK_LOG_WARNING_F(

@@ -27,7 +27,6 @@
 #include <olp/core/client/Condition.h>
 #include <olp/core/logging/Log.h>
 #include "CatalogRepository.h"
-#include "NamedMutex.h"
 #include "generated/api/MetadataApi.h"
 #include "generated/api/QueryApi.h"
 #include "olp/dataservice/read/CatalogRequest.h"
@@ -113,13 +112,15 @@ namespace repository {
 PartitionsRepository::PartitionsRepository(client::HRN catalog,
                                            std::string layer,
                                            client::OlpClientSettings settings,
-                                           client::ApiLookupClient client)
+                                           client::ApiLookupClient client,
+                                           NamedMutexStorage storage)
     : catalog_(std::move(catalog)),
       layer_id_(std::move(layer)),
       settings_(std::move(settings)),
       lookup_client_(std::move(client)),
       cache_(catalog_, layer_id_, settings_.cache,
-             settings_.default_cache_expiration) {}
+             settings_.default_cache_expiration),
+      storage_(std::move(storage)) {}
 
 QueryApi::PartitionsExtendedResponse
 PartitionsRepository::GetVersionedPartitionsExtendedResponse(
@@ -173,7 +174,8 @@ PartitionsRepository::GetPartitionsExtendedResponse(
   const auto detail =
       partition_ids.empty() ? "" : HashPartitions(partition_ids);
   const auto version_str = version ? std::to_string(*version) : "";
-  NamedMutex mutex(catalog_str + layer_id_ + version_str + detail);
+
+  NamedMutex mutex(storage_, catalog_str + layer_id_ + version_str + detail);
   std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);
 
   // If we are not planning to go online or access the cache, do not lock.
@@ -267,7 +269,7 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
   const auto request_key =
       catalog_.ToString() + request.CreateKey(layer_id_, version);
 
-  NamedMutex mutex(request_key);
+  NamedMutex mutex(storage_, request_key);
   std::unique_lock<repository::NamedMutex> lock(mutex, std::defer_lock);
 
   // If we are not planning to go online or access the cache, do not lock.
@@ -353,7 +355,7 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
   const auto quad_cache_key =
       cache_.CreateQuadKey(root_tile_key, kAggregateQuadTreeDepth, version);
 
-  NamedMutex mutex(quad_cache_key);
+  NamedMutex mutex(storage_, quad_cache_key);
   std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);
 
   // If we are not planning to go online or access the cache, do not lock.

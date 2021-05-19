@@ -36,6 +36,7 @@
 #include <olp/dataservice/read/Types.h>
 #include <boost/optional.hpp>
 #include "TaskSink.h"
+#include "repositories/NamedMutex.h"
 
 namespace olp {
 namespace thread {
@@ -124,6 +125,7 @@ class VersionedLayerClientImpl {
   std::atomic<int64_t> catalog_version_;
   client::ApiLookupClient lookup_client_;
   TaskSink task_sink_;
+  repository::NamedMutexStorage mutex_storage_;
 };
 
 }  // namespace read

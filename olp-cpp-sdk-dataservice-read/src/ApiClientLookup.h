@@ -28,6 +28,7 @@
 #include <olp/core/client/OlpClient.h>
 #include "generated/model/Api.h"
 #include "olp/dataservice/read/FetchOptions.h"
+#include "repositories/NamedMutex.h"
 
 namespace olp {
 namespace dataservice {
@@ -45,7 +46,8 @@ class ApiClientLookup {
       const client::HRN& catalog,
       client::CancellationContext cancellation_context, std::string service,
       std::string service_version, FetchOptions options,
-      client::OlpClientSettings settings);
+      client::OlpClientSettings settings,
+      repository::NamedMutexStorage storage = repository::NamedMutexStorage());
 };
 
 }  // namespace read

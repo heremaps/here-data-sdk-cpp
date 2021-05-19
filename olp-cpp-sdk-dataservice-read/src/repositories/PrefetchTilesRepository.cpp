@@ -32,7 +32,6 @@
 #include <olp/core/thread/Atomic.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include "ExtendedApiResponseHelpers.h"
-#include "NamedMutex.h"
 #include "PartitionsRepository.h"
 #include "QuadTreeIndex.h"
 #include "generated/api/QueryApi.h"
@@ -62,7 +61,7 @@ SubQuadsResult FlattenTree(const QuadTreeIndex& tree) {
 PrefetchTilesRepository::PrefetchTilesRepository(
     client::HRN catalog, const std::string& layer_id,
     client::OlpClientSettings settings, client::ApiLookupClient client,
-    boost::optional<std::string> billing_tag)
+    boost::optional<std::string> billing_tag, NamedMutexStorage storage)
     : catalog_(std::move(catalog)),
       catalog_str_(catalog_.ToString()),
       layer_id_(layer_id),
@@ -70,7 +69,8 @@ PrefetchTilesRepository::PrefetchTilesRepository(
       lookup_client_(std::move(client)),
       cache_repository_(catalog_, layer_id_, settings_.cache,
                         settings_.default_cache_expiration),
-      billing_tag_(billing_tag) {}
+      billing_tag_(std::move(billing_tag)),
+      storage_(std::move(storage)) {}
 
 void PrefetchTilesRepository::SplitSubtree(
     RootTilesForRequest& root_tiles_depth,
@@ -200,7 +200,7 @@ client::NetworkStatistics PrefetchTilesRepository::LoadAggregatedSubQuads(
       const auto quad_cache_key = cache_repository_.CreateQuadKey(
           root, kMaxQuadTreeIndexDepth, version);
 
-      NamedMutex mutex(quad_cache_key);
+      NamedMutex mutex(storage_, quad_cache_key);
       std::unique_lock<NamedMutex> lock(mutex);
 
       if (!cache_repository_.ContainsTree(root, kMaxQuadTreeIndexDepth,
@@ -228,8 +228,8 @@ SubQuadsResponse PrefetchTilesRepository::GetVersionedSubQuads(
   const auto quad_cache_key =
       cache_repository_.CreateQuadKey(tile, kMaxQuadTreeIndexDepth, version);
 
-  NamedMutex mutex(quad_cache_key);
-  std::unique_lock<NamedMutex> lock(mutex);
+  NamedMutex mutex(storage_, quad_cache_key);
+  std::lock_guard<NamedMutex> lock(mutex);
 
   if (cache_repository_.Get(tile, depth, version, quad_tree)) {
     OLP_SDK_LOG_DEBUG_F(kLogTag,

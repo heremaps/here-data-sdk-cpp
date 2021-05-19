@@ -31,6 +31,7 @@
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/model/Partitions.h>
+#include "NamedMutex.h"
 #include "PartitionsCacheRepository.h"
 #include "generated/model/Index.h"
 
@@ -54,7 +55,8 @@ class PrefetchTilesRepository {
   PrefetchTilesRepository(
       client::HRN catalog, const std::string& layer_id,
       client::OlpClientSettings settings, client::ApiLookupClient client,
-      boost::optional<std::string> billing_tag = boost::none);
+      boost::optional<std::string> billing_tag = boost::none,
+      NamedMutexStorage mutex_storage = NamedMutexStorage());
 
   /**
    * @brief Given tile keys, return all related tile keys that are between
@@ -129,6 +131,7 @@ class PrefetchTilesRepository {
   client::ApiLookupClient lookup_client_;
   PartitionsCacheRepository cache_repository_;
   boost::optional<std::string> billing_tag_;
+  NamedMutexStorage storage_;
 };
 
 }  // namespace repository

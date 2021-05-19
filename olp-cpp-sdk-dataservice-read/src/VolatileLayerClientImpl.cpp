@@ -78,15 +78,9 @@ client::CancellationToken VolatileLayerClientImpl::GetPartitions(
     PartitionsRequest request, PartitionsResponseCallback callback) {
   auto schedule_get_partitions = [&](PartitionsRequest request,
                                      PartitionsResponseCallback callback) {
-    auto catalog = catalog_;
-    auto layer_id = layer_id_;
-    auto settings = settings_;
-    auto lookup_client = lookup_client_;
-
     auto data_task = [=](client::CancellationContext context) {
       repository::PartitionsRepository repository(
-          std::move(catalog), std::move(layer_id), std::move(settings),
-          std::move(lookup_client));
+          catalog_, layer_id_, settings_, lookup_client_, mutex_storage_);
       return repository.GetVolatilePartitions(request, std::move(context));
     };
 
@@ -110,15 +104,10 @@ VolatileLayerClientImpl::GetPartitions(PartitionsRequest request) {
 
 client::CancellationToken VolatileLayerClientImpl::GetData(
     DataRequest request, DataResponseCallback callback) {
-  auto catalog = catalog_;
-  auto layer_id = layer_id_;
-  auto settings = settings_;
-  auto lookup_client = lookup_client_;
-
   auto task = [=](client::CancellationContext context) {
-    repository::DataRepository repository(
-        std::move(catalog), std::move(settings), std::move(lookup_client));
-    return repository.GetVolatileData(layer_id, request, context);
+    repository::DataRepository repository(catalog_, settings_, lookup_client_,
+                                          mutex_storage_);
+    return repository.GetVolatileData(layer_id_, request, context);
   };
 
   return task_sink_.AddTask(std::move(task), std::move(callback),
@@ -198,7 +187,9 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
                  : request.GetMaxLevel());
 
         repository::PrefetchTilesRepository repository(
-            catalog_, layer_id_, settings_, lookup_client_);
+            catalog_, layer_id_, settings_, lookup_client_,
+            request.GetBillingTag(), mutex_storage_);
+
         auto sliced_tiles =
             repository.GetSlicedTiles(tile_keys, min_level, max_level);
 
@@ -242,7 +233,7 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
           }
 
           repository::DataRepository repository(catalog_, settings_,
-                                                lookup_client_);
+                                                lookup_client_, mutex_storage_);
           // Fetch from online
           return repository.GetVolatileData(layer_id_,
                                             DataRequest()
