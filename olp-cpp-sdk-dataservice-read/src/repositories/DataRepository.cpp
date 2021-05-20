@@ -28,7 +28,6 @@
 #include <olp/core/logging/Log.h>
 #include "CatalogRepository.h"
 #include "DataCacheRepository.h"
-#include "NamedMutex.h"
 #include "PartitionsCacheRepository.h"
 #include "PartitionsRepository.h"
 #include "generated/api/BlobApi.h"
@@ -51,16 +50,18 @@ constexpr auto kVolatileBlobService = "volatile-blob";
 
 DataRepository::DataRepository(client::HRN catalog,
                                client::OlpClientSettings settings,
-                               client::ApiLookupClient client)
+                               client::ApiLookupClient client,
+                               NamedMutexStorage storage)
     : catalog_(std::move(catalog)),
-      settings_(settings),
-      lookup_client_(std::move(client)) {}
+      settings_(std::move(settings)),
+      lookup_client_(std::move(client)),
+      storage_(std::move(storage)) {}
 
 DataResponse DataRepository::GetVersionedTile(
     const std::string& layer_id, const TileRequest& request, int64_t version,
     client::CancellationContext context) {
-  PartitionsRepository repository(catalog_, layer_id, settings_,
-                                  lookup_client_);
+  PartitionsRepository repository(catalog_, layer_id, settings_, lookup_client_,
+                                  storage_);
   auto response = repository.GetTile(request, version, context);
 
   if (!response.IsSuccessful()) {
@@ -93,7 +94,7 @@ BlobApi::DataResponse DataRepository::GetVersionedData(
   if (!request.GetDataHandle()) {
     // get data handle for a partition to be queried
     PartitionsRepository repository(catalog_, layer_id, settings_,
-                                    lookup_client_);
+                                    lookup_client_, storage_);
     auto partitions_response =
         repository.GetPartitionById(request, version, context);
 
@@ -132,7 +133,7 @@ BlobApi::DataResponse DataRepository::GetBlobData(
     return {{client::ErrorCode::PreconditionFailed, "Data handle is missing"}};
   }
 
-  NamedMutex mutex(catalog_.ToString() + layer + *data_handle);
+  NamedMutex mutex(storage_, catalog_.ToString() + layer + *data_handle);
   std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);
 
   // If we are not planning to go online or access the cache, do not lock.
@@ -208,7 +209,7 @@ BlobApi::DataResponse DataRepository::GetVolatileData(
   auto blob_request = request;
   if (!request.GetDataHandle()) {
     PartitionsRepository repository(catalog_, layer_id, settings_,
-                                    lookup_client_);
+                                    lookup_client_, storage_);
     auto partitions_response =
         repository.GetPartitionById(request, boost::none, context);
 

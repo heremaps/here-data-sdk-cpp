@@ -19,8 +19,10 @@
 
 #pragma once
 
+#include <memory>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 
 namespace olp {
 namespace dataservice {
@@ -28,25 +30,42 @@ namespace read {
 namespace repository {
 
 /*
+ * @brief A mutex storage class, used to store and access mutex primitives by
+ * name, so it can be used in different places and different conditions.
+ */
+class NamedMutexStorage {
+ public:
+  NamedMutexStorage();
+
+  std::mutex& AquireLock(const std::string& resource);
+  void ReleaseLock(const std::string& resource);
+
+ private:
+  class Impl;
+  std::shared_ptr<Impl> impl_;
+};
+
+/*
  * @brief A synchronization primitive that can be used to protect shared data
  * from being simultaneously accessed by multiple threads.
  */
 class NamedMutex final {
  public:
-  explicit NamedMutex(const std::string& name);
+  NamedMutex(NamedMutexStorage& storage, const std::string& name);
 
   NamedMutex(const NamedMutex&) = delete;
   NamedMutex(NamedMutex&&) = delete;
   NamedMutex& operator=(const NamedMutex&) = delete;
   NamedMutex& operator=(NamedMutex&&) = delete;
 
+  ~NamedMutex();
+
   void lock();
   bool try_lock();
   void unlock();
 
-  ~NamedMutex();
-
  private:
+  NamedMutexStorage& storage_;
   std::string name_;
   std::mutex& mutex_;
 };

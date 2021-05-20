@@ -267,12 +267,14 @@ TEST(ApiClientLookupTest, LookupApiConcurrent) {
   const auto threads_count = 5;
   std::vector<std::thread> threads;
 
+  read::repository::NamedMutexStorage named_mutexes;
+
   for (auto i = 0; i < threads_count; i++) {
     threads.emplace_back([=]() {
       client::CancellationContext context;
       auto response = read::ApiClientLookup::LookupApi(
           catalog_hrn, context, service_name, service_version,
-          read::FetchOptions::OnlineIfNotFound, settings);
+          read::FetchOptions::OnlineIfNotFound, settings, named_mutexes);
     });
   }
 

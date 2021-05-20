@@ -35,6 +35,7 @@
 #include "olp/dataservice/read/PartitionsRequest.h"
 #include "olp/dataservice/read/Types.h"
 
+#include "NamedMutex.h"
 #include "PartitionsCacheRepository.h"
 
 namespace olp {
@@ -53,7 +54,8 @@ class PartitionsRepository {
  public:
   PartitionsRepository(client::HRN catalog, std::string layer,
                        client::OlpClientSettings settings,
-                       client::ApiLookupClient client);
+                       client::ApiLookupClient client,
+                       NamedMutexStorage storage = NamedMutexStorage());
 
   PartitionsResponse GetVersionedPartitions(
       const read::PartitionsRequest& request, std::int64_t version,
@@ -104,6 +106,7 @@ class PartitionsRepository {
   client::OlpClientSettings settings_;
   client::ApiLookupClient lookup_client_;
   PartitionsCacheRepository cache_;
+  NamedMutexStorage storage_;
 };
 }  // namespace repository
 }  // namespace read

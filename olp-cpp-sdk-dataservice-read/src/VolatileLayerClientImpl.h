@@ -28,8 +28,8 @@
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/Types.h>
-
 #include "TaskSink.h"
+#include "repositories/NamedMutex.h"
 
 namespace olp {
 
@@ -80,6 +80,7 @@ class VolatileLayerClientImpl {
   client::OlpClientSettings settings_;
   client::ApiLookupClient lookup_client_;
   TaskSink task_sink_;
+  repository::NamedMutexStorage mutex_storage_;
 };
 
 }  // namespace read
