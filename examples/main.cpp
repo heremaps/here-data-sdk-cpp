@@ -42,7 +42,7 @@ enum Examples : int {
 };
 
 constexpr auto usage =
-    "usuage is \n -a, --all : run all examples \n "
+    "usage is \n -a, --all : run all examples \n "
     "-e, --example[=read|read_stream|write|cache]  \n\tRun "
     "example\n -i, --key-id \n\there.access.key.id \n -s, --key-secret "
     "\n\there.access.key.secret \n"
