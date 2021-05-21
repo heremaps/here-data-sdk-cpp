@@ -67,7 +67,7 @@ class PartitionsRepository {
 
   QueryApi::PartitionsExtendedResponse GetVersionedPartitionsExtendedResponse(
       const read::PartitionsRequest& request, std::int64_t version,
-      client::CancellationContext context);
+      client::CancellationContext context, bool fail_on_cache_error = false);
 
   PartitionsResponse GetPartitionById(const DataRequest& request,
                                       boost::optional<int64_t> version,
@@ -99,7 +99,8 @@ class PartitionsRepository {
       const read::PartitionsRequest& request,
       boost::optional<std::int64_t> version,
       client::CancellationContext context,
-      boost::optional<time_t> expiry = boost::none);
+      boost::optional<time_t> expiry = boost::none,
+      bool fail_on_cache_error = false);
 
   const client::HRN catalog_;
   const std::string layer_id_;

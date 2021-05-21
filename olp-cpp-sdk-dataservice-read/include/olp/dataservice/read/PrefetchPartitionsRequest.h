@@ -47,7 +47,7 @@ class DATASERVICE_READ_API PrefetchPartitionsRequest final {
    *
    * When the list is empty, the GetPartitions method will download the whole
    * layer metadata. Additionally, a single request supports up to 100
-   * partitions. If partitions list has more than 100, it will be splitted
+   * partitions. If partitions list has more than 100, it will be split
    * internally to multiple requests.
    *
    * @param partitions The list of partitions to request.
@@ -92,7 +92,7 @@ class DATASERVICE_READ_API PrefetchPartitionsRequest final {
    */
   inline PrefetchPartitionsRequest& WithBillingTag(
       boost::optional<std::string> billing_tag) {
-    billing_tag_ = billing_tag;
+    billing_tag_ = std::move(billing_tag);
     return *this;
   }
 
@@ -147,7 +147,7 @@ class DATASERVICE_READ_API PrefetchPartitionsRequest final {
       out << "@" << version.get();
     }
     out << "^" << partition_ids_.size();
-    if (partition_ids_.size() > 0) {
+    if (!partition_ids_.empty()) {
       out << "[" << partition_ids_.front() << ", ...]";
     }
     if (GetBillingTag()) {

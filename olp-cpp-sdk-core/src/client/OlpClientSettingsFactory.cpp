@@ -49,7 +49,7 @@ OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler(
 std::unique_ptr<cache::KeyValueCache>
 OlpClientSettingsFactory::CreateDefaultCache(cache::CacheSettings settings) {
 #ifdef OLP_SDK_ENABLE_DEFAULT_CACHE
-  auto cache = std::make_unique<cache::DefaultCache>(std::move(settings));
+  auto cache = std::make_unique<cache::DefaultCache>(settings);
   auto error = cache->Open();
   if (error == cache::DefaultCache::StorageOpenResult::OpenDiskPathFailure) {
     OLP_SDK_LOG_FATAL_F(

@@ -56,6 +56,17 @@ class CORE_API ApiError {
     return ApiError(ErrorCode::NetworkConnection, description);
   }
 
+  /**
+   * @brief Creates the `ApiError` instance with the precondition failed error
+   * code and description.
+   * @param description The optional description.
+   * @return The `ApiError` instance.
+   */
+  static ApiError PreconditionFailed(
+      const char* description = "Precondition failed") {
+    return ApiError(ErrorCode::PreconditionFailed, description);
+  }
+
   ApiError() = default;
 
   /**

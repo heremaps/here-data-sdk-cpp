@@ -85,7 +85,12 @@ enum class ErrorCode {
   /**
    * The network connection error.
    */
-  NetworkConnection
+  NetworkConnection,
+
+  /**
+   * A failed cache IO operation.
+   */
+  CacheIO
 };
 
 }  // namespace client

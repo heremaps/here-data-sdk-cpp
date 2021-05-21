@@ -157,21 +157,31 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
   return task_sink_.AddTask(
       [=](client::CancellationContext context) mutable -> void {
         if (context.IsCancelled()) {
-          callback(ApiError(ErrorCode::Cancelled, "Canceled"));
+          callback(ApiError::Cancelled());
+          return;
+        }
+
+        const auto key = request.CreateKey(layer_id_);
+
+        if (!settings_.cache) {
+          OLP_SDK_LOG_ERROR_F(
+              kLogTag,
+              "PrefetchPartitions: cache is missing, aborting, hrn=%s, key=%s",
+              catalog_.ToCatalogHRNString().c_str(), key.c_str());
+          callback(ApiError::PreconditionFailed(
+              "Unable to prefetch without a cache"));
           return;
         }
 
         const auto& tile_keys = request.GetTileKeys();
         if (tile_keys.empty()) {
-          OLP_SDK_LOG_WARNING_F(kLogTag,
-                                "PrefetchTiles : invalid request, layer=%s",
-                                layer_id_.c_str());
-
+          OLP_SDK_LOG_WARNING_F(
+              kLogTag, "PrefetchTiles: invalid request, hrn=%s, key=%s",
+              catalog_.ToCatalogHRNString().c_str(), key.c_str());
           callback(ApiError(ErrorCode::InvalidArgument, "Empty tile key list"));
           return;
         }
 
-        const auto key = request.CreateKey(layer_id_);
         OLP_SDK_LOG_INFO_F(kLogTag, "PrefetchTiles: using key=%s", key.c_str());
 
         // Calculate the minimal set of Tile keys and depth to
@@ -235,11 +245,12 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
           repository::DataRepository repository(catalog_, settings_,
                                                 lookup_client_, mutex_storage_);
           // Fetch from online
-          return repository.GetVolatileData(layer_id_,
-                                            DataRequest()
-                                                .WithDataHandle(data_handle)
-                                                .WithBillingTag(billing_tag),
-                                            inner_context);
+          return repository.GetVolatileData(
+              layer_id_,
+              DataRequest()
+                  .WithDataHandle(std::move(data_handle))
+                  .WithBillingTag(billing_tag),
+              std::move(inner_context), true);
         };
 
         std::vector<geo::TileKey> roots;

@@ -19,6 +19,9 @@
 
 #pragma once
 
+#include <olp/core/client/ApiError.h>
+#include <olp/core/client/ApiResponse.h>
+
 namespace olp {
 namespace client {
 
@@ -28,6 +31,9 @@ namespace client {
  * Example: the HTTP 200 response with no response body.
  */
 class ApiNoResult {};
+
+/// The alias to the response without result.
+using ApiNoResponse = ApiResponse<ApiNoResult, ApiError>;
 
 }  // namespace client
 }  // namespace olp

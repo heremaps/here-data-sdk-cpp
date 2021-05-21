@@ -80,13 +80,13 @@ PartitionsCacheRepository::PartitionsCacheRepository(
     std::chrono::seconds default_expiry)
     : catalog_(catalog.ToCatalogHRNString()),
       layer_id_(layer_id),
-      cache_(cache),
+      cache_(std::move(cache)),
       default_expiry_(ConvertTime(default_expiry)) {}
 
-void PartitionsCacheRepository::Put(const model::Partitions& partitions,
-                                    const boost::optional<int64_t>& version,
-                                    const boost::optional<time_t>& expiry,
-                                    bool layer_metadata) {
+client::ApiNoResponse PartitionsCacheRepository::Put(
+    const model::Partitions& partitions,
+    const boost::optional<int64_t>& version,
+    const boost::optional<time_t>& expiry, bool layer_metadata) {
   const auto& partitions_list = partitions.GetPartitions();
   std::vector<std::string> partition_ids;
   partition_ids.reserve(partitions_list.size());
@@ -96,9 +96,14 @@ void PartitionsCacheRepository::Put(const model::Partitions& partitions,
         CreateKey(catalog_, layer_id_, partition.GetPartition(), version);
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
-    cache_->Put(key, partition,
-                [&]() { return serializer::serialize(partition); },
-                expiry.get_value_or(default_expiry_));
+    const auto put_result = cache_->Put(
+        key, partition, [&]() { return serializer::serialize(partition); },
+        expiry.get_value_or(default_expiry_));
+
+    if (!put_result) {
+      OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to write -> '%s'", key.c_str());
+      return {{client::ErrorCode::CacheIO, "Put to cache failed"}};
+    }
 
     if (layer_metadata) {
       partition_ids.push_back(partition.GetPartition());
@@ -109,10 +114,18 @@ void PartitionsCacheRepository::Put(const model::Partitions& partitions,
     auto key = CreateKey(catalog_, layer_id_, version);
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
-    cache_->Put(key, partition_ids,
-                [&]() { return serializer::serialize(partition_ids); },
-                expiry.get_value_or(default_expiry_));
+    const auto put_result =
+        cache_->Put(key, partition_ids,
+                    [&]() { return serializer::serialize(partition_ids); },
+                    expiry.get_value_or(default_expiry_));
+
+    if (!put_result) {
+      OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to write -> '%s'", key.c_str());
+      return {{client::ErrorCode::CacheIO, "Put to cache failed"}};
+    }
   }
+
+  return {client::ApiNoResult{}};
 }
 
 model::Partitions PartitionsCacheRepository::Get(
@@ -200,19 +213,25 @@ boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
   return boost::any_cast<model::LayerVersions>(cached_layer_versions);
 }
 
-void PartitionsCacheRepository::Put(geo::TileKey tile_key, int32_t depth,
-                                    const QuadTreeIndex& quad_tree,
-                                    const boost::optional<int64_t>& version) {
+client::ApiNoResponse PartitionsCacheRepository::Put(
+    geo::TileKey tile_key, int32_t depth, const QuadTreeIndex& quad_tree,
+    const boost::optional<int64_t>& version) {
   const auto key = CreateQuadKey(tile_key, depth, version);
 
   if (quad_tree.IsNull()) {
     OLP_SDK_LOG_WARNING_F(kLogTag, "Put: invalid QuadTreeIndex -> '%s'",
                           key.c_str());
-    return;
+    return {client::ApiNoResult{}};
   }
 
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
-  cache_->Put(key, quad_tree.GetRawData(), default_expiry_);
+
+  if (!cache_->Put(key, quad_tree.GetRawData(), default_expiry_)) {
+    OLP_SDK_LOG_WARNING_F(kLogTag, "Failed to write -> '%s'", key.c_str());
+    return {{client::ErrorCode::CacheIO, "Put to cache failed"}};
+  }
+
+  return {client::ApiNoResult{}};
 }
 
 bool PartitionsCacheRepository::Get(geo::TileKey tile_key, int32_t depth,
@@ -242,7 +261,7 @@ void PartitionsCacheRepository::ClearPartitions(
   auto cached_partitions = Get(partition_ids, version);
 
   // Partitions not processed here are not cached to begin with.
-  for (auto partition : cached_partitions.GetPartitions()) {
+  for (const auto& partition : cached_partitions.GetPartitions()) {
     cache_->RemoveKeysWithPrefix(catalog_ + "::" + layer_id_ +
                                  "::" + partition.GetDataHandle());
     cache_->RemoveKeysWithPrefix(catalog_ + "::" + layer_id_ +

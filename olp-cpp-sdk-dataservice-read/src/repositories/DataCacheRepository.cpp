@@ -42,15 +42,22 @@ namespace repository {
 DataCacheRepository::DataCacheRepository(
     const client::HRN& hrn, std::shared_ptr<cache::KeyValueCache> cache,
     std::chrono::seconds default_expiry)
-    : hrn_(hrn), cache_(cache), default_expiry_(ConvertTime(default_expiry)) {}
+    : hrn_(hrn),
+      cache_(std::move(cache)),
+      default_expiry_(ConvertTime(default_expiry)) {}
 
-void DataCacheRepository::Put(const model::Data& data,
-                              const std::string& layer_id,
-                              const std::string& data_handle) {
+client::ApiNoResponse DataCacheRepository::Put(const model::Data& data,
+                                               const std::string& layer_id,
+                                               const std::string& data_handle) {
   auto key = CreateKey(layer_id, data_handle);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
-  cache_->Put(key, data, default_expiry_);
+  if (!cache_->Put(key, data, default_expiry_)) {
+    OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to write -> '%s'", key.c_str());
+    return {{client::ErrorCode::CacheIO, "Put to cache failed"}};
+  }
+
+  return {client::ApiNoResult{}};
 }
 
 boost::optional<model::Data> DataCacheRepository::Get(

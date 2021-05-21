@@ -159,7 +159,7 @@ RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
 
     auto it = root_tiles_depth.insert({root_tile, max_level - min_level});
     // element already exist, update depth with max value
-    if (it.second == false) {
+    if (!it.second) {
       it.first->second = std::max(it.first->second, max_level - min_level);
     }
     // if depth is greater than kMaxQuadTreeIndexDepth, need to split
@@ -436,7 +436,10 @@ PrefetchTilesRepository::DownloadVersionedQuadTree(
   }
 
   // add to cache
-  cache_repository_.Put(tile, depth, tree, version);
+  const auto put_result = cache_repository_.Put(tile, depth, tree, version);
+  if (!put_result.IsSuccessful()) {
+    return {put_result.GetError(), quad_tree.GetNetworkStatistics()};
+  }
 
   return {std::move(tree), quad_tree.GetNetworkStatistics()};
 }

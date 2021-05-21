@@ -174,21 +174,31 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
   auto task = [=](client::CancellationContext context,
                   PrefetchPartitionsRequest& request) mutable {
     if (context.IsCancelled()) {
-      callback(ApiError(ErrorCode::Cancelled, "Canceled"));
+      callback(ApiError::Cancelled());
+      return;
+    }
+
+    const auto key = request.CreateKey(layer_id_);
+
+    if (!settings_.cache) {
+      OLP_SDK_LOG_ERROR_F(
+          kLogTag,
+          "PrefetchPartitions: cache is missing, aborting, hrn=%s, key=%s",
+          catalog_.ToCatalogHRNString().c_str(), key.c_str());
+      callback(
+          ApiError::PreconditionFailed("Unable to prefetch without a cache"));
       return;
     }
 
     if (request.GetPartitionIds().empty()) {
       OLP_SDK_LOG_WARNING_F(
-          kLogTag, "PrefetchPartitions : invalid request, catalog=%s, layer=%s",
-          catalog_.ToCatalogHRNString().c_str(), layer_id_.c_str());
+          kLogTag, "PrefetchPartitions: invalid request, catalog=%s, key=%s",
+          catalog_.ToCatalogHRNString().c_str(), key.c_str());
       callback(ApiError(ErrorCode::InvalidArgument, "Empty partitions list"));
       return;
     }
 
     auto billing_tag = request.GetBillingTag();
-
-    const auto key = request.CreateKey(layer_id_);
 
     auto response = GetVersion(billing_tag, OnlineIfNotFound, context);
 
@@ -216,7 +226,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
                                     .WithPartitionIds(std::move(partitions))
                                     .WithBillingTag(billing_tag);
       auto response = repository.GetVersionedPartitionsExtendedResponse(
-          partitions_request, version, inner_context);
+          partitions_request, version, std::move(inner_context), true);
 
       if (!response.IsSuccessful()) {
         OLP_SDK_LOG_WARNING_F(kLogTag,
@@ -256,8 +266,10 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
       // Fetch from online
       return repository.GetVersionedData(
           layer_id_,
-          DataRequest().WithDataHandle(data_handle).WithBillingTag(billing_tag),
-          version, inner_context);
+          DataRequest()
+              .WithDataHandle(std::move(data_handle))
+              .WithBillingTag(billing_tag),
+          version, std::move(inner_context), true);
     };
 
     auto append_result = [](ExtendedDataResponse response, std::string item,
@@ -281,7 +293,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
         std::move(call_user_callback), std::move(status_callback));
     return PrefetchPartitionsHelper::Prefetch(
         std::move(download_job), request.GetPartitionIds(), std::move(query),
-        task_sink_, request.GetPriority(), context);
+        task_sink_, request.GetPriority(), std::move(context));
   };
   const auto priority = request.GetPriority();
   return task_sink_.AddTask(
@@ -315,19 +327,29 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
   return task_sink_.AddTask(
       [=](client::CancellationContext context) mutable -> void {
         if (context.IsCancelled()) {
-          callback(ApiError(ErrorCode::Cancelled, "Canceled"));
+          callback(ApiError::Cancelled());
+          return;
+        }
+
+        const auto key = request.CreateKey(layer_id_);
+
+        if (!settings_.cache) {
+          OLP_SDK_LOG_ERROR_F(
+              kLogTag,
+              "PrefetchPartitions: cache is missing, aborting, hrn=%s, key=%s",
+              catalog_.ToCatalogHRNString().c_str(), key.c_str());
+          callback(ApiError::PreconditionFailed(
+              "Unable to prefetch without a cache"));
           return;
         }
 
         if (request.GetTileKeys().empty()) {
           OLP_SDK_LOG_WARNING_F(
-              kLogTag, "PrefetchTiles : invalid request, catalog=%s, layer=%s",
-              catalog_.ToCatalogHRNString().c_str(), layer_id_.c_str());
+              kLogTag, "PrefetchTiles: invalid request, catalog=%s, key=%s",
+              catalog_.ToCatalogHRNString().c_str(), key.c_str());
           callback(ApiError(ErrorCode::InvalidArgument, "Empty tile key list"));
           return;
         }
-
-        const auto key = request.CreateKey(layer_id_);
 
         auto response =
             GetVersion(request.GetBillingTag(), OnlineIfNotFound, context);
@@ -408,7 +430,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
           return response;
         };
 
-        auto billing_tag = request.GetBillingTag();
+        auto& billing_tag = request.GetBillingTag();
         auto download = [=](std::string data_handle,
                             client::CancellationContext inner_context) mutable {
           if (data_handle.empty()) {
@@ -424,11 +446,12 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
           repository::DataRepository repository(catalog_, settings_,
                                                 lookup_client_, mutex_storage_);
           // Fetch from online
-          return repository.GetVersionedData(layer_id_,
-                                             DataRequest()
-                                                 .WithDataHandle(data_handle)
-                                                 .WithBillingTag(billing_tag),
-                                             version, inner_context);
+          return repository.GetVersionedData(
+              layer_id_,
+              DataRequest()
+                  .WithDataHandle(std::move(data_handle))
+                  .WithBillingTag(billing_tag),
+              version, std::move(inner_context), true);
         };
 
         std::vector<geo::TileKey> roots;
@@ -458,7 +481,8 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
 
         return PrefetchTilesHelper::Prefetch(
             std::move(download_job), std::move(roots), std::move(query),
-            std::move(filter), task_sink_, request.GetPriority(), context);
+            std::move(filter), task_sink_, request.GetPriority(),
+            std::move(context));
       },
       request.GetPriority(), execution_context);
 }
@@ -487,7 +511,7 @@ CatalogVersionResponse VersionedLayerClientImpl::GetVersion(
   }
 
   CatalogVersionRequest request;
-  request.WithBillingTag(billing_tag);
+  request.WithBillingTag(std::move(billing_tag));
   request.WithFetchOption(fetch_options);
 
   repository::CatalogRepository repository(catalog_, settings_, lookup_client_);
@@ -528,7 +552,8 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
     repository::DataRepository repository(catalog_, settings_, lookup_client_,
                                           mutex_storage_);
     return repository.GetVersionedTile(
-        layer_id_, request, version_response.GetResult().GetVersion(), context);
+        layer_id_, request, version_response.GetResult().GetVersion(),
+        std::move(context));
   };
 
   return task_sink_.AddTask(std::move(data_task), std::move(callback),
