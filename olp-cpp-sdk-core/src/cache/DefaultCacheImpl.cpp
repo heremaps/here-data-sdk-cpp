@@ -838,7 +838,6 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupProtectedCache() {
                         settings_.disk_path_protected.get().c_str());
 
     protected_cache_.reset();
-    settings_.disk_path_protected = boost::none;
     return ToStorageOpenResult(status);
   }
 
@@ -859,7 +858,6 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupMutableCache() {
                         settings_.disk_path_mutable.get().c_str());
 
     mutable_cache_.reset();
-    settings_.disk_path_mutable = boost::none;
     return StorageOpenResult::OpenDiskPathFailure;
   }
 
