@@ -33,6 +33,14 @@ bool DefaultRetryCondition(const HttpResponse& response) {
       response.status == http::HttpStatusCode::TOO_MANY_REQUESTS) {
     return true;
   }
+
+  if (response.status == static_cast<int>(http::ErrorCode::IO_ERROR) ||
+      response.status == static_cast<int>(http::ErrorCode::OFFLINE_ERROR) ||
+      response.status == static_cast<int>(http::ErrorCode::TIMEOUT_ERROR) ||
+      response.status ==
+          static_cast<int>(http::ErrorCode::NETWORK_OVERLOAD_ERROR)) {
+    return true;
+  }
   return false;
 }
 

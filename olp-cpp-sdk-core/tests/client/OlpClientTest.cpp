@@ -252,10 +252,11 @@ TEST_P(OlpClientTest, DefaultRetryCondition) {
   olp::http::RequestId request_id = 5;
   std::vector<std::future<void>> futures;
 
-  // retry for 429 and all 5xx status codes.
+  // retry for IO, offline, timeout, network overload error codes and 429, all
+  // 5xx http status codes.
   auto attempt_statuses =
-      std::queue<int>{{429, 500, 501, 502, 503, 504, 505, 506, 507, 508, 509,
-                       510, 511, 598, 599, 200}};
+      std::queue<int>{{-1,  -4,  -7,  -8,  429, 500, 501, 502, 503, 504,
+                       505, 506, 507, 508, 509, 510, 511, 598, 599, 200}};
   client_settings_.retry_settings.max_attempts = attempt_statuses.size();
   client_settings_.retry_settings.backdown_strategy =
       [](std::chrono::milliseconds, size_t) {
@@ -1547,6 +1548,7 @@ TEST_P(OlpClientTest, CancelRetry) {
 
 TEST_P(OlpClientTest, SlowDownError) {
   auto network = network_;
+  client_settings_.retry_settings.max_attempts = 0;
   client_.SetSettings(client_settings_);
   constexpr int kExpectedError =
       static_cast<int>(http::ErrorCode::NETWORK_OVERLOAD_ERROR);
