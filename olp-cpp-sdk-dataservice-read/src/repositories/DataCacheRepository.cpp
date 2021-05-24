@@ -83,7 +83,7 @@ bool DataCacheRepository::IsCached(const std::string& layer_id,
 bool DataCacheRepository::Clear(const std::string& layer_id,
                                 const std::string& data_handle) {
   auto key = CreateKey(layer_id, data_handle);
-  OLP_SDK_LOG_INFO_F(kLogTag, "Clear -> '%s'", key.c_str());
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "Clear -> '%s'", key.c_str());
 
   return cache_->RemoveKeysWithPrefix(key);
 }
