@@ -20,7 +20,7 @@
 
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/cache/CacheSettings.h>
-#include <olp/core/cache/KeyValueCache.h>
+#include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/logging/Log.h>
@@ -95,13 +95,16 @@ int RunExampleReadWithCache(const AccessKey& access_key,
   auth_settings.provider =
       olp::authentication::TokenProviderDefault(std::move(settings));
 
+  // Create and initialize cache
+  auto cache = std::make_shared<olp::cache::DefaultCache>(cache_settings);
+  cache->Open();
+
   // Setup OlpClientSettings and provide it to the CatalogClient.
   olp::client::OlpClientSettings client_settings;
   client_settings.authentication_settings = auth_settings;
   client_settings.task_scheduler = std::move(task_scheduler);
   client_settings.network_request_handler = std::move(http_client);
-  client_settings.cache =
-      olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
+  client_settings.cache = cache;
 
   // Create appropriate layer client with HRN, layer name and settings.
   olp::dataservice::read::VersionedLayerClient layer_client(
@@ -112,8 +115,9 @@ int RunExampleReadWithCache(const AccessKey& access_key,
   auto request = olp::dataservice::read::DataRequest()
                    .WithPartitionId(first_partition_id)
                    .WithBillingTag(boost::none);
-  if (cache_settings.disk_path_protected.is_initialized())
+  if (cache_settings.disk_path_protected.is_initialized()) {
     request.WithFetchOption(olp::dataservice::read::FetchOptions::CacheOnly);
+  }
 
   // Run the DataRequest
   auto future = layer_client.GetData(request);
@@ -121,6 +125,11 @@ int RunExampleReadWithCache(const AccessKey& access_key,
   // Wait for DataResponse
   olp::dataservice::read::DataResponse data_response =
     future.GetFuture().get();
+
+  // Compact mutable cache, so it can be used as protected cache
+  if (cache_settings.disk_path_mutable.is_initialized()) {
+    cache->Compact();
+  }
 
   // Retrieve data from the response
   return (HandleDataResponse(data_response) ? 0 : -1);
