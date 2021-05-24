@@ -273,7 +273,7 @@ bool PartitionsCacheRepository::ClearQuadTree(
     geo::TileKey tile_key, int32_t depth,
     const boost::optional<int64_t>& version) {
   const auto key = CreateQuadKey(tile_key, depth, version);
-  OLP_SDK_LOG_INFO_F(kLogTag, "ClearQuadTree -> '%s'", key.c_str());
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "ClearQuadTree -> '%s'", key.c_str());
   return cache_->RemoveKeysWithPrefix(key);
 }
 
