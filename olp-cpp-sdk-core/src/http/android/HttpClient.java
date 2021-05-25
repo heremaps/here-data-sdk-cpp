@@ -19,7 +19,6 @@
 
 package com.here.olp.network;
 
-import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.OperationCanceledException;
 import android.util.Log;
@@ -28,20 +27,21 @@ import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.Proxy;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
-import java.net.SocketTimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.net.ssl.SSLException;
 
@@ -94,17 +94,17 @@ public class HttpClient {
   /** Class to hold the request's data, which will be used by HttpUrlConnection object. */
   public final class Request {
     public Request(
-        String url,
-        HttpVerb verb,
-        long requestId,
-        int connectionTimeout,
-        int requestTimeout,
-        String[] headers,
-        byte[] postData,
-        String proxyServer,
-        int proxyPort,
-        int proxyType,
-        int maxRetries) {
+            String url,
+            HttpVerb verb,
+            long requestId,
+            int connectionTimeout,
+            int requestTimeout,
+            String[] headers,
+            byte[] postData,
+            String proxyServer,
+            int proxyPort,
+            int proxyType,
+            int maxRetries) {
       this.url = url;
       this.verb = verb;
       this.requestId = requestId;
@@ -129,18 +129,10 @@ public class HttpClient {
         case 4:
         case 5:
           this.proxyType = Proxy.Type.SOCKS;
-          Log.w(
-              LOGTAG,
-              "HttpClient::Request(): Unsupported proxy version ("
-                  + proxyType
-                  + "). Falling back to SOCKS4(4)");
+          Log.w(LOGTAG, "HttpClient::Request(): Unsupported proxy version (" + proxyType + "). Falling back to SOCKS4(4)");
           break;
         default:
-          Log.w(
-              LOGTAG,
-              "HttpClient::Request(): Unsupported proxy version ("
-                  + proxyType
-                  + "). Falling back to HTTP(0)");
+          Log.w(LOGTAG, "HttpClient::Request(): Unsupported proxy version (" + proxyType + "). Falling back to HTTP(0)");
           this.proxyType = Proxy.Type.HTTP;
           break;
       }
@@ -215,12 +207,16 @@ public class HttpClient {
   /**
    * Task class sends the request HttpUrlConnection and responsible for handling response as well.
    */
-  @SuppressLint("StaticFieldLeak")
-  private class HttpTask extends AsyncTask<Request, Void, Void> {
-    private AtomicBoolean cancelled = new AtomicBoolean(false);
+  private static class HttpTask extends AsyncTask<Request, Void, Void> {
+    private final WeakReference<HttpClient> weakReference;
+    private final AtomicBoolean cancelled = new AtomicBoolean(false);
 
     public synchronized void cancelTask() {
       this.cancelled.set(true);
+    }
+
+    private HttpTask(HttpClient client) {
+      weakReference = new WeakReference<>(client);
     }
 
     @Override
@@ -234,9 +230,14 @@ public class HttpClient {
         try {
           int retryCount = 0;
           boolean isDone = false;
-          URL url = new URL(request.url());
+          final URL url = new URL(request.url());
 
           do {
+            final HttpClient httpClient = weakReference.get();
+            if (httpClient == null) {
+              return null;
+            }
+
             // TODO: replace with more elegant and controlled approach
             if (retryCount > 0) {
               Thread.sleep(100);
@@ -250,10 +251,10 @@ public class HttpClient {
                 conn = url.openConnection(Proxy.NO_PROXY);
               } else {
                 conn =
-                    url.openConnection(
-                        new Proxy(
-                            request.proxyType(),
-                            new InetSocketAddress(request.proxyServer(), request.proxyPort())));
+                        url.openConnection(
+                                new Proxy(
+                                        request.proxyType(),
+                                        new InetSocketAddress(request.proxyServer(), request.proxyPort())));
               }
             } else {
               conn = url.openConnection();
@@ -349,7 +350,7 @@ public class HttpClient {
                 error = httpConn.getResponseMessage();
 
                 if ((status > 0)
-                    && ((status < HttpURLConnection.HTTP_OK)
+                        && ((status < HttpURLConnection.HTTP_OK)
                         || (status >= HttpURLConnection.HTTP_SERVER_ERROR))) {
                   if (retryCount++ < request.maxRetries()) {
                     continue;
@@ -357,7 +358,7 @@ public class HttpClient {
                 }
               } catch (SocketTimeoutException | UnknownHostException e) {
                 if (retryCount++ < request.maxRetries()) {
-                  resetRequest(request.requestId());
+                  httpClient.resetRequest(request.requestId());
                   continue;
                 } else {
                   throw e;
@@ -396,8 +397,8 @@ public class HttpClient {
 
             int contentSize = conn.getContentLength();
             if(contentSize > 0){
-                downloadContentSize += contentSize;
-                downloadContentSizePresent = true;
+              downloadContentSize += contentSize;
+              downloadContentSizePresent = true;
             }
 
             // Get all the headers of the response
@@ -414,8 +415,8 @@ public class HttpClient {
 
             checkCancelled();
 
-            headersCallback(request.requestId(), headersArray);
-            dateAndOffsetCallback(request.requestId(), 0l, offset);
+            httpClient.headersCallback(request.requestId(), headersArray);
+            httpClient.dateAndOffsetCallback(request.requestId(), 0l, offset);
 
             // Do the input phase
             InputStream in = null;
@@ -435,9 +436,9 @@ public class HttpClient {
 
               while ((len = in.read(buffer)) >= 0) {
                 checkCancelled();
-                dataCallback(request.requestId(), buffer, len);
+                httpClient.dataCallback(request.requestId(), buffer, len);
                 if(!downloadContentSizePresent){
-                    downloadContentSize += len;
+                  downloadContentSize += len;
                 }
               }
             }
@@ -449,12 +450,12 @@ public class HttpClient {
               }
             } catch (ProtocolException e) {
               if (status != HttpURLConnection.HTTP_NOT_MODIFIED
-                  && status != HttpURLConnection.HTTP_NO_CONTENT) {
+                      && status != HttpURLConnection.HTTP_NO_CONTENT) {
                 throw e;
               }
             } catch (SocketTimeoutException e) {
               if (retryCount++ < request.maxRetries()) {
-                resetRequest(request.requestId());
+                httpClient.resetRequest(request.requestId());
                 continue;
               } else {
                 throw e;
@@ -466,24 +467,22 @@ public class HttpClient {
             // The request is completed, not cancelled or retried
             // Notifies the native (C++) side that request was completed
             isDone = true;
-            completeRequest(request.requestId(), status, uploadedContentSize, downloadContentSize, error, contentType);
+            httpClient.completeRequest(request.requestId(), status, uploadedContentSize, downloadContentSize, error, contentType);
           } while (!isDone);
         } catch (SSLException e) {
-          completeRequest(request.requestId(), AUTHORIZATION_ERROR, uploadedContentSize, downloadContentSize, "SSL connection failed.", "");
+          completeErrorRequest(request.requestId(), AUTHORIZATION_ERROR, uploadedContentSize, downloadContentSize, "SSL connection failed.");
         } catch (MalformedURLException e) {
-          completeRequest(
-              request.requestId(), INVALID_URL_ERROR, uploadedContentSize, downloadContentSize, "The provided URL is not valid.", "");
+          completeErrorRequest(request.requestId(), INVALID_URL_ERROR, uploadedContentSize, downloadContentSize, "The provided URL is not valid.");
         } catch (OperationCanceledException e) {
-          completeRequest(request.requestId(), CANCELLED_ERROR, uploadedContentSize, downloadContentSize, "Cancelled", "");
+          completeErrorRequest(request.requestId(), CANCELLED_ERROR, uploadedContentSize, downloadContentSize, "Cancelled");
         } catch (SocketTimeoutException e) {
-          completeRequest(request.requestId(), TIMEOUT_ERROR, uploadedContentSize, downloadContentSize, "Timed out", "");
-        } catch (java.net.UnknownHostException e) {
-          completeRequest(
-              request.requestId(), OFFLINE_ERROR, uploadedContentSize, downloadContentSize, "The device has no internet connectivity", "");
+          completeErrorRequest(request.requestId(), TIMEOUT_ERROR, uploadedContentSize, downloadContentSize, "Timed out");
+        } catch (UnknownHostException e) {
+          completeErrorRequest(request.requestId(), OFFLINE_ERROR, uploadedContentSize, downloadContentSize, "The device has no internet connectivity");
         } catch (Exception e) {
           Log.e(LOGTAG, "HttpClient::HttpTask::run exception: " + e);
           e.printStackTrace();
-          completeRequest(request.requestId(), IO_ERROR, uploadedContentSize, downloadContentSize, e.toString(), "");
+          completeErrorRequest(request.requestId(), IO_ERROR, uploadedContentSize, downloadContentSize, e.toString());
         } finally {
           uploadedContentSize = 0;
           downloadContentSize = 0;
@@ -492,6 +491,13 @@ public class HttpClient {
       }
 
       return null;
+    }
+
+    private void completeErrorRequest(long requestId, int status, int uploadedBytes, int downloadedBytes, String error) {
+      final HttpClient httpClient = weakReference.get();
+      if (httpClient != null) {
+        httpClient.completeRequest(requestId, status, uploadedBytes, downloadedBytes, error, "");
+      }
     }
 
     private final void checkCancelled() {
@@ -571,7 +577,7 @@ public class HttpClient {
         }
         for (String value : values) {
           if(value != null) {
-          size += value.length();
+            size += value.length();
           }
         }
       }
@@ -597,31 +603,31 @@ public class HttpClient {
   }
 
   public HttpTask send(
-      String url,
-      int httpMethod,
-      long requestId,
-      int connTimeout,
-      int reqTimeout,
-      String[] headers,
-      byte[] postData,
-      String proxyServer,
-      int proxyPort,
-      int proxyType,
-      int maxRetries) {
-    Request request =
-        new Request(
-            url,
-            HttpClient.toHttpVerb(httpMethod),
-            requestId,
-            connTimeout,
-            reqTimeout,
-            headers,
-            postData,
-            proxyServer,
-            proxyPort,
-            proxyType,
-            maxRetries);
-    HttpTask task = new HttpTask();
+          String url,
+          int httpMethod,
+          long requestId,
+          int connTimeout,
+          int reqTimeout,
+          String[] headers,
+          byte[] postData,
+          String proxyServer,
+          int proxyPort,
+          int proxyType,
+          int maxRetries) {
+    final Request request =
+            new Request(
+                    url,
+                    HttpClient.toHttpVerb(httpMethod),
+                    requestId,
+                    connTimeout,
+                    reqTimeout,
+                    headers,
+                    postData,
+                    proxyServer,
+                    proxyPort,
+                    proxyType,
+                    maxRetries);
+    final HttpTask task = new HttpTask(this);
     task.executeOnExecutor(executor, request);
     return task;
   }
@@ -630,7 +636,7 @@ public class HttpClient {
   // Synchronization is required in order to provide thread-safe access to `nativePtr`
   // Callback for completed request
   private synchronized native void completeRequest(
-      long requestId, int status, int uploadedBytes, int downloadedBytes, String error, String contentType);
+          long requestId, int status, int uploadedBytes, int downloadedBytes, String error, String contentType);
   // Callback for data received
   private synchronized native void dataCallback(long requestId, byte[] data, int len);
   // Callback set date and offset
