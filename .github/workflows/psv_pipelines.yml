@@ -32,6 +32,11 @@ jobs:
     - name: Run unit and integration tests. Report coverage to CodeCov. 
       run: ./scripts/linux/psv/test_psv.sh
       shell: bash
+    - name: Archive code coverage script
+      uses: actions/upload-artifact@v2
+      with:
+        name: codecov-script
+        path: codecov_upload_bash_*.sh
 
   psv-linux-gcc-build-no-cache:
     name: PSV / Linux gcc 7.5 / OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
