@@ -814,6 +814,10 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupStorage() {
     result = SetupMutableCache();
   }
 
+  if (result != StorageOpenResult::Success) {
+    return result;
+  }
+
   if (settings_.disk_path_protected) {
     result = SetupProtectedCache();
   }
