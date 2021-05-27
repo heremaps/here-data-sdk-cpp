@@ -34,12 +34,26 @@ namespace cache = olp::cache;
 using CacheType = cache::DefaultCache::CacheType;
 
 class DefaultCacheImplTest : public ::testing::Test {
+ public:
   void SetUp() override {
-    // Restore permisions in case if cache_path_ is not writable
+    // Restore permissions in case if cache_path_ is not writable
     helpers::MakeDirectoryContentReadonly(cache_path_, false);
   }
 
   void TearDown() override { olp::utils::Dir::Remove(cache_path_); }
+
+  uint64_t GetCacheSizeOnDisk() {
+    const std::string ldb_ext = ".ldb";
+    return olp::utils::Dir::Size(cache_path_, [&](const std::string& path) {
+      // Taking into account only ldb files.
+      // Other files: lock, logs, manifest are quite small (~100KB on >1GB db)
+      // but on a compacted cache they could take more than a few megabytes
+      if (path.length() <= ldb_ext.length()) {
+        return false;
+      }
+      return path.substr(path.length() - ldb_ext.length()) == ldb_ext;
+    });
+  }
 
  protected:
   const std::string cache_path_ =
@@ -570,12 +584,11 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
 
     cache.Put(key, data_string, [=]() { return data_string; },
               (std::numeric_limits<time_t>::max)());
-    const auto data_size = key.size() + data_string.size();
     cache.Close();
     EXPECT_EQ(0u, cache.Size(CacheType::kMutable));
 
     cache.Open();
-    EXPECT_EQ(data_size, cache.Size(CacheType::kMutable));
+    EXPECT_EQ(GetCacheSizeOnDisk(), cache.Size(CacheType::kMutable));
 
     cache.Clear();
     EXPECT_EQ(0u, cache.Size(CacheType::kMutable));
@@ -1283,16 +1296,7 @@ TEST_F(DefaultCacheImplTest, ProtectedCacheSize) {
     settings.disk_path_mutable = boost::none;
   }
 
-  const std::string ldb_ext = ".ldb";
-  const uint64_t actual_size_on_disk =
-      olp::utils::Dir::Size(cache_path_, [&](const std::string& path) {
-        // Taking into account only ldb files.
-        // Other files: lock, logs, manifest are quite small (~100KB on >1GB db)
-        if (path.length() <= ldb_ext.length()) {
-          return false;
-        }
-        return path.substr(path.length() - ldb_ext.length()) == ldb_ext;
-      });
+  const uint64_t actual_size_on_disk = GetCacheSizeOnDisk();
   ASSERT_NE(actual_size_on_disk, 0);
 
   settings.disk_path_protected = cache_path_;

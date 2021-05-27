@@ -501,16 +501,15 @@ void DefaultCacheImpl::InitializeLru() {
   if (!mutable_cache_) {
     return;
   }
+
+  OLP_SDK_LOG_INFO_F(kLogTag, "Initializing mutable LRU cache");
+
   mutable_cache_data_size_ = 0;
-  if (mutable_cache_ && settings_.max_disk_storage != kMaxDiskSize &&
-      settings_.eviction_policy == EvictionPolicy::kLeastRecentlyUsed) {
-    mutable_cache_lru_ =
-        std::make_unique<DiskLruCache>(settings_.max_disk_storage);
-    OLP_SDK_LOG_INFO_F(kLogTag, "Initializing mutable lru cache.");
-  }
+
+  mutable_cache_lru_ =
+      std::make_unique<DiskLruCache>(settings_.max_disk_storage);
 
   const auto start = std::chrono::steady_clock::now();
-  auto count = 0u;
   auto it = mutable_cache_->NewIterator(leveldb::ReadOptions());
 
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
@@ -519,14 +518,13 @@ void DefaultCacheImpl::InitializeLru() {
 
     // Here we count both expiry keys and regular keys
     mutable_cache_data_size_ += key.size() + value.size();
-    if (AddKeyLru(key, value)) {
-      ++count;
-    }
+
+    AddKeyLru(key, value);
   }
 
   OLP_SDK_LOG_INFO_F(
-      kLogTag, "Cache initialized, items=%" PRIu32 ", time=%" PRId64 " ms",
-      count, GetElapsedTime(start));
+      kLogTag, "LRU cache initialized, items=%zu, time=%" PRId64 " ms",
+      mutable_cache_lru_->Size(), GetElapsedTime(start));
 }
 
 bool DefaultCacheImpl::RemoveKeyLru(const std::string& key) {
@@ -870,7 +868,12 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupMutableCache() {
     }
   }
 
-  InitializeLru();
+  if (settings_.max_disk_storage != kMaxDiskSize &&
+      settings_.eviction_policy == EvictionPolicy::kLeastRecentlyUsed) {
+    InitializeLru();
+  } else {
+    mutable_cache_data_size_ = mutable_cache_->Size();
+  }
 
   return DefaultCache::Success;
 }
