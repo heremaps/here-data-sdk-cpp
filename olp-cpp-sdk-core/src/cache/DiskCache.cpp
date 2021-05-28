@@ -244,18 +244,12 @@ OpenResult DiskCache::Open(const std::string& data_path,
     status = leveldb::DB::Open(open_options, versioned_data_path, &db);
   }
 
-  if (status.IsCorruption() || status.IsIOError()) {
-    if (is_read_only) {
-      OLP_SDK_LOG_ERROR_F(
-          kLogTag, "Open: cache corrupted, cache_path='%s', error='%s'",
-          versioned_data_path.c_str(), status.ToString().c_str());
-      return OpenResult::Corrupted;
-    } else if (RepairCache(versioned_data_path)) {
-      status = leveldb::DB::Open(open_options, versioned_data_path, &db);
-      if (status.ok()) {
-        database_.reset(db);
-        return OpenResult::Repaired;
-      }
+  if ((status.IsCorruption() || status.IsIOError()) &&
+      RepairCache(versioned_data_path)) {
+    status = leveldb::DB::Open(open_options, versioned_data_path, &db);
+    if (status.ok()) {
+      database_.reset(db);
+      return OpenResult::Repaired;
     }
   }
 
@@ -268,14 +262,7 @@ OpenResult DiskCache::Open(const std::string& data_path,
     error_ = NoError{};
   }
 
-  std::unique_ptr<leveldb::DB> tmp_db{db};
-
-  if (is_read_only && !CheckCompactionFinished(*tmp_db)) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Open: interrupted compaction detected");
-    return OpenResult::Corrupted;
-  }
-
-  database_.swap(tmp_db);
+  database_.reset(db);
 
   return OpenResult::Success;
 }
