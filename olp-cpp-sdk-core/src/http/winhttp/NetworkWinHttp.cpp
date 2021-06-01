@@ -616,9 +616,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
         reinterpret_cast<WINHTTP_ASYNC_RESULT*>(status_info);
     request_result.status = result->dwError;
 
-    if (result->dwError == ERROR_WINHTTP_OPERATION_CANCELLED) {
-      request_result.cancelled = true;
-    }
+    request_result.error = true;
 
     OLP_SDK_LOG_DEBUG(kLogTag, "RequestCallback - request error, status="
                                    << request_result.status
@@ -739,6 +737,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
           }
         }
       } else {
+        request_result.error = true;
         handle->Complete();
         return;
       }
@@ -762,6 +761,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
                                        << size
                                        << " bytes, id=" << handle->request_id);
         request_result.status = ERROR_NOT_ENOUGH_MEMORY;
+        request_result.error = true;
         handle->Complete();
         return;
       }
@@ -875,6 +875,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
       OLP_SDK_LOG_WARNING(kLogTag, "WinHttpQueryDataAvailable failed, id="
                                        << handle->request_id
                                        << ", error=" << GetLastError());
+      request_result.error = true;
       handle->Complete();
     }
   } else if (status == WINHTTP_CALLBACK_STATUS_HANDLE_CLOSING) {
@@ -931,13 +932,13 @@ void NetworkWinHttp::CompletionThread() {
         result->bytes_downloaded += result->count;
       }
 
-      if (result->completed) {
+      if (result->completed && !result->error) {
         str = HttpErrorToString(result->status);
       } else {
         str = ErrorToString(result->status);
       }
 
-      if (result->completed) {
+      if (result->completed && !result->error) {
         status = result->status;
       } else {
         status = static_cast<int>(WinErrorToCode(result->status));
@@ -959,7 +960,7 @@ void NetworkWinHttp::CompletionThread() {
                      .WithBytesUploaded(result->bytes_uploaded));
       }
 
-      if (result->completed) {
+      if (result->completed || result->error) {
         std::unique_lock<std::recursive_mutex> lock(mutex_);
         auto request = FindHandle(result->request_id);
         if (request) {
@@ -1035,7 +1036,7 @@ NetworkWinHttp::ResultData::ResultData(RequestId id, Callback callback,
       request_id(id),
       status(-1),
       completed(false),
-      cancelled(false),
+      error(false),
       bytes_uploaded(0),
       bytes_downloaded(0) {}
 
