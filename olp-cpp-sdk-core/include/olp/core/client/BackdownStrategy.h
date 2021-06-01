@@ -28,12 +28,13 @@ namespace olp {
 namespace client {
 
 /**
- * @brief Computes wait time for the next retry attempt via
- * the exponential backoff with the added jitter.
+ * @brief Computes wait time for the next retry attempt via the exponential
+ * backoff with the added jitter.
  *
  * This backoff strategy is based on the exponential wait-time approach.
  * For example, when the wait time exponentially grows with each retry attempt,
- * but randomization is added.
+ * but randomization is added. See
+ * https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
  *
  * The actual formula can be described in the following way:
  * @code{.unparsed}
@@ -62,6 +63,57 @@ struct CORE_API ExponentialBackdownStrategy {
         0, exponential_wait_time);
     return std::chrono::milliseconds(dist(kGenerator));
   }
+};
+
+/**
+ * @brief Computes wait time for the next retry attempt via
+ * the exponential backoff with the added jitter.
+ *
+ * This backoff strategy is based on the Equal Jitter approach. See
+ * https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
+ *
+ * The actual formula can be described in the following way:
+ * @code{.unparsed}
+ * temp = min(cap, base * 2 ** attempt)
+ * sleep = temp / 2 + random_between(0, temp / 2)
+ * @endcode
+ */
+struct CORE_API EqualJitterBackdownStrategy {
+ public:
+  /**
+   * @brief Creates a EqualJitterBackdownStrategy instance.
+   *
+   * @param cap The maximum cap used in the wait time formula.
+   */
+  explicit EqualJitterBackdownStrategy(
+      std::chrono::milliseconds cap = std::chrono::seconds(1))
+      : cap_{cap} {}
+
+  /**
+   * @brief Computes the next retry attempt wait time based on the number of
+   * retries and initial backdown period.
+   *
+   * @param initial_backdown_period The initial backdown period.
+   * @param retry_count The number of retries that are already made.
+   *
+   * @return The timeout for the next retry attempt.
+   */
+  std::chrono::milliseconds operator()(
+      std::chrono::milliseconds initial_backdown_period, size_t retry_count) {
+    // make sure we don't overflow
+    constexpr size_t max_retry_count = 30u;
+    retry_count = std::min<size_t>(retry_count, max_retry_count);
+    const int64_t exponential_wait_time =
+        initial_backdown_period.count() * (1 << retry_count);
+    static thread_local std::mt19937 kGenerator(std::random_device{}());
+    const auto temp = std::min<int64_t>(cap_.count(), exponential_wait_time);
+    std::uniform_int_distribution<int64_t> dist(0, temp / 2);
+    const auto sleep = temp / 2 + dist(kGenerator);
+    return std::chrono::milliseconds(sleep);
+  }
+
+ private:
+  std::chrono::milliseconds cap_;
 };
 
 }  // namespace client
