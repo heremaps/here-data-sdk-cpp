@@ -1,4 +1,37 @@
-##  v1.11.0 (02/08/2020)
+##  v1.12.0 (03/06/2021)
+
+**Common**
+
+* Changed the `olp::cache::DiskCache` implementation. Now, it passes the provided `olp::cache::CacheSettings::enforce_immediate_flush` flag to `leveldb::WriteOptions::sync`.
+* Added a new CMake option: `OLP_SDK_ENABLE_DEFAULT_CACHE`. The flag disables the LevelDB and Snappy dependencies and the default cache implementation. The `olp::cache::KeyValueCache` interface is still available for the user to implement his cache.
+* Added a new custom LevelDB environment implementation. It overrides the random access file API disabling the excessive memory mapping, which led to huge memory spikes on mobile platforms.
+* Changed the cache `olp::cache::DefaultCache::Remove` and `olp::cache::DefaultCache::RemoveKeysWithPrefix` APIs to consider protected keys, which means that the keys and values are not removed when protected.
+* Fixed the crash that occurred inside `olp::cache::DefaultCache::Compact` when there was no disk cache present.
+* Fixed the race condition in iOS networking. The race condition caused a rare crash during concurrent access to `urlSessions` in the `createTaskWithProxy:andId:` method inside `OLPHttpClient.mm`.
+* **Work In Progress** Added the `olp::cache::DefaultCache::StorageOpenResult::ProtectedCacheCorrupted` status. It is returned by `olp::cache::DefaultCache::Open()` when the protected cache fails to open.
+* Fixed the issue that occurred when provided `olp::cache::OpenOptions` in `olp::cache::CacheSettings` were ignored by the mutable cache.
+* Changed the log level of a few repetitive and unimportant log messages from `INFO` to `DEBUG`.
+* Broke the cycling dependency in the Android network implementation `HttpClient.java`.
+* Extended the `olp::client::DefaultRetryCondition` to consider `IO_ERROR`, `OFFLINE_ERROR`, `TIMEOUT_ERROR`, `NETWORK_OVERLOAD_ERROR` errors returned by the network layer upon send as retriable.
+* Changed the size estimation routine for the mutable cache. In a scenario when the `max_disk_storage` is not set, we get the cache size from `leveldb::DB::GetApproximateSize` instead of traversing the whole database.
+* Fixed the cache opening sequence. Now, when the mutable cache fails to open - the error is returned.
+* Added handling of the `NSURLErrorDataNotAllowed` error on iOS as `OFFLINE_ERROR`.
+* Added handling of the `NSURLErrorNetworkConnectionLost` error on iOS as `IO_ERROR`.
+
+**olp-cpp-sdk-authentication**
+
+* Fixed the usage of the same nonce for authentication retry requests. Now, all authentication requests generate a new unique nonce.
+* **Work In Progress** Added the `SignInApple` API. Use it to sign in to the HERE platform with Apple ID.
+
+**olp-cpp-sdk-dataservice-read**
+
+* Reduced quadtree index requests in the `olp::dataservice::read::VersionedLayerClient::PrefetchTiles` and `olp::dataservice::read::VolatileLayerClient::PrefetchTiles` APIs.
+* Added merging for the exact concurrent quadtree index requests in the `olp::dataservice::read::VersionedLayerClient::PrefetchTiles` and `olp::dataservice::read::VolatileLayerClient::PrefetchTiles` APIs.
+* Added a new API to `olp::dataservice::read::VersionedLayerClient::Protect` and `olp::dataservice::read::VersionedLayerClient::Release` for partitions. It works the same way as the API for tiles.
+* Added the `olp::dataservice::read::repository::NamedMutexStorage` class. It is designed to store `olp::dataservice::read::repository::NamedMutex` instances. It helps to eliminate global static variables.
+* Added the `olp::client::ErrorCode::CacheIO` error. The error occurs when the cache fails to store the download data. It is implemented only for the `olp::dataservice::read::VersionedLayerClient::PrefetchTiles` and `olp::dataservice::read::VolatileLayerClient::PrefetchPartitions` APIs.
+
+##  v1.11.0 (08/02/2021)
 
 **Common**
 
@@ -13,7 +46,7 @@
 * Fixed the data races inside prefetch operation that could lead to double callback or no callback at all.
 * Fixed prefetch cancelation behavior for both `olp::dataservice::read::VersionedLayerClient` and `olp::dataservice::read::VolatileLayerClient`. When canceled before this fix user will not know the status for each tile, in particular, that were canceled and only received the status for the tiles which succeeded or which failed with an arbitrary error.
 
-##  v1.10.0 (12/14/2020)
+##  v1.10.0 (14/12/2020)
 
 **Common**
 
@@ -39,7 +72,7 @@
 * Merged the same concurrent `GetPartitions` requests in the `olp::dataservice::read::VersionedLayerClient`.
 * Various changes in logging; decreased the level of messages to reduce the output.
 
-##  v1.9.0 (10/12/2020)
+##  v1.9.0 (12/10/2020)
 
 **Common**
 
@@ -64,7 +97,7 @@
 * **Work In Progress** Enhanced `olp::dataservice::write::VersionedLayerClient`. The `PublishToBatch` and `CancelBatch` methods now use `olp::thread::TaskScheduler` instead of network threads for asynchronous operations.
 * **Work In Progress** Enhanced `olp::dataservice::write::VolatileLayerClient`. The `PublishPartitionData` method now uses `olp::thread::TaskScheduler` instead of network threads for asynchronous operations.
 
-## v1.8.0 (08/25/2020)
+## v1.8.0 (25/08/2020)
 
 **Common**
 
@@ -101,7 +134,7 @@
 * Fixed the duplicate requests used to configure the service in `StreamLayerClient`.
 * Fixed the upload issue in the stream layer that occurred when the layer compression was enabled on the platform at the same time as the ingest service was used.
 
-## v1.7.0 (06/16/2020)
+## v1.7.0 (16/06/2020)
 
 **Common**
 
@@ -139,7 +172,7 @@
 * **Work In Progress** Added a new `ListVersions` API to `olp::dataservice::read::CatalogClient`. You can use it to get information on catalog versions.
 * **Work In Progress** Added a new `GetAggregatedData` API to `olp::dataservice::read::VersionedLayerClient`. You can use it to retrieve tile data (if it exists) or the nearest parent tile data. Use this API for tile-tree structures where children tile data is aggregated and stored in parent tiles.
 
-## v1.6.0 (05/01/2020)
+## v1.6.0 (05/05/2020)
 
 **Common**
 
@@ -186,7 +219,7 @@
 * Added the `RemoveFromCache` method to `VolatileLayerClient`. Now, you can remove specific partitions or tiles from the mutable cache.
 * Added a new `PrefetchTiles` method to `VolatileLayerClient`. Now, you can prefetch volatile tiles in the same way as versioned tiles.
 
-## v1.4.0 (23/03/2020)
+## v1.4.0 (24/03/2020)
 
 **Common**
 
@@ -211,7 +244,7 @@
 
 * Deprecated the  `olp::dataservice::write::StreamLayerClient::CreateDefaultCache` method. It will be removed by 06.2020.
 
-## v1.3.0 (04/03/2020)
+## v1.3.0 (10/03/2020)
 
 **Common**
 
@@ -399,7 +432,7 @@
 * **Breaking Change** - Use new HTTP layer as input parameter for all requests. This is a mandatory parameter and users must provide it.
 * **Breaking Change** - `olp::dataservice::write::StreamLayerClient` uses new `olp::thread::TaskScheduler` as input parameter for async context. If the `olp::thread::TaskScheduler` instance is not provided, all tasks are executed in the calling thread.
 
-## v0.6.0-beta (27/06/2019)
+## v0.6.0-beta (03/06/2019)
 Initial open source release as a _work in progress_ beta.
 <br />Not all OLP features are implemented, API breaks very likely with following commits and releases.
 
