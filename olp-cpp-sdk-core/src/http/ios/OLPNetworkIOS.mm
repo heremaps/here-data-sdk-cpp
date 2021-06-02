@@ -99,6 +99,8 @@ olp::http::ErrorCode ConvertNSURLErrorToNetworkErrorCode(NSInteger error_code) {
       return ErrorCode::OFFLINE_ERROR;
     case NSURLErrorTimedOut:
       return ErrorCode::TIMEOUT_ERROR;
+    case NSURLErrorNetworkConnectionLost:
+      return ErrorCode::IO_ERROR;
     default:
       if (error_code >= NSURLErrorClientCertificateRequired &&
           error_code <= NSURLErrorSecureConnectionFailed) {
