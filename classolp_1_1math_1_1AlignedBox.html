@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -76,156 +76,120 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
+<p>The aligned bounding-box implementation.  
+ <a href="classolp_1_1math_1_1AlignedBox.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="AlignedBox_8h_source.html">AlignedBox.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:aa7fc90238b98b8b3888cbb8c8cf38309"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa7fc90238b98b8b3888cbb8c8cf38309">ValueType</a> = T</td></tr>
+<tr class="memitem:aa7fc90238b98b8b3888cbb8c8cf38309"><td class="memItemLeft" align="right" valign="top"><a id="aa7fc90238b98b8b3888cbb8c8cf38309"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa7fc90238b98b8b3888cbb8c8cf38309">ValueType</a> = T</td></tr>
+<tr class="memdesc:aa7fc90238b98b8b3888cbb8c8cf38309"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the box value type. <br /></td></tr>
 <tr class="separator:aa7fc90238b98b8b3888cbb8c8cf38309"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3bfb88e8a554de346055531ca809373b"><td class="memItemLeft" align="right" valign="top"><a id="a3bfb88e8a554de346055531ca809373b"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>OverflowType</b> = typename <a class="el" href="structolp_1_1math_1_1OverflowTrait.html">OverflowTrait</a>&lt; T &gt;::Type</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a3bfb88e8a554de346055531ca809373b">OverflowType</a> = typename <a class="el" href="structolp_1_1math_1_1OverflowTrait.html">OverflowTrait</a>&lt; T &gt;::Type</td></tr>
+<tr class="memdesc:a3bfb88e8a554de346055531ca809373b"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the overflow trait. <br /></td></tr>
 <tr class="separator:a3bfb88e8a554de346055531ca809373b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa8583fe7d2433b2e2b9c9ff27d22333a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a> = Vector&lt; <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa7fc90238b98b8b3888cbb8c8cf38309">ValueType</a>, N &gt;</td></tr>
+<tr class="memitem:aa8583fe7d2433b2e2b9c9ff27d22333a"><td class="memItemLeft" align="right" valign="top"><a id="aa8583fe7d2433b2e2b9c9ff27d22333a"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a> = Vector&lt; <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa7fc90238b98b8b3888cbb8c8cf38309">ValueType</a>, N &gt;</td></tr>
+<tr class="memdesc:aa8583fe7d2433b2e2b9c9ff27d22333a"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the vector type of the box. <br /></td></tr>
 <tr class="separator:aa8583fe7d2433b2e2b9c9ff27d22333a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a464881a517fbe8fb31c78e95fe8a9c1b"><td class="memItemLeft" align="right" valign="top"><a id="a464881a517fbe8fb31c78e95fe8a9c1b"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>OverflowVectorType</b> = Vector&lt; OverflowType, N &gt;</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a464881a517fbe8fb31c78e95fe8a9c1b">OverflowVectorType</a> = Vector&lt; <a class="el" href="classolp_1_1math_1_1AlignedBox.html#a3bfb88e8a554de346055531ca809373b">OverflowType</a>, N &gt;</td></tr>
+<tr class="memdesc:a464881a517fbe8fb31c78e95fe8a9c1b"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the overflow vector type. <br /></td></tr>
 <tr class="separator:a464881a517fbe8fb31c78e95fe8a9c1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a914cfc9d711d9ba0729f6e9f2506a5c7"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a914cfc9d711d9ba0729f6e9f2506a5c7">CornerArrayType</a> = typename std::array&lt; <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a>, <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aeb0c8620c28721c87e370bf5eda66f7e">numCorners</a> &gt;</td></tr>
+<tr class="memitem:a914cfc9d711d9ba0729f6e9f2506a5c7"><td class="memItemLeft" align="right" valign="top"><a id="a914cfc9d711d9ba0729f6e9f2506a5c7"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a914cfc9d711d9ba0729f6e9f2506a5c7">CornerArrayType</a> = typename std::array&lt; <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a>, <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aeb0c8620c28721c87e370bf5eda66f7e">numCorners</a> &gt;</td></tr>
+<tr class="memdesc:a914cfc9d711d9ba0729f6e9f2506a5c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the corner points array type. <br /></td></tr>
 <tr class="separator:a914cfc9d711d9ba0729f6e9f2506a5c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a9bf1e0302d1b70dd00f77c2f933ee69d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a9bf1e0302d1b70dd00f77c2f933ee69d">AlignedBox</a> ()</td></tr>
+<tr class="memdesc:a9bf1e0302d1b70dd00f77c2f933ee69d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates an <code><a class="el" href="classolp_1_1math_1_1AlignedBox.html" title="The aligned bounding-box implementation.">AlignedBox</a></code> instance.  <a href="classolp_1_1math_1_1AlignedBox.html#a9bf1e0302d1b70dd00f77c2f933ee69d">More...</a><br /></td></tr>
 <tr class="separator:a9bf1e0302d1b70dd00f77c2f933ee69d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa4a61f476c4151f9abc851532252e191"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa4a61f476c4151f9abc851532252e191">AlignedBox</a> (const <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a> &amp;min, const <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a> &amp;max)</td></tr>
-<tr class="memdesc:aa4a61f476c4151f9abc851532252e191"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="classolp_1_1math_1_1AlignedBox.html#aa4a61f476c4151f9abc851532252e191">More...</a><br /></td></tr>
+<tr class="memdesc:aa4a61f476c4151f9abc851532252e191"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates an <code><a class="el" href="classolp_1_1math_1_1AlignedBox.html" title="The aligned bounding-box implementation.">AlignedBox</a></code> instance.  <a href="classolp_1_1math_1_1AlignedBox.html#aa4a61f476c4151f9abc851532252e191">More...</a><br /></td></tr>
 <tr class="separator:aa4a61f476c4151f9abc851532252e191"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a67ca99a1c1832b5b65c895280b8b303a"><td class="memTemplParams" colspan="2">template&lt;typename OtherT &gt; </td></tr>
 <tr class="memitem:a67ca99a1c1832b5b65c895280b8b303a"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a67ca99a1c1832b5b65c895280b8b303a">AlignedBox</a> (const <a class="el" href="classolp_1_1math_1_1AlignedBox.html">AlignedBox</a>&lt; OtherT, N &gt; &amp;other)</td></tr>
-<tr class="memdesc:a67ca99a1c1832b5b65c895280b8b303a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy constructor.  <a href="classolp_1_1math_1_1AlignedBox.html#a67ca99a1c1832b5b65c895280b8b303a">More...</a><br /></td></tr>
+<tr class="memdesc:a67ca99a1c1832b5b65c895280b8b303a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a copy of the <code><a class="el" href="classolp_1_1math_1_1AlignedBox.html" title="The aligned bounding-box implementation.">AlignedBox</a></code> instance.  <a href="classolp_1_1math_1_1AlignedBox.html#a67ca99a1c1832b5b65c895280b8b303a">More...</a><br /></td></tr>
 <tr class="separator:a67ca99a1c1832b5b65c895280b8b303a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a79bb6e03559ef499353c5699427b93c2"><td class="memItemLeft" align="right" valign="top"><a id="a79bb6e03559ef499353c5699427b93c2"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a79bb6e03559ef499353c5699427b93c2">Reset</a> ()</td></tr>
-<tr class="memdesc:a79bb6e03559ef499353c5699427b93c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset the box to empty. <br /></td></tr>
+<tr class="memdesc:a79bb6e03559ef499353c5699427b93c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets the box to empty. <br /></td></tr>
 <tr class="separator:a79bb6e03559ef499353c5699427b93c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6e78cb1999b1a037f0666889253e251d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a6e78cb1999b1a037f0666889253e251d">Reset</a> (const <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a> &amp;min, const <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a> &amp;max)</td></tr>
-<tr class="memdesc:a6e78cb1999b1a037f0666889253e251d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset the box to a new min/max.  <a href="classolp_1_1math_1_1AlignedBox.html#a6e78cb1999b1a037f0666889253e251d">More...</a><br /></td></tr>
+<tr class="memdesc:a6e78cb1999b1a037f0666889253e251d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets the box to the new minimum and maximum points.  <a href="classolp_1_1math_1_1AlignedBox.html#a6e78cb1999b1a037f0666889253e251d">More...</a><br /></td></tr>
 <tr class="separator:a6e78cb1999b1a037f0666889253e251d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5888aa8e06b480f1971b9215cdba5655"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a5888aa8e06b480f1971b9215cdba5655">Empty</a> () const</td></tr>
-<tr class="memdesc:a5888aa8e06b480f1971b9215cdba5655"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if the box is empty.  <a href="classolp_1_1math_1_1AlignedBox.html#a5888aa8e06b480f1971b9215cdba5655">More...</a><br /></td></tr>
+<tr class="memdesc:a5888aa8e06b480f1971b9215cdba5655"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests whether the box is empty.  <a href="classolp_1_1math_1_1AlignedBox.html#a5888aa8e06b480f1971b9215cdba5655">More...</a><br /></td></tr>
 <tr class="separator:a5888aa8e06b480f1971b9215cdba5655"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3b2df1c824afbc4aadbb2a9299fb3e9c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a3b2df1c824afbc4aadbb2a9299fb3e9c">Center</a> () const</td></tr>
-<tr class="memdesc:a3b2df1c824afbc4aadbb2a9299fb3e9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the center of the box.  <a href="classolp_1_1math_1_1AlignedBox.html#a3b2df1c824afbc4aadbb2a9299fb3e9c">More...</a><br /></td></tr>
+<tr class="memdesc:a3b2df1c824afbc4aadbb2a9299fb3e9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the center point of the box.  <a href="classolp_1_1math_1_1AlignedBox.html#a3b2df1c824afbc4aadbb2a9299fb3e9c">More...</a><br /></td></tr>
 <tr class="separator:a3b2df1c824afbc4aadbb2a9299fb3e9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9e7b037f3fc25271f408c90cfd266d34"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a9e7b037f3fc25271f408c90cfd266d34">Size</a> () const</td></tr>
-<tr class="memdesc:a9e7b037f3fc25271f408c90cfd266d34"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the size of the box.  <a href="classolp_1_1math_1_1AlignedBox.html#a9e7b037f3fc25271f408c90cfd266d34">More...</a><br /></td></tr>
+<tr class="memdesc:a9e7b037f3fc25271f408c90cfd266d34"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the size of the box.  <a href="classolp_1_1math_1_1AlignedBox.html#a9e7b037f3fc25271f408c90cfd266d34">More...</a><br /></td></tr>
 <tr class="separator:a9e7b037f3fc25271f408c90cfd266d34"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a77aaa40db853a153611c897763ca2efc"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a77aaa40db853a153611c897763ca2efc">Minimum</a> () const</td></tr>
-<tr class="memdesc:a77aaa40db853a153611c897763ca2efc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the box minimum corner point.  <a href="classolp_1_1math_1_1AlignedBox.html#a77aaa40db853a153611c897763ca2efc">More...</a><br /></td></tr>
+<tr class="memdesc:a77aaa40db853a153611c897763ca2efc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the box minimum corner point.  <a href="classolp_1_1math_1_1AlignedBox.html#a77aaa40db853a153611c897763ca2efc">More...</a><br /></td></tr>
 <tr class="separator:a77aaa40db853a153611c897763ca2efc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae71086cdb1bb1fdc5a59fc9f1b88b0d5"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#ae71086cdb1bb1fdc5a59fc9f1b88b0d5">Maximum</a> () const</td></tr>
-<tr class="memdesc:ae71086cdb1bb1fdc5a59fc9f1b88b0d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the box maximum corner point.  <a href="classolp_1_1math_1_1AlignedBox.html#ae71086cdb1bb1fdc5a59fc9f1b88b0d5">More...</a><br /></td></tr>
+<tr class="memdesc:ae71086cdb1bb1fdc5a59fc9f1b88b0d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the box maximum corner point.  <a href="classolp_1_1math_1_1AlignedBox.html#ae71086cdb1bb1fdc5a59fc9f1b88b0d5">More...</a><br /></td></tr>
 <tr class="separator:ae71086cdb1bb1fdc5a59fc9f1b88b0d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae334c729e5633de2032e53280a9f3f14"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a914cfc9d711d9ba0729f6e9f2506a5c7">CornerArrayType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#ae334c729e5633de2032e53280a9f3f14">Corners</a> () const</td></tr>
-<tr class="memdesc:ae334c729e5633de2032e53280a9f3f14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the corner points of the box.  <a href="classolp_1_1math_1_1AlignedBox.html#ae334c729e5633de2032e53280a9f3f14">More...</a><br /></td></tr>
+<tr class="memdesc:ae334c729e5633de2032e53280a9f3f14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the corner points of the box.  <a href="classolp_1_1math_1_1AlignedBox.html#ae334c729e5633de2032e53280a9f3f14">More...</a><br /></td></tr>
 <tr class="separator:ae334c729e5633de2032e53280a9f3f14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adec682b9ca3153e6e227f13eceaeae4b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#adec682b9ca3153e6e227f13eceaeae4b">Contains</a> (const <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a> &amp;point, T epsilon=T()) const</td></tr>
-<tr class="memdesc:adec682b9ca3153e6e227f13eceaeae4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if a box contains a point.  <a href="classolp_1_1math_1_1AlignedBox.html#adec682b9ca3153e6e227f13eceaeae4b">More...</a><br /></td></tr>
+<tr class="memdesc:adec682b9ca3153e6e227f13eceaeae4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests whether the box contains a point.  <a href="classolp_1_1math_1_1AlignedBox.html#adec682b9ca3153e6e227f13eceaeae4b">More...</a><br /></td></tr>
 <tr class="separator:adec682b9ca3153e6e227f13eceaeae4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7027ea64871727c702f2d120545700fc"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a7027ea64871727c702f2d120545700fc">Contains</a> (const <a class="el" href="classolp_1_1math_1_1AlignedBox.html">AlignedBox</a> &amp;box) const</td></tr>
-<tr class="memdesc:a7027ea64871727c702f2d120545700fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if a box contains another box.  <a href="classolp_1_1math_1_1AlignedBox.html#a7027ea64871727c702f2d120545700fc">More...</a><br /></td></tr>
+<tr class="memdesc:a7027ea64871727c702f2d120545700fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests whether the box contains another box.  <a href="classolp_1_1math_1_1AlignedBox.html#a7027ea64871727c702f2d120545700fc">More...</a><br /></td></tr>
 <tr class="separator:a7027ea64871727c702f2d120545700fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1372bdfeb254485cce350a7dcc3d6735"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a1372bdfeb254485cce350a7dcc3d6735">Intersects</a> (const <a class="el" href="classolp_1_1math_1_1AlignedBox.html">AlignedBox</a> &amp;box) const</td></tr>
-<tr class="memdesc:a1372bdfeb254485cce350a7dcc3d6735"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if a box intersects another box.  <a href="classolp_1_1math_1_1AlignedBox.html#a1372bdfeb254485cce350a7dcc3d6735">More...</a><br /></td></tr>
+<tr class="memdesc:a1372bdfeb254485cce350a7dcc3d6735"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests whether the box intersects another box.  <a href="classolp_1_1math_1_1AlignedBox.html#a1372bdfeb254485cce350a7dcc3d6735">More...</a><br /></td></tr>
 <tr class="separator:a1372bdfeb254485cce350a7dcc3d6735"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afbcec2b7ede52d95286dff4627dbfaee"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#afbcec2b7ede52d95286dff4627dbfaee">NearestPoint</a> (const <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a> &amp;point) const</td></tr>
-<tr class="memdesc:afbcec2b7ede52d95286dff4627dbfaee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the nearest point on the box to a point.  <a href="classolp_1_1math_1_1AlignedBox.html#afbcec2b7ede52d95286dff4627dbfaee">More...</a><br /></td></tr>
+<tr class="memdesc:afbcec2b7ede52d95286dff4627dbfaee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes the nearest point on the box to a point.  <a href="classolp_1_1math_1_1AlignedBox.html#afbcec2b7ede52d95286dff4627dbfaee">More...</a><br /></td></tr>
 <tr class="separator:afbcec2b7ede52d95286dff4627dbfaee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0e452bd7671bb55187a92b43546d7590"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa7fc90238b98b8b3888cbb8c8cf38309">ValueType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a0e452bd7671bb55187a92b43546d7590">Distance</a> (const <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a> &amp;point) const</td></tr>
-<tr class="memdesc:a0e452bd7671bb55187a92b43546d7590"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the distance to the box.  <a href="classolp_1_1math_1_1AlignedBox.html#a0e452bd7671bb55187a92b43546d7590">More...</a><br /></td></tr>
+<tr class="memdesc:a0e452bd7671bb55187a92b43546d7590"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes the distance from a point to the box.  <a href="classolp_1_1math_1_1AlignedBox.html#a0e452bd7671bb55187a92b43546d7590">More...</a><br /></td></tr>
 <tr class="separator:a0e452bd7671bb55187a92b43546d7590"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a188179d900ffb13cf1e547f1b553bbd7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa7fc90238b98b8b3888cbb8c8cf38309">ValueType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a188179d900ffb13cf1e547f1b553bbd7">Distance2</a> (const <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a> &amp;point) const</td></tr>
-<tr class="memdesc:a188179d900ffb13cf1e547f1b553bbd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the squared distance to the box.  <a href="classolp_1_1math_1_1AlignedBox.html#a188179d900ffb13cf1e547f1b553bbd7">More...</a><br /></td></tr>
+<tr class="memdesc:a188179d900ffb13cf1e547f1b553bbd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes the squared distance from a point to the box.  <a href="classolp_1_1math_1_1AlignedBox.html#a188179d900ffb13cf1e547f1b553bbd7">More...</a><br /></td></tr>
 <tr class="separator:a188179d900ffb13cf1e547f1b553bbd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a13a912523edec12d5fca81418647fb95"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a13a912523edec12d5fca81418647fb95">operator==</a> (const <a class="el" href="classolp_1_1math_1_1AlignedBox.html">AlignedBox</a> &amp;box) const</td></tr>
-<tr class="memdesc:a13a912523edec12d5fca81418647fb95"><td class="mdescLeft">&#160;</td><td class="mdescRight">Equality operator.  <a href="classolp_1_1math_1_1AlignedBox.html#a13a912523edec12d5fca81418647fb95">More...</a><br /></td></tr>
+<tr class="memdesc:a13a912523edec12d5fca81418647fb95"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks whether two boxes are equal.  <a href="classolp_1_1math_1_1AlignedBox.html#a13a912523edec12d5fca81418647fb95">More...</a><br /></td></tr>
 <tr class="separator:a13a912523edec12d5fca81418647fb95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a889f4e9ad5a41556ae683a57ea1b0e5c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a889f4e9ad5a41556ae683a57ea1b0e5c">operator!=</a> (const <a class="el" href="classolp_1_1math_1_1AlignedBox.html">AlignedBox</a> &amp;box) const</td></tr>
-<tr class="memdesc:a889f4e9ad5a41556ae683a57ea1b0e5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inequality operator.  <a href="classolp_1_1math_1_1AlignedBox.html#a889f4e9ad5a41556ae683a57ea1b0e5c">More...</a><br /></td></tr>
+<tr class="memdesc:a889f4e9ad5a41556ae683a57ea1b0e5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks whether two boxes are not equal.  <a href="classolp_1_1math_1_1AlignedBox.html#a889f4e9ad5a41556ae683a57ea1b0e5c">More...</a><br /></td></tr>
 <tr class="separator:a889f4e9ad5a41556ae683a57ea1b0e5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:aeb0c8620c28721c87e370bf5eda66f7e"><td class="memItemLeft" align="right" valign="top">static const unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#aeb0c8620c28721c87e370bf5eda66f7e">numCorners</a></td></tr>
+<tr class="memitem:aeb0c8620c28721c87e370bf5eda66f7e"><td class="memItemLeft" align="right" valign="top"><a id="aeb0c8620c28721c87e370bf5eda66f7e"></a>
+static const unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#aeb0c8620c28721c87e370bf5eda66f7e">numCorners</a> = 1 &lt;&lt; N</td></tr>
+<tr class="memdesc:aeb0c8620c28721c87e370bf5eda66f7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of corners for the box. <br /></td></tr>
 <tr class="separator:aeb0c8620c28721c87e370bf5eda66f7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1402552b26b281805eae94556cadf0df"><td class="memItemLeft" align="right" valign="top">static const unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a1402552b26b281805eae94556cadf0df">dimensions</a> = N</td></tr>
+<tr class="memitem:a1402552b26b281805eae94556cadf0df"><td class="memItemLeft" align="right" valign="top"><a id="a1402552b26b281805eae94556cadf0df"></a>
+static const unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1math_1_1AlignedBox.html#a1402552b26b281805eae94556cadf0df">dimensions</a> = N</td></tr>
+<tr class="memdesc:a1402552b26b281805eae94556cadf0df"><td class="mdescLeft">&#160;</td><td class="mdescRight">The box dimensions. <br /></td></tr>
 <tr class="separator:a1402552b26b281805eae94556cadf0df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;typename T, unsigned int N&gt;<br />
 class olp::math::AlignedBox&lt; T, N &gt;</h3>
 
-<p>An aligned bounding-box implementation.</p>
+<p>The aligned bounding-box implementation. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">T</td><td>- The real type. </td></tr>
-    <tr><td class="paramname">N</td><td>- The box dimensions. </td></tr>
+    <tr><td class="paramname">T</td><td>The real type. </td></tr>
+    <tr><td class="paramname">N</td><td>The box dimensions. </td></tr>
   </table>
   </dd>
 </dl>
-</div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="a914cfc9d711d9ba0729f6e9f2506a5c7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a914cfc9d711d9ba0729f6e9f2506a5c7">&#9670;&nbsp;</a></span>CornerArrayType</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int N&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="classolp_1_1math_1_1AlignedBox.html">olp::math::AlignedBox</a>&lt; T, N &gt;::<a class="el" href="classolp_1_1math_1_1AlignedBox.html#a914cfc9d711d9ba0729f6e9f2506a5c7">CornerArrayType</a> =  typename std::array&lt;<a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a>, <a class="el" href="classolp_1_1math_1_1AlignedBox.html#aeb0c8620c28721c87e370bf5eda66f7e">numCorners</a>&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Corner points array type. </p>
-
-</div>
-</div>
-<a id="aa7fc90238b98b8b3888cbb8c8cf38309"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa7fc90238b98b8b3888cbb8c8cf38309">&#9670;&nbsp;</a></span>ValueType</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int N&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="classolp_1_1math_1_1AlignedBox.html">olp::math::AlignedBox</a>&lt; T, N &gt;::<a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa7fc90238b98b8b3888cbb8c8cf38309">ValueType</a> =  T</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>The box value type. </p>
-
-</div>
-</div>
-<a id="aa8583fe7d2433b2e2b9c9ff27d22333a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa8583fe7d2433b2e2b9c9ff27d22333a">&#9670;&nbsp;</a></span>VectorType</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int N&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="classolp_1_1math_1_1AlignedBox.html">olp::math::AlignedBox</a>&lt; T, N &gt;::<a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a> =  Vector&lt;<a class="el" href="classolp_1_1math_1_1AlignedBox.html#aa7fc90238b98b8b3888cbb8c8cf38309">ValueType</a>, N&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>VectorType of the box. </p>
-
-</div>
-</div>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a9bf1e0302d1b70dd00f77c2f933ee69d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9bf1e0302d1b70dd00f77c2f933ee69d">&#9670;&nbsp;</a></span>AlignedBox() <span class="overload">[1/3]</span></h2>
 
@@ -239,8 +203,9 @@ template&lt;typename T , unsigned int N&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Default constructor.</p>
-<p>An empty box is constructed. </p>
+
+<p>Creates an <code><a class="el" href="classolp_1_1math_1_1AlignedBox.html" title="The aligned bounding-box implementation.">AlignedBox</a></code> instance. </p>
+<p>An empty box is created. </p>
 
 </div>
 </div>
@@ -272,12 +237,12 @@ template&lt;typename T , unsigned int N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Constructor. </p>
-<p>If the any components of min are greater than max an empty box will result.</p>
+<p>Creates an <code><a class="el" href="classolp_1_1math_1_1AlignedBox.html" title="The aligned bounding-box implementation.">AlignedBox</a></code> instance. </p>
+<p>If any component of <code>min</code> is greater than <code>max</code>, an empty box is created.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">min</td><td>- The box minimum point. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">max</td><td>- The box maximum point. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">min</td><td>The box minimum point. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">max</td><td>The box maximum point. </td></tr>
   </table>
   </dd>
 </dl>
@@ -304,16 +269,16 @@ template&lt;typename OtherT &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Copy constructor. </p>
+<p>Creates a copy of the <code><a class="el" href="classolp_1_1math_1_1AlignedBox.html" title="The aligned bounding-box implementation.">AlignedBox</a></code> instance. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">OtherT</td><td>- Real type of the box being copied. </td></tr>
+    <tr><td class="paramname">OtherT</td><td>The real type of the box being copied. </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">other</td><td>- The box to be copied. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">other</td><td>The box to be copied. </td></tr>
   </table>
   </dd>
 </dl>
@@ -335,9 +300,9 @@ template&lt;typename T , unsigned int N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Get the center of the box. </p>
+<p>Gets the center point of the box. </p>
 <p>The center of an empty box is undefined.</p>
-<dl class="section return"><dt>Returns</dt><dd>- Box center point. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The box center point. </dd></dl>
 
 </div>
 </div>
@@ -359,14 +324,14 @@ template&lt;typename T , unsigned int N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Test if a box contains another box. </p>
+<p>Tests whether the box contains another box. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">box</td><td>Aligned box</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">box</td><td>The aligned box.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>True if the box is contained by the box. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>True if the box contains another box; false otherwise. </dd></dl>
 
 </div>
 </div>
@@ -398,15 +363,16 @@ template&lt;typename T , unsigned int N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Test if a box contains a point. </p>
+<p>Tests whether the box contains a point. </p>
 <p>This test is inclusive.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">point</td><td>- The point to be tested.</td></tr>
+    <tr><td class="paramname">point</td><td>The point to be tested. </td></tr>
+    <tr><td class="paramname">epsilon</td><td>The epsilon around the point.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>- True if the point is contained by the box. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>True if the box contains the point; false otherwise. </dd></dl>
 
 </div>
 </div>
@@ -427,9 +393,9 @@ template&lt;typename T , unsigned int N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Get the corner points of the box. </p>
+<p>Gets the corner points of the box. </p>
 <p>The corner points of an empty box are undefined.</p>
-<dl class="section return"><dt>Returns</dt><dd>- An array containing the box corner points. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>An array containing the box corner points. </dd></dl>
 
 </div>
 </div>
@@ -451,16 +417,16 @@ template&lt;typename T , unsigned int N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Compute the distance to the box. </p>
-<p>A point on or inside the box will have a distance of zero.</p>
+<p>Computes the distance from a point to the box. </p>
+<p>A point on or inside the box has a distance of zero.</p>
 <p>The distance to an empty box is undefined.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">point</td><td>- Point from which to find the distance.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">point</td><td>The point from which to find the distance.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>- The distance between the point and the box. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The distance between the point and the box. </dd></dl>
 
 </div>
 </div>
@@ -482,16 +448,16 @@ template&lt;typename T , unsigned int N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Compute the squared distance to the box. </p>
-<p>A point on or inside the box will have a squared distance of zero.</p>
+<p>Computes the squared distance from a point to the box. </p>
+<p>A point on or inside the box has a squared distance of zero.</p>
 <p>The squared distance to an empty box is undefined.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">point</td><td>- Point from which to find the squared distance.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">point</td><td>The point from which to find the squared distance.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>- The squared distance between the point and the box. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The squared distance between the point and the box. </dd></dl>
 
 </div>
 </div>
@@ -509,8 +475,8 @@ template&lt;typename T , unsigned int N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Test if the box is empty. </p>
-<dl class="section return"><dt>Returns</dt><dd>- True if the box is empty. </dd></dl>
+<p>Tests whether the box is empty. </p>
+<dl class="section return"><dt>Returns</dt><dd>True if the box is empty; false otherwise. </dd></dl>
 
 </div>
 </div>
@@ -532,15 +498,15 @@ template&lt;typename T , unsigned int N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Test if a box intersects another box. </p>
-<p>The test box is considered to be insecting if it is contained by the box.</p>
+<p>Tests whether the box intersects another box. </p>
+<p>A test box is considered to be intersecting if another box contains it.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">box</td><td>- The box to be tested.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">box</td><td>The box to be tested.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>- True if the boxes intersect. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>True if the boxes intersect; false otherwise. </dd></dl>
 
 </div>
 </div>
@@ -558,9 +524,9 @@ template&lt;typename T , unsigned int N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Get the box maximum corner point. </p>
+<p>Gets the box maximum corner point. </p>
 <p>The maximum corner point of an empty box is undefined.</p>
-<dl class="section return"><dt>Returns</dt><dd>- Box maximum point. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The maximum point of the box. </dd></dl>
 
 </div>
 </div>
@@ -578,9 +544,9 @@ template&lt;typename T , unsigned int N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Get the box minimum corner point. </p>
+<p>Gets the box minimum corner point. </p>
 <p>The minimum corner point of an empty box is undefined.</p>
-<dl class="section return"><dt>Returns</dt><dd>- Box minimum point. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The minimum point of the box. </dd></dl>
 
 </div>
 </div>
@@ -602,15 +568,15 @@ template&lt;typename T , unsigned int N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Compute the nearest point on the box to a point. </p>
+<p>Computes the nearest point on the box to a point. </p>
 <p>The nearest point to an empty box is undefined.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">point</td><td>- Point from which to find the nearest point.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">point</td><td>The point from which to find the nearest point.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>- The nearest point on the box to the specified point. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The nearest point on the box to the specified point. </dd></dl>
 
 </div>
 </div>
@@ -632,14 +598,13 @@ template&lt;typename T , unsigned int N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Inequality operator. </p>
+<p>Checks whether two boxes are not equal. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">box</td><td>- Other box.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">box</td><td>The other box. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>- True if the boxes are not equal. </dd></dl>
 
 </div>
 </div>
@@ -661,14 +626,13 @@ template&lt;typename T , unsigned int N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Equality operator. </p>
+<p>Checks whether two boxes are equal. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">box</td><td>- Other box.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">box</td><td>The other box. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>- True if the boxes are equal. </dd></dl>
 
 </div>
 </div>
@@ -700,12 +664,12 @@ template&lt;typename T , unsigned int N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Reset the box to a new min/max. </p>
-<p>If the any components of min are greater than max an empty box will result.</p>
+<p>Resets the box to the new minimum and maximum points. </p>
+<p>If any component of <code>min</code> is greater than <code>max</code>, an empty box is created.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">min</td><td>- The box minimum point. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">max</td><td>- The box maximum point. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">min</td><td>The box minimum point. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">max</td><td>The box maximum point. </td></tr>
   </table>
   </dd>
 </dl>
@@ -726,63 +690,10 @@ template&lt;typename T , unsigned int N&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Get the size of the box. </p>
+<p>Gets the size of the box. </p>
 <p>The size of an empty box is zero.</p>
-<dl class="section return"><dt>Returns</dt><dd>- The size along each dimension. </dd></dl>
-<dl class="section note"><dt>Note</dt><dd>overflow might happen. E.g. max is INT_MAX and min is INT_MIN. </dd></dl>
-
-</div>
-</div>
-<h2 class="groupheader">Member Data Documentation</h2>
-<a id="a1402552b26b281805eae94556cadf0df"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1402552b26b281805eae94556cadf0df">&#9670;&nbsp;</a></span>dimensions</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int N&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const unsigned int <a class="el" href="classolp_1_1math_1_1AlignedBox.html">olp::math::AlignedBox</a>&lt; T, N &gt;::dimensions = N</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Box dimensions. </p>
-
-</div>
-</div>
-<a id="aeb0c8620c28721c87e370bf5eda66f7e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeb0c8620c28721c87e370bf5eda66f7e">&#9670;&nbsp;</a></span>numCorners</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T , unsigned int N&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const unsigned int <a class="el" href="classolp_1_1math_1_1AlignedBox.html">olp::math::AlignedBox</a>&lt; T, N &gt;::numCorners</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">      1 &lt;&lt; N</div>
-</div><!-- fragment --><p>Number of corners for the box. </p>
+<dl class="section return"><dt>Returns</dt><dd>The size of each dimension.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>An overflow might happen. For example, when <code>max</code> is <code>INT_MAX</code> and <code>min</code> is <code>INT_MIN</code>. </dd></dl>
 
 </div>
 </div>

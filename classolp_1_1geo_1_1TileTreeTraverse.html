@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -74,25 +74,97 @@ $(function() {
 <div class="title">olp::geo::TileTreeTraverse Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>A container of subtiles for a tile.  
+ <a href="classolp_1_1geo_1_1TileTreeTraverse.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="TileTreeTraverse_8h_source.html">TileTreeTraverse.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:ac2bfd352ff8814c0bbf5d47b94982ee7"><td class="memItemLeft" align="right" valign="top"><a id="ac2bfd352ff8814c0bbf5d47b94982ee7"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Node</b> = <a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a></td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileTreeTraverse.html#ac2bfd352ff8814c0bbf5d47b94982ee7">Node</a> = <a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a></td></tr>
+<tr class="memdesc:ac2bfd352ff8814c0bbf5d47b94982ee7"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the tile key. <br /></td></tr>
 <tr class="separator:ac2bfd352ff8814c0bbf5d47b94982ee7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af00bf736d49fa82729ec135f5c6a5951"><td class="memItemLeft" align="right" valign="top"><a id="af00bf736d49fa82729ec135f5c6a5951"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>NodeContainer</b> = <a class="el" href="classolp_1_1geo_1_1SubTiles.html">SubTiles</a></td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileTreeTraverse.html#af00bf736d49fa82729ec135f5c6a5951">NodeContainer</a> = <a class="el" href="classolp_1_1geo_1_1SubTiles.html">SubTiles</a></td></tr>
+<tr class="memdesc:af00bf736d49fa82729ec135f5c6a5951"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the child tiles. <br /></td></tr>
 <tr class="separator:af00bf736d49fa82729ec135f5c6a5951"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:abaacc9461ff769bf44fbebc14665f3d7"><td class="memItemLeft" align="right" valign="top"><a id="abaacc9461ff769bf44fbebc14665f3d7"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>TileTreeTraverse</b> (const <a class="el" href="classolp_1_1geo_1_1ISubdivisionScheme.html">ISubdivisionScheme</a> &amp;sub_division_scheme)</td></tr>
+<tr class="memitem:abaacc9461ff769bf44fbebc14665f3d7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileTreeTraverse.html#abaacc9461ff769bf44fbebc14665f3d7">TileTreeTraverse</a> (const <a class="el" href="classolp_1_1geo_1_1ISubdivisionScheme.html">ISubdivisionScheme</a> &amp;sub_division_scheme)</td></tr>
+<tr class="memdesc:abaacc9461ff769bf44fbebc14665f3d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a <code><a class="el" href="classolp_1_1geo_1_1TileTreeTraverse.html" title="A container of subtiles for a tile.">TileTreeTraverse</a></code> instance.  <a href="classolp_1_1geo_1_1TileTreeTraverse.html#abaacc9461ff769bf44fbebc14665f3d7">More...</a><br /></td></tr>
 <tr class="separator:abaacc9461ff769bf44fbebc14665f3d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6fa2da5f53d517269b14646dda661bc9"><td class="memItemLeft" align="right" valign="top"><a id="a6fa2da5f53d517269b14646dda661bc9"></a>
-<a class="el" href="classolp_1_1geo_1_1SubTiles.html">NodeContainer</a>&#160;</td><td class="memItemRight" valign="bottom"><b>SubNodes</b> (const <a class="el" href="classolp_1_1geo_1_1TileKey.html">Node</a> &amp;node) const</td></tr>
+<tr class="memitem:a6fa2da5f53d517269b14646dda661bc9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1geo_1_1TileTreeTraverse.html#af00bf736d49fa82729ec135f5c6a5951">NodeContainer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileTreeTraverse.html#a6fa2da5f53d517269b14646dda661bc9">SubNodes</a> (const <a class="el" href="classolp_1_1geo_1_1TileTreeTraverse.html#ac2bfd352ff8814c0bbf5d47b94982ee7">Node</a> &amp;node) const</td></tr>
+<tr class="memdesc:a6fa2da5f53d517269b14646dda661bc9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a container of subtiles for a tile.  <a href="classolp_1_1geo_1_1TileTreeTraverse.html#a6fa2da5f53d517269b14646dda661bc9">More...</a><br /></td></tr>
 <tr class="separator:a6fa2da5f53d517269b14646dda661bc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A container of subtiles for a tile. </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="abaacc9461ff769bf44fbebc14665f3d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abaacc9461ff769bf44fbebc14665f3d7">&#9670;&nbsp;</a></span>TileTreeTraverse()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">olp::geo::TileTreeTraverse::TileTreeTraverse </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1geo_1_1ISubdivisionScheme.html">ISubdivisionScheme</a> &amp;&#160;</td>
+          <td class="paramname"><em>sub_division_scheme</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates a <code><a class="el" href="classolp_1_1geo_1_1TileTreeTraverse.html" title="A container of subtiles for a tile.">TileTreeTraverse</a></code> instance. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sub_division_scheme</td><td>The subdivision scheme. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a6fa2da5f53d517269b14646dda661bc9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6fa2da5f53d517269b14646dda661bc9">&#9670;&nbsp;</a></span>SubNodes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1geo_1_1TileTreeTraverse.html#af00bf736d49fa82729ec135f5c6a5951">NodeContainer</a> olp::geo::TileTreeTraverse::SubNodes </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1geo_1_1TileTreeTraverse.html#ac2bfd352ff8814c0bbf5d47b94982ee7">Node</a> &amp;&#160;</td>
+          <td class="paramname"><em>node</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Creates a container of subtiles for a tile. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">node</td><td>The tile key.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The container of subtiles. </dd></dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>olp-cpp-sdk-core/include/olp/core/geo/tiling/<a class="el" href="TileTreeTraverse_8h_source.html">TileTreeTraverse.h</a></li>
 </ul>

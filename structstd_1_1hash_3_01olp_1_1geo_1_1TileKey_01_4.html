@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -74,21 +74,50 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Specialization of std::hash.  
+<p>The specialization of <code>std::hash</code>.  
  <a href="structstd_1_1hash_3_01olp_1_1geo_1_1TileKey_01_4.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="TileKey_8h_source.html">TileKey.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a0c57be567c812a5fa75f9bc3fa01c1ac"><td class="memItemLeft" align="right" valign="top"><a id="a0c57be567c812a5fa75f9bc3fa01c1ac"></a>
-std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structstd_1_1hash_3_01olp_1_1geo_1_1TileKey_01_4.html#a0c57be567c812a5fa75f9bc3fa01c1ac">operator()</a> (const <a class="el" href="classolp_1_1geo_1_1TileKey.html">olp::geo::TileKey</a> &amp;tile_key) const</td></tr>
-<tr class="memdesc:a0c57be567c812a5fa75f9bc3fa01c1ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hash function for tile keys, uses the 64-bit morton code (TileKey::ToQuadKey64()). <br /></td></tr>
+<tr class="memitem:a0c57be567c812a5fa75f9bc3fa01c1ac"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structstd_1_1hash_3_01olp_1_1geo_1_1TileKey_01_4.html#a0c57be567c812a5fa75f9bc3fa01c1ac">operator()</a> (const <a class="el" href="classolp_1_1geo_1_1TileKey.html">olp::geo::TileKey</a> &amp;tile_key) const</td></tr>
+<tr class="memdesc:a0c57be567c812a5fa75f9bc3fa01c1ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">The hash function for tile keys.  <a href="structstd_1_1hash_3_01olp_1_1geo_1_1TileKey_01_4.html#a0c57be567c812a5fa75f9bc3fa01c1ac">More...</a><br /></td></tr>
 <tr class="separator:a0c57be567c812a5fa75f9bc3fa01c1ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Specialization of std::hash. </p>
-</div><hr/>The documentation for this struct was generated from the following file:<ul>
+<div class="textblock"><p>The specialization of <code>std::hash</code>. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a0c57be567c812a5fa75f9bc3fa01c1ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c57be567c812a5fa75f9bc3fa01c1ac">&#9670;&nbsp;</a></span>operator()()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::size_t std::hash&lt; <a class="el" href="classolp_1_1geo_1_1TileKey.html">olp::geo::TileKey</a> &gt;::operator() </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1geo_1_1TileKey.html">olp::geo::TileKey</a> &amp;&#160;</td>
+          <td class="paramname"><em>tile_key</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The hash function for tile keys. </p>
+<p>Uses the 64-bit Morton code (<code>TileKey::ToQuadKey64()</code>). </p>
+
+</div>
+</div>
+<hr/>The documentation for this struct was generated from the following file:<ul>
 <li>olp-cpp-sdk-core/include/olp/core/geo/tiling/<a class="el" href="TileKey_8h_source.html">TileKey.h</a></li>
 </ul>
 </div><!-- contents -->

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -74,7 +74,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Cost operator for <a class="el" href="classolp_1_1utils_1_1LruCache.html" title="Generic key-value LRU cache.">LruCache</a>.  
+<p>The default cost operator for <code><a class="el" href="classolp_1_1utils_1_1LruCache.html" title="A generic key-value LRU cache.">LruCache</a></code>.  
  <a href="structolp_1_1utils_1_1CacheCost.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="LruCache_8h_source.html">LruCache.h</a>&gt;</code></p>
@@ -82,16 +82,17 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a589a83ff5f532b278bbf2b8be1cac61a"><td class="memItemLeft" align="right" valign="top"><a id="a589a83ff5f532b278bbf2b8be1cac61a"></a>
-std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>operator()</b> (const T &amp;) const</td></tr>
+std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1utils_1_1CacheCost.html#a589a83ff5f532b278bbf2b8be1cac61a">operator()</a> (const T &amp;) const</td></tr>
+<tr class="memdesc:a589a83ff5f532b278bbf2b8be1cac61a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the size of the specified object. <br /></td></tr>
 <tr class="separator:a589a83ff5f532b278bbf2b8be1cac61a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;typename T&gt;<br />
 struct olp::utils::CacheCost&lt; T &gt;</h3>
 
-<p>Cost operator for <a class="el" href="classolp_1_1utils_1_1LruCache.html" title="Generic key-value LRU cache.">LruCache</a>. </p>
-<p>Specializations should return a non-zero value for any given object.</p>
-<p>Default implementation returns "1" for every object, meaning that each object in the cache is treated as equally sized. </p>
+<p>The default cost operator for <code><a class="el" href="classolp_1_1utils_1_1LruCache.html" title="A generic key-value LRU cache.">LruCache</a></code>. </p>
+<p>The default implementation returns "1" for every object, which means that each object in the cache is treated as equally sized.</p>
+<dl class="section return"><dt>Returns</dt><dd>The non-zero value for the specified object. </dd></dl>
 </div><hr/>The documentation for this struct was generated from the following file:<ul>
 <li>olp-cpp-sdk-core/include/olp/core/utils/<a class="el" href="LruCache_8h_source.html">LruCache.h</a></li>
 </ul>

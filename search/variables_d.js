@@ -1,9 +1,10 @@
 var searchData=
 [
-  ['password_2059',['password',['../structolp_1_1authentication_1_1AuthenticationClient_1_1UserProperties.html#a1c447523630cc024dc04fa4e6340aaba',1,'olp::authentication::AuthenticationClient::UserProperties::password()'],['../structolp_1_1authentication_1_1AuthenticationClient_1_1SignUpProperties.html#a8a8fcb7249727f91cb6b0702364fd687',1,'olp::authentication::AuthenticationClient::SignUpProperties::password()']]],
-  ['phone_5fnumber_2060',['phone_number',['../structolp_1_1authentication_1_1AuthenticationClient_1_1SignUpProperties.html#ac403dd8fa6cdf633f961884930808c49',1,'olp::authentication::AuthenticationClient::SignUpProperties']]],
-  ['prefetched_5fpartitions_2061',['prefetched_partitions',['../structolp_1_1dataservice_1_1read_1_1PrefetchPartitionsStatus.html#acc57f818807ce5ff612703136544b6b1',1,'olp::dataservice::read::PrefetchPartitionsStatus']]],
-  ['prefetched_5ftiles_2062',['prefetched_tiles',['../structolp_1_1dataservice_1_1read_1_1PrefetchStatus.html#a7a22b5aa0cb16f3bbaffdfd199796dfc',1,'olp::dataservice::read::PrefetchStatus']]],
-  ['provider_2063',['provider',['../structolp_1_1client_1_1AuthenticationSettings.html#a8a4240addea5ddd967ed14f0b9858dac',1,'olp::client::AuthenticationSettings']]],
-  ['proxy_5fsettings_2064',['proxy_settings',['../structolp_1_1client_1_1OlpClientSettings.html#a18b844a4f584c02b3f0b2d784e302d8b',1,'olp::client::OlpClientSettings']]]
+  ['password_2167',['password',['../structolp_1_1authentication_1_1AuthenticationClient_1_1UserProperties.html#a1c447523630cc024dc04fa4e6340aaba',1,'olp::authentication::AuthenticationClient::UserProperties::password()'],['../structolp_1_1authentication_1_1AuthenticationClient_1_1SignUpProperties.html#a8a8fcb7249727f91cb6b0702364fd687',1,'olp::authentication::AuthenticationClient::SignUpProperties::password()']]],
+  ['phone_5fnumber_2168',['phone_number',['../structolp_1_1authentication_1_1AuthenticationClient_1_1SignUpProperties.html#ac403dd8fa6cdf633f961884930808c49',1,'olp::authentication::AuthenticationClient::SignUpProperties']]],
+  ['pointer_2169',['pointer',['../classolp_1_1utils_1_1LruCache_1_1const__iterator.html#a20f69f9aceeb5e446b9444654b440211',1,'olp::utils::LruCache::const_iterator']]],
+  ['prefetched_5fpartitions_2170',['prefetched_partitions',['../structolp_1_1dataservice_1_1read_1_1PrefetchPartitionsStatus.html#acc57f818807ce5ff612703136544b6b1',1,'olp::dataservice::read::PrefetchPartitionsStatus']]],
+  ['prefetched_5ftiles_2171',['prefetched_tiles',['../structolp_1_1dataservice_1_1read_1_1PrefetchStatus.html#a7a22b5aa0cb16f3bbaffdfd199796dfc',1,'olp::dataservice::read::PrefetchStatus']]],
+  ['provider_2172',['provider',['../structolp_1_1client_1_1AuthenticationSettings.html#a8a4240addea5ddd967ed14f0b9858dac',1,'olp::client::AuthenticationSettings']]],
+  ['proxy_5fsettings_2173',['proxy_settings',['../structolp_1_1client_1_1OlpClientSettings.html#a18b844a4f584c02b3f0b2d784e302d8b',1,'olp::client::OlpClientSettings']]]
 ];

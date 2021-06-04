@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['writelocktype_2151',['WriteLockType',['../classolp_1_1thread_1_1Atomic.html#a62ccc891c261a8a372d0fde6f1335128',1,'olp::thread::Atomic']]]
+  ['useraccountinfocallback_2271',['UserAccountInfoCallback',['../namespaceolp_1_1authentication.html#a332d0dff23054e56482b32cc66aa6e22',1,'olp::authentication']]],
+  ['useraccountinforesponse_2272',['UserAccountInfoResponse',['../namespaceolp_1_1authentication.html#a59139f5f6420f72916d98deb8840f3a6',1,'olp::authentication']]],
+  ['usercallback_2273',['UserCallback',['../classolp_1_1client_1_1TaskContext_1_1TaskContextImpl.html#a3b4337779c27fd5fd2ed8f7de9bd8904',1,'olp::client::TaskContext::TaskContextImpl']]]
 ];

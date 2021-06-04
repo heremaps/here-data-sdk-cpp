@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -109,6 +109,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:ad2258f098f7e0eb2997ba7eabb77ad09"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classolp_1_1client_1_1ApiError.html">ApiError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiError.html#ad2258f098f7e0eb2997ba7eabb77ad09">NetworkConnection</a> (const char *description=&quot;Offline&quot;)</td></tr>
 <tr class="memdesc:ad2258f098f7e0eb2997ba7eabb77ad09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance with the network connection error code and description.  <a href="classolp_1_1client_1_1ApiError.html#ad2258f098f7e0eb2997ba7eabb77ad09">More...</a><br /></td></tr>
 <tr class="separator:ad2258f098f7e0eb2997ba7eabb77ad09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f1c878ca94ebd0ed38575ce53be297b"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classolp_1_1client_1_1ApiError.html">ApiError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiError.html#a2f1c878ca94ebd0ed38575ce53be297b">PreconditionFailed</a> (const char *description=&quot;Precondition failed&quot;)</td></tr>
+<tr class="memdesc:a2f1c878ca94ebd0ed38575ce53be297b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance with the precondition failed error code and description.  <a href="classolp_1_1client_1_1ApiError.html#a2f1c878ca94ebd0ed38575ce53be297b">More...</a><br /></td></tr>
+<tr class="separator:a2f1c878ca94ebd0ed38575ce53be297b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A wrapper around an internal error or HTTP status code. </p>
@@ -357,6 +360,41 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Creates the <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance with the network connection error code and description. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">description</td><td>The optional description. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance. </dd></dl>
+
+</div>
+</div>
+<a id="a2f1c878ca94ebd0ed38575ce53be297b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f1c878ca94ebd0ed38575ce53be297b">&#9670;&nbsp;</a></span>PreconditionFailed()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="classolp_1_1client_1_1ApiError.html">ApiError</a> olp::client::ApiError::PreconditionFailed </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>description</em> = <code>&quot;Precondition&#160;failed&quot;</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates the <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance with the precondition failed error code and description. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">description</td><td>The optional description. </td></tr>

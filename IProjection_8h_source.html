@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -96,31 +96,31 @@ $(function() {
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="keyword">namespace </span>geo {</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160; </div>
-<div class="line"><a name="l00027"></a><span class="lineno"><a class="line" href="classolp_1_1geo_1_1IProjection.html">   27</a></span>&#160;<span class="keyword">class </span>CORE_API <a class="code" href="classolp_1_1geo_1_1IProjection.html">IProjection</a> {</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  <span class="keyword">virtual</span> ~<a class="code" href="classolp_1_1geo_1_1IProjection.html">IProjection</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160; </div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;  <span class="keyword">virtual</span> <a class="code" href="classolp_1_1geo_1_1GeoRectangle.html">GeoRectangle</a> GetGeoBounds() <span class="keyword">const</span> = 0;</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160; </div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;  <span class="keyword">virtual</span> <a class="code" href="classolp_1_1math_1_1AlignedBox.html">WorldAlignedBox</a> WorldExtent(<span class="keywordtype">double</span> minimum_altitude,</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;                                      <span class="keywordtype">double</span> maximum_altitude) <span class="keyword">const</span> = 0;</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160; </div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;  <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Project(<span class="keyword">const</span> <a class="code" href="classolp_1_1geo_1_1GeoCoordinates3d.html">GeoCoordinates3d</a>&amp; geo_point,</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;                       <a class="code" href="structolp_1_1math_1_1Vector3.html">WorldCoordinates</a>&amp; world_point) <span class="keyword">const</span> = 0;</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160; </div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;  <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Unproject(<span class="keyword">const</span> <a class="code" href="structolp_1_1math_1_1Vector3.html">WorldCoordinates</a>&amp; world_point,</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;                         <a class="code" href="classolp_1_1geo_1_1GeoCoordinates3d.html">GeoCoordinates3d</a>&amp; geo_point) <span class="keyword">const</span> = 0;</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;};</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;}  <span class="comment">// namespace geo</span></div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00031"></a><span class="lineno"><a class="line" href="classolp_1_1geo_1_1IProjection.html">   31</a></span>&#160;<span class="keyword">class </span>CORE_API <a class="code" href="classolp_1_1geo_1_1IProjection.html">IProjection</a> {</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;  <span class="keyword">virtual</span> ~<a class="code" href="classolp_1_1geo_1_1IProjection.html">IProjection</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; </div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  <span class="keyword">virtual</span> <a class="code" href="classolp_1_1geo_1_1GeoRectangle.html">GeoRectangle</a> GetGeoBounds() <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160; </div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  <span class="keyword">virtual</span> <a class="code" href="classolp_1_1math_1_1AlignedBox.html">WorldAlignedBox</a> WorldExtent(<span class="keywordtype">double</span> minimum_altitude,</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;                                      <span class="keywordtype">double</span> maximum_altitude) <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;  <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Project(<span class="keyword">const</span> <a class="code" href="classolp_1_1geo_1_1GeoCoordinates3d.html">GeoCoordinates3d</a>&amp; geo_point,</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;                       <a class="code" href="structolp_1_1math_1_1Vector3.html">WorldCoordinates</a>&amp; world_point) <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; </div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;  <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Unproject(<span class="keyword">const</span> <a class="code" href="structolp_1_1math_1_1Vector3.html">WorldCoordinates</a>&amp; world_point,</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;                         <a class="code" href="classolp_1_1geo_1_1GeoCoordinates3d.html">GeoCoordinates3d</a>&amp; geo_point) <span class="keyword">const</span> = 0;</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;};</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160; </div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;}  <span class="comment">// namespace geo</span></div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;}  <span class="comment">// namespace olp</span></div>
 </div><!-- fragment --></div><!-- contents -->
-<div class="ttc" id="aclassolp_1_1geo_1_1IProjection_html"><div class="ttname"><a href="classolp_1_1geo_1_1IProjection.html">olp::geo::IProjection</a></div><div class="ttdef"><b>Definition:</b> IProjection.h:27</div></div>
-<div class="ttc" id="aclassolp_1_1geo_1_1GeoCoordinates3d_html"><div class="ttname"><a href="classolp_1_1geo_1_1GeoCoordinates3d.html">olp::geo::GeoCoordinates3d</a></div><div class="ttdef"><b>Definition:</b> GeoCoordinates3d.h:31</div></div>
-<div class="ttc" id="aclassolp_1_1geo_1_1GeoRectangle_html"><div class="ttname"><a href="classolp_1_1geo_1_1GeoRectangle.html">olp::geo::GeoRectangle</a></div><div class="ttdoc">A rectangular area in WGS84 coordinates.</div><div class="ttdef"><b>Definition:</b> GeoRectangle.h:33</div></div>
-<div class="ttc" id="astructolp_1_1math_1_1Vector3_html"><div class="ttname"><a href="structolp_1_1math_1_1Vector3.html">olp::math::Vector3</a></div><div class="ttdef"><b>Definition:</b> Types.h:26</div></div>
+<div class="ttc" id="aclassolp_1_1geo_1_1IProjection_html"><div class="ttname"><a href="classolp_1_1geo_1_1IProjection.html">olp::geo::IProjection</a></div><div class="ttdoc">The identity projection used to work with geographic and world coordinates.</div><div class="ttdef"><b>Definition:</b> IProjection.h:31</div></div>
+<div class="ttc" id="aclassolp_1_1geo_1_1GeoCoordinates3d_html"><div class="ttname"><a href="classolp_1_1geo_1_1GeoCoordinates3d.html">olp::geo::GeoCoordinates3d</a></div><div class="ttdoc">Geodetic coordinates with longitude, latitude, and altitude.</div><div class="ttdef"><b>Definition:</b> GeoCoordinates3d.h:31</div></div>
+<div class="ttc" id="aclassolp_1_1geo_1_1GeoRectangle_html"><div class="ttname"><a href="classolp_1_1geo_1_1GeoRectangle.html">olp::geo::GeoRectangle</a></div><div class="ttdoc">A rectangular area in the WGS84 Coordinate System.</div><div class="ttdef"><b>Definition:</b> GeoRectangle.h:33</div></div>
+<div class="ttc" id="astructolp_1_1math_1_1Vector3_html"><div class="ttname"><a href="structolp_1_1math_1_1Vector3.html">olp::math::Vector3</a></div><div class="ttdoc">Represents 3D vectors and points.</div><div class="ttdef"><b>Definition:</b> Types.h:26</div></div>
 <div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">Rules all the other namespaces.</div><div class="ttdef"><b>Definition:</b> AppleSignInProperties.h:24</div></div>
-<div class="ttc" id="aclassolp_1_1math_1_1AlignedBox_html"><div class="ttname"><a href="classolp_1_1math_1_1AlignedBox.html">olp::math::AlignedBox</a></div><div class="ttdef"><b>Definition:</b> AlignedBox.h:90</div></div>
+<div class="ttc" id="aclassolp_1_1math_1_1AlignedBox_html"><div class="ttname"><a href="classolp_1_1math_1_1AlignedBox.html">olp::math::AlignedBox</a></div><div class="ttdoc">The aligned bounding-box implementation.</div><div class="ttdef"><b>Definition:</b> AlignedBox.h:98</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

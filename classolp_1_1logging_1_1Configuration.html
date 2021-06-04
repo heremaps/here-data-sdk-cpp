@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -77,7 +77,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Class for configuring the appenders and loggers available by the logging system.  
+<p>Configures appenders and loggers available in the logging system.  
  <a href="classolp_1_1logging_1_1Configuration.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="Configuration_8h_source.html">Configuration.h</a>&gt;</code></p>
@@ -85,23 +85,23 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1logging_1_1Configuration_1_1AppenderWithLogLevel.html">AppenderWithLogLevel</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Struct containing an appender and a log level that the appender is enabled with.  <a href="structolp_1_1logging_1_1Configuration_1_1AppenderWithLogLevel.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains an appender and its log level.  <a href="structolp_1_1logging_1_1Configuration_1_1AppenderWithLogLevel.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:a0204265095d1c3bdd651c823327e943f"><td class="memItemLeft" align="right" valign="top"><a id="a0204265095d1c3bdd651c823327e943f"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1Configuration.html#a0204265095d1c3bdd651c823327e943f">AppenderList</a> = std::vector&lt; <a class="el" href="structolp_1_1logging_1_1Configuration_1_1AppenderWithLogLevel.html">AppenderWithLogLevel</a> &gt;</td></tr>
-<tr class="memdesc:a0204265095d1c3bdd651c823327e943f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Typedef for a list of appenders. <br /></td></tr>
+<tr class="memdesc:a0204265095d1c3bdd651c823327e943f"><td class="mdescLeft">&#160;</td><td class="mdescRight">A typedef for a list of appenders. <br /></td></tr>
 <tr class="separator:a0204265095d1c3bdd651c823327e943f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:adba87925755b290f2c706f45cfac176b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1Configuration.html#adba87925755b290f2c706f45cfac176b">isValid</a> () const</td></tr>
-<tr class="memdesc:adba87925755b290f2c706f45cfac176b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns whether or not the configuration is valid.  <a href="classolp_1_1logging_1_1Configuration.html#adba87925755b290f2c706f45cfac176b">More...</a><br /></td></tr>
+<tr class="memdesc:adba87925755b290f2c706f45cfac176b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks whether the configuration is valid.  <a href="classolp_1_1logging_1_1Configuration.html#adba87925755b290f2c706f45cfac176b">More...</a><br /></td></tr>
 <tr class="separator:adba87925755b290f2c706f45cfac176b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab70e59cb2e68dc48f13f316e043e37e4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1logging_1_1Configuration.html">Configuration</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1Configuration.html#ab70e59cb2e68dc48f13f316e043e37e4">addAppender</a> (std::shared_ptr&lt; <a class="el" href="classolp_1_1logging_1_1IAppender.html">IAppender</a> &gt; appender, logging::Level level=logging::Level::Trace)</td></tr>
-<tr class="memdesc:ab70e59cb2e68dc48f13f316e043e37e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds an appender along with its logging level to the configuration.  <a href="classolp_1_1logging_1_1Configuration.html#ab70e59cb2e68dc48f13f316e043e37e4">More...</a><br /></td></tr>
+<tr class="memdesc:ab70e59cb2e68dc48f13f316e043e37e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds the appender along with its log level to the configuration.  <a href="classolp_1_1logging_1_1Configuration.html#ab70e59cb2e68dc48f13f316e043e37e4">More...</a><br /></td></tr>
 <tr class="separator:ab70e59cb2e68dc48f13f316e043e37e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adee83471e5f141a7b824c003bd086c96"><td class="memItemLeft" align="right" valign="top"><a id="adee83471e5f141a7b824c003bd086c96"></a>
 <a class="el" href="classolp_1_1logging_1_1Configuration.html">Configuration</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1Configuration.html#adee83471e5f141a7b824c003bd086c96">clear</a> ()</td></tr>
@@ -114,11 +114,11 @@ Public Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a727dc0737260901ea82984b0a2f5ee94"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classolp_1_1logging_1_1Configuration.html">Configuration</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1Configuration.html#a727dc0737260901ea82984b0a2f5ee94">createDefault</a> ()</td></tr>
-<tr class="memdesc:a727dc0737260901ea82984b0a2f5ee94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a default configuration by adding the <a class="el" href="classolp_1_1logging_1_1DebugAppender.html" title="Appender for printing to the debug output.">DebugAppender</a> and the <a class="el" href="classolp_1_1logging_1_1ConsoleAppender.html" title="Appender for printing to the console.">ConsoleAppender</a> as appenders.  <a href="classolp_1_1logging_1_1Configuration.html#a727dc0737260901ea82984b0a2f5ee94">More...</a><br /></td></tr>
+<tr class="memdesc:a727dc0737260901ea82984b0a2f5ee94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a default configuration by adding an instance of <code><a class="el" href="classolp_1_1logging_1_1DebugAppender.html" title="An appender that prints messages to the debug output.">DebugAppender</a></code> and <code><a class="el" href="classolp_1_1logging_1_1ConsoleAppender.html" title="An appender that prints messages to the console.">ConsoleAppender</a></code> as appenders.  <a href="classolp_1_1logging_1_1Configuration.html#a727dc0737260901ea82984b0a2f5ee94">More...</a><br /></td></tr>
 <tr class="separator:a727dc0737260901ea82984b0a2f5ee94"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Class for configuring the appenders and loggers available by the logging system. </p>
+<div class="textblock"><p>Configures appenders and loggers available in the logging system. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="ab70e59cb2e68dc48f13f316e043e37e4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab70e59cb2e68dc48f13f316e043e37e4">&#9670;&nbsp;</a></span>addAppender()</h2>
@@ -154,11 +154,11 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Adds an appender along with its logging level to the configuration. </p>
+<p>Adds the appender along with its log level to the configuration. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">appender</td><td>The appender to add. </td></tr>
-    <tr><td class="paramname">level</td><td>The log level belonging to appender. </td></tr>
+    <tr><td class="paramname">level</td><td>The log level of the appender. </td></tr>
   </table>
   </dd>
 </dl>
@@ -188,7 +188,7 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Creates a default configuration by adding the <a class="el" href="classolp_1_1logging_1_1DebugAppender.html" title="Appender for printing to the debug output.">DebugAppender</a> and the <a class="el" href="classolp_1_1logging_1_1ConsoleAppender.html" title="Appender for printing to the console.">ConsoleAppender</a> as appenders. </p>
+<p>Creates a default configuration by adding an instance of <code><a class="el" href="classolp_1_1logging_1_1DebugAppender.html" title="An appender that prints messages to the debug output.">DebugAppender</a></code> and <code><a class="el" href="classolp_1_1logging_1_1ConsoleAppender.html" title="An appender that prints messages to the console.">ConsoleAppender</a></code> as appenders. </p>
 <dl class="section return"><dt>Returns</dt><dd>The default configuration. </dd></dl>
 
 </div>
@@ -217,7 +217,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Gets the appenders from the configuration. </p>
-<dl class="section return"><dt>Returns</dt><dd>The appenders and belonging log levels. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The appenders and their log levels. </dd></dl>
 
 </div>
 </div>
@@ -244,8 +244,8 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Returns whether or not the configuration is valid. </p>
-<dl class="section return"><dt>Returns</dt><dd>Whether or not the configuration is valid. </dd></dl>
+<p>Checks whether the configuration is valid. </p>
+<dl class="section return"><dt>Returns</dt><dd>True if the configuration is valid; false otherwise. </dd></dl>
 
 </div>
 </div>

@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['parameterstype_2123',['ParametersType',['../classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247',1,'olp::client::OlpClient']]],
-  ['partitionids_2124',['PartitionIds',['../classolp_1_1dataservice_1_1read_1_1PartitionsRequest.html#a90011fac34ccea0beab00f63072d7dec',1,'olp::dataservice::read::PartitionsRequest::PartitionIds()'],['../classolp_1_1dataservice_1_1read_1_1PrefetchPartitionsRequest.html#a61ea2076bd92a6874930e6ee385e1383',1,'olp::dataservice::read::PrefetchPartitionsRequest::PartitionIds()']]],
-  ['payload_2125',['Payload',['../classolp_1_1http_1_1Network.html#a2d55d803454a41277d8200f25d4e2714',1,'olp::http::Network']]],
-  ['promiseptr_2126',['PromisePtr',['../classolp_1_1client_1_1CancellableFuture.html#a27868331f026830fa414d922116fef8e',1,'olp::client::CancellableFuture']]]
+  ['networkasynccallback_2241',['NetworkAsyncCallback',['../namespaceolp_1_1client.html#ada2eeb2b0e0ac4d50d42d51df6bc9e2b',1,'olp::client']]],
+  ['networkasynccancel_2242',['NetworkAsyncCancel',['../namespaceolp_1_1client.html#a25f478c630b61cf2e738d8c45dd25399',1,'olp::client']]],
+  ['node_2243',['Node',['../classolp_1_1geo_1_1TileTreeTraverse.html#ac2bfd352ff8814c0bbf5d47b94982ee7',1,'olp::geo::TileTreeTraverse']]],
+  ['nodecontainer_2244',['NodeContainer',['../classolp_1_1geo_1_1TileTreeTraverse.html#af00bf736d49fa82729ec135f5c6a5951',1,'olp::geo::TileTreeTraverse']]]
 ];

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -71,6 +71,7 @@ $(function() {
 , <a class="el" href="classolp_1_1geo_1_1GeoCoordinates3d.html#a0d1ac7d4cbabcbacf862aa5b66ffaf01">olp::geo::GeoCoordinates3d</a>
 , <a class="el" href="classolp_1_1geo_1_1GeoCoordinates.html#af49e18d1c21a8b2a21c187a10821ed3e">olp::geo::GeoCoordinates</a>
 , <a class="el" href="classolp_1_1thread_1_1Atomic.html#a69a7a08bda7ba81996868be561791b58">olp::thread::Atomic&lt; Type, MutexType, ReadLockType &gt;</a>
+, <a class="el" href="classstd_1_1shared__lock.html#a61eeeee15b4350b0c46b5cb11237703d">std::shared_lock&lt; Mutex &gt;</a>
 </li>
 <li>operator Vector2&lt; U &gt;()
 : <a class="el" href="classolp_1_1math_1_1Size2.html#a9510206d4f5cd73572245674bb1bd09f">olp::math::Size2&lt; T &gt;</a>
@@ -78,37 +79,85 @@ $(function() {
 <li>operator!=()
 : <a class="el" href="classolp_1_1client_1_1HRN.html#a9bbcc2b7b30bf08fc453edf9187dad1a">olp::client::HRN</a>
 , <a class="el" href="classolp_1_1geo_1_1GeoPoint.html#a4227f19b37bed938c368a6a693b56f93">olp::geo::GeoPoint</a>
+, <a class="el" href="classolp_1_1geo_1_1GeoRectangle.html#ade637879b0e092e3f7453624c9e87038">olp::geo::GeoRectangle</a>
+, <a class="el" href="classolp_1_1geo_1_1SubTiles_1_1Iterator.html#a7bcce1b63498e6ed9895886343be2a8e">olp::geo::SubTiles::Iterator</a>
 , <a class="el" href="classolp_1_1geo_1_1TileKey.html#a6db560ae794b74bc94485c9ff04715bd">olp::geo::TileKey</a>
+, <a class="el" href="structolp_1_1logging_1_1MessageFormatter_1_1Element.html#a9220bfaad7ee7af719f61f073c96a62f">olp::logging::MessageFormatter::Element</a>
 , <a class="el" href="classolp_1_1math_1_1AlignedBox.html#a889f4e9ad5a41556ae683a57ea1b0e5c">olp::math::AlignedBox&lt; T, N &gt;</a>
+, <a class="el" href="classolp_1_1utils_1_1LruCache_1_1const__iterator.html#a0a51bfe36236e248c4fd8bb0bd9d508b">olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;::const_iterator</a>
 </li>
 <li>operator()()
 : <a class="el" href="classolp_1_1authentication_1_1TokenProvider.html#a7b7a9456aebf03927c656003662b44d2">olp::authentication::TokenProvider&lt; MinimumValidity &gt;</a>
 , <a class="el" href="structolp_1_1client_1_1CancellationContextHash.html#aa1c652b91b3891dfbbdeae9692d67b47">olp::client::CancellationContextHash</a>
 , <a class="el" href="structolp_1_1client_1_1ExponentialBackdownStrategy.html#af29fe44d0fa728103b734f263860ab24">olp::client::ExponentialBackdownStrategy</a>
 , <a class="el" href="structolp_1_1client_1_1TaskContextHash.html#a7f4f87cf39e836d559bb9cb7962a4346">olp::client::TaskContextHash</a>
+, <a class="el" href="structolp_1_1utils_1_1CacheCost.html#a589a83ff5f532b278bbf2b8be1cac61a">olp::utils::CacheCost&lt; T &gt;</a>
 , <a class="el" href="structstd_1_1hash_3_01olp_1_1geo_1_1TileKey_01_4.html#a0c57be567c812a5fa75f9bc3fa01c1ac">std::hash&lt; olp::geo::TileKey &gt;</a>
+</li>
+<li>operator*()
+: <a class="el" href="classolp_1_1geo_1_1SubTiles_1_1Iterator.html#a589f61691c9a023ceac982e37141d1f9">olp::geo::SubTiles::Iterator</a>
+, <a class="el" href="structolp_1_1math_1_1Vector2.html#af5ac10329b5376b12482f83b2388a380">olp::math::Vector2&lt; T &gt;</a>
+, <a class="el" href="structolp_1_1math_1_1Vector3.html#a1ca3e1d10a7e5ec29595658345d8680c">olp::math::Vector3&lt; T &gt;</a>
+, <a class="el" href="classolp_1_1utils_1_1LruCache_1_1const__iterator.html#a6340053a952860427d6438cf7837bcfb">olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;::const_iterator</a>
+</li>
+<li>operator+()
+: <a class="el" href="structolp_1_1math_1_1Vector2.html#acbd2c69fb12822fca7c5191129d3dab0">olp::math::Vector2&lt; T &gt;</a>
+, <a class="el" href="structolp_1_1math_1_1Vector3.html#acfde4e6503acb8b4ad1dd67757f0df2f">olp::math::Vector3&lt; T &gt;</a>
+</li>
+<li>operator++()
+: <a class="el" href="classolp_1_1geo_1_1SubTiles_1_1Iterator.html#aeff2c5b141789988dc8c27504089f460">olp::geo::SubTiles::Iterator</a>
+, <a class="el" href="classolp_1_1utils_1_1LruCache_1_1const__iterator.html#aa25fd2ec31f7839c6898403cbe8b4805">olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;::const_iterator</a>
 </li>
 <li>operator+=()
 : <a class="el" href="classolp_1_1client_1_1NetworkStatistics.html#a33851330da41da84385dc0b9add196ec">olp::client::NetworkStatistics</a>
 , <a class="el" href="classolp_1_1geo_1_1GeoPoint.html#a72dea7fc90df4d205d4ee07c1093808f">olp::geo::GeoPoint</a>
 </li>
+<li>operator-()
+: <a class="el" href="structolp_1_1math_1_1Vector2.html#a22651902f939a9e83a6a1e77467d9e84">olp::math::Vector2&lt; T &gt;</a>
+, <a class="el" href="structolp_1_1math_1_1Vector3.html#a193e4f25f2671434f0caa95a344e5b49">olp::math::Vector3&lt; T &gt;</a>
+</li>
+<li>operator--()
+: <a class="el" href="classolp_1_1utils_1_1LruCache_1_1const__iterator.html#a5b21d61138603376c167741c53e3150a">olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;::const_iterator</a>
+</li>
+<li>operator-&gt;()
+: <a class="el" href="classolp_1_1utils_1_1LruCache_1_1const__iterator.html#a5e2b2df0648509ee1108c90f32e792f3">olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;::const_iterator</a>
+</li>
 <li>operator&lt;()
 : <a class="el" href="classolp_1_1geo_1_1TileKey.html#aac08d41a7d3cbdb4ba664b5e07cda944">olp::geo::TileKey</a>
+</li>
+<li>operator&lt;&lt;()
+: <a class="el" href="classolp_1_1logging_1_1NullLogStream.html#ad7d208b16e0ea3c9891ab1018a1ec567">olp::logging::NullLogStream</a>
 </li>
 <li>operator=()
 : <a class="el" href="classolp_1_1client_1_1HttpResponse.html#a6626285ae6f84c4e63615a552f9e8ce8">olp::client::HttpResponse</a>
 , <a class="el" href="classolp_1_1context_1_1Context_1_1Scope.html#a179eb5784d17dd95bd38bc26295cbd97">olp::context::Context::Scope</a>
 , <a class="el" href="classolp_1_1geo_1_1TileKey.html#a45c4ef36dfe37c889fe5d291dff458f4">olp::geo::TileKey</a>
+, <a class="el" href="classolp_1_1logging_1_1FilterGroup.html#a31b340335780372ebebeb92c8aea1821">olp::logging::FilterGroup</a>
+, <a class="el" href="structolp_1_1logging_1_1MessageFormatter_1_1Element.html#af7d18c50e450add8cc28aae3eeddf462">olp::logging::MessageFormatter::Element</a>
+, <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#acec83f159e2fd32dfe11ed6c1d66ff4f">olp::logging::MessageFormatter</a>
+, <a class="el" href="structolp_1_1math_1_1Vector2.html#a0215fc17f5e51228aef5dd907be6c4e2">olp::math::Vector2&lt; T &gt;</a>
 , <a class="el" href="classolp_1_1thread_1_1SyncQueue.html#ac840f066d23633647b6d0ecfa49ec6fd">olp::thread::SyncQueue&lt; T, Container &gt;</a>
 , <a class="el" href="classolp_1_1thread_1_1ThreadPoolTaskScheduler.html#aa5193da0fcf425ef96b3db107f88d4dc">olp::thread::ThreadPoolTaskScheduler</a>
+, <a class="el" href="classolp_1_1utils_1_1LruCache_1_1const__iterator.html#ae7015139a8b663ad53b458594376bf03">olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;::const_iterator</a>
 , <a class="el" href="classolp_1_1utils_1_1LruCache.html#aef9c280975a7658bb6df4b7e4cbdb444">olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;</a>
+, <a class="el" href="classstd_1_1shared__lock.html#aeea7cdaf05f01b81b515d3318b87f415">std::shared_lock&lt; Mutex &gt;</a>
 </li>
 <li>operator==()
 : <a class="el" href="classolp_1_1client_1_1HRN.html#accb3d73b05047170229503882935bfad">olp::client::HRN</a>
 , <a class="el" href="classolp_1_1client_1_1TaskContext.html#ae09353099f83940defd6f39c498f8c64">olp::client::TaskContext</a>
 , <a class="el" href="classolp_1_1geo_1_1GeoPoint.html#a15c604439fc3b98c59b15d94855e138b">olp::geo::GeoPoint</a>
+, <a class="el" href="classolp_1_1geo_1_1GeoRectangle.html#a8a5fd8c38dc4d40ae07f1907fd283245">olp::geo::GeoRectangle</a>
+, <a class="el" href="classolp_1_1geo_1_1SubTiles_1_1Iterator.html#a2a21970f2b9beae48c9fbfedfec2cd83">olp::geo::SubTiles::Iterator</a>
 , <a class="el" href="classolp_1_1geo_1_1TileKey.html#a60e50d4ad583b25dcb8f3d9cd51be43c">olp::geo::TileKey</a>
+, <a class="el" href="structolp_1_1logging_1_1MessageFormatter_1_1Element.html#a7781f08253c62c1f358fa69f3a9c1650">olp::logging::MessageFormatter::Element</a>
 , <a class="el" href="classolp_1_1math_1_1AlignedBox.html#a13a912523edec12d5fca81418647fb95">olp::math::AlignedBox&lt; T, N &gt;</a>
+, <a class="el" href="classolp_1_1utils_1_1LruCache_1_1const__iterator.html#a92093aa68d1804777e6b060fb2269024">olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;::const_iterator</a>
+</li>
+<li>Overlaps()
+: <a class="el" href="classolp_1_1geo_1_1GeoRectangle.html#a1ac3611e047fa2f1df3e256283d34037">olp::geo::GeoRectangle</a>
+</li>
+<li>owns_lock()
+: <a class="el" href="classstd_1_1shared__lock.html#ade1761a9cd5cb9e87cf7fdc311e894fe">std::shared_lock&lt; Mutex &gt;</a>
 </li>
 </ul>
 </div><!-- contents -->

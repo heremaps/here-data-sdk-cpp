@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -74,7 +74,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Appender for printing to a file.  
+<p>An appender that prints messages to a file.  
  <a href="classolp_1_1logging_1_1FileAppender.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="FileAppender_8h_source.html">FileAppender.h</a>&gt;</code></p>
@@ -83,8 +83,8 @@ Inheritance diagram for olp::logging::FileAppender:</div>
 <div class="dyncontent">
 <div class="center"><img src="classolp_1_1logging_1_1FileAppender__inherit__graph.png" border="0" usemap="#olp_1_1logging_1_1FileAppender_inherit__map" alt="Inheritance graph"/></div>
 <map name="olp_1_1logging_1_1FileAppender_inherit__map" id="olp_1_1logging_1_1FileAppender_inherit__map">
-<area shape="rect" title="Appender for printing to a file." alt="" coords="5,80,196,107"/>
-<area shape="rect" href="classolp_1_1logging_1_1IAppender.html" title="Abstract base class for an appender, which appends a message to the log." alt="" coords="15,5,187,32"/>
+<area shape="rect" title="An appender that prints messages to a file." alt="" coords="5,80,196,107"/>
+<area shape="rect" href="classolp_1_1logging_1_1IAppender.html" title="Appends a message to the log." alt="" coords="15,5,187,32"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
@@ -92,24 +92,24 @@ Collaboration diagram for olp::logging::FileAppender:</div>
 <div class="dyncontent">
 <div class="center"><img src="classolp_1_1logging_1_1FileAppender__coll__graph.png" border="0" usemap="#olp_1_1logging_1_1FileAppender_coll__map" alt="Collaboration graph"/></div>
 <map name="olp_1_1logging_1_1FileAppender_coll__map" id="olp_1_1logging_1_1FileAppender_coll__map">
-<area shape="rect" title="Appender for printing to a file." alt="" coords="5,80,196,107"/>
-<area shape="rect" href="classolp_1_1logging_1_1IAppender.html" title="Abstract base class for an appender, which appends a message to the log." alt="" coords="15,5,187,32"/>
+<area shape="rect" title="An appender that prints messages to a file." alt="" coords="5,80,196,107"/>
+<area shape="rect" href="classolp_1_1logging_1_1IAppender.html" title="Appends a message to the log." alt="" coords="15,5,187,32"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a3563c522954a525992de056c1001a864"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1FileAppender.html#a3563c522954a525992de056c1001a864">FileAppender</a> (const std::string &amp;fileName, bool <a class="el" href="classolp_1_1logging_1_1FileAppender.html#ade30c6cf487769919ca63673feb7aafd">append</a>=false, <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html">MessageFormatter</a> formatter=<a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#a678a947bcb60d4ce97f7d10ebd421e3e">MessageFormatter::createDefault</a>())</td></tr>
-<tr class="memdesc:a3563c522954a525992de056c1001a864"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a file appender.  <a href="classolp_1_1logging_1_1FileAppender.html#a3563c522954a525992de056c1001a864">More...</a><br /></td></tr>
+<tr class="memdesc:a3563c522954a525992de056c1001a864"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a <code><a class="el" href="classolp_1_1logging_1_1FileAppender.html" title="An appender that prints messages to a file.">FileAppender</a></code> instance.  <a href="classolp_1_1logging_1_1FileAppender.html#a3563c522954a525992de056c1001a864">More...</a><br /></td></tr>
 <tr class="separator:a3563c522954a525992de056c1001a864"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afdf77087b78cd98bdc6558081e14a406"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1FileAppender.html#afdf77087b78cd98bdc6558081e14a406">isValid</a> () const</td></tr>
-<tr class="memdesc:afdf77087b78cd98bdc6558081e14a406"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns whether or not the stream is opened and can be written to.  <a href="classolp_1_1logging_1_1FileAppender.html#afdf77087b78cd98bdc6558081e14a406">More...</a><br /></td></tr>
+<tr class="memdesc:afdf77087b78cd98bdc6558081e14a406"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks whether the stream is open and can be written to.  <a href="classolp_1_1logging_1_1FileAppender.html#afdf77087b78cd98bdc6558081e14a406">More...</a><br /></td></tr>
 <tr class="separator:afdf77087b78cd98bdc6558081e14a406"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1d84198cb328d8330ea8b0b24f205a61"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1FileAppender.html#a1d84198cb328d8330ea8b0b24f205a61">getFileName</a> () const</td></tr>
-<tr class="memdesc:a1d84198cb328d8330ea8b0b24f205a61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the name of the file this was created with.  <a href="classolp_1_1logging_1_1FileAppender.html#a1d84198cb328d8330ea8b0b24f205a61">More...</a><br /></td></tr>
+<tr class="memdesc:a1d84198cb328d8330ea8b0b24f205a61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the name of the file.  <a href="classolp_1_1logging_1_1FileAppender.html#a1d84198cb328d8330ea8b0b24f205a61">More...</a><br /></td></tr>
 <tr class="separator:a1d84198cb328d8330ea8b0b24f205a61"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a84d53a0284616fbb5ee8bd74e29cfe65"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1FileAppender.html#a84d53a0284616fbb5ee8bd74e29cfe65">getAppendFile</a> () const</td></tr>
-<tr class="memdesc:a84d53a0284616fbb5ee8bd74e29cfe65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns whether or not the file is being appended to.  <a href="classolp_1_1logging_1_1FileAppender.html#a84d53a0284616fbb5ee8bd74e29cfe65">More...</a><br /></td></tr>
+<tr class="memdesc:a84d53a0284616fbb5ee8bd74e29cfe65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks whether the file has the appender.  <a href="classolp_1_1logging_1_1FileAppender.html#a84d53a0284616fbb5ee8bd74e29cfe65">More...</a><br /></td></tr>
 <tr class="separator:a84d53a0284616fbb5ee8bd74e29cfe65"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ad8d6e5dd18a7e8fa28f4a4273fb968"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html">MessageFormatter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1FileAppender.html#a1ad8d6e5dd18a7e8fa28f4a4273fb968">getMessageFormatter</a> () const</td></tr>
 <tr class="memdesc:a1ad8d6e5dd18a7e8fa28f4a4273fb968"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the message formatter.  <a href="classolp_1_1logging_1_1FileAppender.html#a1ad8d6e5dd18a7e8fa28f4a4273fb968">More...</a><br /></td></tr>
@@ -118,11 +118,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a17fe3e614a9f09899ede930dc1a54d5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the message formatter.  <a href="classolp_1_1logging_1_1FileAppender.html#a17fe3e614a9f09899ede930dc1a54d5a">More...</a><br /></td></tr>
 <tr class="separator:a17fe3e614a9f09899ede930dc1a54d5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ade30c6cf487769919ca63673feb7aafd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1logging_1_1IAppender.html">IAppender</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1FileAppender.html#ade30c6cf487769919ca63673feb7aafd">append</a> (const <a class="el" href="structolp_1_1logging_1_1LogMessage.html">LogMessage</a> &amp;message) override</td></tr>
-<tr class="memdesc:ade30c6cf487769919ca63673feb7aafd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Appends a message using char strings.  <a href="classolp_1_1logging_1_1FileAppender.html#ade30c6cf487769919ca63673feb7aafd">More...</a><br /></td></tr>
+<tr class="memdesc:ade30c6cf487769919ca63673feb7aafd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Appends the message using char strings.  <a href="classolp_1_1logging_1_1FileAppender.html#ade30c6cf487769919ca63673feb7aafd">More...</a><br /></td></tr>
 <tr class="separator:ade30c6cf487769919ca63673feb7aafd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Appender for printing to a file. </p>
+<div class="textblock"><p>An appender that prints messages to a file. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a3563c522954a525992de056c1001a864"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3563c522954a525992de056c1001a864">&#9670;&nbsp;</a></span>FileAppender()</h2>
@@ -164,11 +164,11 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Constructs a file appender. </p>
+<p>Creates a <code><a class="el" href="classolp_1_1logging_1_1FileAppender.html" title="An appender that prints messages to a file.">FileAppender</a></code> instance. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">fileName</td><td>The name of the file to write to. </td></tr>
-    <tr><td class="paramname">append</td><td>True to append to an existing file if it exists. </td></tr>
+    <tr><td class="paramname">append</td><td>True to append to an existing file; false otherwise. </td></tr>
     <tr><td class="paramname">formatter</td><td>The message formatter. </td></tr>
   </table>
   </dd>
@@ -201,7 +201,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Appends a message using char strings. </p>
+<p>Appends the message using char strings. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">message</td><td>The message to append. </td></tr>
@@ -236,8 +236,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Returns whether or not the file is being appended to. </p>
-<dl class="section return"><dt>Returns</dt><dd>True if appending to the file. </dd></dl>
+<p>Checks whether the file has the appender. </p>
+<dl class="section return"><dt>Returns</dt><dd>True if the file has the appender; false otherwise. </dd></dl>
 
 </div>
 </div>
@@ -264,7 +264,7 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Gets the name of the file this was created with. </p>
+<p>Gets the name of the file. </p>
 <dl class="section return"><dt>Returns</dt><dd>The file name. </dd></dl>
 
 </div>
@@ -312,8 +312,8 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Returns whether or not the stream is opened and can be written to. </p>
-<dl class="section return"><dt>Returns</dt><dd>True if this is valid. </dd></dl>
+<p>Checks whether the stream is open and can be written to. </p>
+<dl class="section return"><dt>Returns</dt><dd>True if the stream is open and can be written to; false otherwise. </dd></dl>
 
 </div>
 </div>

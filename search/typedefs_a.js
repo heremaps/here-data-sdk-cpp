@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['networkasynccallback_2121',['NetworkAsyncCallback',['../namespaceolp_1_1client.html#ada2eeb2b0e0ac4d50d42d51df6bc9e2b',1,'olp::client']]],
-  ['networkasynccancel_2122',['NetworkAsyncCancel',['../namespaceolp_1_1client.html#a25f478c630b61cf2e738d8c45dd25399',1,'olp::client']]]
+  ['mutex_5ftype_2240',['mutex_type',['../classstd_1_1shared__lock.html#aa3c773a684c3d40614ed5e2cda5d02af',1,'std::shared_lock']]]
 ];

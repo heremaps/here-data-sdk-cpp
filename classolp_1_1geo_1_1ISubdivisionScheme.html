@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -74,31 +74,38 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
+<p>An abstract tiling subdivision scheme.  
+ <a href="classolp_1_1geo_1_1ISubdivisionScheme.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="ISubdivisionScheme_8h_source.html">ISubdivisionScheme.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for olp::geo::ISubdivisionScheme:</div>
 <div class="dyncontent">
 <div class="center"><img src="classolp_1_1geo_1_1ISubdivisionScheme__inherit__graph.png" border="0" usemap="#olp_1_1geo_1_1ISubdivisionScheme_inherit__map" alt="Inheritance graph"/></div>
 <map name="olp_1_1geo_1_1ISubdivisionScheme_inherit__map" id="olp_1_1geo_1_1ISubdivisionScheme_inherit__map">
-<area shape="rect" title=" " alt="" coords="149,5,363,32"/>
-<area shape="rect" href="classolp_1_1geo_1_1HalfQuadTreeSubdivisionScheme.html" title="Half&#45;quadtree subdivision scheme." alt="" coords="5,80,251,121"/>
-<area shape="rect" href="classolp_1_1geo_1_1QuadTreeSubdivisionScheme.html" title="Quadtree subdivision scheme." alt="" coords="275,80,493,121"/>
+<area shape="rect" title="An abstract tiling subdivision scheme." alt="" coords="149,5,363,32"/>
+<area shape="rect" href="classolp_1_1geo_1_1HalfQuadTreeSubdivisionScheme.html" title="A subdivision scheme used to represent half quadtrees." alt="" coords="5,80,251,121"/>
+<area shape="rect" href="classolp_1_1geo_1_1QuadTreeSubdivisionScheme.html" title="A quadtree subdivision scheme." alt="" coords="275,80,493,121"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a5e53be08e6f48d6daef36d146ef5cf89"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1ISubdivisionScheme.html#a5e53be08e6f48d6daef36d146ef5cf89">IsEqualTo</a> (const <a class="el" href="classolp_1_1geo_1_1ISubdivisionScheme.html">ISubdivisionScheme</a> &amp;other) const =0</td></tr>
+<tr class="memdesc:a5e53be08e6f48d6daef36d146ef5cf89"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks whether two schemes are equal.  <a href="classolp_1_1geo_1_1ISubdivisionScheme.html#a5e53be08e6f48d6daef36d146ef5cf89">More...</a><br /></td></tr>
 <tr class="separator:a5e53be08e6f48d6daef36d146ef5cf89"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf021b2fb1c4e6f72df6b3e34a5d3b81"><td class="memItemLeft" align="right" valign="top">virtual const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1ISubdivisionScheme.html#aaf021b2fb1c4e6f72df6b3e34a5d3b81">GetName</a> () const =0</td></tr>
+<tr class="memdesc:aaf021b2fb1c4e6f72df6b3e34a5d3b81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the unique scheme name.  <a href="classolp_1_1geo_1_1ISubdivisionScheme.html#aaf021b2fb1c4e6f72df6b3e34a5d3b81">More...</a><br /></td></tr>
 <tr class="separator:aaf021b2fb1c4e6f72df6b3e34a5d3b81"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab7590486f695e88f2781410d05f8f508"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classolp_1_1math_1_1Size2.html">math::Size2u</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1ISubdivisionScheme.html#ab7590486f695e88f2781410d05f8f508">GetSubdivisionAt</a> (unsigned level) const =0</td></tr>
+<tr class="memdesc:ab7590486f695e88f2781410d05f8f508"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the number of child tiles into which a tile splits at a given level.  <a href="classolp_1_1geo_1_1ISubdivisionScheme.html#ab7590486f695e88f2781410d05f8f508">More...</a><br /></td></tr>
 <tr class="separator:ab7590486f695e88f2781410d05f8f508"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a058adf591d10557f24162e9bcc8149db"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classolp_1_1math_1_1Size2.html">math::Size2u</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1ISubdivisionScheme.html#a058adf591d10557f24162e9bcc8149db">GetLevelSize</a> (unsigned level) const =0</td></tr>
+<tr class="memdesc:a058adf591d10557f24162e9bcc8149db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the size of a given level.  <a href="classolp_1_1geo_1_1ISubdivisionScheme.html#a058adf591d10557f24162e9bcc8149db">More...</a><br /></td></tr>
 <tr class="separator:a058adf591d10557f24162e9bcc8149db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Abstract tiling subdivision scheme. </p>
+<div class="textblock"><p>An abstract tiling subdivision scheme. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a058adf591d10557f24162e9bcc8149db"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a058adf591d10557f24162e9bcc8149db">&#9670;&nbsp;</a></span>GetLevelSize()</h2>
@@ -123,14 +130,15 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Get size of a given level.</p>
+
+<p>Gets the size of a given level. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">level</td><td>Subdivision level.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">level</td><td>The subdivision level.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Horizontal and vertical number of tiles (e.g. 2^level x 2^level). </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The horizontal and vertical numbers of tiles (for example, 2^level × 2^level). </dd></dl>
 
 <p>Implemented in <a class="el" href="classolp_1_1geo_1_1HalfQuadTreeSubdivisionScheme.html#a68e413309714358dbcfc2acb020bfcf4">olp::geo::HalfQuadTreeSubdivisionScheme</a>, and <a class="el" href="classolp_1_1geo_1_1QuadTreeSubdivisionScheme.html#a6526e8c3b81e9859149d3d4a1a30803c">olp::geo::QuadTreeSubdivisionScheme</a>.</p>
 
@@ -158,8 +166,9 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Get unique scheme name.</p>
-<dl class="section return"><dt>Returns</dt><dd>Scheme name. </dd></dl>
+
+<p>Gets the unique scheme name. </p>
+<dl class="section return"><dt>Returns</dt><dd>The scheme name. </dd></dl>
 
 <p>Implemented in <a class="el" href="classolp_1_1geo_1_1HalfQuadTreeSubdivisionScheme.html#a68bd9396ebe4c28573dc9010cee3abe0">olp::geo::HalfQuadTreeSubdivisionScheme</a>, and <a class="el" href="classolp_1_1geo_1_1QuadTreeSubdivisionScheme.html#a279a328f9322b9bc58590c4899014c7c">olp::geo::QuadTreeSubdivisionScheme</a>.</p>
 
@@ -188,14 +197,15 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Get number of subtiles a tile splits into at given level.</p>
+
+<p>Gets the number of child tiles into which a tile splits at a given level. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">level</td><td>Subdivision level.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">level</td><td>The subdivision level.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Horizontal and vertical number of subtiles (e.g. 2x2). </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The horizontal and vertical numbers of child tiles (for example, 2 × 2). </dd></dl>
 
 <p>Implemented in <a class="el" href="classolp_1_1geo_1_1HalfQuadTreeSubdivisionScheme.html#a54d787464c72ffbbbe4c46578deef7e6">olp::geo::HalfQuadTreeSubdivisionScheme</a>, and <a class="el" href="classolp_1_1geo_1_1QuadTreeSubdivisionScheme.html#a8cd4216ae46257c12d78723cb02e6a56">olp::geo::QuadTreeSubdivisionScheme</a>.</p>
 
@@ -224,14 +234,15 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Check whether two schemes are equal.</p>
+
+<p>Checks whether two schemes are equal. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">other</td><td>Other scheme.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">other</td><td>The other scheme.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>True if equal, false otherwise. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>True if the schemes are equal; false otherwise. </dd></dl>
 
 <p>Implemented in <a class="el" href="classolp_1_1geo_1_1HalfQuadTreeSubdivisionScheme.html#a1adcc53cfaffe130f15650ae9205161b">olp::geo::HalfQuadTreeSubdivisionScheme</a>, and <a class="el" href="classolp_1_1geo_1_1QuadTreeSubdivisionScheme.html#abaef1d30bd586250651e5c992398061e">olp::geo::QuadTreeSubdivisionScheme</a>.</p>
 

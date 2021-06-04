@@ -1,7 +1,7 @@
 <map id="olp&#45;cpp&#45;sdk&#45;core/include/olp/core/utils/WarningWorkarounds.h" name="olp&#45;cpp&#45;sdk&#45;core/include/olp/core/utils/WarningWorkarounds.h">
-<area shape="rect" id="node1" title=" " alt="" coords="426,5,689,47"/>
+<area shape="rect" id="node1" title="Contains utilities used to work around compiler warnings." alt="" coords="426,5,689,47"/>
 <area shape="rect" id="node2" href="$KeyValueCache_8h_source.html" title=" " alt="" coords="69,95,305,136"/>
-<area shape="rect" id="node4" href="$Log_8h.html" title="The file that provides the main interface to the logging library." alt="" coords="466,95,649,136"/>
+<area shape="rect" id="node4" href="$Log_8h.html" title="Provides the main interface for the logging library." alt="" coords="466,95,649,136"/>
 <area shape="rect" id="node5" href="$TaskScheduler_8h_source.html" title=" " alt="" coords="741,95,973,136"/>
 <area shape="rect" id="node3" href="$DefaultCache_8h_source.html" title=" " alt="" coords="5,191,229,233"/>
 <area shape="rect" id="node6" href="$OlpClientSettingsFactory_8h_source.html" title=" " alt="" coords="987,184,1221,240"/>

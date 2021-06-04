@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -75,7 +75,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Struct containing an appender and a log level that the appender is enabled with.  
+<p>Contains an appender and its log level.  
  <a href="structolp_1_1logging_1_1Configuration_1_1AppenderWithLogLevel.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="Configuration_8h_source.html">Configuration.h</a>&gt;</code></p>
@@ -83,13 +83,13 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:acbf920de1365dfdd6efa4a07807c6abd"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1logging_1_1Configuration_1_1AppenderWithLogLevel.html#acbf920de1365dfdd6efa4a07807c6abd">isEnabled</a> (logging::Level level) const</td></tr>
-<tr class="memdesc:acbf920de1365dfdd6efa4a07807c6abd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks to see if the appender is enabled for a log level.  <a href="structolp_1_1logging_1_1Configuration_1_1AppenderWithLogLevel.html#acbf920de1365dfdd6efa4a07807c6abd">More...</a><br /></td></tr>
+<tr class="memdesc:acbf920de1365dfdd6efa4a07807c6abd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks whether the appender is enabled for the log level.  <a href="structolp_1_1logging_1_1Configuration_1_1AppenderWithLogLevel.html#acbf920de1365dfdd6efa4a07807c6abd">More...</a><br /></td></tr>
 <tr class="separator:acbf920de1365dfdd6efa4a07807c6abd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a58c34fd07aff42c5c258059b5ef1346e"><td class="memItemLeft" align="right" valign="top">logging::Level&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1logging_1_1Configuration_1_1AppenderWithLogLevel.html#a58c34fd07aff42c5c258059b5ef1346e">logLevel</a></td></tr>
-<tr class="memdesc:a58c34fd07aff42c5c258059b5ef1346e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The log level the appender is enabled with.  <a href="structolp_1_1logging_1_1Configuration_1_1AppenderWithLogLevel.html#a58c34fd07aff42c5c258059b5ef1346e">More...</a><br /></td></tr>
+<tr class="memdesc:a58c34fd07aff42c5c258059b5ef1346e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The log level of the appender.  <a href="structolp_1_1logging_1_1Configuration_1_1AppenderWithLogLevel.html#a58c34fd07aff42c5c258059b5ef1346e">More...</a><br /></td></tr>
 <tr class="separator:a58c34fd07aff42c5c258059b5ef1346e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ee3498dc7bce83cbeed4c9fde326b83"><td class="memItemLeft" align="right" valign="top"><a id="a0ee3498dc7bce83cbeed4c9fde326b83"></a>
 std::shared_ptr&lt; <a class="el" href="classolp_1_1logging_1_1IAppender.html">IAppender</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1logging_1_1Configuration_1_1AppenderWithLogLevel.html#a0ee3498dc7bce83cbeed4c9fde326b83">appender</a></td></tr>
@@ -97,7 +97,7 @@ std::shared_ptr&lt; <a class="el" href="classolp_1_1logging_1_1IAppender.html">I
 <tr class="separator:a0ee3498dc7bce83cbeed4c9fde326b83"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Struct containing an appender and a log level that the appender is enabled with. </p>
+<div class="textblock"><p>Contains an appender and its log level. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="acbf920de1365dfdd6efa4a07807c6abd"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acbf920de1365dfdd6efa4a07807c6abd">&#9670;&nbsp;</a></span>isEnabled()</h2>
@@ -123,7 +123,7 @@ std::shared_ptr&lt; <a class="el" href="classolp_1_1logging_1_1IAppender.html">I
 </table>
 </div><div class="memdoc">
 
-<p>Checks to see if the appender is enabled for a log level. </p>
+<p>Checks whether the appender is enabled for the log level. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">level</td><td>The log level. </td></tr>
@@ -146,8 +146,8 @@ std::shared_ptr&lt; <a class="el" href="classolp_1_1logging_1_1IAppender.html">I
       </table>
 </div><div class="memdoc">
 
-<p>The log level the appender is enabled with. </p>
-<p>Any log levels less than this level will be ignored. </p>
+<p>The log level of the appender. </p>
+<p>Any log level that is less than this level is ignored. </p>
 
 </div>
 </div>

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -77,7 +77,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Utility for specifying how messages are formatted.  
+<p>Specifies how messages are formatted.  
  <a href="classolp_1_1logging_1_1MessageFormatter.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="MessageFormatter_8h_source.html">MessageFormatter.h</a>&gt;</code></p>
@@ -111,31 +111,35 @@ Public Types</h2></td></tr>
 <tr class="memitem:afa78e7ed0c2c90f1e3683b92b54e6a2d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#afa78e7ed0c2c90f1e3683b92b54e6a2d">Timezone</a> { <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#afa78e7ed0c2c90f1e3683b92b54e6a2da509820290d57f333403f490dde7316f4">Timezone::Local</a>, 
 <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#afa78e7ed0c2c90f1e3683b92b54e6a2da2211d2dd79ba751bdc41551b05d1f807">Timezone::Utc</a>
  }</td></tr>
-<tr class="memdesc:afa78e7ed0c2c90f1e3683b92b54e6a2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enum for the timezone when printing timestamps.  <a href="classolp_1_1logging_1_1MessageFormatter.html#afa78e7ed0c2c90f1e3683b92b54e6a2d">More...</a><br /></td></tr>
+<tr class="memdesc:afa78e7ed0c2c90f1e3683b92b54e6a2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The timezone used to print timestamps.  <a href="classolp_1_1logging_1_1MessageFormatter.html#afa78e7ed0c2c90f1e3683b92b54e6a2d">More...</a><br /></td></tr>
 <tr class="separator:afa78e7ed0c2c90f1e3683b92b54e6a2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a26b2623b8306380bd03f5dd19079f7a0"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#a26b2623b8306380bd03f5dd19079f7a0">LevelNameMap</a> = std::array&lt; std::string, levelCount &gt;</td></tr>
-<tr class="memdesc:a26b2623b8306380bd03f5dd19079f7a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">A mapping from the log level to the name to use.  <a href="classolp_1_1logging_1_1MessageFormatter.html#a26b2623b8306380bd03f5dd19079f7a0">More...</a><br /></td></tr>
+<tr class="memdesc:a26b2623b8306380bd03f5dd19079f7a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maps the log level to its name.  <a href="classolp_1_1logging_1_1MessageFormatter.html#a26b2623b8306380bd03f5dd19079f7a0">More...</a><br /></td></tr>
 <tr class="separator:a26b2623b8306380bd03f5dd19079f7a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:adf447a6fac614b938f17d6164496aa5b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#adf447a6fac614b938f17d6164496aa5b">MessageFormatter</a> ()</td></tr>
-<tr class="memdesc:adf447a6fac614b938f17d6164496aa5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor.  <a href="classolp_1_1logging_1_1MessageFormatter.html#adf447a6fac614b938f17d6164496aa5b">More...</a><br /></td></tr>
+<tr class="memdesc:adf447a6fac614b938f17d6164496aa5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default constructor.  <a href="classolp_1_1logging_1_1MessageFormatter.html#adf447a6fac614b938f17d6164496aa5b">More...</a><br /></td></tr>
 <tr class="separator:adf447a6fac614b938f17d6164496aa5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa6ae7d0309f97c57d421767186d549b0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#aa6ae7d0309f97c57d421767186d549b0">MessageFormatter</a> (std::vector&lt; <a class="el" href="structolp_1_1logging_1_1MessageFormatter_1_1Element.html">Element</a> &gt; elements, <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#a26b2623b8306380bd03f5dd19079f7a0">LevelNameMap</a> levelNameMap=<a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#a5d23312ba0c8e7b0456ac2e7bf0de0d7">defaultLevelNameMap</a>(), <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#afa78e7ed0c2c90f1e3683b92b54e6a2d">Timezone</a> timezone=<a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#afa78e7ed0c2c90f1e3683b92b54e6a2da509820290d57f333403f490dde7316f4">Timezone::Local</a>)</td></tr>
-<tr class="memdesc:aa6ae7d0309f97c57d421767186d549b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs this with the elements, level name mapping, and timezone.  <a href="classolp_1_1logging_1_1MessageFormatter.html#aa6ae7d0309f97c57d421767186d549b0">More...</a><br /></td></tr>
+<tr class="memdesc:aa6ae7d0309f97c57d421767186d549b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1logging_1_1MessageFormatter.html" title="Specifies how messages are formatted.">MessageFormatter</a></code> instance with the elements, level name mapping, and timezone.  <a href="classolp_1_1logging_1_1MessageFormatter.html#aa6ae7d0309f97c57d421767186d549b0">More...</a><br /></td></tr>
 <tr class="separator:aa6ae7d0309f97c57d421767186d549b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a19d96441c97a157aa4514e2865c1d9bd"><td class="memItemLeft" align="right" valign="top"><a id="a19d96441c97a157aa4514e2865c1d9bd"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>MessageFormatter</b> (const <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html">MessageFormatter</a> &amp;)=default</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#a19d96441c97a157aa4514e2865c1d9bd">MessageFormatter</a> (const <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html">MessageFormatter</a> &amp;)=default</td></tr>
+<tr class="memdesc:a19d96441c97a157aa4514e2865c1d9bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default copy constructor. <br /></td></tr>
 <tr class="separator:a19d96441c97a157aa4514e2865c1d9bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa4038b490ca7262b29438a473ab3dfb2"><td class="memItemLeft" align="right" valign="top"><a id="aa4038b490ca7262b29438a473ab3dfb2"></a>
-<a class="el" href="classolp_1_1logging_1_1MessageFormatter.html">MessageFormatter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html">MessageFormatter</a> &amp;)=default</td></tr>
+<a class="el" href="classolp_1_1logging_1_1MessageFormatter.html">MessageFormatter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#aa4038b490ca7262b29438a473ab3dfb2">operator=</a> (const <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html">MessageFormatter</a> &amp;)=default</td></tr>
+<tr class="memdesc:aa4038b490ca7262b29438a473ab3dfb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default copy assignment operator. <br /></td></tr>
 <tr class="separator:aa4038b490ca7262b29438a473ab3dfb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a48b72a2cd37bfad12adf966d02eaf561"><td class="memItemLeft" align="right" valign="top"><a id="a48b72a2cd37bfad12adf966d02eaf561"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>MessageFormatter</b> (<a class="el" href="classolp_1_1logging_1_1MessageFormatter.html">MessageFormatter</a> &amp;&amp;other) noexcept</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#a48b72a2cd37bfad12adf966d02eaf561">MessageFormatter</a> (<a class="el" href="classolp_1_1logging_1_1MessageFormatter.html">MessageFormatter</a> &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:a48b72a2cd37bfad12adf966d02eaf561"><td class="mdescLeft">&#160;</td><td class="mdescRight">The move constructor overload. <br /></td></tr>
 <tr class="separator:a48b72a2cd37bfad12adf966d02eaf561"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acec83f159e2fd32dfe11ed6c1d66ff4f"><td class="memItemLeft" align="right" valign="top"><a id="acec83f159e2fd32dfe11ed6c1d66ff4f"></a>
-<a class="el" href="classolp_1_1logging_1_1MessageFormatter.html">MessageFormatter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classolp_1_1logging_1_1MessageFormatter.html">MessageFormatter</a> &amp;&amp;other) noexcept</td></tr>
+<a class="el" href="classolp_1_1logging_1_1MessageFormatter.html">MessageFormatter</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#acec83f159e2fd32dfe11ed6c1d66ff4f">operator=</a> (<a class="el" href="classolp_1_1logging_1_1MessageFormatter.html">MessageFormatter</a> &amp;&amp;other) noexcept</td></tr>
+<tr class="memdesc:acec83f159e2fd32dfe11ed6c1d66ff4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default move assignment operator overload. <br /></td></tr>
 <tr class="separator:acec83f159e2fd32dfe11ed6c1d66ff4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab6e5365656aaadf426f1bc9387fe2978"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; <a class="el" href="structolp_1_1logging_1_1MessageFormatter_1_1Element.html">Element</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#ab6e5365656aaadf426f1bc9387fe2978">getElements</a> () const</td></tr>
 <tr class="memdesc:ab6e5365656aaadf426f1bc9387fe2978"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the elements for the format.  <a href="classolp_1_1logging_1_1MessageFormatter.html#ab6e5365656aaadf426f1bc9387fe2978">More...</a><br /></td></tr>
@@ -165,14 +169,14 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memdesc:a5d23312ba0c8e7b0456ac2e7bf0de0d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the default level name map.  <a href="classolp_1_1logging_1_1MessageFormatter.html#a5d23312ba0c8e7b0456ac2e7bf0de0d7">More...</a><br /></td></tr>
 <tr class="separator:a5d23312ba0c8e7b0456ac2e7bf0de0d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a678a947bcb60d4ce97f7d10ebd421e3e"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html">MessageFormatter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#a678a947bcb60d4ce97f7d10ebd421e3e">createDefault</a> ()</td></tr>
-<tr class="memdesc:a678a947bcb60d4ce97f7d10ebd421e3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes the default message formatter.  <a href="classolp_1_1logging_1_1MessageFormatter.html#a678a947bcb60d4ce97f7d10ebd421e3e">More...</a><br /></td></tr>
+<tr class="memdesc:a678a947bcb60d4ce97f7d10ebd421e3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the default message formatter.  <a href="classolp_1_1logging_1_1MessageFormatter.html#a678a947bcb60d4ce97f7d10ebd421e3e">More...</a><br /></td></tr>
 <tr class="separator:a678a947bcb60d4ce97f7d10ebd421e3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Utility for specifying how messages are formatted. </p>
-<p>This provides a common way to declare any message format, which can be re-used across appenders that utilize this class.</p>
+<div class="textblock"><p>Specifies how messages are formatted. </p>
+<p>It provides a common way to declare any message format, which can be re-used across appenders that utilize this class.</p>
 <p>Example: if you want the message to be set to "LOG: level tag - file:line
-[time] message", where the file is limited to 30 characters (cutting off on the left), line always prints to 5 characters, and time set to HH:MM in UTC time:</p>
+[time] message" where the file is limited to 30 characters (cutting off on the left), the line always prints up to 5 characters, and time is set to HH:MM in UTC time:</p>
 <div class="fragment"><div class="line"><a class="code" href="classolp_1_1logging_1_1MessageFormatter.html#adf447a6fac614b938f17d6164496aa5b">MessageFormatter</a> formatter(</div>
 <div class="line">    {</div>
 <div class="line">        MessageFormatter::Element(<a class="code" href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4a27118326006d3829667a400ad23d5d98">MessageFormatter::ElementType::String</a>,</div>
@@ -198,8 +202,8 @@ Static Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>A mapping from the log level to the name to use. </p>
-<p>Cast the log level enum value to size_t to use as an index. Off is not a valid name. </p>
+<p>Maps the log level to its name. </p>
+<p>Casts the log level enum value to <code>size_t</code> to use as an index. <code>Off</code> is not a valid name. </p>
 
 </div>
 </div>
@@ -226,27 +230,27 @@ Static Public Member Functions</h2></td></tr>
 
 <p>The type of the element to print out. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4a27118326006d3829667a400ad23d5d98"></a>String&#160;</td><td class="fielddoc"><p>A string literal. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4a27118326006d3829667a400ad23d5d98"></a>String&#160;</td><td class="fielddoc"><p>The string literal. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4aa0db49ba470c1c9ae2128c3470339153"></a>Level&#160;</td><td class="fielddoc"><p>The log level for the message. This is formatted as a string. </p>
+<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4aa0db49ba470c1c9ae2128c3470339153"></a>Level&#160;</td><td class="fielddoc"><p>The log level for the message. It is formatted as a string. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4ac101058e7ea21bbbf2a5ac893088e90b"></a>Tag&#160;</td><td class="fielddoc"><p>The tag for the message. This is formatted as a string. This element will be ommitted if the tag is null or an empty string. </p>
+<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4ac101058e7ea21bbbf2a5ac893088e90b"></a>Tag&#160;</td><td class="fielddoc"><p>The tag for the log component. It is formatted as a string. This element is omitted if the tag is null or an empty string. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4a4c2a8fe7eaf24721cc7a9f0175115bd4"></a>Message&#160;</td><td class="fielddoc"><p>The message for the log. This is formatted as a string. </p>
+<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4a4c2a8fe7eaf24721cc7a9f0175115bd4"></a>Message&#160;</td><td class="fielddoc"><p>The log message. It is formatted as a string. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4a0b27918290ff5323bea1e3b78a9cf04e"></a>File&#160;</td><td class="fielddoc"><p>The file that generated the message. This is formatted as a string. </p>
+<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4a0b27918290ff5323bea1e3b78a9cf04e"></a>File&#160;</td><td class="fielddoc"><p>The file that generated the message. It is formatted as a string. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4a4803e6b9e63dabf04de980788d6a13c4"></a>Line&#160;</td><td class="fielddoc"><p>The line that generated the message. This is formatted as an unsigned int. </p>
+<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4a4803e6b9e63dabf04de980788d6a13c4"></a>Line&#160;</td><td class="fielddoc"><p>The line in the file where the message was logged. It is formatted as an unsigned integer. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4a86408593c34af77fdd90df932f8b5261"></a>Function&#160;</td><td class="fielddoc"><p>The function that generated the message. This is formatted as a string. </p>
+<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4a86408593c34af77fdd90df932f8b5261"></a>Function&#160;</td><td class="fielddoc"><p>The function that generated the message. It is formatted as a string. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4a4945c24fdeb36dc9e437709073c1164b"></a>FullFunction&#160;</td><td class="fielddoc"><p>The fully qualified function that generated the message. This is formatted as a string. </p>
+<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4a4945c24fdeb36dc9e437709073c1164b"></a>FullFunction&#160;</td><td class="fielddoc"><p>The fully qualified function that generated the message. It is formatted as a string. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4aa76d4ef5f3f6a672bbfab2865563e530"></a>Time&#160;</td><td class="fielddoc"><p>The timestamp of the message. This is formatted as a time as with strftime(). </p>
+<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4aa76d4ef5f3f6a672bbfab2865563e530"></a>Time&#160;</td><td class="fielddoc"><p>The timestamp of the message. It is formatted as a time using <code>strftime()</code>. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4afca1e9617ac05dac5dbcd50970bf79c6"></a>TimeMs&#160;</td><td class="fielddoc"><p>The millisecond portion of the timestamp. This is formatted as an unsigned int. </p>
+<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4afca1e9617ac05dac5dbcd50970bf79c6"></a>TimeMs&#160;</td><td class="fielddoc"><p>The millisecond portion of the timestamp. It is formatted as an unsigned integer. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4a693e7589872f7acd3e69d831d022d6ea"></a>ThreadId&#160;</td><td class="fielddoc"><p>The thread ID for the thread that generated the message. This is formatted as an unsigned long. </p>
+<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4a693e7589872f7acd3e69d831d022d6ea"></a>ThreadId&#160;</td><td class="fielddoc"><p>The thread ID of the thread that generated the message. It is formatted as an unsigned long. </p>
 </td></tr>
 </table>
 
@@ -272,11 +276,11 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Enum for the timezone when printing timestamps. </p>
+<p>The timezone used to print timestamps. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="afa78e7ed0c2c90f1e3683b92b54e6a2da509820290d57f333403f490dde7316f4"></a>Local&#160;</td><td class="fielddoc"><p>Print times in local time. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="afa78e7ed0c2c90f1e3683b92b54e6a2da509820290d57f333403f490dde7316f4"></a>Local&#160;</td><td class="fielddoc"><p>Prints time in the local time standard. </p>
 </td></tr>
-<tr><td class="fieldname"><a id="afa78e7ed0c2c90f1e3683b92b54e6a2da2211d2dd79ba751bdc41551b05d1f807"></a>Utc&#160;</td><td class="fielddoc"><p>Print times in UTC. </p>
+<tr><td class="fieldname"><a id="afa78e7ed0c2c90f1e3683b92b54e6a2da2211d2dd79ba751bdc41551b05d1f807"></a>Utc&#160;</td><td class="fielddoc"><p>Prints time in the UTC standard. </p>
 </td></tr>
 </table>
 
@@ -306,8 +310,8 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Default constructor. </p>
-<p>The element list will be empty, the level name map will be set to default, and the timezone will be set to local. </p>
+<p>The default constructor. </p>
+<p>The element list is empty, the level name map is set to default, and the timezone is set to local. </p>
 
 </div>
 </div>
@@ -351,7 +355,7 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Constructs this with the elements, level name mapping, and timezone. </p>
+<p>Creates the <code><a class="el" href="classolp_1_1logging_1_1MessageFormatter.html" title="Specifies how messages are formatted.">MessageFormatter</a></code> instance with the elements, level name mapping, and timezone. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">elements</td><td>The elements for the formatted message. </td></tr>
@@ -387,8 +391,8 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Makes the default message formatter. </p>
-<p>This will be of the format "level tag - message". </p>
+<p>Creates the default message formatter. </p>
+<p>Format: "level tag - message". </p>
 
 </div>
 </div>
@@ -439,7 +443,7 @@ Static Public Member Functions</h2></td></tr>
 <p>Formats a log message. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">message</td><td>The message to format. </td></tr>
+    <tr><td class="paramname">message</td><td>The message to format.</td></tr>
   </table>
   </dd>
 </dl>
@@ -637,16 +641,16 @@ Static Public Member Functions</h2></td></tr>
 <li>olp-cpp-sdk-core/include/olp/core/logging/<a class="el" href="MessageFormatter_8h_source.html">MessageFormatter.h</a></li>
 </ul>
 </div><!-- contents -->
-<div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_a00f34e2e9c507a76dcf3e5f058c36fe4a4c2a8fe7eaf24721cc7a9f0175115bd4"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4a4c2a8fe7eaf24721cc7a9f0175115bd4">olp::logging::MessageFormatter::ElementType::Message</a></div><div class="ttdeci">@ Message</div><div class="ttdoc">The message for the log. This is formatted as a string.</div></div>
-<div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_afa78e7ed0c2c90f1e3683b92b54e6a2da2211d2dd79ba751bdc41551b05d1f807"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#afa78e7ed0c2c90f1e3683b92b54e6a2da2211d2dd79ba751bdc41551b05d1f807">olp::logging::MessageFormatter::Timezone::Utc</a></div><div class="ttdeci">@ Utc</div><div class="ttdoc">Print times in UTC.</div></div>
-<div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_a00f34e2e9c507a76dcf3e5f058c36fe4a27118326006d3829667a400ad23d5d98"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4a27118326006d3829667a400ad23d5d98">olp::logging::MessageFormatter::ElementType::String</a></div><div class="ttdeci">@ String</div><div class="ttdoc">A string literal.</div></div>
+<div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_a00f34e2e9c507a76dcf3e5f058c36fe4a4c2a8fe7eaf24721cc7a9f0175115bd4"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4a4c2a8fe7eaf24721cc7a9f0175115bd4">olp::logging::MessageFormatter::ElementType::Message</a></div><div class="ttdeci">@ Message</div><div class="ttdoc">The log message. It is formatted as a string.</div></div>
+<div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_afa78e7ed0c2c90f1e3683b92b54e6a2da2211d2dd79ba751bdc41551b05d1f807"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#afa78e7ed0c2c90f1e3683b92b54e6a2da2211d2dd79ba751bdc41551b05d1f807">olp::logging::MessageFormatter::Timezone::Utc</a></div><div class="ttdeci">@ Utc</div><div class="ttdoc">Prints time in the UTC standard.</div></div>
+<div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_a00f34e2e9c507a76dcf3e5f058c36fe4a27118326006d3829667a400ad23d5d98"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4a27118326006d3829667a400ad23d5d98">olp::logging::MessageFormatter::ElementType::String</a></div><div class="ttdeci">@ String</div><div class="ttdoc">The string literal.</div></div>
 <div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_a00f34e2e9c507a76dcf3e5f058c36fe4aa76d4ef5f3f6a672bbfab2865563e530"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4aa76d4ef5f3f6a672bbfab2865563e530">olp::logging::MessageFormatter::ElementType::Time</a></div><div class="ttdeci">@ Time</div></div>
 <div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_a00f34e2e9c507a76dcf3e5f058c36fe4ac101058e7ea21bbbf2a5ac893088e90b"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4ac101058e7ea21bbbf2a5ac893088e90b">olp::logging::MessageFormatter::ElementType::Tag</a></div><div class="ttdeci">@ Tag</div></div>
 <div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_a00f34e2e9c507a76dcf3e5f058c36fe4a4803e6b9e63dabf04de980788d6a13c4"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4a4803e6b9e63dabf04de980788d6a13c4">olp::logging::MessageFormatter::ElementType::Line</a></div><div class="ttdeci">@ Line</div></div>
 <div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_a00f34e2e9c507a76dcf3e5f058c36fe4a0b27918290ff5323bea1e3b78a9cf04e"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4a0b27918290ff5323bea1e3b78a9cf04e">olp::logging::MessageFormatter::ElementType::File</a></div><div class="ttdeci">@ File</div></div>
 <div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_a5d23312ba0c8e7b0456ac2e7bf0de0d7"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#a5d23312ba0c8e7b0456ac2e7bf0de0d7">olp::logging::MessageFormatter::defaultLevelNameMap</a></div><div class="ttdeci">static const LevelNameMap &amp; defaultLevelNameMap()</div><div class="ttdoc">Gets the default level name map.</div></div>
-<div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_adf447a6fac614b938f17d6164496aa5b"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#adf447a6fac614b938f17d6164496aa5b">olp::logging::MessageFormatter::MessageFormatter</a></div><div class="ttdeci">MessageFormatter()</div><div class="ttdoc">Default constructor.</div><div class="ttdef"><b>Definition:</b> MessageFormatter.h:277</div></div>
-<div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_a00f34e2e9c507a76dcf3e5f058c36fe4aa0db49ba470c1c9ae2128c3470339153"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4aa0db49ba470c1c9ae2128c3470339153">olp::logging::MessageFormatter::ElementType::Level</a></div><div class="ttdeci">@ Level</div><div class="ttdoc">The log level for the message. This is formatted as a string.</div></div>
+<div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_adf447a6fac614b938f17d6164496aa5b"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#adf447a6fac614b938f17d6164496aa5b">olp::logging::MessageFormatter::MessageFormatter</a></div><div class="ttdeci">MessageFormatter()</div><div class="ttdoc">The default constructor.</div><div class="ttdef"><b>Definition:</b> MessageFormatter.h:314</div></div>
+<div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_a00f34e2e9c507a76dcf3e5f058c36fe4aa0db49ba470c1c9ae2128c3470339153"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4aa0db49ba470c1c9ae2128c3470339153">olp::logging::MessageFormatter::ElementType::Level</a></div><div class="ttdeci">@ Level</div><div class="ttdoc">The log level for the message. It is formatted as a string.</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

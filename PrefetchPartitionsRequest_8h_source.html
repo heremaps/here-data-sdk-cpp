@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -123,7 +123,7 @@ $(function() {
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160; </div>
 <div class="line"><a name="l00093"></a><span class="lineno"><a class="line" href="classolp_1_1dataservice_1_1read_1_1PrefetchPartitionsRequest.html#a44742a86f086394ea624ac712b1e2fba">   93</a></span>&#160;  <span class="keyword">inline</span> <a class="code" href="classolp_1_1dataservice_1_1read_1_1PrefetchPartitionsRequest.html">PrefetchPartitionsRequest</a>&amp; <a class="code" href="classolp_1_1dataservice_1_1read_1_1PrefetchPartitionsRequest.html#a44742a86f086394ea624ac712b1e2fba">WithBillingTag</a>(</div>
 <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;      boost::optional&lt;std::string&gt; billing_tag) {</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    billing_tag_ = billing_tag;</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    billing_tag_ = std::move(billing_tag);</div>
 <div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;  }</div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160; </div>
@@ -147,7 +147,7 @@ $(function() {
 <div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;      out &lt;&lt; <span class="stringliteral">&quot;@&quot;</span> &lt;&lt; version.get();</div>
 <div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;    }</div>
 <div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;    out &lt;&lt; <span class="stringliteral">&quot;^&quot;</span> &lt;&lt; partition_ids_.size();</div>
-<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;    <span class="keywordflow">if</span> (partition_ids_.size() &gt; 0) {</div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;    <span class="keywordflow">if</span> (!partition_ids_.empty()) {</div>
 <div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;      out &lt;&lt; <span class="stringliteral">&quot;[&quot;</span> &lt;&lt; partition_ids_.front() &lt;&lt; <span class="stringliteral">&quot;, ...]&quot;</span>;</div>
 <div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;    }</div>
 <div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;    <span class="keywordflow">if</span> (GetBillingTag()) {</div>

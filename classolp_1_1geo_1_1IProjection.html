@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -73,36 +73,42 @@ $(function() {
 <div class="title">olp::geo::IProjection Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>The identity projection used to work with geographic and world coordinates.  
+ <a href="classolp_1_1geo_1_1IProjection.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="IProjection_8h_source.html">IProjection.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for olp::geo::IProjection:</div>
 <div class="dyncontent">
 <div class="center"><img src="classolp_1_1geo_1_1IProjection__inherit__graph.png" border="0" usemap="#olp_1_1geo_1_1IProjection_inherit__map" alt="Inheritance graph"/></div>
 <map name="olp_1_1geo_1_1IProjection_inherit__map" id="olp_1_1geo_1_1IProjection_inherit__map">
-<area shape="rect" title=" " alt="" coords="5,97,156,123"/>
-<area shape="rect" href="classolp_1_1geo_1_1EquirectangularProjection.html" title="Equirectangular (plate carree) projection." alt="" coords="229,5,413,47"/>
-<area shape="rect" href="classolp_1_1geo_1_1IdentityProjection.html" title="Identity projection. This passes the coordinates through unchanged. This is usually used to send lat/..." alt="" coords="222,71,419,98"/>
-<area shape="rect" href="classolp_1_1geo_1_1SphereProjection.html" title="Projection of geo coordinates onto a sphere using earth radius." alt="" coords="225,122,417,149"/>
-<area shape="rect" href="classolp_1_1geo_1_1WebMercatorProjection.html" title="Web mercator projection." alt="" coords="204,173,437,199"/>
+<area shape="rect" title="The identity projection used to work with geographic and world coordinates." alt="" coords="5,97,156,123"/>
+<area shape="rect" href="classolp_1_1geo_1_1EquirectangularProjection.html" title="The equirectangular (plate carree) projection." alt="" coords="229,5,413,47"/>
+<area shape="rect" href="classolp_1_1geo_1_1IdentityProjection.html" title="The identity projection used to work with geographic and world coordinates." alt="" coords="222,71,419,98"/>
+<area shape="rect" href="classolp_1_1geo_1_1SphereProjection.html" title="A projection of geographic coordinates onto a sphere using the Earth radius." alt="" coords="225,122,417,149"/>
+<area shape="rect" href="classolp_1_1geo_1_1WebMercatorProjection.html" title="The Web Mercator projection." alt="" coords="204,173,437,199"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ab8cca0c8b779bc4b0818a5a37c4ae603"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classolp_1_1geo_1_1GeoRectangle.html">GeoRectangle</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1IProjection.html#ab8cca0c8b779bc4b0818a5a37c4ae603">GetGeoBounds</a> () const =0</td></tr>
-<tr class="memdesc:ab8cca0c8b779bc4b0818a5a37c4ae603"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get geodetic bounds representable by projection.  <a href="classolp_1_1geo_1_1IProjection.html#ab8cca0c8b779bc4b0818a5a37c4ae603">More...</a><br /></td></tr>
+<tr class="memdesc:ab8cca0c8b779bc4b0818a5a37c4ae603"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the geodetic bounds represented by the projection.  <a href="classolp_1_1geo_1_1IProjection.html#ab8cca0c8b779bc4b0818a5a37c4ae603">More...</a><br /></td></tr>
 <tr class="separator:ab8cca0c8b779bc4b0818a5a37c4ae603"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab35ac13e784394f90d8ab466b4c65c0a"><td class="memItemLeft" align="right" valign="top"><a id="ab35ac13e784394f90d8ab466b4c65c0a"></a>
-virtual <a class="el" href="classolp_1_1math_1_1AlignedBox.html">WorldAlignedBox</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1IProjection.html#ab35ac13e784394f90d8ab466b4c65c0a">WorldExtent</a> (double minimum_altitude, double maximum_altitude) const =0</td></tr>
-<tr class="memdesc:ab35ac13e784394f90d8ab466b4c65c0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extent of world coordinates. <br /></td></tr>
+<tr class="memitem:ab35ac13e784394f90d8ab466b4c65c0a"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classolp_1_1math_1_1AlignedBox.html">WorldAlignedBox</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1IProjection.html#ab35ac13e784394f90d8ab466b4c65c0a">WorldExtent</a> (double minimum_altitude, double maximum_altitude) const =0</td></tr>
+<tr class="memdesc:ab35ac13e784394f90d8ab466b4c65c0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the extent of world coordinates.  <a href="classolp_1_1geo_1_1IProjection.html#ab35ac13e784394f90d8ab466b4c65c0a">More...</a><br /></td></tr>
 <tr class="separator:ab35ac13e784394f90d8ab466b4c65c0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a521fbfee860d6058b2eafe8c0a269b03"><td class="memItemLeft" align="right" valign="top"><a id="a521fbfee860d6058b2eafe8c0a269b03"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>Project</b> (const <a class="el" href="classolp_1_1geo_1_1GeoCoordinates3d.html">GeoCoordinates3d</a> &amp;geo_point, <a class="el" href="structolp_1_1math_1_1Vector3.html">WorldCoordinates</a> &amp;world_point) const =0</td></tr>
+<tr class="memitem:a521fbfee860d6058b2eafe8c0a269b03"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1IProjection.html#a521fbfee860d6058b2eafe8c0a269b03">Project</a> (const <a class="el" href="classolp_1_1geo_1_1GeoCoordinates3d.html">GeoCoordinates3d</a> &amp;geo_point, <a class="el" href="structolp_1_1math_1_1Vector3.html">WorldCoordinates</a> &amp;world_point) const =0</td></tr>
+<tr class="memdesc:a521fbfee860d6058b2eafe8c0a269b03"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks whether the geographic coordinates (latitude, longitude, altitude) of a point correspond to its world coordinates (x,y,z).  <a href="classolp_1_1geo_1_1IProjection.html#a521fbfee860d6058b2eafe8c0a269b03">More...</a><br /></td></tr>
 <tr class="separator:a521fbfee860d6058b2eafe8c0a269b03"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ada48d677236bfa813860fa45e8b2d343"><td class="memItemLeft" align="right" valign="top"><a id="ada48d677236bfa813860fa45e8b2d343"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>Unproject</b> (const <a class="el" href="structolp_1_1math_1_1Vector3.html">WorldCoordinates</a> &amp;world_point, <a class="el" href="classolp_1_1geo_1_1GeoCoordinates3d.html">GeoCoordinates3d</a> &amp;geo_point) const =0</td></tr>
+<tr class="memitem:ada48d677236bfa813860fa45e8b2d343"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1IProjection.html#ada48d677236bfa813860fa45e8b2d343">Unproject</a> (const <a class="el" href="structolp_1_1math_1_1Vector3.html">WorldCoordinates</a> &amp;world_point, <a class="el" href="classolp_1_1geo_1_1GeoCoordinates3d.html">GeoCoordinates3d</a> &amp;geo_point) const =0</td></tr>
+<tr class="memdesc:ada48d677236bfa813860fa45e8b2d343"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks whether the world coordinates (x,y,z) of a point correspond to its geographic coordinates (latitude, longitude, altitude).  <a href="classolp_1_1geo_1_1IProjection.html#ada48d677236bfa813860fa45e8b2d343">More...</a><br /></td></tr>
 <tr class="separator:ada48d677236bfa813860fa45e8b2d343"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The identity projection used to work with geographic and world coordinates. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="ab8cca0c8b779bc4b0818a5a37c4ae603"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab8cca0c8b779bc4b0818a5a37c4ae603">&#9670;&nbsp;</a></span>GetGeoBounds()</h2>
 
@@ -126,10 +132,154 @@ virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>Unproject</b>
 </table>
 </div><div class="memdoc">
 
-<p>Get geodetic bounds representable by projection. </p>
-<dl class="section return"><dt>Returns</dt><dd>Geodetic rectangle </dd></dl>
+<p>Gets the geodetic bounds represented by the projection. </p>
+<dl class="section return"><dt>Returns</dt><dd>The geodetic rectangle. </dd></dl>
 
 <p>Implemented in <a class="el" href="classolp_1_1geo_1_1SphereProjection.html#ad6f5df22eb977be0be53613ffb84808f">olp::geo::SphereProjection</a>, <a class="el" href="classolp_1_1geo_1_1EquirectangularProjection.html#a900a05cd549522360361c26b887cbe2d">olp::geo::EquirectangularProjection</a>, <a class="el" href="classolp_1_1geo_1_1WebMercatorProjection.html#a0eb2c87db6c7ac03c0d7209daa6ed109">olp::geo::WebMercatorProjection</a>, and <a class="el" href="classolp_1_1geo_1_1IdentityProjection.html#adf3e1a3e54a99b0afd9e3eb9ef771223">olp::geo::IdentityProjection</a>.</p>
+
+</div>
+</div>
+<a id="a521fbfee860d6058b2eafe8c0a269b03"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a521fbfee860d6058b2eafe8c0a269b03">&#9670;&nbsp;</a></span>Project()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool olp::geo::IProjection::Project </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1geo_1_1GeoCoordinates3d.html">GeoCoordinates3d</a> &amp;&#160;</td>
+          <td class="paramname"><em>geo_point</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structolp_1_1math_1_1Vector3.html">WorldCoordinates</a> &amp;&#160;</td>
+          <td class="paramname"><em>world_point</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Checks whether the geographic coordinates (latitude, longitude, altitude) of a point correspond to its world coordinates (x,y,z). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">geo_point</td><td>The point position in geographic coordinates. </td></tr>
+    <tr><td class="paramname">world_point</td><td>The point position in world coordinates.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True if the coordinates correspond; false otherwise. </dd></dl>
+
+<p>Implemented in <a class="el" href="classolp_1_1geo_1_1SphereProjection.html#a8c3db887b549e4a84bb2e6a15cb9f4dd">olp::geo::SphereProjection</a>, <a class="el" href="classolp_1_1geo_1_1EquirectangularProjection.html#ada64f78d4aa45840d5556b7a554831b3">olp::geo::EquirectangularProjection</a>, <a class="el" href="classolp_1_1geo_1_1WebMercatorProjection.html#ae24300a664f844f6833ad94da3c2d5de">olp::geo::WebMercatorProjection</a>, and <a class="el" href="classolp_1_1geo_1_1IdentityProjection.html#a0c05c00c545785f9a13f5c939b6e00c3">olp::geo::IdentityProjection</a>.</p>
+
+</div>
+</div>
+<a id="ada48d677236bfa813860fa45e8b2d343"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ada48d677236bfa813860fa45e8b2d343">&#9670;&nbsp;</a></span>Unproject()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool olp::geo::IProjection::Unproject </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structolp_1_1math_1_1Vector3.html">WorldCoordinates</a> &amp;&#160;</td>
+          <td class="paramname"><em>world_point</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classolp_1_1geo_1_1GeoCoordinates3d.html">GeoCoordinates3d</a> &amp;&#160;</td>
+          <td class="paramname"><em>geo_point</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Checks whether the world coordinates (x,y,z) of a point correspond to its geographic coordinates (latitude, longitude, altitude). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">world_point</td><td>The position in world coordinates. </td></tr>
+    <tr><td class="paramname">geo_point</td><td>The position in geographic coordinates.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>True if the coordinates correspond; false otherwise. </dd></dl>
+
+<p>Implemented in <a class="el" href="classolp_1_1geo_1_1SphereProjection.html#a6728d2c13e8cadcdfb109796f31bd592">olp::geo::SphereProjection</a>, <a class="el" href="classolp_1_1geo_1_1EquirectangularProjection.html#a30fa422fadc132086da4370537be6a0f">olp::geo::EquirectangularProjection</a>, <a class="el" href="classolp_1_1geo_1_1WebMercatorProjection.html#afae8c7838a7f97c13febd3854e94e9ad">olp::geo::WebMercatorProjection</a>, and <a class="el" href="classolp_1_1geo_1_1IdentityProjection.html#abcb95ead024838da12934d045dd5bf87">olp::geo::IdentityProjection</a>.</p>
+
+</div>
+</div>
+<a id="ab35ac13e784394f90d8ab466b4c65c0a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab35ac13e784394f90d8ab466b4c65c0a">&#9670;&nbsp;</a></span>WorldExtent()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="classolp_1_1math_1_1AlignedBox.html">WorldAlignedBox</a> olp::geo::IProjection::WorldExtent </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>minimum_altitude</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>maximum_altitude</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates the extent of world coordinates. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">minimum_altitude</td><td>The minimum altitude in meters. </td></tr>
+    <tr><td class="paramname">maximum_altitude</td><td>The maximum altitude in meters.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The extent of world coordinates. </dd></dl>
+
+<p>Implemented in <a class="el" href="classolp_1_1geo_1_1SphereProjection.html#accc5b5e955df03104c9d753fc0ddfb11">olp::geo::SphereProjection</a>, <a class="el" href="classolp_1_1geo_1_1EquirectangularProjection.html#a6d65b3561d8531b34c6069512ad19391">olp::geo::EquirectangularProjection</a>, <a class="el" href="classolp_1_1geo_1_1WebMercatorProjection.html#ae5d25a86e511e2ad3266a370cfcc9efc">olp::geo::WebMercatorProjection</a>, and <a class="el" href="classolp_1_1geo_1_1IdentityProjection.html#a1e8c1c629be048fd3ccf45b115377572">olp::geo::IdentityProjection</a>.</p>
 
 </div>
 </div>

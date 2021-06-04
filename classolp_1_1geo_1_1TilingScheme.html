@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -74,13 +74,18 @@ $(function() {
 <div class="title">olp::geo::TilingScheme&lt; TSubdivisionScheme, TProjection &gt; Class Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Represents how data is tiled.  
+ <a href="classolp_1_1geo_1_1TilingScheme.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="TilingScheme_8h_source.html">TilingScheme.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for olp::geo::TilingScheme&lt; TSubdivisionScheme, TProjection &gt;:</div>
 <div class="dyncontent">
 <div class="center"><img src="classolp_1_1geo_1_1TilingScheme__inherit__graph.png" border="0" usemap="#olp_1_1geo_1_1TilingScheme_3_01TSubdivisionScheme_00_01TProjection_01_4_inherit__map" alt="Inheritance graph"/></div>
 <map name="olp_1_1geo_1_1TilingScheme_3_01TSubdivisionScheme_00_01TProjection_01_4_inherit__map" id="olp_1_1geo_1_1TilingScheme_3_01TSubdivisionScheme_00_01TProjection_01_4_inherit__map">
-<area shape="rect" title=" " alt="" coords="5,80,181,136"/>
-<area shape="rect" href="classolp_1_1geo_1_1ITilingScheme.html" title=" " alt="" coords="6,5,181,32"/>
+<area shape="rect" title="Represents how data is tiled." alt="" coords="5,80,181,136"/>
+<area shape="rect" href="classolp_1_1geo_1_1ITilingScheme.html" title="Represents how data is tiled." alt="" coords="6,5,181,32"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
@@ -88,28 +93,44 @@ Collaboration diagram for olp::geo::TilingScheme&lt; TSubdivisionScheme, TProjec
 <div class="dyncontent">
 <div class="center"><img src="classolp_1_1geo_1_1TilingScheme__coll__graph.png" border="0" usemap="#olp_1_1geo_1_1TilingScheme_3_01TSubdivisionScheme_00_01TProjection_01_4_coll__map" alt="Collaboration graph"/></div>
 <map name="olp_1_1geo_1_1TilingScheme_3_01TSubdivisionScheme_00_01TProjection_01_4_coll__map" id="olp_1_1geo_1_1TilingScheme_3_01TSubdivisionScheme_00_01TProjection_01_4_coll__map">
-<area shape="rect" title=" " alt="" coords="5,80,181,136"/>
-<area shape="rect" href="classolp_1_1geo_1_1ITilingScheme.html" title=" " alt="" coords="6,5,181,32"/>
+<area shape="rect" title="Represents how data is tiled." alt="" coords="5,80,181,136"/>
+<area shape="rect" href="classolp_1_1geo_1_1ITilingScheme.html" title="Represents how data is tiled." alt="" coords="6,5,181,32"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:a1f6290e81785d59e00cfa2516000e625"><td class="memItemLeft" align="right" valign="top"><a id="a1f6290e81785d59e00cfa2516000e625"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>SubdivisionScheme</b> = TSubdivisionScheme</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TilingScheme.html#a1f6290e81785d59e00cfa2516000e625">SubdivisionScheme</a> = TSubdivisionScheme</td></tr>
+<tr class="memdesc:a1f6290e81785d59e00cfa2516000e625"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the subdivision scheme used by this tiling scheme. <br /></td></tr>
 <tr class="separator:a1f6290e81785d59e00cfa2516000e625"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa664582a3ac5b5bd597178106499cb78"><td class="memItemLeft" align="right" valign="top"><a id="aa664582a3ac5b5bd597178106499cb78"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>Projection</b> = TProjection</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TilingScheme.html#aa664582a3ac5b5bd597178106499cb78">Projection</a> = TProjection</td></tr>
+<tr class="memdesc:aa664582a3ac5b5bd597178106499cb78"><td class="mdescLeft">&#160;</td><td class="mdescRight">An alias for the projection used by this tiling scheme. <br /></td></tr>
 <tr class="separator:aa664582a3ac5b5bd597178106499cb78"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a2628e3d52510b90510efa9a19079b418"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classolp_1_1geo_1_1ISubdivisionScheme.html">ISubdivisionScheme</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TilingScheme.html#a2628e3d52510b90510efa9a19079b418">GetSubdivisionScheme</a> () const override</td></tr>
+<tr class="memdesc:a2628e3d52510b90510efa9a19079b418"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the subdivision scheme.  <a href="classolp_1_1geo_1_1TilingScheme.html#a2628e3d52510b90510efa9a19079b418">More...</a><br /></td></tr>
 <tr class="separator:a2628e3d52510b90510efa9a19079b418"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5222d8230f0880c69827aa779623d1a0"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classolp_1_1geo_1_1IProjection.html">IProjection</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TilingScheme.html#a5222d8230f0880c69827aa779623d1a0">GetProjection</a> () const override</td></tr>
+<tr class="memdesc:a5222d8230f0880c69827aa779623d1a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the identity projection.  <a href="classolp_1_1geo_1_1TilingScheme.html#a5222d8230f0880c69827aa779623d1a0">More...</a><br /></td></tr>
 <tr class="separator:a5222d8230f0880c69827aa779623d1a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><h3>template&lt;class TSubdivisionScheme, class TProjection&gt;<br />
+class olp::geo::TilingScheme&lt; TSubdivisionScheme, TProjection &gt;</h3>
+
+<p>Represents how data is tiled. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TSubdivisionScheme</td><td>The subdivision scheme. </td></tr>
+    <tr><td class="paramname">TProjection</td><td>The identity projection. </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a5222d8230f0880c69827aa779623d1a0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5222d8230f0880c69827aa779623d1a0">&#9670;&nbsp;</a></span>GetProjection()</h2>
 
@@ -135,9 +156,10 @@ template&lt;class TSubdivisionScheme , class TProjection &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p></p>
+<p>Gets the identity projection. </p>
+<dl class="section return"><dt>Returns</dt><dd>The identity projection. </dd></dl>
 
-<p>Implements <a class="el" href="classolp_1_1geo_1_1ITilingScheme.html">olp::geo::ITilingScheme</a>.</p>
+<p>Implements <a class="el" href="classolp_1_1geo_1_1ITilingScheme.html#abfbfc5956b424758983922450324f56c">olp::geo::ITilingScheme</a>.</p>
 
 </div>
 </div>
@@ -166,9 +188,10 @@ template&lt;class TSubdivisionScheme , class TProjection &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p></p>
+<p>Gets the subdivision scheme. </p>
+<dl class="section return"><dt>Returns</dt><dd>The subdivision scheme. </dd></dl>
 
-<p>Implements <a class="el" href="classolp_1_1geo_1_1ITilingScheme.html">olp::geo::ITilingScheme</a>.</p>
+<p>Implements <a class="el" href="classolp_1_1geo_1_1ITilingScheme.html#a28811777472286824d35d76ce38475cc">olp::geo::ITilingScheme</a>.</p>
 
 </div>
 </div>

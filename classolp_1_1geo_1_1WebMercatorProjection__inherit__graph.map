@@ -1,4 +1,4 @@
 <map id="olp::geo::WebMercatorProjection" name="olp::geo::WebMercatorProjection">
-<area shape="rect" id="node1" title="Web mercator projection." alt="" coords="5,80,239,107"/>
-<area shape="rect" id="node2" href="$classolp_1_1geo_1_1IProjection.html" title=" " alt="" coords="47,5,197,32"/>
+<area shape="rect" id="node1" title="The Web Mercator projection." alt="" coords="5,80,239,107"/>
+<area shape="rect" id="node2" href="$classolp_1_1geo_1_1IProjection.html" title="The identity projection used to work with geographic and world coordinates." alt="" coords="47,5,197,32"/>
 </map>

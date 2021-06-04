@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -98,22 +98,30 @@ $(function() {
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="keyword">namespace </span>logging {</div>
 <div class="line"><a name="l00031"></a><span class="lineno"><a class="line" href="structolp_1_1logging_1_1LogMessage.html">   31</a></span>&#160;<span class="keyword">struct </span>CORE_API <a class="code" href="structolp_1_1logging_1_1LogMessage.html">LogMessage</a> {</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;  Level level{Level::Off};</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span>* tag{<span class="keyword">nullptr</span>};</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span>* message{<span class="keyword">nullptr</span>};</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span>* file{<span class="keyword">nullptr</span>};</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;  <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> line{0};</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span>* <span class="keyword">function</span>{<span class="keyword">nullptr</span>};</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span>* fullFunction{<span class="keyword">nullptr</span>};</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;  std::chrono::time_point&lt;std::chrono::system_clock&gt; time{};</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> threadId{0};</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;};</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160; </div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;}  <span class="comment">// namespace logging</span></div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00033"></a><span class="lineno"><a class="line" href="structolp_1_1logging_1_1LogMessage.html#a6e73a141548007a3d53ab6366ac344ed">   33</a></span>&#160;  Level level{Level::Off};</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; </div>
+<div class="line"><a name="l00036"></a><span class="lineno"><a class="line" href="structolp_1_1logging_1_1LogMessage.html#a4b3bcb60a7603497cadad74ab37319f8">   36</a></span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span>* tag{<span class="keyword">nullptr</span>};</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160; </div>
+<div class="line"><a name="l00039"></a><span class="lineno"><a class="line" href="structolp_1_1logging_1_1LogMessage.html#abf4d51caae855c610d5b6d8c568b44db">   39</a></span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span>* message{<span class="keyword">nullptr</span>};</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160; </div>
+<div class="line"><a name="l00042"></a><span class="lineno"><a class="line" href="structolp_1_1logging_1_1LogMessage.html#a3f516029c71022e75fee27a79d4ad864">   42</a></span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span>* file{<span class="keyword">nullptr</span>};</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160; </div>
+<div class="line"><a name="l00045"></a><span class="lineno"><a class="line" href="structolp_1_1logging_1_1LogMessage.html#a023c138a61ddb33cec6550131d80afdc">   45</a></span>&#160;  <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> line{0};</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160; </div>
+<div class="line"><a name="l00048"></a><span class="lineno"><a class="line" href="structolp_1_1logging_1_1LogMessage.html#aeb96d7977c23ed802660e8c2b10773d9">   48</a></span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span>* <span class="keyword">function</span>{<span class="keyword">nullptr</span>};</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160; </div>
+<div class="line"><a name="l00051"></a><span class="lineno"><a class="line" href="structolp_1_1logging_1_1LogMessage.html#a76573026690a3c735a7779d4e587fbd0">   51</a></span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span>* fullFunction{<span class="keyword">nullptr</span>};</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
+<div class="line"><a name="l00054"></a><span class="lineno"><a class="line" href="structolp_1_1logging_1_1LogMessage.html#a020dbdddedf1d71e249d174d38183acb">   54</a></span>&#160;  std::chrono::time_point&lt;std::chrono::system_clock&gt; time{};</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160; </div>
+<div class="line"><a name="l00057"></a><span class="lineno"><a class="line" href="structolp_1_1logging_1_1LogMessage.html#a8b128ef1aea41ea1a3b9927da3a849f1">   57</a></span>&#160;  <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> threadId{0};</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;};</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160; </div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;}  <span class="comment">// namespace logging</span></div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;}  <span class="comment">// namespace olp</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">Rules all the other namespaces.</div><div class="ttdef"><b>Definition:</b> AppleSignInProperties.h:24</div></div>
-<div class="ttc" id="astructolp_1_1logging_1_1LogMessage_html"><div class="ttname"><a href="structolp_1_1logging_1_1LogMessage.html">olp::logging::LogMessage</a></div><div class="ttdoc">Structure holding the data used for a log message.</div><div class="ttdef"><b>Definition:</b> LogMessage.h:31</div></div>
+<div class="ttc" id="astructolp_1_1logging_1_1LogMessage_html"><div class="ttname"><a href="structolp_1_1logging_1_1LogMessage.html">olp::logging::LogMessage</a></div><div class="ttdoc">Contains data used for a log message.</div><div class="ttdef"><b>Definition:</b> LogMessage.h:31</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

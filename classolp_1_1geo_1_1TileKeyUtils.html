@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -73,23 +73,30 @@ $(function() {
 <div class="title">olp::geo::TileKeyUtils Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Used to get geographic coordinates from tile keys and vise versa.  
+ <a href="classolp_1_1geo_1_1TileKeyUtils.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="TileKeyUtils_8h_source.html">TileKeyUtils.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a02cb91691164c1a09e0af773a5a8bd0f"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKeyUtils.html#a02cb91691164c1a09e0af773a5a8bd0f">GeoCoordinatesToTileKey</a> (const <a class="el" href="classolp_1_1geo_1_1ITilingScheme.html">ITilingScheme</a> &amp;tiling_scheme, const <a class="el" href="classolp_1_1geo_1_1GeoCoordinates.html">GeoCoordinates</a> &amp;geo_point, const std::uint32_t level)</td></tr>
-<tr class="memdesc:a02cb91691164c1a09e0af773a5a8bd0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a <a class="el" href="classolp_1_1geo_1_1TileKey.html" title="The TileKey instances used to address a tile in a quad tree.">TileKey</a> containing specified geo point.  <a href="classolp_1_1geo_1_1TileKeyUtils.html#a02cb91691164c1a09e0af773a5a8bd0f">More...</a><br /></td></tr>
+<tr class="memdesc:a02cb91691164c1a09e0af773a5a8bd0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the key of the tile that contains geographic coordinates.  <a href="classolp_1_1geo_1_1TileKeyUtils.html#a02cb91691164c1a09e0af773a5a8bd0f">More...</a><br /></td></tr>
 <tr class="separator:a02cb91691164c1a09e0af773a5a8bd0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a678a58ab7004592a6277d6db90f23481"><td class="memItemLeft" align="right" valign="top">static std::vector&lt; <a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKeyUtils.html#a678a58ab7004592a6277d6db90f23481">GeoRectangleToTileKeys</a> (const <a class="el" href="classolp_1_1geo_1_1ITilingScheme.html">ITilingScheme</a> &amp;tiling_scheme, const <a class="el" href="classolp_1_1geo_1_1GeoRectangle.html">GeoRectangle</a> &amp;geo_rectangle, const std::uint32_t level)</td></tr>
-<tr class="memdesc:a678a58ab7004592a6277d6db90f23481"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a tile keys overlapping with specified geo rectangle.  <a href="classolp_1_1geo_1_1TileKeyUtils.html#a678a58ab7004592a6277d6db90f23481">More...</a><br /></td></tr>
+<tr class="memdesc:a678a58ab7004592a6277d6db90f23481"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the keys of the tile that overlaps with a geographic rectangle.  <a href="classolp_1_1geo_1_1TileKeyUtils.html#a678a58ab7004592a6277d6db90f23481">More...</a><br /></td></tr>
 <tr class="separator:a678a58ab7004592a6277d6db90f23481"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac76e4a3a7079816dce5f177fa8f5de84"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKeyUtils.html#ac76e4a3a7079816dce5f177fa8f5de84">GetRelativeSubTileKey</a> (const <a class="el" href="classolp_1_1geo_1_1TileKey.html">geo::TileKey</a> &amp;key, std::uint32_t parent_level)</td></tr>
-<tr class="memdesc:ac76e4a3a7079816dce5f177fa8f5de84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the tile key relative to a given parent.  <a href="classolp_1_1geo_1_1TileKeyUtils.html#ac76e4a3a7079816dce5f177fa8f5de84">More...</a><br /></td></tr>
+<tr class="memdesc:ac76e4a3a7079816dce5f177fa8f5de84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the tile key that is a relative of a given parent.  <a href="classolp_1_1geo_1_1TileKeyUtils.html#ac76e4a3a7079816dce5f177fa8f5de84">More...</a><br /></td></tr>
 <tr class="separator:ac76e4a3a7079816dce5f177fa8f5de84"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeeca9b6a32caf61a945a1039b1cc0704"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1geo_1_1TileKeyUtils.html#aeeca9b6a32caf61a945a1039b1cc0704">GetAbsoluteSubTileKey</a> (const <a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a> &amp;parent, const <a class="el" href="classolp_1_1geo_1_1TileKey.html">TileKey</a> &amp;sub_tile)</td></tr>
-<tr class="memdesc:aeeca9b6a32caf61a945a1039b1cc0704"><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges the given parent tile key and the sub tile key to an absolute tile key.  <a href="classolp_1_1geo_1_1TileKeyUtils.html#aeeca9b6a32caf61a945a1039b1cc0704">More...</a><br /></td></tr>
+<tr class="memdesc:aeeca9b6a32caf61a945a1039b1cc0704"><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges the given parent tile key and the child tile key into an absolute tile key.  <a href="classolp_1_1geo_1_1TileKeyUtils.html#aeeca9b6a32caf61a945a1039b1cc0704">More...</a><br /></td></tr>
 <tr class="separator:aeeca9b6a32caf61a945a1039b1cc0704"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Used to get geographic coordinates from tile keys and vise versa. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a02cb91691164c1a09e0af773a5a8bd0f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a02cb91691164c1a09e0af773a5a8bd0f">&#9670;&nbsp;</a></span>GeoCoordinatesToTileKey()</h2>
 
@@ -130,16 +137,16 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Get a <a class="el" href="classolp_1_1geo_1_1TileKey.html" title="The TileKey instances used to address a tile in a quad tree.">TileKey</a> containing specified geo point. </p>
+<p>Gets the key of the tile that contains geographic coordinates. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">tiling_scheme</td><td>Tiling scheme. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">geo_point</td><td>Geo coordinates to find container tile key for. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">level</td><td>Level of the tile key.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tiling_scheme</td><td>The tiling scheme. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">geo_point</td><td>The geographic coordinates for which you want to find the container tile key. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">level</td><td>The level of the tile.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Tile key at specified level containing geoPoint. When tile can not be calculated invalid tile is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The key of the tile that contains the geographic coordinates. If the tile cannot be calculated, an invalid tile is returned. </dd></dl>
 
 </div>
 </div>
@@ -183,16 +190,16 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Get a tile keys overlapping with specified geo rectangle. </p>
+<p>Gets the keys of the tile that overlaps with a geographic rectangle. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">tiling_scheme</td><td>Tiling scheme. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">geo_rectangle</td><td>rectangle to find overlapping tile keys for. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">level</td><td>Level of the tile key.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tiling_scheme</td><td>The tiling scheme. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">geo_rectangle</td><td>The rectangle for which to find overlapping tile keys. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">level</td><td>The level of the tile key.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Tile keys at specified level overlapping with provided geo rectangle. When tile can not be calculated empty container is returned. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The keys of the tile at the specified level overlapping with the provided geographic rectangle. If the tile cannot be calculated, an empty container is returned. </dd></dl>
 
 </div>
 </div>
@@ -230,11 +237,11 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Merges the given parent tile key and the sub tile key to an absolute tile key. </p>
+<p>Merges the given parent tile key and the child tile key into an absolute tile key. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">parent</td><td>The parent tile key. </td></tr>
-    <tr><td class="paramname">sub_tile</td><td>The sub tile key.</td></tr>
+    <tr><td class="paramname">sub_tile</td><td>The child tile key.</td></tr>
   </table>
   </dd>
 </dl>
@@ -276,15 +283,15 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Returns the tile key relative to a given parent. </p>
+<p>Gets the tile key that is a relative of a given parent. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">key</td><td>The tile key to convert. </td></tr>
-    <tr><td class="paramname">parent_level</td><td>The parent level. Parent level is expected to be less or equal to key.Level().</td></tr>
+    <tr><td class="paramname">key</td><td>The tile key to convert to. </td></tr>
+    <tr><td class="paramname">parent_level</td><td>The level of the parent tile. It is expected to be less than or equal to <code>key.Level()</code>.</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Tile key relative to the parent level. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>The tile key a relative of the parent level. </dd></dl>
 
 </div>
 </div>

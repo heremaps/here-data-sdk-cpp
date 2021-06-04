@@ -1,12 +1,8 @@
 var searchData=
 [
-  ['signinclientcallback_2132',['SignInClientCallback',['../classolp_1_1authentication_1_1AuthenticationClient.html#aac3b31b8dbd7b424622df144db8ca25b',1,'olp::authentication::AuthenticationClient']]],
-  ['signinclientresponse_2133',['SignInClientResponse',['../classolp_1_1authentication_1_1AuthenticationClient.html#a76f9da2cf6767414ab9d7f4683c15887',1,'olp::authentication::AuthenticationClient']]],
-  ['signinusercallback_2134',['SignInUserCallback',['../classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90',1,'olp::authentication::AuthenticationClient']]],
-  ['signinuserresponse_2135',['SignInUserResponse',['../classolp_1_1authentication_1_1AuthenticationClient.html#a3216d2b1e64eca2b0724adf9ffa83185',1,'olp::authentication::AuthenticationClient']]],
-  ['signoutusercallback_2136',['SignOutUserCallback',['../classolp_1_1authentication_1_1AuthenticationClient.html#a7f2a67946b8234fbeea376b992362f21',1,'olp::authentication::AuthenticationClient']]],
-  ['signoutuserresponse_2137',['SignOutUserResponse',['../classolp_1_1authentication_1_1AuthenticationClient.html#a75f7a2c8d4687dbb9d62afa3fd023f6c',1,'olp::authentication::AuthenticationClient']]],
-  ['signupcallback_2138',['SignUpCallback',['../classolp_1_1authentication_1_1AuthenticationClient.html#af3ee13c216810f43f0c7a826b2c939c9',1,'olp::authentication::AuthenticationClient']]],
-  ['signupresponse_2139',['SignUpResponse',['../classolp_1_1authentication_1_1AuthenticationClient.html#a42a06aaa923ec45d9f1240cc2af380d2',1,'olp::authentication::AuthenticationClient']]],
-  ['streamoffsets_2140',['StreamOffsets',['../classolp_1_1dataservice_1_1read_1_1SeekRequest.html#ac389b19f7e8780b795b835ab30225da0',1,'olp::dataservice::read::SeekRequest']]]
+  ['parameterstype_2247',['ParametersType',['../classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247',1,'olp::client::OlpClient']]],
+  ['partitionids_2248',['PartitionIds',['../classolp_1_1dataservice_1_1read_1_1PartitionsRequest.html#a90011fac34ccea0beab00f63072d7dec',1,'olp::dataservice::read::PartitionsRequest::PartitionIds()'],['../classolp_1_1dataservice_1_1read_1_1PrefetchPartitionsRequest.html#a61ea2076bd92a6874930e6ee385e1383',1,'olp::dataservice::read::PrefetchPartitionsRequest::PartitionIds()']]],
+  ['payload_2249',['Payload',['../classolp_1_1http_1_1Network.html#a2d55d803454a41277d8200f25d4e2714',1,'olp::http::Network']]],
+  ['projection_2250',['Projection',['../classolp_1_1geo_1_1TilingScheme.html#aa664582a3ac5b5bd597178106499cb78',1,'olp::geo::TilingScheme']]],
+  ['promiseptr_2251',['PromisePtr',['../classolp_1_1client_1_1CancellableFuture.html#a27868331f026830fa414d922116fef8e',1,'olp::client::CancellableFuture']]]
 ];

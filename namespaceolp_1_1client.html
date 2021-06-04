@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.11.0</span>
+   &#160;<span id="projectnumber">1.12.0</span>
    </div>
   </td>
  </tr>
@@ -158,6 +158,10 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
+<tr class="memitem:a81e6bd68864bf9e2cc66efcf2e4ed927"><td class="memItemLeft" align="right" valign="top"><a id="a81e6bd68864bf9e2cc66efcf2e4ed927"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1client.html#a81e6bd68864bf9e2cc66efcf2e4ed927">ApiNoResponse</a> = <a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a>&lt; <a class="el" href="classolp_1_1client_1_1ApiNoResult.html">ApiNoResult</a>, <a class="el" href="classolp_1_1client_1_1ApiError.html">ApiError</a> &gt;</td></tr>
+<tr class="memdesc:a81e6bd68864bf9e2cc66efcf2e4ed927"><td class="mdescLeft">&#160;</td><td class="mdescRight">The alias to the response without result. <br /></td></tr>
+<tr class="separator:a81e6bd68864bf9e2cc66efcf2e4ed927"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adb6d6f8828cc951947dc5ae3e60499fb"><td class="memItemLeft" align="right" valign="top"><a id="adb6d6f8828cc951947dc5ae3e60499fb"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>Apis</b> = std::vector&lt; <a class="el" href="classolp_1_1client_1_1Api.html">Api</a> &gt;</td></tr>
 <tr class="separator:adb6d6f8828cc951947dc5ae3e60499fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -184,7 +188,9 @@ Enumerations</h2></td></tr>
 &#160;&#160;<a class="el" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a3542a02d18f11f46d53990d91752a6d4">ErrorCode::PreconditionFailed</a>, 
 <a class="el" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a38c300f4fc9ce8a77aad4a30de05cad8">ErrorCode::NotFound</a>, 
 <a class="el" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a20d4b2a77c2ccdf5bb124ca75ed8edd9">ErrorCode::SlowDown</a>, 
-<a class="el" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a3deb8bdcfe75a4deb1b6e06dcf0fb443">ErrorCode::NetworkConnection</a>
+<a class="el" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a3deb8bdcfe75a4deb1b6e06dcf0fb443">ErrorCode::NetworkConnection</a>, 
+<br />
+&#160;&#160;<a class="el" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59aaec01614c28fff12bda1625149e66ab0">ErrorCode::CacheIO</a>
 <br />
  }</td></tr>
 <tr class="memdesc:a05a3686fba885b7bded9d98d8dd97e59"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents all possible errors that might happen during a user request.  <a href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59">More...</a><br /></td></tr>
@@ -286,6 +292,8 @@ CORE_API bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
 <tr><td class="fieldname"><a id="a05a3686fba885b7bded9d98d8dd97e59a20d4b2a77c2ccdf5bb124ca75ed8edd9"></a>SlowDown&#160;</td><td class="fielddoc"><p>Too many requests sent in a given amount of time. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a05a3686fba885b7bded9d98d8dd97e59a3deb8bdcfe75a4deb1b6e06dcf0fb443"></a>NetworkConnection&#160;</td><td class="fielddoc"><p>The network connection error. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a05a3686fba885b7bded9d98d8dd97e59aaec01614c28fff12bda1625149e66ab0"></a>CacheIO&#160;</td><td class="fielddoc"><p>A failed cache IO operation. </p>
 </td></tr>
 </table>
 
