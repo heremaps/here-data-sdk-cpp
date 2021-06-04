@@ -71,7 +71,7 @@ class NetworkWinHttp : public Network {
     RequestId request_id;
     int status;
     bool completed;
-    bool cancelled;
+    bool error;
 
     std::uint64_t bytes_uploaded;
     std::uint64_t bytes_downloaded;
