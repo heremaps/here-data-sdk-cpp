@@ -39,12 +39,30 @@
 namespace {
 #if defined(_WIN32) && !defined(__MINGW32__)
 
-bool MakeDirectoryContentReadonlyWin(const TCHAR* utfdirPath, bool readonly) {
+bool MakeDirectoryAndContentReadonlyWin(const TCHAR* utfdirPath,
+                                        bool readonly) {
   HANDLE hFind;  // file handle
   WIN32_FIND_DATA FindFileData;
 
   if (utfdirPath == 0 || *utfdirPath == '\0') {
     return false;
+  }
+
+  auto dir_attributes = ::GetFileAttributes(utfdirPath);
+  if (dir_attributes == INVALID_FILE_ATTRIBUTES) {
+    return false;
+  }
+
+  bool is_directory =
+      (dir_attributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY;
+  if (!is_directory) {
+    return false;
+  }
+
+  if (readonly) {
+    SetFileAttributes(utfdirPath, dir_attributes | FILE_ATTRIBUTE_READONLY);
+  } else {
+    SetFileAttributes(utfdirPath, dir_attributes & ~FILE_ATTRIBUTE_READONLY);
   }
 
   TCHAR dirPath[MAX_PATH];
@@ -72,7 +90,7 @@ bool MakeDirectoryContentReadonlyWin(const TCHAR* utfdirPath, bool readonly) {
       StringCchCat(filename, _countof(filename), FindFileData.cFileName);
       if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
         // we have found a directory, recurse
-        if (!MakeDirectoryContentReadonlyWin(filename, readonly)) {
+        if (!MakeDirectoryAndContentReadonlyWin(filename, readonly)) {
           bSearch = false;
           break;
         }
@@ -112,7 +130,7 @@ static constexpr mode_t WRITE_PERMISIONS = S_IWUSR | S_IWGRP | S_IWOTH;
 
 int make_readonly_callback(const char* file, const struct stat* stat, int flag,
                            struct FTW* /*buf*/) {
-  if (flag == FTW_F) {
+  if (flag == (FTW_F | FTW_D)) {
     return chmod(file, stat->st_mode & ~WRITE_PERMISIONS);
   } else {
     return 0;
@@ -121,7 +139,7 @@ int make_readonly_callback(const char* file, const struct stat* stat, int flag,
 
 int make_read_write_callback(const char* file, const struct stat* stat,
                              int flag, struct FTW* /*buf*/) {
-  if (flag == FTW_F) {
+  if (flag == (FTW_F | FTW_D)) {
     return chmod(file, stat->st_mode | WRITE_PERMISIONS);
   } else {
     return 0;
@@ -132,7 +150,7 @@ int make_read_write_callback(const char* file, const struct stat* stat,
 }  // namespace
 
 namespace helpers {
-bool MakeDirectoryContentReadonly(const std::string& path, bool readonly) {
+bool MakeDirectoryAndContentReadonly(const std::string& path, bool readonly) {
 #if defined(_WIN32) && !defined(__MINGW32__)
 #ifdef _UNICODE
 
@@ -144,7 +162,7 @@ bool MakeDirectoryContentReadonly(const std::string& path, bool readonly) {
   const TCHAR* n_path = path.c_str();
 #endif  // _UNICODE
 
-  return MakeDirectoryContentReadonlyWin(n_path, readonly);
+  return MakeDirectoryAndContentReadonlyWin(n_path, readonly);
 
 #else
 

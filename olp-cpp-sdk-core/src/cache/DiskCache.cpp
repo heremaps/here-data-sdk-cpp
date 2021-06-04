@@ -43,6 +43,7 @@ namespace cache {
 namespace {
 constexpr auto kLogTag = "DiskCache";
 constexpr auto kLevelDbLostFolder = "/lost";
+constexpr auto kMaxL0Files = 4;
 
 leveldb::Slice ToLeveldbSlice(const std::string& slice) {
   return leveldb::Slice(slice);
@@ -132,7 +133,7 @@ int CheckCompactionFinished(leveldb::DB& db) {
   db.GetProperty("leveldb.num-files-at-level0", &property_result);
 
   const auto files_at_level0 = std::stoi(property_result);
-  if (files_at_level0 == 0) {
+  if (files_at_level0 < kMaxL0Files) {
     return true;
   }
 
@@ -244,12 +245,18 @@ OpenResult DiskCache::Open(const std::string& data_path,
     status = leveldb::DB::Open(open_options, versioned_data_path, &db);
   }
 
-  if ((status.IsCorruption() || status.IsIOError()) &&
-      RepairCache(versioned_data_path)) {
-    status = leveldb::DB::Open(open_options, versioned_data_path, &db);
-    if (status.ok()) {
-      database_.reset(db);
-      return OpenResult::Repaired;
+  if (status.IsCorruption() || status.IsIOError()) {
+    if (is_read_only) {
+      OLP_SDK_LOG_ERROR_F(
+          kLogTag, "Open: cache corrupted, cache_path='%s', error='%s'",
+          versioned_data_path.c_str(), status.ToString().c_str());
+      return OpenResult::Corrupted;
+    } else if (RepairCache(versioned_data_path)) {
+      status = leveldb::DB::Open(open_options, versioned_data_path, &db);
+      if (status.ok()) {
+        database_.reset(db);
+        return OpenResult::Repaired;
+      }
     }
   }
 
@@ -262,7 +269,17 @@ OpenResult DiskCache::Open(const std::string& data_path,
     error_ = NoError{};
   }
 
-  database_.reset(db);
+  std::unique_ptr<leveldb::DB> tmp_db{db};
+
+  if (is_read_only && !CheckCompactionFinished(*tmp_db)) {
+    OLP_SDK_LOG_ERROR_F(kLogTag,
+                        "Open: interrupted compaction detected in r/o mode, "
+                        "aborting open, path='%s'",
+                        versioned_data_path.c_str());
+    return OpenResult::Corrupted;
+  }
+
+  database_.swap(tmp_db);
 
   return OpenResult::Success;
 }
