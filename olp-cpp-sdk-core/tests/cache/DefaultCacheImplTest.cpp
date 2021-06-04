@@ -37,7 +37,7 @@ class DefaultCacheImplTest : public ::testing::Test {
  public:
   void SetUp() override {
     // Restore permissions in case if cache_path_ is not writable
-    helpers::MakeDirectoryContentReadonly(cache_path_, false);
+    helpers::MakeDirectoryAndContentReadonly(cache_path_, false);
   }
 
   void TearDown() override { olp::utils::Dir::Remove(cache_path_); }
@@ -974,7 +974,7 @@ TEST_F(DefaultCacheImplTest, ReadOnlyPartitionForProtectedCache) {
   cache1.Close();
 
   // Make readonly
-  ASSERT_TRUE(helpers::MakeDirectoryContentReadonly(cache_path_, true));
+  ASSERT_TRUE(helpers::MakeDirectoryAndContentReadonly(cache_path_, true));
 
   cache::CacheSettings settings2;
   settings2.disk_path_protected = cache_path_;
@@ -985,7 +985,7 @@ TEST_F(DefaultCacheImplTest, ReadOnlyPartitionForProtectedCache) {
   const auto value = cache2.Get(key);
   EXPECT_NE(nullptr, value.get());
   cache2.Close();
-  helpers::MakeDirectoryContentReadonly(cache_path_, false);
+  helpers::MakeDirectoryAndContentReadonly(cache_path_, false);
 }
 
 TEST_F(DefaultCacheImplTest, ProtectTestWithoutMutableCache) {

@@ -30,5 +30,5 @@ namespace helpers {
  *
  * @return \c true if any file with the given path exists, \c false otherwise.
  */
-bool MakeDirectoryContentReadonly(const std::string& path, bool readonly);
+bool MakeDirectoryAndContentReadonly(const std::string& path, bool readonly);
 }  // namespace helpers

@@ -124,6 +124,17 @@ class CORE_API Dir {
    * @return The calculated size.
    */
   static uint64_t Size(const std::string& path, FilterFunction filter_fn = {});
+
+  /**
+   * @brief Checks if the current application and user has a read only access to
+   * given path.
+   *
+   * @param path The path to check for read only access.
+   *
+   * @return True if current application and user has read only access to the
+   * path.
+   */
+  static bool IsReadOnly(const std::string& path);
 };
 
 }  // namespace utils

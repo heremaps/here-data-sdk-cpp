@@ -148,11 +148,18 @@ struct CORE_API CacheSettings {
   /**
    * @brief The path to the protected (read-only) cache.
    *
-   * This cache is used as a primary cache for lookup. `DefaultCache` opens this
-   * cache in the read-only mode and does not write to it if
-   * `disk_path_mutable` is empty. Use this cash if you want to have a stable
-   * fallback state or offline data that you can always access regardless of
-   * the network state.
+   * This cache will be used as the primary source for data lookup. The
+   * `DefaultCache` will try to open this cache in the r/w mode to make sure the
+   * database can perform on-open optimizations like write-ahead logging (WAL)
+   * committing or compaction. In case we do not have permission to write on
+   * the provided path, or user set explicitly ReadOnly in the
+   * `CacheSettings::openOptions`, the protected cache will be opened in r/o
+   * mode. In both cases the database will not be opened and user will receive a
+   * `ProtectedCacheCorrupted` from `DefaultCache::Open` in case the database
+   * has after open still an un-commited WAL, is uncompressed or cannot
+   * guarantee a normal operation and RAM usage. Use this cache if you want to
+   * have a stable fallback state or offline data that you can always access
+   * regardless of the network state.
    */
   boost::optional<std::string> disk_path_protected = boost::none;
 };

@@ -486,5 +486,34 @@ uint64_t Dir::Size(const std::string& path, FilterFunction filter_fn) {
   return result;
 }
 
+bool Dir::IsReadOnly(const std::string& path) {
+#if defined(_WIN32) && !defined(__MINGW32__)
+  // Read only flag is for files inside directory
+  // CreateFile() winapi function will return handle to directory
+  // so we need to check for ReadOnly attribute first.
+  auto attributes = GetFileAttributes(path.c_str());
+  if (attributes == INVALID_FILE_ATTRIBUTES) {
+    return false;
+  }
+
+  if (attributes & FILE_ATTRIBUTE_DIRECTORY) {
+    return (attributes & FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY;
+  }
+
+  auto handle =
+      CreateFile(path.c_str(), GENERIC_WRITE,
+                 FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
+                 OPEN_EXISTING, 0, NULL);
+
+  if (handle == INVALID_HANDLE_VALUE) {
+    return true;
+  }
+  CloseHandle(handle);
+  return false;
+#else
+  return access(path.c_str(), W_OK) != 0;
+#endif
+}
+
 }  // namespace utils
 }  // namespace olp
