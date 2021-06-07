@@ -1,4 +1,0 @@
-<map id="olp::geo::GeoCoordinates3d" name="olp::geo::GeoCoordinates3d">
-<area shape="rect" id="node1" title="Geodetic coordinates with longitude, latitude, and altitude." alt="" coords="5,95,208,121"/>
-<area shape="rect" id="node2" href="$classolp_1_1geo_1_1GeoCoordinates.html" title="A geographic location that uses the WGS84 Coordinate System." alt="" coords="13,5,200,32"/>
-</map>

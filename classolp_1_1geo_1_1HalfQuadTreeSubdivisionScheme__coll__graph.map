@@ -1,4 +1,0 @@
-<map id="olp::geo::HalfQuadTreeSubdivisionScheme" name="olp::geo::HalfQuadTreeSubdivisionScheme">
-<area shape="rect" id="node1" title="A subdivision scheme used to represent half quadtrees." alt="" coords="5,80,251,121"/>
-<area shape="rect" id="node2" href="$classolp_1_1geo_1_1ISubdivisionScheme.html" title="An abstract tiling subdivision scheme." alt="" coords="21,5,235,32"/>
-</map>

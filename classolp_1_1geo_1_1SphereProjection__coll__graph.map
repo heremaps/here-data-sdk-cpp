@@ -1,4 +1,0 @@
-<map id="olp::geo::SphereProjection" name="olp::geo::SphereProjection">
-<area shape="rect" id="node1" title="A projection of geographic coordinates onto a sphere using the Earth radius." alt="" coords="5,80,197,107"/>
-<area shape="rect" id="node2" href="$classolp_1_1geo_1_1IProjection.html" title="The identity projection used to work with geographic and world coordinates." alt="" coords="26,5,177,32"/>
-</map>

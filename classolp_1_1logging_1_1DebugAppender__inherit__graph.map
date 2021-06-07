@@ -1,4 +1,0 @@
-<map id="olp::logging::DebugAppender" name="olp::logging::DebugAppender">
-<area shape="rect" id="node1" title="An appender that prints messages to the debug output." alt="" coords="5,80,216,107"/>
-<area shape="rect" id="node2" href="$classolp_1_1logging_1_1IAppender.html" title="Appends a message to the log." alt="" coords="25,5,197,32"/>
-</map>
