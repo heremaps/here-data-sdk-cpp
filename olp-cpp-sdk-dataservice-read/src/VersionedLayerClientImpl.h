@@ -124,8 +124,8 @@ class VersionedLayerClientImpl {
   client::OlpClientSettings settings_;
   std::atomic<int64_t> catalog_version_;
   client::ApiLookupClient lookup_client_;
-  TaskSink task_sink_;
   repository::NamedMutexStorage mutex_storage_;
+  TaskSink task_sink_;
 };
 
 }  // namespace read

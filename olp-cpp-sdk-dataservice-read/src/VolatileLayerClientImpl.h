@@ -79,8 +79,8 @@ class VolatileLayerClientImpl {
   std::string layer_id_;
   client::OlpClientSettings settings_;
   client::ApiLookupClient lookup_client_;
-  TaskSink task_sink_;
   repository::NamedMutexStorage mutex_storage_;
+  TaskSink task_sink_;
 };
 
 }  // namespace read
