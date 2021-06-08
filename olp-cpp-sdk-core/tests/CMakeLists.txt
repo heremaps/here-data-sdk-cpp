@@ -24,6 +24,7 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./cache/ProtectedKeyListTest.cpp
 
     ./client/ApiLookupClientImplTest.cpp
+    ./client/BackdownStrategyTest.cpp
     ./client/CancellationContextTest.cpp
     ./client/ConditionTest.cpp
     ./client/DefaultLookupEndpointProviderTest.cpp
