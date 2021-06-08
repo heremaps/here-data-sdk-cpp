@@ -488,10 +488,17 @@ uint64_t Dir::Size(const std::string& path, FilterFunction filter_fn) {
 
 bool Dir::IsReadOnly(const std::string& path) {
 #if defined(_WIN32) && !defined(__MINGW32__)
+#ifdef _UNICODE
+    std::wstring wstrPath = ConvertStringToWideString(path);
+    const TCHAR* syspath = wstrPath.c_str();
+#else
+    const TCHAR* syspath = path.c_str();
+#endif  // _UNICODE
+
   // Read only flag is for files inside directory
   // CreateFile() winapi function will return handle to directory
   // so we need to check for ReadOnly attribute first.
-  auto attributes = GetFileAttributes(path.c_str());
+  auto attributes = GetFileAttributes(syspath);
   if (attributes == INVALID_FILE_ATTRIBUTES) {
     return false;
   }
@@ -501,7 +508,7 @@ bool Dir::IsReadOnly(const std::string& path) {
   }
 
   auto handle =
-      CreateFile(path.c_str(), GENERIC_WRITE,
+      CreateFile(syspath, GENERIC_WRITE,
                  FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
                  OPEN_EXISTING, 0, NULL);
 
