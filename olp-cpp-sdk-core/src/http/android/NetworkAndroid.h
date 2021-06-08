@@ -119,13 +119,6 @@ class NetworkAndroid : public Network {
   static void SetJavaVM(JavaVM* vm, jobject application);
 
  private:
-  struct RequestCompletion {
-    RequestCompletion(std::size_t count) : count(count) {}
-
-    std::promise<void> ready;
-    std::size_t count;
-  };
-
   /// Data, which is passed to the JNI as request's data
   struct RequestData {
     RequestData(Network::Callback callback,
@@ -146,7 +139,6 @@ class NetworkAndroid : public Network {
     jobject obj;
     jlong count;
     jlong offset;
-    std::shared_ptr<RequestCompletion> completion;
   };
 
   /// Response data, which is received from HttpClient.java

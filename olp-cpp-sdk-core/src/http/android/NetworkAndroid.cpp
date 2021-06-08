@@ -450,15 +450,12 @@ void NetworkAndroid::Deinitialize() {
     return;
   }
 
-  std::shared_ptr<RequestCompletion> completion;
   std::vector<std::pair<RequestId, Network::Callback> > completed_messages;
   {
     std::lock_guard<std::mutex> lock(requests_mutex_);
     if (!requests_.empty()) {
-      completion = std::make_shared<RequestCompletion>(requests_.size());
       for (auto req : requests_) {
         completed_messages.emplace_back(req.first, req.second->callback);
-        req.second->completion = completion;
         DoCancel(env.GetEnv(), req.second->obj);
       }
     }
@@ -494,15 +491,6 @@ void NetworkAndroid::Deinitialize() {
                    .WithRequestId(pair.first)
                    .WithStatus(static_cast<int>(ErrorCode::OFFLINE_ERROR))
                    .WithError("Offline: network client is destroyed"));
-    }
-  }
-
-  // TODO: replace without explicit waiting for specific amount of seconds
-  if (completion) {
-    if (completion->ready.get_future().wait_for(std::chrono::seconds(2)) !=
-        std::future_status::ready) {
-      OLP_SDK_LOG_WARNING(kLogTag,
-                          "Requests are not ready in 2 seconds, this=" << this);
     }
   }
 }
@@ -687,15 +675,6 @@ void NetworkAndroid::CompleteRequest(JNIEnv* env, RequestId request_id,
   // We don't need the object anymore
   env->DeleteGlobalRef(request_data->obj);
   request_data->obj = nullptr;
-
-  if (auto completion = request_data->completion) {
-    if (--completion->count == 0) {
-      completion->ready.set_value();
-    }
-    request_data->completion = nullptr;
-    requests_.erase(iter_request);
-    return;
-  }
 
   // Partial response is OK if offset is 0
   if ((request_data->offset == 0) &&
