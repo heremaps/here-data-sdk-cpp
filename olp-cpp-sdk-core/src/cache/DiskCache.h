@@ -111,7 +111,8 @@ class DiskCache {
   ~DiskCache();
   OpenResult Open(const std::string& data_path,
                   const std::string& versioned_data_path,
-                  StorageSettings settings, OpenOptions options);
+                  StorageSettings settings, OpenOptions options,
+                  bool repair_if_broken = true);
 
   void Close();
   bool Clear();

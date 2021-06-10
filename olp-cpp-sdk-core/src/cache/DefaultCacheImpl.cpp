@@ -848,9 +848,9 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupProtectedCache() {
     }
   }
 
-  auto status = protected_cache_->Open(settings_.disk_path_protected.get(),
-                                       settings_.disk_path_protected.get(),
-                                       protected_storage_settings, open_mode);
+  auto status = protected_cache_->Open(
+      settings_.disk_path_protected.get(), settings_.disk_path_protected.get(),
+      protected_storage_settings, open_mode, false);
   if (status != OpenResult::Success) {
     OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to open protected cache %s",
                         settings_.disk_path_protected.get().c_str());
