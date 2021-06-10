@@ -45,10 +45,13 @@ do
 done
 
 echo ">>> Installing mock server SSL certificate into OS... >>>"
+#download cert
 curl https://raw.githubusercontent.com/mock-server/mockserver/master/mockserver-core/src/main/resources/org/mockserver/socket/CertificateAuthorityCertificate.pem --output mock-server-cert.pem
-mv mock-server-cert.pem /usr/share/ca-certificates/
-echo "mock-server-cert.pem" >> /etc/ca-certificates.conf
-update-ca-certificates
+#verify cert is in place
+ls -la /usr/share/ca-certificates/mock-server-cert.pem
+cat /etc/ca-certificates.conf
+#install certificate
+sudo update-ca-certificates
 
 echo ">>> Start network tests ... >>>"
 $CI_PROJECT_DIR/build/tests/functional/network/olp-cpp-sdk-functional-network-tests  \
