@@ -190,7 +190,8 @@ void DiskCache::Compact() {
 
 OpenResult DiskCache::Open(const std::string& data_path,
                            const std::string& versioned_data_path,
-                           StorageSettings settings, OpenOptions options) {
+                           StorageSettings settings, OpenOptions options,
+                           bool repair_if_broken) {
   disk_cache_path_ = data_path;
   bool is_read_only = (options & ReadOnly) == ReadOnly;
   if (!olp::utils::Dir::exists(disk_cache_path_)) {
@@ -246,7 +247,7 @@ OpenResult DiskCache::Open(const std::string& data_path,
   }
 
   if (status.IsCorruption() || status.IsIOError()) {
-    if (is_read_only) {
+    if (is_read_only || !repair_if_broken) {
       OLP_SDK_LOG_ERROR_F(
           kLogTag, "Open: cache corrupted, cache_path='%s', error='%s'",
           versioned_data_path.c_str(), status.ToString().c_str());
