@@ -1,0 +1,6 @@
+[submodule "external/wiredtiger"]
+	path = external/wiredtiger
+	url = git@github.com:wiredtiger/wiredtiger.git
+[submodule "external/lmdb"]
+	path = external/lmdb
+	url = git@github.com:LMDB/lmdb.git
