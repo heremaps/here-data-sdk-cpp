@@ -31,7 +31,8 @@ if (ANDROID OR IOS)
 
     target_link_libraries(${OLP_SDK_AUTHENTICATION_TESTS_LIB}
     PRIVATE
-        gtest
+        gmock
+        olp-cpp-sdk-tests-common
         olp-cpp-sdk-authentication
     )
 
@@ -64,7 +65,8 @@ else()
 
     target_link_libraries(olp-cpp-sdk-authentication-tests
         PRIVATE
-            gtest_main
+            gmock_main
+            olp-cpp-sdk-tests-common
             olp-cpp-sdk-authentication
     )
 
