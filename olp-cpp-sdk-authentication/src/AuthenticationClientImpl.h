@@ -59,7 +59,7 @@ using TimeCallback = Callback<time_t>;
 
 enum class FederatedSignInType { FacebookSignIn, GoogleSignIn, ArcgisSignIn };
 
-class AuthenticationClientImpl final {
+class AuthenticationClientImpl {
  public:
   /// The sign in cache alias type
   using SignInCacheType =
@@ -70,7 +70,7 @@ class AuthenticationClientImpl final {
       thread::Atomic<utils::LruCache<std::string, SignInUserResult>>;
 
   explicit AuthenticationClientImpl(AuthenticationSettings settings);
-  ~AuthenticationClientImpl();
+  virtual ~AuthenticationClientImpl();
 
   /**
    * @brief Sign in with client credentials
@@ -127,9 +127,20 @@ class AuthenticationClientImpl final {
   client::CancellationToken GetMyAccount(std::string access_token,
                                          UserAccountInfoCallback callback);
 
- private:
-  TimeResponse GetTimeFromServer(client::CancellationContext context,
-                                 const client::OlpClient& client);
+ protected:
+  class RequestTimer {
+   public:
+    RequestTimer();
+    explicit RequestTimer(std::time_t server_time);
+    std::time_t GetRequestTime() const;
+
+   private:
+    std::chrono::steady_clock::time_point timer_start_;
+    std::time_t time_;
+  };
+
+  virtual TimeResponse GetTimeFromServer(client::CancellationContext context,
+                                         const client::OlpClient& client) const;
 
   static TimeResponse ParseTimeResponse(std::stringstream& payload);
 
@@ -150,7 +161,7 @@ class AuthenticationClientImpl final {
   client::OlpClient::RequestBodyType GenerateAuthorizeBody(
       AuthorizeRequest properties);
 
-  olp::client::HttpResponse CallAuth(
+  virtual olp::client::HttpResponse CallAuth(
       const client::OlpClient& client, const std::string& endpoint,
       client::CancellationContext context,
       const AuthenticationCredentials& credentials,
@@ -179,6 +190,9 @@ class AuthenticationClientImpl final {
       const AuthenticationCredentials& credentials, const std::string& endpoint,
       const client::OlpClient::RequestBodyType& request_body,
       const SignInUserCallback& callback);
+
+  RequestTimer CreateRequestTimer(const client::OlpClient& client,
+                                  client::CancellationContext context) const;
 
   std::shared_ptr<SignInCacheType> client_token_cache_;
   std::shared_ptr<SignInUserCacheType> user_token_cache_;

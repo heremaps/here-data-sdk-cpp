@@ -27,13 +27,12 @@
 #include "olp/core/client/ApiError.h"
 #include "olp/core/client/CancellationToken.h"
 #include "olp/core/client/ErrorCode.h"
-#include "olp/core/porting/make_unique.h"
 
 namespace olp {
 namespace authentication {
 
 AuthenticationClient::AuthenticationClient(AuthenticationSettings settings)
-    : impl_(std::make_unique<AuthenticationClientImpl>(std::move(settings))) {}
+    : impl_(std::make_shared<AuthenticationClientImpl>(std::move(settings))) {}
 
 AuthenticationClient::~AuthenticationClient() = default;
 

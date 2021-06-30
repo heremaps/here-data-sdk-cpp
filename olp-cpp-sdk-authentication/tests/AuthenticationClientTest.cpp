@@ -20,15 +20,136 @@
 #include <cstdio>
 #include <fstream>
 
-#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
+#include "../src/AuthenticationClientImpl.h"
 #include "../src/AuthenticationClientUtils.h"
+#include "mocks/NetworkMock.h"
+#include "olp/core/http/HttpStatusCode.h"
 
 namespace {
 constexpr auto kTime = "Fri, 29 May 2020 11:07:45 GMT";
 }  // namespace
 
 namespace auth = olp::authentication;
+namespace client = olp::client;
+
+class AuthenticationClientImplTestable : public auth::AuthenticationClientImpl {
+ public:
+  explicit AuthenticationClientImplTestable(
+      auth::AuthenticationSettings settings)
+      : AuthenticationClientImpl(settings) {}
+
+  MOCK_METHOD(auth::TimeResponse, GetTimeFromServer,
+              (client::CancellationContext context,
+               const client::OlpClient& client),
+              (const, override));
+
+  MOCK_METHOD(client::HttpResponse, CallAuth,
+              (const client::OlpClient&, const std::string&,
+               client::CancellationContext,
+               const auth::AuthenticationCredentials&,
+               client::OlpClient::RequestBodyType, std::time_t),
+              (override));
+};
+
+ACTION_P(Wait, time) { std::this_thread::sleep_for(time); }
+
+TEST(AuthenticationClientTest, Timestamp) {
+  using testing::_;
+
+  auth::AuthenticationSettings settings;
+  settings.use_system_time = false;
+  settings.network_request_handler = std::make_shared<NetworkMock>();
+
+  AuthenticationClientImplTestable auth_impl(settings);
+
+  const std::time_t initial_time = 10;
+  const std::time_t time_limit = 20;
+
+  const auth::AuthenticationCredentials credentials("", "");
+
+  const auto timestamp_predicate = testing::AllOf(
+      testing::Ge(initial_time), testing::Le(initial_time + time_limit));
+
+  const auto request_time = std::chrono::milliseconds(500);
+
+  const client::HttpResponse retriable_response(
+      olp::http::HttpStatusCode::TOO_MANY_REQUESTS);
+
+  {
+    SCOPED_TRACE("SignInClient");
+
+    EXPECT_CALL(auth_impl, GetTimeFromServer(_, _))
+        .WillOnce(testing::Return(initial_time));
+
+    std::time_t time = 0;
+
+    EXPECT_CALL(auth_impl, CallAuth(_, _, _, _, _, timestamp_predicate))
+        .Times(3)
+        .WillRepeatedly(testing::DoAll(testing::SaveArg<5>(&time),
+                                       Wait(request_time),
+                                       testing::Return(retriable_response)));
+
+    auth_impl.SignInClient(credentials, {}, nullptr);
+
+    EXPECT_GT(time, initial_time);
+  }
+  {
+    SCOPED_TRACE("SignInHereUser");
+
+    EXPECT_CALL(auth_impl, GetTimeFromServer(_, _))
+        .WillOnce(testing::Return(initial_time));
+
+    std::time_t time = 0;
+
+    EXPECT_CALL(auth_impl, CallAuth(_, _, _, _, _, timestamp_predicate))
+        .Times(3)
+        .WillRepeatedly(testing::DoAll(testing::SaveArg<5>(&time),
+                                       Wait(request_time),
+                                       testing::Return(retriable_response)));
+
+    auth_impl.SignInHereUser(credentials, {}, nullptr);
+
+    EXPECT_GT(time, initial_time);
+  }
+  {
+    SCOPED_TRACE("SignInRefresh");
+
+    EXPECT_CALL(auth_impl, GetTimeFromServer(_, _))
+        .WillOnce(testing::Return(initial_time));
+
+    std::time_t time = 0;
+
+    EXPECT_CALL(auth_impl, CallAuth(_, _, _, _, _, timestamp_predicate))
+        .Times(3)
+        .WillRepeatedly(testing::DoAll(testing::SaveArg<5>(&time),
+                                       Wait(request_time),
+                                       testing::Return(retriable_response)));
+
+    auth_impl.SignInRefresh(credentials, {}, nullptr);
+
+    EXPECT_GT(time, initial_time);
+  }
+  {
+    SCOPED_TRACE("SignInFederated");
+
+    EXPECT_CALL(auth_impl, GetTimeFromServer(_, _))
+        .WillOnce(testing::Return(initial_time));
+
+    std::time_t time = 0;
+
+    EXPECT_CALL(auth_impl, CallAuth(_, _, _, _, _, timestamp_predicate))
+        .Times(3)
+        .WillRepeatedly(testing::DoAll(testing::SaveArg<5>(&time),
+                                       Wait(request_time),
+                                       testing::Return(retriable_response)));
+
+    auth_impl.SignInFederated(credentials, {}, nullptr);
+
+    EXPECT_GT(time, initial_time);
+  }
+}
 
 TEST(AuthenticationClientTest, TimeParsing) {
   {

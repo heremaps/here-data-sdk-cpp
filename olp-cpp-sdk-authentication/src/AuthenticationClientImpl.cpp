@@ -147,6 +147,21 @@ client::OlpClient::RequestBodyType GenerateAppleSignInBody(
 namespace olp {
 namespace authentication {
 
+AuthenticationClientImpl::RequestTimer::RequestTimer()
+    : timer_start_{std::chrono::steady_clock::now()},
+      time_{std::chrono::system_clock::to_time_t(
+          std::chrono::system_clock::now())} {}
+
+AuthenticationClientImpl::RequestTimer::RequestTimer(std::time_t server_time)
+    : timer_start_{std::chrono::steady_clock::now()}, time_{server_time} {}
+
+std::time_t AuthenticationClientImpl::RequestTimer::GetRequestTime() const {
+  const auto now = std::chrono::steady_clock::now();
+  const auto time_since_start =
+      std::chrono::duration_cast<std::chrono::seconds>(now - timer_start_);
+  return time_ + time_since_start.count();
+}
+
 AuthenticationClientImpl::AuthenticationClientImpl(
     AuthenticationSettings settings)
     : client_token_cache_(
@@ -263,19 +278,7 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
 
     client::OlpClient client = CreateOlpClient(settings_, boost::none, false);
 
-    std::time_t timestamp =
-        std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-
-    if (!settings_.use_system_time) {
-      auto server_time = GetTimeFromServer(context, client);
-      if (server_time.IsSuccessful()) {
-        timestamp = server_time.GetResult();
-      } else {
-        OLP_SDK_LOG_WARNING(
-            kLogTag,
-            "Failed to get time from server, system time will be used");
-      }
-    }
+    RequestTimer timer = CreateRequestTimer(client, context);
 
     const auto request_body = GenerateClientBody(properties);
 
@@ -286,8 +289,9 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
         return client::ApiError::Cancelled();
       }
 
-      auto auth_response = CallAuth(client, kOauthEndpoint, context,
-                                    credentials, request_body, timestamp);
+      auto auth_response =
+          CallAuth(client, kOauthEndpoint, context, credentials, request_body,
+                   timer.GetRequestTime());
 
       const auto status = auth_response.status;
 
@@ -313,10 +317,10 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
 
       // In case we can't authorize with system time, retry with the server
       // time from response headers (if available).
-      if (settings_.use_system_time && HasWrongTimestamp(response)) {
+      if (HasWrongTimestamp(response)) {
         auto server_time = GetTimestampFromHeaders(auth_response.headers);
         if (server_time) {
-          timestamp = *server_time;
+          timer = RequestTimer(*server_time);
           continue;
         }
       }
@@ -357,15 +361,30 @@ TimeResponse AuthenticationClientImpl::ParseTimeResponse(
 }
 
 TimeResponse AuthenticationClientImpl::GetTimeFromServer(
-    client::CancellationContext context, const client::OlpClient& client) {
+    client::CancellationContext context,
+    const client::OlpClient& client) const {
   auto http_result = client.CallApi(kTimestampEndpoint, "GET", {}, {}, {},
                                     nullptr, {}, context);
 
   if (http_result.status != http::HttpStatusCode::OK) {
+    auto response = http_result.response.str();
+    OLP_SDK_LOG_WARNING_F(
+        kLogTag, "Failed to get time from server, status=%d, response='%s'",
+        http_result.status, response.c_str());
     return AuthenticationError(http_result.status, http_result.response.str());
   }
 
-  return ParseTimeResponse(http_result.response);
+  auto server_time = ParseTimeResponse(http_result.response);
+
+  if (!server_time) {
+    const auto& error = server_time.GetError();
+    const auto& message = error.GetMessage();
+    OLP_SDK_LOG_WARNING_F(kLogTag,
+                          "Failed to decode time from server, message='%s'",
+                          message.c_str());
+  }
+
+  return server_time;
 }
 
 client::CancellationToken AuthenticationClientImpl::SignInHereUser(
@@ -469,8 +488,7 @@ client::CancellationToken AuthenticationClientImpl::HandleUserRequest(
 
     client::OlpClient client = CreateOlpClient(settings_, boost::none, false);
 
-    std::time_t timestamp =
-        std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    RequestTimer timer = CreateRequestTimer(client, context);
 
     SignInUserResult response;
 
@@ -480,7 +498,7 @@ client::CancellationToken AuthenticationClientImpl::HandleUserRequest(
       }
 
       auto auth_response = CallAuth(client, endpoint, context, credentials,
-                                    request_body, timestamp);
+                                    request_body, timer.GetRequestTime());
 
       auto status = auth_response.status;
 
@@ -506,10 +524,10 @@ client::CancellationToken AuthenticationClientImpl::HandleUserRequest(
 
       // In case we can't authorize with system time, retry with the server
       // time from response headers (if available).
-      if (settings_.use_system_time && HasWrongTimestamp(response)) {
+      if (HasWrongTimestamp(response)) {
         auto server_time = GetTimestampFromHeaders(auth_response.headers);
         if (server_time) {
-          timestamp = *server_time;
+          timer = RequestTimer(*server_time);
           continue;
         }
       }
@@ -1048,6 +1066,22 @@ std::string AuthenticationClientImpl::GenerateUid() const {
 
     return boost::uuids::to_string(gen());
   }
+}
+
+AuthenticationClientImpl::RequestTimer
+AuthenticationClientImpl::CreateRequestTimer(
+    const client::OlpClient& client,
+    client::CancellationContext context) const {
+  if (settings_.use_system_time) {
+    return RequestTimer();
+  }
+
+  auto server_time = GetTimeFromServer(context, client);
+  if (!server_time) {
+    return RequestTimer();
+  }
+
+  return RequestTimer(server_time.GetResult());
 }
 
 }  // namespace authentication

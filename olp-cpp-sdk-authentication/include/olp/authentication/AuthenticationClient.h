@@ -611,7 +611,7 @@ class AUTHENTICATION_API AuthenticationClient {
                                          UserAccountInfoCallback callback);
 
  private:
-  std::unique_ptr<AuthenticationClientImpl> impl_;
+  std::shared_ptr<AuthenticationClientImpl> impl_;
 };
 
 }  // namespace authentication

@@ -98,6 +98,13 @@ class ApiResponse {
    */
   inline const ErrorType& GetError() const { return error_; }
 
+  /**
+   * @brief Operator to check the status of the request attempt.
+   *
+   * @return True if the request is successfully completed; false otherwise.
+   */
+  inline explicit operator bool() const { return IsSuccessful(); }
+
  private:
   ResultType result_{};
   ErrorType error_{};

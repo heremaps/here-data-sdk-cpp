@@ -38,14 +38,12 @@ namespace client = olp::client;
 using testing::_;
 
 namespace {
-constexpr auto kTimestampUrl = R"(https://authentication.server.url/timestamp)";
-
-constexpr auto kIntrospectUrl = R"(https://authentication.server.url/app/me)";
-
-constexpr auto kGetMyAccountUrl =
-    R"(https://authentication.server.url/user/me)";
-
+constexpr auto kTimestampUrl = "https://authentication.server.url/timestamp";
+constexpr auto kIntrospectUrl = "https://authentication.server.url/app/me";
+constexpr auto kSignUpUrl = "https://authentication.server.url/user";
+constexpr auto kGetMyAccountUrl = "https://authentication.server.url/user/me";
 constexpr auto kTokenEndpointUrl = "https://authentication.server.url";
+constexpr auto kTermsUrl = "https://authentication.server.url/terms";
 
 constexpr unsigned int kExpirtyTime = 3600;
 constexpr unsigned int kMaxExpiryTime = kExpirtyTime + 30;
@@ -83,6 +81,7 @@ constexpr auto kErrorIllegalLastName = "Illegal last name.";
 constexpr auto kErrorBlacklistedPassword = "Black listed password.";
 constexpr auto kDateHeader = "Fri, 29 May 2020 11:07:45 GMT";
 constexpr auto kRequestAuth = "https://authentication.server.url/oauth2/token";
+constexpr auto kLogout = "https://authentication.server.url/logout";
 constexpr auto kDate = "date";
 
 constexpr auto kErrorFieldsCode = 400200;
@@ -94,6 +93,43 @@ constexpr auto kErrorUnauthorizedCode = 401300;
 constexpr auto kErrorNotFoundCode = 404000;
 constexpr auto kErrorConfliceCode = 409100;
 constexpr auto kErrorInternalServerCode = 500203;
+
+NetworkCallback MockWrongTimestamp() {
+  return [](olp::http::NetworkRequest /*request*/,
+            olp::http::Network::Payload payload,
+            olp::http::Network::Callback callback,
+            olp::http::Network::HeaderCallback header_callback,
+            olp::http::Network::DataCallback data_callback) {
+    olp::http::RequestId request_id(5);
+    if (payload) {
+      *payload << kResponseWrongTimestamp;
+    }
+    callback(olp::http::NetworkResponse()
+                 .WithRequestId(request_id)
+                 .WithStatus(olp::http::HttpStatusCode::UNAUTHORIZED));
+    if (data_callback) {
+      auto raw = const_cast<char*>(kResponseWrongTimestamp.c_str());
+      data_callback(reinterpret_cast<uint8_t*>(raw), 0,
+                    kResponseWrongTimestamp.size());
+    }
+    if (header_callback) {
+      header_callback(kDate, kDateHeader);
+    }
+
+    return olp::http::SendOutcome(request_id);
+  };
+}
+
+void ExpectNoTimestampRequest(NetworkMock& network) {
+  EXPECT_CALL(network, Send(IsGetRequest(kTimestampUrl), _, _, _, _)).Times(0);
+}
+
+void ExpectTimestampRequest(NetworkMock& network, int32_t times = 1) {
+  EXPECT_CALL(network, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
+      .Times(times)
+      .WillRepeatedly(ReturnHttpResponse(
+          GetResponse(olp::http::HttpStatusCode::OK), kResponseTime));
+}
 
 void TestCheckErrorFields(const auth::ErrorFields& errorFields) {
   static const std::string kPassword = "password";
@@ -250,8 +286,7 @@ TEST_F(AuthenticationClientTest, DefaultTimeSource) {
       client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
   ASSERT_TRUE(settings.use_system_time);
 
-  EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
-      .Times(0);
+  ExpectNoTimestampRequest(*network_);
 
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
@@ -287,8 +322,7 @@ TEST_F(AuthenticationClientTest, SignInClientUseLocalTime) {
   auto client =
       std::make_unique<auth::AuthenticationClient>(std::move(settings));
 
-  EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
-      .Times(0);
+  ExpectNoTimestampRequest(*network_);
 
   EXPECT_CALL(*network_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
@@ -336,33 +370,10 @@ TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
   std::promise<auth::AuthenticationClient::SignInClientResponse> request;
   auto request_future = request.get_future();
 
-  EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
-      .Times(0);
+  ExpectNoTimestampRequest(*network_);
 
   EXPECT_CALL(*network_, Send(IsPostRequest(kRequestAuth), _, _, _, _))
-      .WillOnce([&](olp::http::NetworkRequest /*request*/,
-                    olp::http::Network::Payload payload,
-                    olp::http::Network::Callback callback,
-                    olp::http::Network::HeaderCallback header_callback,
-                    olp::http::Network::DataCallback data_callback) {
-        olp::http::RequestId request_id(5);
-        if (payload) {
-          *payload << kResponseWrongTimestamp;
-        }
-        callback(olp::http::NetworkResponse()
-                     .WithRequestId(request_id)
-                     .WithStatus(olp::http::HttpStatusCode::UNAUTHORIZED));
-        if (data_callback) {
-          auto raw = const_cast<char*>(kResponseWrongTimestamp.c_str());
-          data_callback(reinterpret_cast<uint8_t*>(raw), 0,
-                        kResponseWrongTimestamp.size());
-        }
-        if (header_callback) {
-          header_callback(kDate, kDateHeader);
-        }
-
-        return olp::http::SendOutcome(request_id);
-      })
+      .WillOnce(MockWrongTimestamp())
       .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
                                    kResponseWithScope));
 
@@ -390,12 +401,9 @@ TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
 }
 
 TEST_F(AuthenticationClientTest, SignInClientScope) {
-  EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
-                                   kResponseTime));
+  ExpectTimestampRequest(*network_);
 
-  EXPECT_CALL(*network_,
-              Send(testing::Not(IsGetRequest(kTimestampUrl)), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsPostRequest(kRequestAuth), _, _, _, _))
       .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
                                    kResponseWithScope));
 
@@ -436,8 +444,7 @@ TEST_F(AuthenticationClientTest, SignInClientData) {
       .WillRepeatedly(ReturnHttpResponse(
           GetResponse(olp::http::HttpStatusCode::OK), kResponseTime));
 
-  EXPECT_CALL(*network_,
-              Send(testing::Not(IsGetRequest(kTimestampUrl)), _, _, _, _))
+  EXPECT_CALL(*network_, Send(IsPostRequest(kRequestAuth), _, _, _, _))
       .Times(2)
       .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
                                    kResponseValidJson))
@@ -543,7 +550,9 @@ TEST_F(AuthenticationClientTest, SignUpHereUserData) {
 }
 
 TEST_F(AuthenticationClientTest, SignInUserDataFirstTime) {
-  EXPECT_CALL(*network_, Send(_, _, _, _, _))
+  ExpectTimestampRequest(*network_);
+
+  EXPECT_CALL(*network_, Send(IsPostRequest(kRequestAuth), _, _, _, _))
       .WillOnce(ReturnHttpResponse(
           GetResponse(olp::http::HttpStatusCode::PRECONDITION_FAILED)
               .WithError(kErrorPreconditionFailedMessage),
@@ -580,7 +589,9 @@ TEST_F(AuthenticationClientTest, SignInUserDataFirstTime) {
 }
 
 TEST_F(AuthenticationClientTest, AcceptTermsData) {
-  EXPECT_CALL(*network_, Send(_, _, _, _, _))
+  ExpectTimestampRequest(*network_);
+
+  EXPECT_CALL(*network_, Send(IsPostRequest(kTermsUrl), _, _, _, _))
       .WillOnce(
           ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::NO_CONTENT)
                                  .WithError(kErrorNoContent),
@@ -615,7 +626,9 @@ TEST_F(AuthenticationClientTest, AcceptTermsData) {
 }
 
 TEST_F(AuthenticationClientTest, SignInHereUser) {
-  EXPECT_CALL(*network_, Send(_, _, _, _, _))
+  ExpectTimestampRequest(*network_);
+
+  EXPECT_CALL(*network_, Send(IsPostRequest(kRequestAuth), _, _, _, _))
       .WillOnce(ReturnHttpResponse(
           GetResponse(olp::http::HttpStatusCode::OK).WithError(kErrorOk),
           kUserSigninResponse));
@@ -694,11 +707,14 @@ TEST_F(AuthenticationClientTest, SignOutUser) {
 }
 
 TEST_F(AuthenticationClientTest, SignInFederated) {
+  ExpectTimestampRequest(*network_);
+
   std::string body =
       R"({ "grantType": "xyz", "token": "test_token", "realm": "my_realm" })";
 
   EXPECT_CALL(*network_,
-              Send(testing::AllOf(HeadersContainAuthorization(), BodyEq(body)),
+              Send(testing::AllOf(HeadersContainAuthorization(), BodyEq(body),
+                                  IsPostRequest(kRequestAuth)),
                    _, _, _, _))
       .WillOnce(ReturnHttpResponse(
           GetResponse(olp::http::HttpStatusCode::OK).WithError(kErrorOk),
@@ -729,7 +745,9 @@ TEST_F(AuthenticationClientTest, SignInFederated) {
 }
 
 TEST_F(AuthenticationClientTest, SignInFacebookData) {
-  EXPECT_CALL(*network_, Send(_, _, _, _, _))
+  ExpectTimestampRequest(*network_);
+
+  EXPECT_CALL(*network_, Send(IsPostRequest(kRequestAuth), _, _, _, _))
       .WillOnce(ReturnHttpResponse(
           GetResponse(olp::http::HttpStatusCode::OK).WithError(kErrorOk),
           kFacebookSigninResponse));
@@ -769,7 +787,9 @@ TEST_F(AuthenticationClientTest, SignInFacebookData) {
 }
 
 TEST_F(AuthenticationClientTest, SignInArcGisData) {
-  EXPECT_CALL(*network_, Send(_, _, _, _, _))
+  ExpectTimestampRequest(*network_);
+
+  EXPECT_CALL(*network_, Send(IsPostRequest(kRequestAuth), _, _, _, _))
       .WillOnce(ReturnHttpResponse(
           GetResponse(olp::http::HttpStatusCode::OK).WithError(kErrorOk),
           kArcgisSigninResponse));
@@ -955,7 +975,9 @@ TEST_F(AuthenticationClientTest, SignInApple) {
 }
 
 TEST_F(AuthenticationClientTest, SignInRefreshData) {
-  EXPECT_CALL(*network_, Send(_, _, _, _, _))
+  ExpectTimestampRequest(*network_);
+
+  EXPECT_CALL(*network_, Send(IsPostRequest(kRequestAuth), _, _, _, _))
       .WillOnce(ReturnHttpResponse(
           GetResponse(olp::http::HttpStatusCode::OK).WithError(kErrorOk),
           kRefreshSigninResponse));
@@ -988,10 +1010,14 @@ TEST_F(AuthenticationClientTest, SignInRefreshData) {
 }
 
 TEST_F(AuthenticationClientTest, ErrorFieldsData) {
+  ExpectTimestampRequest(*network_);
   {
     SCOPED_TRACE("SignInHereUser");
 
-    EXPECT_CALL(*network_, Send(_, _, _, _, _))
+    EXPECT_CALL(*network_, Send(testing::AnyOf(IsPostRequest(kRequestAuth),
+                                               IsPostRequest(kLogout),
+                                               IsPostRequest(kSignUpUrl)),
+                                _, _, _, _))
         .Times(3)
         .WillRepeatedly(
             [&](olp::http::NetworkRequest /*request*/,
@@ -1800,9 +1826,7 @@ TEST_F(AuthenticationClientTest, UniqueNonce) {
             return olp::http::SendOutcome(request_id);
           });
 
-  EXPECT_CALL(*network_, Send(IsGetRequest(kTimestampUrl), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
-                                   kResponseTime));
+  ExpectTimestampRequest(*network_);
 
   std::promise<void> barrier;
 
