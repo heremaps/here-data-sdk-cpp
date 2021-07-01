@@ -381,14 +381,9 @@ bool Dir::FileExists(const std::string& file_path) {
   const TCHAR* syspath = file_path.c_str();
 #endif  // _UNICODE
 
-  // Returns RET_OK, only if it finds directory
+  // If file not found attributes are 'INVALID_FILE_ATTRIBUTES'
   DWORD attributes = GetFileAttributes(syspath);
-
-  if (attributes == INVALID_FILE_ATTRIBUTES) {
-    return false;
-  }
-
-  return (attributes & FILE_ATTRIBUTE_NORMAL) != 0;
+  return attributes != INVALID_FILE_ATTRIBUTES;
 
 #else  // _WIN32
 
