@@ -196,12 +196,18 @@ class EnvWrapper : public leveldb::EnvWrapper {
 namespace olp {
 namespace cache {
 
-leveldb::Env* DiskCacheEnv::Env() {
+std::shared_ptr<leveldb::Env> DiskCacheEnv::CreateEnv() {
 #ifdef PORTING_PLATFORM_WINDOWS
-  return leveldb::Env::Default();
+  // return the normal env as a shared ptr with empty deleter
+  return std::shared_ptr<leveldb::Env>(leveldb::Env::Default(),
+                                       [](leveldb::Env*) {});
 #else
-  static EnvWrapper env;
-  return &env;
+  // Static shared_ptr is needed to share the Limiter variable, and to avoid the
+  // scenario when the env is destroyed at exit while the disk cache instance is
+  // still kept by somebody. So the env instance will be alive until it is
+  // needed.
+  static auto env = std::make_shared<EnvWrapper>();
+  return env;
 #endif  // PORTING_PLATFORM_WINDOWS
 }
 

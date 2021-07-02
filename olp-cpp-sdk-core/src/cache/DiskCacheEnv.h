@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include <leveldb/env.h>
 
 namespace olp {
@@ -27,7 +29,7 @@ namespace cache {
 /// The wrapper for a leveldb default environment
 class DiskCacheEnv {
  public:
-  static leveldb::Env* Env();
+  static std::shared_ptr<leveldb::Env> CreateEnv();
 };
 
 }  // namespace cache

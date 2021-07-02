@@ -79,10 +79,10 @@ static bool RepairCache(const std::string& data_path) {
   return true;
 }
 
-void RemoveOtherDB(const std::string& data_path,
+void RemoveOtherDB(leveldb::Env* env, const std::string& data_path,
                    const std::string& data_path_to_keep) {
   std::vector<std::string> path_contents;
-  auto status = DiskCacheEnv::Env()->GetChildren(data_path, &path_contents);
+  auto status = env->GetChildren(data_path, &path_contents);
   if (!status.ok()) {
     OLP_SDK_LOG_WARNING(kLogTag, "RemoveOtherDB: failed to list folder \""
                                      << data_path << "\" contents - "
@@ -146,7 +146,7 @@ int CheckCompactionFinished(leveldb::DB& db) {
 
 }  // anonymous namespace
 
-DiskCache::DiskCache() = default;
+DiskCache::DiskCache() : env_(DiskCacheEnv::CreateEnv()){};
 DiskCache::~DiskCache() { Close(); }
 
 void DiskCache::LevelDBLogger::Logv(const char* format, va_list ap) {
@@ -210,18 +210,17 @@ OpenResult DiskCache::Open(const std::string& data_path,
     // Remove other DBs only if provided the versioned path - do nothing
     // otherwise
     if (data_path != versioned_data_path)
-      RemoveOtherDB(data_path, versioned_data_path);
+      RemoveOtherDB(env_.get(), data_path, versioned_data_path);
 
     if (max_size_ != kSizeMax) {
       environment_ = std::make_unique<DiskCacheSizeLimitEnv>(
-          DiskCacheEnv::Env(), versioned_data_path,
-          settings.enforce_immediate_flush);
+          env_.get(), versioned_data_path, settings.enforce_immediate_flush);
       open_options.env = environment_.get();
     } else {
-      open_options.env = DiskCacheEnv::Env();
+      open_options.env = env_.get();
     }
   } else {
-    environment_ = std::make_unique<ReadOnlyEnv>(DiskCacheEnv::Env());
+    environment_ = std::make_unique<ReadOnlyEnv>(env_.get());
     open_options.env = environment_.get();
   }
 

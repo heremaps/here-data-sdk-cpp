@@ -166,11 +166,12 @@ class DiskCache {
   leveldb::Options CreateOpenOptions(const StorageSettings& settings,
                                      bool is_read_only) const;
 
+  const std::shared_ptr<leveldb::Env> env_;
   std::string disk_cache_path_;
-  std::unique_ptr<leveldb::DB> database_;
   std::unique_ptr<const leveldb::FilterPolicy> filter_policy_;
   std::unique_ptr<SizeCountingEnv> environment_;
   std::unique_ptr<LevelDBLogger> leveldb_logger_;
+  std::unique_ptr<leveldb::DB> database_;
   uint64_t max_size_{kSizeMax};
   bool check_crc_{false};
   bool enforce_immediate_flush_{false};
