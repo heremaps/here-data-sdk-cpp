@@ -1,0 +1,41 @@
+[
+  {
+    "name": "MemoryUsage/MemoryTest.ReadNPartitionsFromVersionedLayer/15m_test",
+    "repeat": 1,
+    "metric_infos": [
+      {
+        "name": "Performance",
+        "metrics": [
+          "max_mem",
+          "avg_mem",
+          "max_cpu",
+          "avg_cpu"
+        ]
+      }
+    ],
+    "charts" : [
+      {
+        "name": "ReadNPartitionsFromVersionedLayer/15m_test",
+        "source": "Performance",
+        "charts": [
+          {
+            "name": "CPU usage",
+            "units": "Percentage ( CPU model: sed_cpu_model sed_mhz. Core: sed_n_core. )",
+            "values": [
+              {"Maximum": "max_cpu"},
+              {"Average": "avg_cpu"}
+            ]
+          },
+          {
+            "name": "RAM usage",
+            "units": "MB ( Total: sed_memory_total )",
+            "values": [
+              {"Maximum": "max_mem"},
+              {"Average": "avg_mem"}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
