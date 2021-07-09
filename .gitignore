@@ -7,6 +7,9 @@ CMakeLists.txt.user
 build*/
 *.doap
 .repo
+.cache
+.local
+.bash_history
 
 # Compiled Object files
 *.slo
