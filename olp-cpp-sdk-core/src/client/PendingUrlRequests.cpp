@@ -28,6 +28,8 @@ olp::client::HttpResponse GetCancelledResponse() {
   return {olp::client::PendingUrlRequest::kCancelledStatus,
           "Operation cancelled"};
 }
+
+std::string ToString(bool value) { return value ? "true" : "false"; }
 }  // namespace
 
 namespace olp {
@@ -38,10 +40,8 @@ size_t PendingUrlRequest::Append(NetworkAsyncCallback callback) {
   std::lock_guard<std::mutex> lock(mutex_);
   const auto callback_id = callbacks_.size();
 
-  OLP_SDK_LOG_DEBUG_F(
-      kLogTag,
-      "PendingUrlRequest::Append, callback_id=%zu, request_id=%" PRIu64,
-      callback_id, http_request_id_);
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "Append, callback_id=%zu, request_id=%" PRIu64,
+                      callback_id, http_request_id_);
 
   callbacks_.emplace(callback_id, std::move(callback));
   return callback_id;
@@ -58,10 +58,8 @@ bool PendingUrlRequest::ExecuteOrCancelled(const ExecuteFuncType& func,
 bool PendingUrlRequest::Cancel(size_t callback_id) {
   std::lock_guard<std::mutex> lock(mutex_);
 
-  OLP_SDK_LOG_DEBUG_F(
-      kLogTag,
-      "PendingUrlRequest::Cancel, callback_id=%zu, request_id=%" PRIu64,
-      callback_id, http_request_id_);
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "Cancel, callback_id=%zu, request_id=%" PRIu64,
+                      callback_id, http_request_id_);
 
   auto it = callbacks_.find(callback_id);
   if (it == callbacks_.end()) {
@@ -107,10 +105,12 @@ void PendingUrlRequest::OnRequestCompleted(HttpResponse response) {
     http_request_id_ = kInvalidRequestId;
   }
 
-  OLP_SDK_LOG_DEBUG_F(kLogTag,
-                      "OnRequestCompleted, request_id=%" PRIu64
-                      ", callbacks=%zu, cancelled_callbacks=%zu",
-                      request_id, callbacks.size(), cancelled_callbacks.size());
+  OLP_SDK_LOG_DEBUG_F(
+      kLogTag,
+      "OnRequestCompleted, request_id=%" PRIu64
+      ", cancelled='%s', callbacks=%zu, cancelled_callbacks=%zu",
+      request_id, ToString(context_.IsCancelled()).c_str(), callbacks.size(),
+      cancelled_callbacks.size());
 
   client::HttpResponse response_out;
   if (!context_.IsCancelled()) {
@@ -185,6 +185,10 @@ bool PendingUrlRequests::CancelAll() {
   // This only cancells the ongoing Network request the callback trigger
   // is taking care of the Network callback.
   std::lock_guard<std::mutex> lock(mutex_);
+
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "CancelAll, pending_requests=%zu",
+                      pending_requests_.size());
+
   for (auto& request : pending_requests_) {
     request.second->CancelOperation();
   }
@@ -200,6 +204,12 @@ bool PendingUrlRequests::CancelAllAndWait() const {
     // Copy, do not move else the OnRequestCompleted callback
     // will not work
     std::lock_guard<std::mutex> lock(mutex_);
+
+    OLP_SDK_LOG_DEBUG_F(
+        kLogTag,
+        "CancelAllAndWait, pending_requests=%zu, cancelled_requests=%zu",
+        pending_requests_.size(), cancelled_requests_.size());
+
     if (pending_requests_.empty() && cancelled_requests_.empty()) {
       return true;
     }

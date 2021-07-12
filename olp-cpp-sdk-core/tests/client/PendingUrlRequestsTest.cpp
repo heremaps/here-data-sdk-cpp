@@ -43,8 +43,11 @@ namespace http = olp::http;
 
 static const std::string kGoodResponse = "Response1234";
 static const std::string kBadResponse = "Cancelled";
-static constexpr int kCancelledStatus =
+constexpr int kCancelledStatus =
     static_cast<int>(http::ErrorCode::CANCELLED_ERROR);
+constexpr http::RequestId kRequestId = 1234u;
+constexpr auto kSleepFor = std::chrono::seconds(1);
+constexpr auto kWaitFor = std::chrono::seconds(5);
 
 client::HttpResponse GetHttpResponse(ErrorCode error, std::string status) {
   return client::HttpResponse(static_cast<int>(error), status);
@@ -167,6 +170,22 @@ TEST(PendingUrlRequestsTest, IsCancelled) {
   const std::string url1 = "url1";
   const std::string url2 = "url2";
 
+  auto check_cancelled = [&](client::HttpResponse response) {
+    ASSERT_EQ(response.GetStatus(), kCancelledStatus);
+  };
+
+  auto check_not_cancelled = [&](client::HttpResponse response) {
+    ASSERT_NE(response.GetStatus(), kCancelledStatus);
+  };
+
+  auto complete_call = [&](http::RequestId request_id, const std::string& url) {
+    std::this_thread::sleep_for(kSleepFor);
+    pending_requests.OnRequestCompleted(
+        request_id, url,
+        GetHttpResponse(http::HttpStatusCode::OK, kGoodResponse,
+                        {{"header1", "value1"}, {"header2", "value2"}}));
+  };
+
   {
     SCOPED_TRACE("Cancel one request");
 
@@ -174,15 +193,39 @@ TEST(PendingUrlRequestsTest, IsCancelled) {
     auto request_cancelled = pending_requests[url2];
     ASSERT_TRUE(request_valid && request_cancelled);
 
-    request_valid->Append([&](client::HttpResponse) {});
-    auto request_id = request_cancelled->Append([&](client::HttpResponse) {});
+    request_valid->Append(check_not_cancelled);
+    auto request_id = request_cancelled->Append(check_cancelled);
 
     ASSERT_FALSE(request_valid->IsCancelled());
     ASSERT_FALSE(request_cancelled->IsCancelled());
 
+    std::future<void> future1, future2;
+
+    request_valid->ExecuteOrCancelled([&](http::RequestId& id) {
+      id = kRequestId;
+      future1 = std::async(std::launch::async, complete_call, id, url1);
+      return client::CancellationToken([] {
+        // Should not be called
+        EXPECT_TRUE(false) << "Cancellation called on not cancelled request";
+      });
+    });
+
+    request_cancelled->ExecuteOrCancelled([&](http::RequestId& id) {
+      id = kRequestId + 1;
+      return client::CancellationToken([&] {
+        future2 = std::async(std::launch::async, complete_call, id, url2);
+      });
+    });
+
     EXPECT_TRUE(pending_requests.Cancel(url2, request_id));
     EXPECT_FALSE(request_valid->IsCancelled());
     EXPECT_TRUE(request_cancelled->IsCancelled());
+
+    ASSERT_EQ(future1.wait_for(kWaitFor), std::future_status::ready);
+    ASSERT_EQ(future2.wait_for(kWaitFor), std::future_status::ready);
+
+    // Cancell all and wait to leave a clean state for the next scope
+    ASSERT_TRUE(pending_requests.CancelAllAndWait());
   }
 
   {
@@ -192,15 +235,34 @@ TEST(PendingUrlRequestsTest, IsCancelled) {
     auto request2 = pending_requests[url2];
     ASSERT_TRUE(request1 && request2);
 
-    request1->Append([&](client::HttpResponse) {});
-    request2->Append([&](client::HttpResponse) {});
+    request1->Append(check_cancelled);
+    request2->Append(check_cancelled);
 
     ASSERT_FALSE(request1->IsCancelled());
     ASSERT_FALSE(request2->IsCancelled());
 
+    std::future<void> future1, future2;
+
+    request1->ExecuteOrCancelled([&](http::RequestId& id) {
+      id = kRequestId;
+      return client::CancellationToken([&] {
+        future1 = std::async(std::launch::async, complete_call, id, url1);
+      });
+    });
+
+    request2->ExecuteOrCancelled([&](http::RequestId& id) {
+      id = kRequestId + 1;
+      return client::CancellationToken([&] {
+        future2 = std::async(std::launch::async, complete_call, id, url2);
+      });
+    });
+
     EXPECT_TRUE(pending_requests.CancelAll());
     EXPECT_TRUE(request1->IsCancelled());
     EXPECT_TRUE(request2->IsCancelled());
+
+    ASSERT_EQ(future1.wait_for(kWaitFor), std::future_status::ready);
+    ASSERT_EQ(future2.wait_for(kWaitFor), std::future_status::ready);
   }
 }
 
@@ -256,19 +318,40 @@ TEST(PendingUrlRequestsTest, ExecuteOrCancelled) {
   client::PendingUrlRequests pending_requests;
   const std::string url = "url";
 
+  auto check_cancelled = [&](client::HttpResponse response) {
+    ASSERT_EQ(response.GetStatus(), kCancelledStatus);
+  };
+
   // Check that ExecuteOrCancelled is behaving correctly
   auto request_ptr = pending_requests[url];
   ASSERT_TRUE(request_ptr);
   ASSERT_FALSE(request_ptr->IsCancelled());
   ASSERT_EQ(request_ptr.use_count(), 2);
 
+  request_ptr->Append(check_cancelled);
+
   bool is_cancelled = false;
   bool cancel_func_called = false;
+  std::future<void> future;
 
   // Set request Id
   request_ptr->ExecuteOrCancelled(
-      [&](http::RequestId&) {
-        return client::CancellationToken([&] { is_cancelled = true; });
+      [&](http::RequestId& id) {
+        return client::CancellationToken([&] {
+          is_cancelled = true;
+          id = kRequestId;
+          future = std::async(
+              std::launch::async,
+              [&](http::RequestId request_id, const std::string& url) {
+                std::this_thread::sleep_for(kSleepFor);
+                pending_requests.OnRequestCompleted(
+                    request_id, url,
+                    GetHttpResponse(
+                        http::HttpStatusCode::OK, kGoodResponse,
+                        {{"header1", "value1"}, {"header2", "value2"}}));
+              },
+              id, url);
+        });
       },
       [] { EXPECT_TRUE(false) << "Cancel function should not be called!"; });
 
@@ -284,15 +367,26 @@ TEST(PendingUrlRequestsTest, ExecuteOrCancelled) {
 
   EXPECT_TRUE(is_cancelled);
   EXPECT_TRUE(cancel_func_called);
+
+  ASSERT_EQ(future.wait_for(kWaitFor), std::future_status::ready);
 }
 
 TEST(PendingUrlRequestsTest, SameUrlAfterCancel) {
-  // This test covers the user case were you have a cancelled request and
-  // afterwards a new request with the same URL. In this case both should
-  // exist at the same time, one in the pending request list the other in the
-  // cancelled list.
+  // This test covers the use-case were you have a cancelled request which is in
+  // the process of waiting for the network cancel answer and afterwards a new
+  // request with the same URL. In this case both should exist at the same time,
+  // one in the pending request list the other in the cancelled list.
   client::PendingUrlRequests pending_requests;
   const std::string url = "url1";
+  std::future<void> future_cancelled, future_valid;
+
+  auto check_cancelled = [&](client::HttpResponse response) {
+    ASSERT_EQ(response.GetStatus(), kCancelledStatus);
+  };
+
+  auto check_not_cancelled = [&](client::HttpResponse response) {
+    ASSERT_NE(response.GetStatus(), kCancelledStatus);
+  };
 
   // Add request to be cancelled
   auto request_ptr = pending_requests[url];
@@ -300,15 +394,23 @@ TEST(PendingUrlRequestsTest, SameUrlAfterCancel) {
   ASSERT_FALSE(request_ptr->IsCancelled());
   ASSERT_EQ(request_ptr.use_count(), 2);
 
-  client::HttpResponse response_cancelled;
-  auto cancel_id = request_ptr->Append([&](client::HttpResponse response) {
-    response_cancelled = std::move(response);
-  });
+  auto cancel_id = request_ptr->Append(check_cancelled);
 
-  const http::RequestId request_id = 1234;
   request_ptr->ExecuteOrCancelled([&](http::RequestId& id) {
-    id = request_id;
-    return client::CancellationToken();
+    id = kRequestId;
+    return client::CancellationToken([&] {
+      future_cancelled =
+          std::async(std::launch::async,
+                     [&](http::RequestId request_id, const std::string& url) {
+                       std::this_thread::sleep_for(kSleepFor);
+                       pending_requests.OnRequestCompleted(
+                           request_id, url,
+                           GetHttpResponse(
+                               http::HttpStatusCode::OK, kGoodResponse,
+                               {{"header1", "value1"}, {"header2", "value2"}}));
+                     },
+                     id, url);
+    });
   });
 
   // Now cancel the request
@@ -322,22 +424,26 @@ TEST(PendingUrlRequestsTest, SameUrlAfterCancel) {
   ASSERT_EQ(new_request_ptr.use_count(), 2);
   ASSERT_FALSE(new_request_ptr == request_ptr);
 
-  client::HttpResponse response_valid;
-  new_request_ptr->Append([&](client::HttpResponse response) {
-    response_valid = std::move(response);
-  });
+  new_request_ptr->Append(check_not_cancelled);
 
-  const http::RequestId new_request_id = 1 + request_id;
   new_request_ptr->ExecuteOrCancelled([&](http::RequestId& id) {
-    id = new_request_id;
+    id = kRequestId + 1;
+    future_valid = std::async(
+        std::launch::async,
+        [&](http::RequestId request_id, const std::string& url) {
+          std::this_thread::sleep_for(kSleepFor);
+          pending_requests.OnRequestCompleted(
+              request_id, url,
+              GetHttpResponse(http::HttpStatusCode::OK, kGoodResponse,
+                              {{"header1", "value1"}, {"header2", "value2"}}));
+        },
+        id, url);
+
     return client::CancellationToken();
   });
 
-  // First trigger the valid response, then the cancelled
-  http::Headers headers = {{"header1", "value1"}, {"header2", "value2"}};
-  const auto response_in =
-      GetHttpResponse(http::HttpStatusCode::OK, kGoodResponse, headers);
-  pending_requests.OnRequestCompleted(request_id, url, response_in);
+  ASSERT_EQ(future_cancelled.wait_for(kWaitFor), std::future_status::ready);
+  ASSERT_EQ(future_valid.wait_for(kWaitFor), std::future_status::ready);
 }
 
 TEST(PendingUrlRequestsTest, CallbackCalled) {
