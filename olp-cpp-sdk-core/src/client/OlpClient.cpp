@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -359,7 +359,7 @@ class OlpClient::OlpClientImpl {
       const ParametersType& query_params, const ParametersType& header_params,
       const RequestBodyType& post_body, const std::string& content_type) const;
 
-  void AddBearer(bool query_empty, http::NetworkRequest& request) const;
+  bool AddBearer(bool query_empty, http::NetworkRequest& request) const;
 
  private:
   using MutexType = std::shared_mutex;
@@ -398,25 +398,31 @@ void OlpClient::OlpClientImpl::SetSettings(const OlpClientSettings& settings) {
   settings_ = settings;
 }
 
-void OlpClient::OlpClientImpl::AddBearer(bool query_empty,
+bool OlpClient::OlpClientImpl::AddBearer(bool query_empty,
                                          http::NetworkRequest& request) const {
   const auto& settings = settings_.authentication_settings;
   if (!settings) {
-    return;
+    return true;
   }
 
   if (settings->api_key_provider) {
     const auto& api_key = settings->api_key_provider();
     request.WithUrl(request.GetUrl() + (query_empty ? "?" : "&") +
                     kApiKeyParam + api_key);
-    return;
+    return true;
   }
 
   if (settings->provider) {
-    std::string bearer =
-        http::kBearer + std::string(" ") + settings->provider();
+    const auto token = settings->provider();
+    if (token.empty()) {
+      return false;
+    }
+
+    const std::string bearer = http::kBearer + std::string(" ") + token;
     request.WithHeader(http::kAuthorizationHeader, bearer);
   }
+
+  return true;
 }
 
 std::shared_ptr<http::NetworkRequest> OlpClient::OlpClientImpl::CreateRequest(
@@ -475,7 +481,11 @@ CancellationToken OlpClient::OlpClientImpl::CallApi(
   auto network_request = CreateRequest(path, method, query_params,
                                        header_params, post_body, content_type);
 
-  AddBearer(query_params.empty(), *network_request);
+  if (!AddBearer(query_params.empty(), *network_request)) {
+    callback({static_cast<int>(http::ErrorCode::AUTHORIZATION_ERROR),
+              "Invalid bearer token."});
+    return CancellationToken();
+  }
 
   PendingUrlRequestPtr request_ptr = nullptr;
   auto& pending_requests = pending_requests_;
@@ -588,7 +598,10 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
   auto backdown_period =
       std::chrono::milliseconds(retry_settings.initial_backdown_period);
 
-  AddBearer(query_params.empty(), network_request);
+  if (!AddBearer(query_params.empty(), network_request)) {
+    return {static_cast<int>(http::ErrorCode::AUTHORIZATION_ERROR),
+            "Invalid bearer token."};
+  }
 
   auto response =
       SendRequest(network_request, settings_, retry_settings, context);
