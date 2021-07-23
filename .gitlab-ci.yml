@@ -298,6 +298,8 @@ generate_api_compliance_job:
   image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_API}:${DOCKER_IMAGE_API_VERSION}
   script:
   - $CI_PROJECT_DIR/scripts/misc/api_compliance.sh
+  - if $(ls $CI_PROJECT_DIR/*.html &>/dev/null); then tar -czf ${CI_JOB_NAME}_test_reports.tar.gz $CI_PROJECT_DIR/*.html; fi;
+  - $CI_PROJECT_DIR/scripts/misc/artifactory_upload.sh edge-sdks/sdk-for-cpp/releases/test-reports/$CI_JOB_NAME/$CI_JOB_ID/${CI_JOB_NAME}_test_reports.tar.gz $CI_PROJECT_DIR/${CI_JOB_NAME}_test_reports.tar.gz
   when: manual
   only:
     - master
