@@ -19,8 +19,12 @@
 
 #include "StreamLayerClientImpl.h"
 
+#include <algorithm>
 #include <iterator>
 #include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/CancellationContext.h>
@@ -371,7 +375,7 @@ client::CancellableFuture<PollResponse> StreamLayerClientImpl::Poll() {
   });
 
   return olp::client::CancellableFuture<PollResponse>(std::move(cancel_token),
-                                                        std::move(promise));
+                                                      std::move(promise));
 }
 
 client::CancellationToken StreamLayerClientImpl::Seek(

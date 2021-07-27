@@ -19,11 +19,13 @@
 
 #include "NetworkWinHttp.h"
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "olp/core/http/HttpStatusCode.h"

@@ -19,6 +19,7 @@
 
 #include "ResponseGenerator.h"
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
