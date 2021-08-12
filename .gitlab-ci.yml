@@ -37,7 +37,7 @@ weekly_perf_reports:
   script:
     - mkdir -p reports .public
     - $CI_PROJECT_DIR/scripts/linux/weekly/gitlab_build_perf_tests.sh
-    - python3 $CI_PROJECT_DIR/scripts/linux/weekly/run_performance_test_metrics.py
+    - $CI_PROJECT_DIR/scripts/linux/weekly/gitlab_run_perf_test_metrics.sh
     - cat $CI_PROJECT_DIR/scripts/linux/weekly/reports/index.html >> .public/index.html && cat $CI_PROJECT_DIR/scripts/linux/weekly/performance_tests.json >> .public/performance_tests.json
     - if $(ls $CI_PROJECT_DIR/reports/*.xml &>/dev/null); then tar -czvf ${CI_JOB_NAME}_test_reports.tar.gz $CI_PROJECT_DIR/reports ; fi;
     - $CI_PROJECT_DIR/scripts/misc/artifactory_upload.sh edge-sdks/sdk-for-cpp/releases/test-reports/$CI_JOB_NAME/$CI_JOB_ID/${CI_JOB_NAME}_test_reports.tar.gz $CI_PROJECT_DIR/${CI_JOB_NAME}_test_reports.tar.gz
