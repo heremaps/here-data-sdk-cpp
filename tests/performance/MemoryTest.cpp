@@ -195,6 +195,55 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
           GetSleepPeriod(parameter.requests_per_second));
     }
   });
+    uint64_t
+    GetWrittenBytes( )
+    {
+        std::ifstream fs( "/proc/self/io" );
+        if ( !fs )
+        {
+            return 0;
+        }
+
+        uint64_t size = 0u;
+        std::string line;
+        while ( std::getline( fs, line ) )
+        {
+            std::regex rgx( "write_bytes: ([0-9]+)" );
+            std::smatch match;
+            if ( std::regex_search( line, match, rgx ) )
+            {
+                return size = std::stoull( match[ 1 ] );
+            }
+        }
+
+        return 0;
+    }
+
+    void
+    AppendWrittenBytes( const std::string& step_name )
+    {
+        const auto current_written_bytes = GetWrittenBytes( );
+        const auto written_bytes = current_written_bytes - previous_written_bytes_;
+        previous_written_bytes_ = current_written_bytes;
+        Test::RecordProperty( step_name, std::to_string( written_bytes ) );
+    }
+
+    auto
+    RecordProperty( const std::string& property,
+                    std::chrono::time_point< std::chrono::steady_clock > start )
+    {
+        auto end = std::chrono::steady_clock::now( );
+
+        AppendWrittenBytes( property + "_written_bytes" );
+
+        const auto step_duration
+            = std::chrono::duration_cast< std::chrono::milliseconds >( end - start );
+        Test::RecordProperty( property + "_ms", std::to_string( step_duration.count( ) ) );
+
+        return end;
+    }
+
+    uint64_t previous_written_bytes_{};
 }
 
 /*
