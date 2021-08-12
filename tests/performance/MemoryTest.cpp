@@ -20,6 +20,8 @@
 #include <chrono>
 #include <memory>
 #include <thread>
+#include <fstream>
+#include <regex>
 
 #include <gtest/gtest.h>
 #include <olp/core/client/HRN.h>
@@ -37,6 +39,7 @@ struct TestConfiguration : public TestBaseConfiguration {
   std::uint8_t calling_thread_count = 5;
   std::chrono::seconds runtime = std::chrono::minutes(5);
   float cancelation_chance = 0.f;
+  bool collect_stats = false;
 };
 
 std::ostream& operator<<(std::ostream& os, const TestConfiguration& config) {
@@ -45,7 +48,8 @@ std::ostream& operator<<(std::ostream& os, const TestConfiguration& config) {
             << ", .calling_thread_count=" << config.calling_thread_count
             << ", .task_scheduler_capacity=" << config.task_scheduler_capacity
             << ", .requests_per_second=" << config.requests_per_second
-            << ", .runtime=" << config.runtime.count() << ")";
+            << ", .runtime=" << config.runtime.count()
+            << ", .collect_stats=" << config.collect_stats << ")";
 }
 
 constexpr std::chrono::milliseconds GetSleepPeriod(uint32_t requests) {
@@ -58,6 +62,25 @@ bool ShouldCancel(const TestConfiguration& configuration) {
   cancel_chance = std::max(cancel_chance, 0.f);
   int thresold = static_cast<int>(cancel_chance * 100);
   return rand() % 100 <= thresold;
+}
+
+uint64_t GetWrittenBytes() {
+  std::ifstream fs("/proc/self/io");
+  if (!fs) {
+    return 0;
+  }
+
+  uint64_t size = 0u;
+  std::string line;
+  while (std::getline(fs, line)) {
+    std::regex rgx("write_bytes: ([0-9]+)");
+    std::smatch match;
+    if (std::regex_search(line, match, rgx)) {
+      return size = std::stoull(match[1]);
+    }
+  }
+
+  return 0;
 }
 
 constexpr auto kLogTag = "MemoryTest";
@@ -84,6 +107,8 @@ class MemoryTest : public MemoryTestBase<TestConfiguration> {
 
   std::mutex errors_mutex_;
   std::map<int, int> errors_;
+
+  uint64_t previous_written_bytes_{};
 };
 
 void MemoryTest::SetUp() {
@@ -93,6 +118,8 @@ void MemoryTest::SetUp() {
   success_responses_.store(0);
   failed_responses_.store(0);
   errors_.clear();
+
+  previous_written_bytes_ = GetWrittenBytes();
 }
 
 void MemoryTest::TearDown() {
@@ -114,6 +141,16 @@ void MemoryTest::TearDown() {
 
   size_t total_requests = success_responses_.load() + failed_responses_.load();
   EXPECT_EQ(total_requests_.load(), total_requests);
+
+  const auto& parameter = GetParam();
+  if (parameter.collect_stats) {
+    Test::RecordProperty("total_requests", std::to_string(total_requests_));
+    Test::RecordProperty("total_succeed", std::to_string(success_responses_));
+
+    auto total_bytes_written = GetWrittenBytes() - previous_written_bytes_;
+    Test::RecordProperty("total_written_to_disk_bytes",
+                         std::to_string(total_bytes_written));
+  }
 }
 
 void MemoryTest::StartThreads(TestFunction test_body) {
@@ -207,6 +244,7 @@ TestConfiguration LongRunningTest() {
   configuration.configuration_name = "15m_test";
   configuration.runtime = std::chrono::minutes(15);
   configuration.cancelation_chance = 0.25f;
+  configuration.collect_stats = true;
   return configuration;
 }
 
