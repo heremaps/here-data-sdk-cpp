@@ -9,7 +9,8 @@
           "max_mem",
           "avg_mem",
           "max_cpu",
-          "avg_cpu"
+          "avg_cpu",
+          "total_written_to_disk_bytes"
         ]
       }
     ],
@@ -32,6 +33,13 @@
             "values": [
               {"Maximum": "max_mem"},
               {"Average": "avg_mem"}
+            ]
+          },
+          {
+            "name": "Disk usage",
+            "units": "MB",
+            "values": [
+              {"Total": "total_written_to_disk_mb"}
             ]
           }
         ]

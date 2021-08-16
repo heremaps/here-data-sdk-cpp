@@ -292,8 +292,8 @@ def main():
     all_metrics = {}
     calculate_cpu_and_memory(args.test_exec, test_infos, all_metrics)
 
-    # Needed for more complicated measurements in future
-    #run_all_tests(args.test_exec, test_infos, all_metrics)
+    # Needed for more complicated measurements which are collected in tests itself
+    run_all_tests(args.test_exec, test_infos, all_metrics)
 
     pprint.pprint(all_metrics)
 
