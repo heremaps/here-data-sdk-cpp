@@ -115,7 +115,7 @@ class ResponseFromJsonBuilder {
                               kTargetTypeName.c_str(), field.first.c_str());
       }
 
-      return std::move(result);
+      return result;
     }
 
    private:
