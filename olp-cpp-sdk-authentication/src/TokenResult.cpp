@@ -31,7 +31,9 @@ TokenResult::TokenResult(std::string access_token, time_t expiry_time,
       expiry_time_(expiry_time),
       http_status_(http_status),
       error_(std::move(error)) {
-  expires_in_ = std::chrono::seconds(expiry_time_ - std::time(nullptr));
+  const auto now = std::time(nullptr);
+  expires_in_ =
+      std::chrono::seconds(expiry_time_ > now ? (expiry_time_ - now) : 0);
 }
 
 TokenResult::TokenResult(std::string access_token,
