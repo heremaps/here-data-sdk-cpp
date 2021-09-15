@@ -60,7 +60,7 @@ bool IsExpiryValid(time_t expiry) {
 }
 
 time_t GetRemainingExpiryTime(const std::string& key,
-                              olp::cache::DiskCache& disk_cache) {
+                              olp::cache::DiskCacheLmDb& disk_cache) {
   auto expiry_key = CreateExpiryKey(key);
   auto expiry = olp::cache::KeyValueCache::kDefaultExpiry;
   auto expiry_value = disk_cache.Get(expiry_key);
@@ -72,7 +72,8 @@ time_t GetRemainingExpiryTime(const std::string& key,
   return expiry;
 }
 
-void PurgeDiskItem(const std::string& key, olp::cache::DiskCache& disk_cache,
+void PurgeDiskItem(const std::string& key,
+                   olp::cache::DiskCacheLmDb& disk_cache,
                    uint64_t& removed_data_size) {
   auto expiry_key = CreateExpiryKey(key);
   uint64_t data_size = 0u;
@@ -84,11 +85,14 @@ void PurgeDiskItem(const std::string& key, olp::cache::DiskCache& disk_cache,
   removed_data_size += data_size;
 }
 
-size_t StoreExpiry(const std::string& key, leveldb::WriteBatch& batch,
-                   time_t expiry) {
-  auto expiry_key = CreateExpiryKey(key);
-  auto time_str = std::to_string(expiry);
-  batch.Put(expiry_key, time_str);
+size_t StoreExpiry(const std::string& key,
+                   olp::cache::CursorWrapper* const cursor, time_t expiry) {
+  const auto expiry_key = CreateExpiryKey(key);
+  const auto time_str = std::to_string(expiry);
+
+  if (const auto status = cursor->Put(expiry_key, time_str)) {
+    OLP_SDK_LOG_INFO_F(kLogTag, "Failed to put StoreExpiry value");
+  }
 
   return expiry_key.size() + time_str.size();
 }
@@ -301,9 +305,9 @@ bool DefaultCacheImpl::Put(const std::string& key,
     }
   }
 
-  leveldb::Slice slice(reinterpret_cast<const char*>(value->data()),
-                       value->size());
-  return PutMutableCache(key, slice, expiry);
+  const std::string data{reinterpret_cast<const char*>(value->data()),
+                         value->size()};
+  return PutMutableCache(key, data, expiry);
 }
 
 boost::any DefaultCacheImpl::Get(const std::string& key,
@@ -464,7 +468,7 @@ bool DefaultCacheImpl::Contains(const std::string& key) const {
   return false;
 }
 
-bool DefaultCacheImpl::AddKeyLru(std::string key, const leveldb::Slice& value) {
+bool DefaultCacheImpl::AddKeyLru(std::string key, const MDB_val& value) {
   // do not add protected keys to lru, this applies to all keys with some
   // protected prefix, do not add internal keys
   if (mutable_cache_lru_ && !protected_keys_.IsProtected(key) &&
@@ -486,10 +490,11 @@ bool DefaultCacheImpl::AddKeyLru(std::string key, const leveldb::Slice& value) {
       // value.data() could point to a value without null character at the
       // end, this could cause exception in std::stol. This is fixed by
       // constructing a string, (We rely on small string optimization here).
-      std::string timestamp(value.data(), value.size());
+      const std::string timestamp(reinterpret_cast<const char*>(value.mv_data),
+                                  value.mv_size);
       props.expiry = std::stol(timestamp.c_str());
     } else {
-      props.size = value.size();
+      props.size = value.mv_size;
     }
 
     auto result = mutable_cache_lru_->InsertOrAssign(key, props);
@@ -506,26 +511,30 @@ void DefaultCacheImpl::InitializeLru() {
   OLP_SDK_LOG_INFO_F(kLogTag, "Initializing mutable LRU cache");
 
   mutable_cache_data_size_ = 0;
-
   mutable_cache_lru_ =
       std::make_unique<DiskLruCache>(settings_.max_disk_storage);
 
   const auto start = std::chrono::steady_clock::now();
-  auto it = mutable_cache_->NewIterator(leveldb::ReadOptions());
+  CursorWrapper cursor_raii(mutable_cache_->NewCursor(true));
 
-  for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    auto key = it->key().ToString();
-    const auto& value = it->value();
+  MDB_val key, data;
+  if (cursor_raii.Get(&key, &data, MDB_FIRST) == 0) {
+    do {
+      // Here we count both expiry keys and regular keys
+      mutable_cache_data_size_ += key.mv_size + data.mv_size;
 
-    // Here we count both expiry keys and regular keys
-    mutable_cache_data_size_ += key.size() + value.size();
+      const std::string s_key(reinterpret_cast<const char*>(key.mv_data),
+                              key.mv_size);
+      AddKeyLru(s_key, data);  // TODO: rework to prevent copying
 
-    AddKeyLru(key, value);
+    } while (cursor_raii.Get(&key, &data, MDB_NEXT) == 0);
   }
 
-  OLP_SDK_LOG_INFO_F(
-      kLogTag, "LRU cache initialized, items=%zu, time=%" PRId64 " ms",
-      mutable_cache_lru_->Size(), GetElapsedTime(start));
+  cursor_raii.AbortTransaction();  // Abort transaction intetionally to prevent
+                                   // loging not found error
+  OLP_SDK_LOG_INFO_F(kLogTag,
+                     "LRU cache initialized, items=%zu, time=%" PRId64 " ms",
+                     mutable_cache_lru_->Size(), GetElapsedTime(start));
 }
 
 bool DefaultCacheImpl::RemoveKeyLru(const std::string& key) {
@@ -580,7 +589,7 @@ uint64_t DefaultCacheImpl::MaybeEvictData() {
   auto count = 0u;
 
   const auto call_evict_method =
-      [&](std::function<EvictionResult(DefaultCacheImpl*, leveldb::WriteBatch&,
+      [&](std::function<EvictionResult(DefaultCacheImpl*, CursorWrapper* const,
                                        uint64_t)>
               evict_method) {
         EvictionResult eviction_result;
@@ -592,21 +601,17 @@ uint64_t DefaultCacheImpl::MaybeEvictData() {
               static_cast<uint64_t>(left_to_evict) < eviction_portion_
                   ? left_to_evict
                   : eviction_portion_;
-          auto eviction_batch = std::make_unique<leveldb::WriteBatch>();
+          auto cursor =
+              std::make_unique<CursorWrapper>(mutable_cache_->NewCursor(false));
           eviction_result =
-              evict_method(this, *eviction_batch, current_eviction_target);
+              evict_method(this, cursor.get(), current_eviction_target);
 
           // Apply intermediate batch
-          const auto apply_result =
-              mutable_cache_->ApplyBatch(std::move(eviction_batch));
-
-          if (!apply_result.IsSuccessful()) {
+          if (const auto commit_status = cursor->CommitTransaction()) {
             OLP_SDK_LOG_WARNING_F(
                 kLogTag,
-                "MaybeEvictData(): failed to apply batch, error_code=%d, "
-                "error_message=%s",
-                static_cast<int>(apply_result.GetError().GetErrorCode()),
-                apply_result.GetError().GetMessage().c_str());
+                "MaybeEvictData(): failed to apply batch, error_code=%d",
+                static_cast<int>(commit_status));
             break;
           }
 
@@ -637,7 +642,10 @@ uint64_t DefaultCacheImpl::MaybeEvictData() {
 }
 
 DefaultCacheImpl::EvictionResult DefaultCacheImpl::EvictExpiredDataPortion(
-    leveldb::WriteBatch& batch, uint64_t target_eviction_size) {
+    CursorWrapper* const cursor, uint64_t target_eviction_size) {
+  // TODO: Think about eviction in lmdb. It's implemented memory map files,
+  // so file size may only grow, all removed data from db, just frees pointers
+  // to already allocated space, so it can be reused.
   uint64_t evicted = 0u;
   auto count = 0u;
   const auto current_time = olp::cache::InMemoryCache::DefaultTimeProvider()();
@@ -656,12 +664,23 @@ DefaultCacheImpl::EvictionResult DefaultCacheImpl::EvictExpiredDataPortion(
     }
 
     // Remove the key
-    batch.Delete(key);
+    if (const auto status = cursor->Del(key)) {
+      OLP_SDK_LOG_DEBUG_F(kLogTag,
+                          "EvictExpiredDataPortion(): Del, "
+                          "key=%s, status=%d",
+                          key.c_str(), status);
+    }
+
     evicted += key.size() + properties.size;
 
     // Remove the key's expiry
-    auto expiry_key = CreateExpiryKey(key);
-    batch.Delete(expiry_key);
+    const auto expiry_key = CreateExpiryKey(key);
+    if (const auto status = cursor->Del(expiry_key)) {
+      OLP_SDK_LOG_DEBUG_F(kLogTag,
+                          "EvictExpiredDataPortion(): Del, "
+                          "key=%s, status=%d",
+                          expiry_key.c_str(), status);
+    }
     evicted += expiry_key.size() + kExpiryValueSize;
 
     ++count;
@@ -681,7 +700,10 @@ DefaultCacheImpl::EvictionResult DefaultCacheImpl::EvictExpiredDataPortion(
 }
 
 DefaultCacheImpl::EvictionResult DefaultCacheImpl::EvictDataPortion(
-    leveldb::WriteBatch& batch, uint64_t target_eviction_size) {
+    CursorWrapper* const cursor, uint64_t target_eviction_size) {
+  // TODO: Think about eviction in lmdb. It's implemented memory map files,
+  // so file size may only grow, all removed data from db, just frees pointers
+  // to already allocated space, so it can be reused.
   uint64_t evicted = 0u;
   auto count = 0u;
 
@@ -693,13 +715,23 @@ DefaultCacheImpl::EvictionResult DefaultCacheImpl::EvictDataPortion(
 
     // Remove the key
     evicted += key.size() + properties.size;
-    batch.Delete(key);
+    if (const auto status = cursor->Del(key)) {
+      OLP_SDK_LOG_DEBUG_F(kLogTag,
+                          "EvictExpiredDataPortion(): Del, "
+                          "key=%s, status=%d",
+                          key.c_str(), status);
+    }
 
     // Remove the key's expiry
     if (IsExpiryValid(properties.expiry)) {
       const auto expiry_key = CreateExpiryKey(key);
       evicted += expiry_key.size() + kExpiryValueSize;
-      batch.Delete(expiry_key);
+      if (const auto status = cursor->Del(expiry_key)) {
+        OLP_SDK_LOG_DEBUG_F(kLogTag,
+                            "EvictExpiredDataPortion(): Del, "
+                            "key=%s, status=%d",
+                            expiry_key.c_str(), status);
+      }
     }
 
     ++count;
@@ -720,20 +752,30 @@ DefaultCacheImpl::EvictionResult DefaultCacheImpl::EvictDataPortion(
 }
 
 int64_t DefaultCacheImpl::MaybeUpdatedProtectedKeys(
-    leveldb::WriteBatch& batch) {
+    CursorWrapper* const cursor) {
   if (protected_keys_.IsDirty()) {
     auto prev_size = protected_keys_.Size();
     auto value = protected_keys_.Serialize();
     // calculate key size, as it is be written for the first time
-    auto key_size = (prev_size > 0 ? 0 : strlen(kProtectedKeys));
+    const auto key_size = (prev_size > 0 ? 0 : strlen(kProtectedKeys));
     if (value->size() > 0) {
-      leveldb::Slice slice(reinterpret_cast<const char*>(value->data()),
-                           value->size());
-      batch.Put(kProtectedKeys, slice);
+      if (const auto status = cursor->Put(kProtectedKeys, value)) {
+        OLP_SDK_LOG_DEBUG_F(kLogTag,
+                            "MaybeUpdatedProtectedKeys(): mdb_cursor_put, "
+                            "status=%d",
+                            status);
+      }
+
       return (key_size + protected_keys_.Size() - prev_size);
     } else if (prev_size > 0) {
       // delete key, as protected list is empty
-      batch.Delete(kProtectedKeys);
+      if (const auto status = cursor->Del(kProtectedKeys)) {
+        OLP_SDK_LOG_DEBUG_F(kLogTag,
+                            "MaybeUpdatedProtectedKeys(): failed to delete, "
+                            "status=%d",
+                            status);
+      }
+
       return -1 * static_cast<int64_t>((prev_size + strlen(kProtectedKeys)));
     }
   }
@@ -742,7 +784,7 @@ int64_t DefaultCacheImpl::MaybeUpdatedProtectedKeys(
 }
 
 bool DefaultCacheImpl::PutMutableCache(const std::string& key,
-                                       const leveldb::Slice& value,
+                                       const std::string& value,
                                        time_t expiry) {
   if (!mutable_cache_) {
     return true;
@@ -757,23 +799,50 @@ bool DefaultCacheImpl::PutMutableCache(const std::string& key,
     return false;
   }
 
+  const auto removed_data_size =
+      MaybeEvictData();  // Transaction will be commited if
+                         // some data needs to be evicted.
+
   uint64_t added_data_size = 0u;
-  auto batch = std::make_unique<leveldb::WriteBatch>();
-  batch->Put(key, value);
+
+  std::unique_ptr<CursorWrapper> cursor_raii =
+      std::make_unique<CursorWrapper>(mutable_cache_->NewCursor(false));
+
+  if (!cursor_raii->IsValid())
+    return false;
+
+  if (const auto status = cursor_raii->Put(key, value, 0)) {
+    // TODO: Pay attention to EACCES and MDB_BAD_TXN
+    // MDB_MAP_FULL - may happen when current size + mdata.mv_size >
+    // mutable_cache_->max_size Compaction was applied when using leveldb, lmdb
+    // has no compaction, so either we shloud change max size, or any other idea
+    // ?
+    OLP_SDK_LOG_ERROR_F(
+        kLogTag, "PutMutableCache: Failed to put data to mutable cache key:%s",
+        key.c_str());
+    return false;
+  }
+
   added_data_size += key.size() + item_size;
 
   if (IsExpiryValid(expiry)) {
     expiry += olp::cache::InMemoryCache::DefaultTimeProvider()();
-    added_data_size += StoreExpiry(key, *batch, expiry);
+    added_data_size += StoreExpiry(key, cursor_raii.get(), expiry);
   }
 
-  auto removed_data_size = MaybeEvictData();
-  auto updated_data_size = MaybeUpdatedProtectedKeys(*batch);
+  if (!cursor_raii->IsValid()) {  // Create new cursor if already commited some
+                                  // of transactions.
+    cursor_raii =
+        std::make_unique<CursorWrapper>(mutable_cache_->NewCursor(false));
+  }
 
-  auto result = mutable_cache_->ApplyBatch(std::move(batch));
-  if (!result.IsSuccessful()) {
+  const auto updated_data_size = MaybeUpdatedProtectedKeys(cursor_raii.get());
+
+  // TODO: return false if any of operation with cursor fails.
+  if (cursor_raii->CommitTransaction() != 0) {
     return false;
   }
+
   mutable_cache_data_size_ += added_data_size;
   mutable_cache_data_size_ -= removed_data_size;
   mutable_cache_data_size_ += updated_data_size;
@@ -783,8 +852,9 @@ bool DefaultCacheImpl::PutMutableCache(const std::string& key,
     ValueProperties props;
     props.size = item_size;
     props.expiry = expiry;
-    const auto result = mutable_cache_lru_->InsertOrAssign(key, props);
-    if (result.first == mutable_cache_lru_->end() && !result.second) {
+    const auto insert_result = mutable_cache_lru_->InsertOrAssign(key, props);
+    if (insert_result.first == mutable_cache_lru_->end() &&
+        !insert_result.second) {
       OLP_SDK_LOG_WARNING_F(
           kLogTag, "Failed to store value in mutable LRU cache, key %s",
           key.c_str());
@@ -825,7 +895,7 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupStorage() {
 }
 
 DefaultCache::StorageOpenResult DefaultCacheImpl::SetupProtectedCache() {
-  protected_cache_ = std::make_unique<DiskCache>();
+  protected_cache_ = std::make_unique<DiskCacheLmDb>();
 
   // Storage settings for protected cache are different. We want to specify the
   // max_file_size greater than the manifest file size. Or else leveldb will try
@@ -848,9 +918,8 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupProtectedCache() {
     }
   }
 
-  auto status = protected_cache_->Open(
-      settings_.disk_path_protected.get(), settings_.disk_path_protected.get(),
-      protected_storage_settings, open_mode, false);
+  auto status = protected_cache_->Open(settings_.disk_path_protected.get(),
+                                       protected_storage_settings, open_mode);
   if (status != OpenResult::Success) {
     OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to open protected cache %s",
                         settings_.disk_path_protected.get().c_str());
@@ -865,9 +934,8 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupProtectedCache() {
 DefaultCache::StorageOpenResult DefaultCacheImpl::SetupMutableCache() {
   auto storage_settings = CreateStorageSettings(settings_);
 
-  mutable_cache_ = std::make_unique<DiskCache>();
+  mutable_cache_ = std::make_unique<DiskCacheLmDb>();
   auto status = mutable_cache_->Open(settings_.disk_path_mutable.get(),
-                                     settings_.disk_path_mutable.get(),
                                      storage_settings, settings_.openOptions);
   if (status == OpenResult::Repaired) {
     OLP_SDK_LOG_INFO(kLogTag, "Mutable cache was repaired");
@@ -901,12 +969,11 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupMutableCache() {
 void DefaultCacheImpl::DestroyCache(DefaultCache::CacheType type) {
   if (type == DefaultCache::CacheType::kMutable) {
     if (mutable_cache_ && protected_keys_.IsDirty()) {
-      auto batch = std::make_unique<leveldb::WriteBatch>();
-      MaybeUpdatedProtectedKeys(*batch);
-      auto result = mutable_cache_->ApplyBatch(std::move(batch));
-      OLP_SDK_LOG_INFO_F(kLogTag,
-                         "Close(): store list of protected keys, result=%s",
-                         result.IsSuccessful() ? "true" : "false");
+      CursorWrapper cursor_raii(mutable_cache_->NewCursor(false));
+      MaybeUpdatedProtectedKeys(&cursor_raii);
+      OLP_SDK_LOG_INFO_F(
+          kLogTag, "Close(): store list of protected keys, result=%s",
+          cursor_raii.CommitTransaction() == 0 ? "true" : "false");
     }
 
     mutable_cache_.reset();
@@ -1023,18 +1090,23 @@ bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
       }
     }
     if (mutable_cache_) {
-      auto it = mutable_cache_->NewIterator(leveldb::ReadOptions());
-      it->Seek(key);
-      while (it->Valid()) {
-        auto cached_key = it->key().ToString();
+      // lmdb specific implementation
+      CursorWrapper cursor_raii(mutable_cache_->NewCursor(true));
+      MDB_val mkey{key.length(), (void*)key.c_str()}, mdata;
+      MDB_cursor_op option = MDB_SET_RANGE;  // Position at first key greater
+                                             // than or equal to specified key.
+      while (cursor_raii.Get(&mkey, &mdata, option) == 0) {
+        std::string cached_key{reinterpret_cast<const char*>(mkey.mv_data),
+                               mkey.mv_size};
         if (cached_key.size() >= key.size() &&
             std::equal(key.begin(), key.end(), cached_key.begin())) {
-          AddKeyLru(cached_key, it->value());
+          AddKeyLru(std::move(cached_key), mdata);
         } else {
           break;
         }
-        it->Next();
+        option = MDB_NEXT;
       }
+      // end of lmdb specific implementation
     }
   }
 
@@ -1087,11 +1159,9 @@ uint64_t DefaultCacheImpl::Size(uint64_t new_size) {
   }
 
   settings_.max_disk_storage = new_size;
-
   const auto evicted = MaybeEvictData();
-
   mutable_cache_data_size_ -= evicted;
-  mutable_cache_->Compact();
+  // mutable_cache_->Compact();
   return evicted;
 }
 

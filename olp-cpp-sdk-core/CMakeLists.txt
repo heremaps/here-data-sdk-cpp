@@ -25,7 +25,7 @@ find_package(Threads REQUIRED)
 
 if(OLP_SDK_ENABLE_DEFAULT_CACHE)
     find_package(Snappy REQUIRED)
-    find_package(leveldb REQUIRED)
+    find_package(leveldb REQUIRED)	
 endif()
 
 configure_file(./include/olp/core/Config.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/olp/core/Config.h)
@@ -58,7 +58,7 @@ include(cmake/ios.cmake)
 set(OLP_SDK_CACHE_HEADERS
     ./include/olp/core/cache/CacheSettings.h
     ./include/olp/core/cache/DefaultCache.h
-    ./include/olp/core/cache/KeyValueCache.h
+    ./include/olp/core/cache/KeyValueCache.h	
 )
 
 set(OLP_SDK_CLIENT_HEADERS
@@ -222,6 +222,8 @@ set(OLP_SDK_CACHE_SOURCES
     ./src/cache/DefaultCacheImpl.h
     ./src/cache/DiskCache.cpp
     ./src/cache/DiskCache.h
+	./src/cache/DiskCacheLmDb.cpp
+    ./src/cache/DiskCacheLmDb.h
     ./src/cache/DiskCacheEnv.cpp
     ./src/cache/DiskCacheEnv.h
     ./src/cache/DiskCacheSizeLimitEnv.cpp
@@ -234,6 +236,10 @@ set(OLP_SDK_CACHE_SOURCES
     ./src/cache/InMemoryCache.h
     ./src/cache/ReadOnlyEnv.cpp
     ./src/cache/ReadOnlyEnv.h
+	./src/cache/mdb.c
+	./src/cache/midl.c
+	./src/cache/lmdb.h
+	./src/cache/midl.h
 )
 
 set(OLP_SDK_CLIENT_SOURCES
@@ -394,9 +400,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
     # Depends on RapidJSON revision, could be one of the following
     $<BUILD_INTERFACE:${RapidJSON_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${RAPIDJSON_INCLUDE_DIRS}>
-
-    $<INSTALL_INTERFACE:include>)
+    $<BUILD_INTERFACE:${RAPIDJSON_INCLUDE_DIRS}>	
+$<INSTALL_INTERFACE:include>)
 
 if (ANDROID)
     set(ADDITIONAL_LIBRARIES log)

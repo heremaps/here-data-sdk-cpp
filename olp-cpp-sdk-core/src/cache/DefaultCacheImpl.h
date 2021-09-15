@@ -25,7 +25,7 @@
 #include <string>
 #include <utility>
 
-#include "DiskCache.h"
+#include "DiskCacheLmDb.h"
 #include "InMemoryCache.h"
 #include "ProtectedKeyList.h"
 
@@ -87,7 +87,7 @@ class DefaultCacheImpl {
   }
 
   /// Returns mutable or protected cache, used for tests.
-  const std::unique_ptr<DiskCache>& GetCache(
+  const std::unique_ptr<DiskCacheLmDb>& GetCache(
       DefaultCache::CacheType type) const {
     if (type == DefaultCache::CacheType::kMutable) {
       return mutable_cache_;
@@ -116,8 +116,8 @@ class DefaultCacheImpl {
     uint64_t size;
   };
 
-  /// Add single key to LRU.
-  bool AddKeyLru(std::string key, const leveldb::Slice& value);
+  // Add single key to LRU. (lmdb specific method)
+  bool AddKeyLru(std::string key, const MDB_val& value);
 
   /// Initializes LRU mutable cache if possible.
   void InitializeLru();
@@ -138,21 +138,21 @@ class DefaultCacheImpl {
   /// Returns number of evicted elements, evicted data size and a flag indicatin
   /// if eviction limit reached. If the flag is true, another
   /// EvictExpiredDataPortion call is needed to continue eviction.
-  EvictionResult EvictExpiredDataPortion(leveldb::WriteBatch& batch,
+  EvictionResult EvictExpiredDataPortion(CursorWrapper* const cursor,
                                          uint64_t target_eviction_size);
 
   /// Returns number of evicted elements, evicted data size and a flag indicatin
   /// if eviction limit reached. If the flag is true, another EvictDataPortion
   /// call is needed to continue eviction.
   /// To be used when all expired data already evicted and it is not enough.
-  EvictionResult EvictDataPortion(leveldb::WriteBatch& batch,
+  EvictionResult EvictDataPortion(CursorWrapper* const cursor,
                                   uint64_t target_eviction_size);
 
   /// Returns changed data size.
-  int64_t MaybeUpdatedProtectedKeys(leveldb::WriteBatch& batch);
+  int64_t MaybeUpdatedProtectedKeys(CursorWrapper* const cursor);
 
   /// Puts data into the mutable cache
-  bool PutMutableCache(const std::string& key, const leveldb::Slice& value,
+  bool PutMutableCache(const std::string& key, const std::string& value,
                        time_t expiry);
 
   DefaultCache::StorageOpenResult SetupStorage();
@@ -169,14 +169,15 @@ class DefaultCacheImpl {
   boost::optional<std::pair<std::string, time_t>> GetFromDiscCache(
       const std::string& key);
 
-  time_t GetExpiryForMemoryCache(const std::string& key, const time_t& expiry) const;
+  time_t GetExpiryForMemoryCache(const std::string& key,
+                                 const time_t& expiry) const;
 
   CacheSettings settings_;
   bool is_open_;
   std::unique_ptr<InMemoryCache> memory_cache_;
-  std::unique_ptr<DiskCache> mutable_cache_;
+  std::unique_ptr<DiskCacheLmDb> mutable_cache_;
   std::unique_ptr<DiskLruCache> mutable_cache_lru_;
-  std::unique_ptr<DiskCache> protected_cache_;
+  std::unique_ptr<DiskCacheLmDb> protected_cache_;
   uint64_t mutable_cache_data_size_;
   ProtectedKeyList protected_keys_;
   mutable std::mutex cache_lock_;
