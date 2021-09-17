@@ -189,7 +189,7 @@ cmake --build . --target docs
 
 ## Use the SDK
 
-To learn how to use the Data SDK, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/GettingStartedGuide.md" target="_blank">Getting Started Guide</a> and the <a href="https://developer.here.com/documentation/sdk-cpp/dev_guide/index.html" target="blank">Developer Guide</a>.
+To learn how to use the Data SDK, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/GettingStartedGuide.md" target="_blank">Getting Started Guide</a>, <a href="https://developer.here.com/documentation/sdk-cpp/dev_guide/index.html" target="blank">Developer Guide</a>, and <a href="https://developer.here.com/documentation/sdk-cpp/api_reference/index.html" target="_blank">API Reference</a>.
 
 ## Contribution
 
