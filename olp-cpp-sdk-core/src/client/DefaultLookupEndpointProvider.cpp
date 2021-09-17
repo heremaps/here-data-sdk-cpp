@@ -27,13 +27,14 @@ std::string DefaultLookupEndpointProvider::operator()(
   constexpr struct {
     const char* partition;
     const char* url;
-  } kDatastoreServerUrl[4] = {
+  } kDatastoreServerUrl[5] = {
       {"here", "https://api-lookup.data.api.platform.here.com/lookup/v1"},
       {"here-dev",
        "https://api-lookup.data.api.platform.sit.here.com/lookup/v1"},
       {"here-cn", "https://api-lookup.data.api.platform.hereolp.cn/lookup/v1"},
       {"here-cn-dev",
-       "https://api-lookup.data.api.platform.in.hereolp.cn/lookup/v1"}};
+       "https://api-lookup.data.api.platform.in.hereolp.cn/lookup/v1"},
+      {"local", "http://localhost:31005/lookup/v1"}};
 
   for (const auto& it : kDatastoreServerUrl) {
     if (partition == it.partition)

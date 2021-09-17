@@ -33,7 +33,8 @@ TEST(DefaultLookupEndpointProviderTest, ParenthesisOperator) {
        "https://api-lookup.data.api.platform.sit.here.com/lookup/v1"},
       {"here-cn", "https://api-lookup.data.api.platform.hereolp.cn/lookup/v1"},
       {"here-cn-dev",
-       "https://api-lookup.data.api.platform.in.hereolp.cn/lookup/v1"}};
+       "https://api-lookup.data.api.platform.in.hereolp.cn/lookup/v1"},
+      {"local", "http://localhost:31005/lookup/v1"}};
 
   auto provider = client::DefaultLookupEndpointProvider();
 
