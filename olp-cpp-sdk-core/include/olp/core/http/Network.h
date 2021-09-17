@@ -92,10 +92,26 @@ class CORE_API Network {
                            DataCallback data_callback = nullptr) = 0;
 
   /**
-   * @brief Cancels the request using `RequestId`.
+   * @brief Cancels the request associated with the given `RequestId`.
    *
-   * When the request is canceled, the user receives a final `Callback` with
-   * an appropriate `NetworkResponse` marked as canceled.
+   * When the request is canceled, the user receives a final callback with
+   * an appropriate `NetworkResponse` marked as canceled as illustrated in the
+   * following code snippet:
+   *
+   * @code
+   *
+   * auto response =
+   *     http::NetworkResponse()
+   *         .WithRequestId(id)
+   *         .WithBytesDownloaded(download_bytes)
+   *         .WithBytesUploaded(upload_bytes)
+   *         .WithStatus(static_cast<int>(http::ErrorCode::CANCELLED_ERROR))
+   *         .WithError("Cancelled");
+   *
+   * @endcode
+   *
+   * @note If the provided `RequestId` does not match any pending requests, no
+   * operations will be performed, and no callbacks will be called.
    *
    * @param[in] id The unique ID of the request that you want to cancel.
    */
