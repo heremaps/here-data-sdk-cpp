@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,9 @@
 #include <string>
 #include <unordered_map>
 
+#include <olp/core/client/ApiError.h>
+#include <boost/optional.hpp>
+
 namespace olp {
 namespace dataservice {
 namespace read {
@@ -31,7 +34,8 @@ namespace repository {
 
 /*
  * @brief A mutex storage class, used to store and access mutex primitives by
- * name, so it can be used in different places and different conditions.
+ * name, so it can be used in different places and different conditions. Has an
+ * ability to share an `ApiError` among threads that uses the same mutex.
  */
 class NamedMutexStorage {
  public:
@@ -40,6 +44,24 @@ class NamedMutexStorage {
   std::mutex& AquireLock(const std::string& resource);
   void ReleaseLock(const std::string& resource);
 
+  /**
+   * @brief Saves an error to share it among threads.
+   *
+   * @param resource A name of a mutex to store an error for.
+   * @param error An error to be stored.
+   */
+  void SetError(const std::string& resource, const client::ApiError& error);
+
+  /**
+   * @brief Gets the stored error for provided resource.
+   *
+   * @param resource A name of a mutex to get an error for.
+   *
+   * @return The stored `ApiError` instance or `boost::none` if no error has
+   * been stored for this resource.
+   */
+  boost::optional<client::ApiError> GetError(const std::string& resource);
+
  private:
   class Impl;
   std::shared_ptr<Impl> impl_;
@@ -47,7 +69,8 @@ class NamedMutexStorage {
 
 /*
  * @brief A synchronization primitive that can be used to protect shared data
- * from being simultaneously accessed by multiple threads.
+ * from being simultaneously accessed by multiple threads. Has an ability to
+ * share an `ApiError` among the threads.
  */
 class NamedMutex final {
  public:
@@ -60,9 +83,26 @@ class NamedMutex final {
 
   ~NamedMutex();
 
+  // These method names are lower snake case to be able to use NamedMutex with
+  // std::unique_lock.
   void lock();
   bool try_lock();
   void unlock();
+
+  /**
+   * @brief Saves an error to share it among threads.
+   *
+   * @param error An error to be stored.
+   */
+  void SetError(const client::ApiError& error);
+
+  /**
+   * @brief Gets the stored error for this mutex.
+   *
+   * @return The stored `ApiError` instance  or `boost::none` if no error has
+   * been stored for this mutex.
+   */
+  boost::optional<client::ApiError> GetError();
 
  private:
   NamedMutexStorage& storage_;

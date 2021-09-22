@@ -162,10 +162,25 @@ BlobApi::DataResponse DataRepository::GetBlobData(
     }
   }
 
+  // Check if other threads have faced an error.
+  const auto optional_error = mutex.GetError();
+  if (optional_error) {
+    OLP_SDK_LOG_DEBUG_F(kLogTag,
+                        "Found error in NamedMutex, aborting, hrn='%s', "
+                        "key='%s', error='%s'",
+                        catalog_.ToCatalogHRNString().c_str(),
+                        data_handle->c_str(),
+                        optional_error->GetMessage().c_str());
+    return *optional_error;
+  }
+
   auto storage_api_lookup = lookup_client_.LookupApi(
       service, "v1", static_cast<client::FetchOptions>(fetch_option), context);
 
   if (!storage_api_lookup.IsSuccessful()) {
+    // Store an error to share it with other threads.
+    mutex.SetError(storage_api_lookup.GetError());
+
     return storage_api_lookup.GetError();
   }
 
@@ -204,6 +219,9 @@ BlobApi::DataResponse DataRepository::GetBlobData(
           catalog_.ToCatalogHRNString().c_str(), data_handle->c_str());
       repository.Clear(layer, data_handle.value());
     }
+
+    // Store an error to share it with other threads.
+    mutex.SetError(storage_response.GetError());
   }
 
   return storage_response;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,11 +30,14 @@ class NamedMutexStorage::Impl {
  public:
   std::mutex& AquireLock(const std::string& resource);
   void ReleaseLock(const std::string& resource);
+  void SetError(const std::string& resource, const client::ApiError& error);
+  boost::optional<client::ApiError> GetError(const std::string& resource);
 
  private:
   struct RefCounterMutex {
     std::mutex mutex;
     uint32_t use_count{0u};
+    boost::optional<client::ApiError> optional_error;
   };
 
   std::mutex mutex_;
@@ -61,6 +64,26 @@ void NamedMutexStorage::Impl::ReleaseLock(const std::string& resource) {
   }
 }
 
+void NamedMutexStorage::Impl::SetError(const std::string& resource,
+                                       const client::ApiError& error) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  auto mutex_it = mutexes_.find(resource);
+  if (mutex_it != mutexes_.end()) {
+    mutex_it->second.optional_error = error;
+  }
+}
+
+boost::optional<client::ApiError> NamedMutexStorage::Impl::GetError(
+    const std::string& resource) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  auto mutex_it = mutexes_.find(resource);
+  if (mutex_it == mutexes_.end()) {
+    return boost::none;
+  }
+
+  return mutex_it->second.optional_error;
+}
+
 NamedMutexStorage::NamedMutexStorage() : impl_(std::make_shared<Impl>()) {}
 
 std::mutex& NamedMutexStorage::AquireLock(const std::string& resource) {
@@ -69,6 +92,16 @@ std::mutex& NamedMutexStorage::AquireLock(const std::string& resource) {
 
 void NamedMutexStorage::ReleaseLock(const std::string& resource) {
   impl_->ReleaseLock(resource);
+}
+
+void NamedMutexStorage::SetError(const std::string& resource,
+                                 const client::ApiError& error) {
+  impl_->SetError(resource, error);
+}
+
+boost::optional<client::ApiError> NamedMutexStorage::GetError(
+    const std::string& resource) {
+  return impl_->GetError(resource);
 }
 
 NamedMutex::NamedMutex(NamedMutexStorage& storage, const std::string& name)
@@ -81,6 +114,14 @@ void NamedMutex::lock() { mutex_.lock(); }
 bool NamedMutex::try_lock() { return mutex_.try_lock(); }
 
 void NamedMutex::unlock() { mutex_.unlock(); }
+
+void NamedMutex::SetError(const client::ApiError& error) {
+  storage_.SetError(name_, error);
+}
+
+boost::optional<client::ApiError> NamedMutex::GetError() {
+  return storage_.GetError(name_);
+}
 
 }  // namespace repository
 }  // namespace read

@@ -30,6 +30,7 @@
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/TileRequest.h>
 #include <repositories/DataRepository.h>
+#include <repositories/NamedMutex.h>
 #include <repositories/PartitionsCacheRepository.h>
 #include <repositories/PartitionsRepository.h>
 
@@ -271,6 +272,67 @@ TEST_F(DataRepositoryTest, GetBlobDataInProgressCancel) {
 
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Cancelled);
+}
+
+TEST_F(DataRepositoryTest, GetBlobDataSimultaniousFailedCalls) {
+  // The lookup data must be requested from the network only once
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kUrlResponseLookup));
+
+  std::promise<void> network_request_started_promise;
+  std::promise<void> finish_network_request_promise;
+
+  auto wait = [&]() {
+    network_request_started_promise.set_value();
+    finish_network_request_promise.get_future().wait();
+  };
+
+  // The blob data must be requested from the network only once
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlBlobData269), _, _, _, _))
+      .WillOnce(testing::DoAll(
+          testing::InvokeWithoutArgs(wait),
+          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                 olp::http::HttpStatusCode::REQUEST_TIMEOUT),
+                             "Timeout")));
+
+  olp::client::CancellationContext context;
+  olp::dataservice::read::repository::NamedMutexStorage storage;
+
+  olp::dataservice::read::DataRequest request;
+  request.WithDataHandle(kUrlBlobDataHandle);
+
+  olp::client::HRN hrn(GetTestCatalog());
+  ApiLookupClient lookup_client(hrn, *settings_);
+  DataRepository repository(hrn, *settings_, lookup_client, storage);
+
+  // Start first request in a separate thread
+  std::thread first_request_thread([&]() {
+    auto response =
+        repository.GetBlobData(kLayerId, kService, request, context);
+    EXPECT_FALSE(response.IsSuccessful());
+  });
+
+  // Wait untill network request processing started
+  network_request_started_promise.get_future().wait();
+
+  // Get a mutex from the storage. It guarantees that when the second thread
+  // accuares the mutex, the stored error will not be cleaned up in scope of
+  // ReleaseLock call from the first thread
+  olp::dataservice::read::repository::NamedMutex mutex(
+      storage, hrn.ToString() + kService + kUrlBlobDataHandle);
+
+  // Start second request in a separate thread
+  std::thread second_request_thread([&]() {
+    auto response =
+        repository.GetBlobData(kLayerId, kService, request, context);
+    EXPECT_FALSE(response.IsSuccessful());
+  });
+
+  finish_network_request_promise.set_value();
+  first_request_thread.join();
+  second_request_thread.join();
 }
 
 TEST_F(DataRepositoryTest, GetVersionedDataTile) {
