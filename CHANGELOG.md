@@ -1,4 +1,27 @@
-##  v1.12.0 (03/06/2021)
+## v1.13.0 (27/09/2021)
+
+**Common**
+
+* Added a new `olp::client::EqualJitterBackdownStrategy` backdown strategy. You can use it to define the waiting time between retries in `olp::client::RetrySettings`.
+* Changed the open behavior for the protected cache. Now, it tries to open the cache in the r/w mode if it has enough filesystem permissions, and the user did not explicitly instruct to open the cache in the r/o mode via `olp::cache::CacheSettings::openOptions`.
+* Changed the `olp::cache::DefaultCache::Open` method. Now, it returns `olp::cache::DefaultCache::StorageOpenResult::ProtectedCacheCorrupted` if you try to open a broken database, specifically more than 4 L0 levelDB storage files, and you need to compact the database manually before you try to open it again.
+* Added a bool operator to the `olp::client::ApiResponse` class, which is a shortcut for `olp::client::ApiResponse::IsSuccessful()`. Use this operator to check whether your response was successful.
+* Removed the arbitrary 2-second delay on shutdown inside `NetworkAndroid.cpp`, which implements the abstract `olp::http::Network` interface for the Android platform.
+* Modified the `olp::client::OlpClient` request. Previously, if the authentication request failed for any reason, and the token provider returned an empty token string, data requests were still sent with an empty token that failed with a 401 status. Now, the `olp::client::OlpClient` request is not sent if the bearer token is empty.
+* Fixed the wrong reset of the `olp::http::NetworkWinHttp` request after an error.
+* Fixed the compilation of the `olp::utils::Dir` class when compiled with enabled Unicode Character Set on Windows.
+* Fixed the `olp::Dir::FileExist()` method when compiled on Windows. Instead of checking the `FILE_ATTRIBUTE_NORMAL` attribute, it now checks that the attributes are unequal to `INVALID_FILE_ATTRIBUTES` to assume a file is present on the filesystem.
+
+**olp-cpp-sdk-authentication**
+
+* Improved usage of local and server time. When the local time is off, and the backend returns a wrong timestamp error, the server time is parsed from the `Date` response header field. Additionally, the server time is incremented locally between retries by adding the time elapsed between a request and response.
+* Set the authentication component APIs to use server time if the `use_system_time` option is set to `false`.
+
+**olp-cpp-sdk-dataservice-read**
+
+* Removed the request repetition that occurred when the same blob request returned an error while multiple threads were waiting for the blob. Now, the returned error is shared with all waiting threads.
+
+## v1.12.0 (03/06/2021)
 
 **Common**
 
@@ -196,7 +219,7 @@
 
 **olp-cpp-sdk-dataservice-read**
 
-* Optimized memory overhead for prefetch. 
+* Optimized memory overhead for prefetch.
 * Removed the ambiguous `PrefetchTilesRequest::WithTileKeys` method that takes an rvalue reference.
 
 ## v1.5.0 (07/04/2020)
