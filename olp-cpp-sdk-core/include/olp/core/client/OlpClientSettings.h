@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,11 @@
 
 #include <boost/optional.hpp>
 
-#include <olp/core/client/BackdownStrategy.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/DefaultLookupEndpointProvider.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/HttpResponse.h>
+#include <olp/core/client/RetrySettings.h>
 #include <olp/core/http/Network.h>
 
 namespace olp {
@@ -60,11 +60,6 @@ using NetworkAsyncCallback = std::function<void(HttpResponse)>;
  * Used to cancel the asynchronous network operation.
  */
 using NetworkAsyncCancel = std::function<void()>;
-
-/**
- * @brief The default retry condition that disables retries.
- */
-CORE_API bool DefaultRetryCondition(const olp::client::HttpResponse& response);
 
 /**
  * @brief A set of settings that manages the `TokenProviderCallback` and
@@ -144,63 +139,6 @@ struct CORE_API AuthenticationSettings {
    * details.
    */
   boost::optional<TokenProviderCancelCallback> cancel;
-};
-
-/**
- * @brief A collection of settings that controls how failed requests should be
- * treated by the Data SDK.
- *
- * For example, it specifies whether the failed request should be retried, how
- * long Data SDK needs to wait for the next retry attempt, the number of maximum
- * retries, and so on.
- *
- * You can customize all of these settings. The settings are used internally by
- * the `OlpClient` class.
- */
-struct CORE_API RetrySettings {
-  /**
-   * @brief Calculates the number of retry timeouts based on
-   * the initial backdown duration and retries count.
-   */
-  using BackdownStrategy = std::function<std::chrono::milliseconds(
-      std::chrono::milliseconds, size_t)>;
-
-  /**
-   * @brief Checks whether the retry is desired.
-   *
-   * @see `HttpResponse` for more details.
-   */
-  using RetryCondition = std::function<bool(const HttpResponse&)>;
-
-  /**
-   * @brief The number of attempts.
-   *
-   * The default value is 3.
-   */
-  int max_attempts = 3;
-
-  /**
-   * @brief The connection timeout limit (in seconds).
-   */
-  int timeout = 60;
-
-  /**
-   * @brief The period between the error and the first retry attempt (in
-   * milliseconds).
-   */
-  int initial_backdown_period = 200;
-
-  /**
-   * @brief The backdown strategy.
-   *
-   * Defines the delay between retries on a failed request.
-   */
-  BackdownStrategy backdown_strategy = ExponentialBackdownStrategy();
-
-  /**
-   * @brief Evaluates responses to determine if the retry should be attempted.
-   */
-  RetryCondition retry_condition = DefaultRetryCondition;
 };
 
 /**

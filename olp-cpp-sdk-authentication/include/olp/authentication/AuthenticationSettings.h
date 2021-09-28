@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 #include <string>
 
 #include <olp/authentication/AuthenticationApi.h>
+#include <olp/core/client/RetrySettings.h>
 #include <olp/core/http/NetworkProxySettings.h>
 #include <boost/optional.hpp>
 
@@ -89,6 +90,12 @@ struct AUTHENTICATION_API AuthenticationSettings {
    * authentication server.
    */
   bool use_system_time{true};
+
+  /**
+   * @brief A collection of settings that controls how failed requests should be
+   * treated.
+   */
+  client::RetrySettings retry_settings;
 };
 
 }  // namespace authentication
