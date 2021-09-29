@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,9 @@ constexpr unsigned int kExpirtyTime = 3600;
 constexpr unsigned int kMaxExpiryTime = kExpirtyTime + 30;
 constexpr unsigned int kMinExpiryTime = kExpirtyTime - 10;
 constexpr unsigned int kExpectedRetryCount = 3;
+
+constexpr auto kMaxRetryAttempts = 5;
+constexpr auto kRetryTimeout = 10;
 
 // HTTP errors
 constexpr auto kErrorOk = "OK";
@@ -177,7 +180,7 @@ class AuthenticationClientTest : public ::testing::Test {
     auth::AuthenticationCredentials credentials(key_, secret_);
     std::promise<auth::AuthenticationClient::SignUpResponse> request;
     auto request_future = request.get_future();
-    olp::authentication::AuthenticationClient::SignUpProperties properties;
+    auth::AuthenticationClient::SignUpProperties properties;
     properties.email = email;
     properties.password = "password123";
     properties.date_of_birth = "31/01/1980";
@@ -219,7 +222,7 @@ class AuthenticationClientTest : public ::testing::Test {
     std::promise<auth::AuthenticationClient::SignInClientResponse> request;
     auto request_future = request.get_future();
 
-    const bool is_retriable = olp::client::DefaultRetryCondition({http});
+    const bool is_retriable = client::DefaultRetryCondition({http});
 
     // First is GetTimeFromServer(). Second is actual SignIn.
     // When the request is retriable, 3 more requests are fired.
@@ -270,7 +273,7 @@ class AuthenticationClientTest : public ::testing::Test {
 
  protected:
   std::shared_ptr<NetworkMock> network_;
-  std::unique_ptr<olp::authentication::AuthenticationClient> client_;
+  std::unique_ptr<auth::AuthenticationClient> client_;
   std::shared_ptr<olp::thread::TaskScheduler> task_scheduler_;
   const std::string key_;
   const std::string secret_;
@@ -869,7 +872,7 @@ TEST_F(AuthenticationClientTest, SignInApple) {
     SCOPED_TRACE("Successful response with HTTP error");
 
     auto get_retry_max_attempts_count = [] {
-      olp::client::RetrySettings retry_settings;
+      client::RetrySettings retry_settings;
       return retry_settings.max_attempts;
     };
 
@@ -1491,7 +1494,7 @@ TEST_F(AuthenticationClientTest, IntrospectApp) {
     auto error = response.GetError();
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(error.GetErrorCode(), olp::client::ErrorCode::Unknown);
+    EXPECT_EQ(error.GetErrorCode(), client::ErrorCode::Unknown);
 
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }
@@ -1541,14 +1544,14 @@ TEST_F(AuthenticationClientTest, Authorize) {
     EXPECT_TRUE(response.IsSuccessful());
     auto result = response.GetResult();
     EXPECT_EQ(result.GetClientId(), "some_id");
-    ASSERT_EQ(result.GetDecision(), olp::authentication::DecisionType::kAllow);
+    ASSERT_EQ(result.GetDecision(), auth::DecisionType::kAllow);
 
     auto it = result.GetActionResults().begin();
-    ASSERT_EQ(it->GetDecision(), olp::authentication::DecisionType::kAllow);
+    ASSERT_EQ(it->GetDecision(), auth::DecisionType::kAllow);
     ASSERT_EQ(it->GetPermissions().front().GetAction(), "read");
     ASSERT_EQ(it->GetPermissions().front().GetResource(), "some_resource");
     ASSERT_EQ(it->GetPermissions().front().GetDecision(),
-              olp::authentication::DecisionType::kAllow);
+              auth::DecisionType::kAllow);
 
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }
@@ -1773,7 +1776,7 @@ TEST_F(AuthenticationClientTest, GetMyAccount) {
     auto error = response.GetError();
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(error.GetErrorCode(), olp::client::ErrorCode::Unknown);
+    EXPECT_EQ(error.GetErrorCode(), client::ErrorCode::Unknown);
 
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }
@@ -1843,4 +1846,265 @@ TEST_F(AuthenticationClientTest, UniqueNonce) {
   testing::Mock::VerifyAndClearExpectations(network_.get());
 
   EXPECT_EQ(nonces.size(), kExpectedRetryCount);
+}
+
+TEST_F(AuthenticationClientTest, RetrySettings) {
+  auth::AuthenticationSettings settings;
+  settings.network_request_handler = network_;
+  settings.token_endpoint_url = kTokenEndpointUrl;
+  settings.task_scheduler = task_scheduler_;
+  settings.use_system_time = true;
+  settings.retry_settings.max_attempts = kMaxRetryAttempts;
+  settings.retry_settings.timeout = kRetryTimeout;
+
+  const auto retry_predicate = testing::Property(
+      &olp::http::NetworkRequest::GetSettings,
+      testing::AllOf(
+          testing::Property(&olp::http::NetworkSettings::GetConnectionTimeout,
+                            kRetryTimeout),
+          testing::Property(&olp::http::NetworkSettings::GetTransferTimeout,
+                            kRetryTimeout)));
+
+  ON_CALL(*network_, Send(retry_predicate, _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(
+          GetResponse(olp::http::HttpStatusCode::TOO_MANY_REQUESTS)
+              .WithError(kErrorTooManyRequestsMessage),
+          kResponseTooManyRequests));
+
+  const auth::AuthenticationCredentials credentials(key_, secret_);
+  client_ = std::make_unique<auth::AuthenticationClient>(std::move(settings));
+
+  {
+    SCOPED_TRACE("SignInClient");
+
+    EXPECT_CALL(*network_, Send(retry_predicate, _, _, _, _))
+        .Times(kMaxRetryAttempts);
+
+    std::promise<auth::AuthenticationClient::SignInClientResponse>
+        response_promise;
+    client_->SignInClient(
+        credentials, auth::AuthenticationClient::SignInProperties{},
+        [&](const auth::AuthenticationClient::SignInClientResponse& value) {
+          response_promise.set_value(value);
+        });
+
+    const auto response = response_promise.get_future().get();
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::TOO_MANY_REQUESTS,
+              response.GetResult().GetStatus());
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("SignInHereUser");
+
+    EXPECT_CALL(*network_, Send(retry_predicate, _, _, _, _))
+        .Times(kMaxRetryAttempts);
+
+    std::promise<auth::AuthenticationClient::SignInUserResponse>
+        response_promise;
+    client_->SignInHereUser(
+        credentials, auth::AuthenticationClient::UserProperties{},
+        [&](const auth::AuthenticationClient::SignInUserResponse& response) {
+          response_promise.set_value(response);
+        });
+
+    const auto response = response_promise.get_future().get();
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::TOO_MANY_REQUESTS,
+              response.GetResult().GetStatus());
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("SignInFederated");
+
+    EXPECT_CALL(*network_, Send(retry_predicate, _, _, _, _))
+        .Times(kMaxRetryAttempts);
+
+    std::promise<auth::AuthenticationClient::SignInUserResponse>
+        response_promise;
+    client_->SignInFederated(
+        credentials,
+        R"({ "grantType": "xyz", "token": "test_token", "realm": "my_realm" })",
+        [&](const auth::AuthenticationClient::SignInUserResponse& response) {
+          response_promise.set_value(response);
+        });
+
+    const auto response = response_promise.get_future().get();
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::TOO_MANY_REQUESTS,
+              response.GetResult().GetStatus());
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("SignInApple");
+
+    EXPECT_CALL(*network_, Send(retry_predicate, _, _, _, _))
+        .Times(kMaxRetryAttempts + 1 /* first request */);
+
+    std::promise<auth::AuthenticationClient::SignInUserResponse>
+        response_promise;
+    client_->SignInApple(
+        auth::AppleSignInProperties{},
+        [&](const auth::AuthenticationClient::SignInUserResponse& response) {
+          response_promise.set_value(response);
+        });
+
+    const auto response = response_promise.get_future().get();
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::TOO_MANY_REQUESTS,
+              response.GetResult().GetStatus());
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("SignInRefresh");
+
+    EXPECT_CALL(*network_, Send(retry_predicate, _, _, _, _))
+        .Times(kMaxRetryAttempts);
+
+    std::promise<auth::AuthenticationClient::SignInUserResponse>
+        response_promise;
+    client_->SignInRefresh(
+        credentials, auth::AuthenticationClient::RefreshProperties{},
+        [&](const auth::AuthenticationClient::SignInUserResponse& response) {
+          response_promise.set_value(response);
+        });
+
+    const auto response = response_promise.get_future().get();
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::TOO_MANY_REQUESTS,
+              response.GetResult().GetStatus());
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("AcceptTerms");
+
+    EXPECT_CALL(*network_, Send(retry_predicate, _, _, _, _))
+        .Times(kMaxRetryAttempts);
+
+    std::promise<auth::AuthenticationClient::SignInUserResponse>
+        response_promise;
+    client_->AcceptTerms(
+        credentials, "reacceptance_token",
+        [&](const auth::AuthenticationClient::SignInUserResponse& response) {
+          response_promise.set_value(response);
+        });
+
+    const auto response = response_promise.get_future().get();
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::TOO_MANY_REQUESTS,
+              response.GetResult().GetStatus());
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("SignUpHereUser");
+
+    EXPECT_CALL(*network_, Send(retry_predicate, _, _, _, _)).Times(1);
+
+    std::promise<auth::AuthenticationClient::SignUpResponse> response_promise;
+    client_->SignUpHereUser(
+        credentials, auth::AuthenticationClient::SignUpProperties{},
+        [&](const auth::AuthenticationClient::SignUpResponse& response) {
+          response_promise.set_value(response);
+        });
+
+    const auto response = response_promise.get_future().get();
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::TOO_MANY_REQUESTS,
+              response.GetResult().GetStatus());
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("SignOut");
+
+    EXPECT_CALL(*network_, Send(retry_predicate, _, _, _, _)).Times(1);
+
+    std::promise<auth::AuthenticationClient::SignOutUserResponse>
+        response_promise;
+    client_->SignOut(
+        credentials, kResponseToken,
+        [&](const auth::AuthenticationClient::SignOutUserResponse& response) {
+          response_promise.set_value(response);
+        });
+
+    const auto response = response_promise.get_future().get();
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::TOO_MANY_REQUESTS,
+              response.GetResult().GetStatus());
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("IntrospectApp");
+
+    EXPECT_CALL(*network_, Send(retry_predicate, _, _, _, _))
+        .Times(kMaxRetryAttempts + 1 /* first request */);
+
+    std::promise<auth::IntrospectAppResponse> response_promise;
+    client_->IntrospectApp(kResponseToken,
+                           [&](const auth::IntrospectAppResponse& response) {
+                             response_promise.set_value(response);
+                           });
+
+    const auto response = response_promise.get_future().get();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::TOO_MANY_REQUESTS,
+              response.GetError().GetHttpStatusCode());
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("Authorize");
+
+    EXPECT_CALL(*network_, Send(retry_predicate, _, _, _, _))
+        .Times(kMaxRetryAttempts + 1 /* first request */);
+
+    std::promise<auth::AuthorizeResponse> response_promise;
+    client_->Authorize(kResponseToken, auth::AuthorizeRequest{},
+                       [&](const auth::AuthorizeResponse& response) {
+                         response_promise.set_value(response);
+                       });
+
+    const auto response = response_promise.get_future().get();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::TOO_MANY_REQUESTS,
+              response.GetError().GetHttpStatusCode());
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
+
+  {
+    SCOPED_TRACE("GetMyAccount");
+
+    EXPECT_CALL(*network_, Send(retry_predicate, _, _, _, _))
+        .Times(kMaxRetryAttempts + 1 /* first request */);
+
+    std::promise<auth::UserAccountInfoResponse> response_promise;
+    client_->GetMyAccount(kResponseToken,
+                          [&](const auth::UserAccountInfoResponse& response) {
+                            response_promise.set_value(response);
+                          });
+
+    const auto response = response_promise.get_future().get();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(olp::http::HttpStatusCode::TOO_MANY_REQUESTS,
+              response.GetError().GetHttpStatusCode());
+
+    testing::Mock::VerifyAndClearExpectations(network_.get());
+  }
 }

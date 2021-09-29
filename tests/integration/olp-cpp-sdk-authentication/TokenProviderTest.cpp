@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@
 #include <olp/core/porting/make_unique.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include "../olp-cpp-sdk-dataservice-read/HttpResponses.h"
+#include "AuthenticationMockedResponses.h"
 
 namespace http = olp::http;
 namespace client = olp::client;
@@ -45,6 +46,8 @@ static constexpr int64_t KVersion = 108;
 static constexpr auto kLayer = "testlayer";
 static constexpr auto kPartition = "269";
 constexpr auto kWaitTimeout = std::chrono::seconds(3);
+constexpr auto kMaxRetryAttempts = 5;
+constexpr auto kRetryTimeout = 10;
 
 // Request defines
 static const std::string kTimestampUrl =
@@ -99,7 +102,7 @@ class TokenProviderTest : public ::testing::Test {
     network_mock_ = std::make_shared<NetworkMock>();
     settings_.network_request_handler = network_mock_;
     settings_.task_scheduler =
-        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
+        client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
   }
 
   void TearDown() override {
@@ -110,30 +113,29 @@ class TokenProviderTest : public ::testing::Test {
 
   template <long long MinimumValidity>
   client::OlpClientSettings GetSettings(bool use_system_time = false) const {
-    olp::client::AuthenticationSettings auth_settings;
-    olp::authentication::Settings token_provider_settings(
+    client::AuthenticationSettings auth_settings;
+    authentication::Settings token_provider_settings(
         {"fake.key.id", "fake.key.secret"});
     token_provider_settings.task_scheduler = settings_.task_scheduler;
     token_provider_settings.network_request_handler =
         settings_.network_request_handler;
     token_provider_settings.use_system_time = use_system_time;
     auth_settings.provider =
-        olp::authentication::TokenProvider<MinimumValidity>(
-            token_provider_settings);
+        authentication::TokenProvider<MinimumValidity>(token_provider_settings);
 
-    olp::client::OlpClientSettings settings = settings_;
+    client::OlpClientSettings settings = settings_;
     settings.authentication_settings = auth_settings;
     return settings;
   }
 
-  olp::client::OlpClientSettings settings_;
+  client::OlpClientSettings settings_;
   std::shared_ptr<NetworkMock> network_mock_;
 };
 
 TEST_F(TokenProviderTest, SingleTokenMultipleUsers) {
   constexpr size_t kCount = 3u;
   auto settings = GetSettings<authentication::kDefaultMinimumValidity>();
-  auto catalog = olp::client::HRN::FromString(kCatalog);
+  auto catalog = client::HRN::FromString(kCatalog);
 
   {
     SCOPED_TRACE("Request token once");
@@ -265,6 +267,38 @@ TEST_F(TokenProviderTest, ConcurrentRequests) {
   }
 
   testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+}
+
+TEST_F(TokenProviderTest, RetrySettings) {
+  authentication::Settings token_provider_settings(
+      {"fake.key.id", "fake.key.secret"});
+  token_provider_settings.task_scheduler = settings_.task_scheduler;
+  token_provider_settings.network_request_handler =
+      settings_.network_request_handler;
+  token_provider_settings.use_system_time = true;
+  token_provider_settings.retry_settings.max_attempts = kMaxRetryAttempts;
+  token_provider_settings.retry_settings.timeout = kRetryTimeout;
+
+  const auto retry_predicate = testing::Property(
+      &http::NetworkRequest::GetSettings,
+      testing::AllOf(
+          testing::Property(&http::NetworkSettings::GetConnectionTimeout,
+                            kRetryTimeout),
+          testing::Property(&http::NetworkSettings::GetTransferTimeout,
+                            kRetryTimeout)));
+
+  EXPECT_CALL(*network_mock_, Send(retry_predicate, _, _, _, _))
+      .Times(kMaxRetryAttempts)
+      .WillRepeatedly(ReturnHttpResponse(
+          GetResponse(olp::http::HttpStatusCode::TOO_MANY_REQUESTS)
+              .WithError("Too many requests"),
+          kResponseTooManyRequests));
+
+  const authentication::TokenProvider<authentication::kDefaultMinimumValidity>
+      token_provider(token_provider_settings);
+
+  const auto token = token_provider();
+  EXPECT_TRUE(token.empty());
 }
 
 }  // namespace

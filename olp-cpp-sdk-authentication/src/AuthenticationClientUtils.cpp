@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -264,8 +264,7 @@ client::OlpClient CreateOlpClient(
   settings.network_request_handler = auth_settings.network_request_handler;
   settings.authentication_settings = authentication_settings;
   settings.proxy_settings = auth_settings.network_proxy_settings;
-  settings.retry_settings.backdown_strategy =
-      client::ExponentialBackdownStrategy();
+  settings.retry_settings = auth_settings.retry_settings;
 
   if (!retry) {
     settings.retry_settings.max_attempts = 0;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,9 +99,6 @@ constexpr auto kOperator = "operator";
 constexpr auto kErrorWrongTimestamp = 401204;
 constexpr auto kLogTag = "AuthenticationClient";
 
-constexpr auto kDefaultRetryCount = 3;
-constexpr auto kDefaultRetryTime = std::chrono::milliseconds(200);
-
 bool HasWrongTimestamp(olp::authentication::SignInResult& result) {
   const auto& error_response = result.GetErrorResponse();
   const auto status = result.GetStatus();
@@ -109,9 +106,10 @@ bool HasWrongTimestamp(olp::authentication::SignInResult& result) {
          error_response.code == kErrorWrongTimestamp;
 }
 
-void RetryDelay(size_t retry) {
-  client::ExponentialBackdownStrategy retry_delay;
-  std::this_thread::sleep_for(retry_delay(kDefaultRetryTime, retry));
+void RetryDelay(const client::RetrySettings& retry_settings, size_t retry) {
+  std::this_thread::sleep_for(retry_settings.backdown_strategy(
+      std::chrono::milliseconds(retry_settings.initial_backdown_period),
+      retry));
 }
 
 client::OlpClient::RequestBodyType GenerateAppleSignInBody(
@@ -284,7 +282,9 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
 
     SignInResult response;
 
-    for (auto retry = 0; retry < kDefaultRetryCount; ++retry) {
+    const auto& retry_settings = settings_.retry_settings;
+
+    for (auto retry = 0; retry < retry_settings.max_attempts; ++retry) {
       if (context.IsCancelled()) {
         return client::ApiError::Cancelled();
       }
@@ -310,8 +310,8 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
 
       response = ParseAuthResponse(status, auth_response.response);
 
-      if (client::DefaultRetryCondition(auth_response)) {
-        RetryDelay(retry);
+      if (retry_settings.retry_condition(auth_response)) {
+        RetryDelay(retry_settings, retry);
         continue;
       }
 
@@ -492,7 +492,9 @@ client::CancellationToken AuthenticationClientImpl::HandleUserRequest(
 
     SignInUserResult response;
 
-    for (auto retry = 0; retry < kDefaultRetryCount; ++retry) {
+    const auto& retry_settings = settings_.retry_settings;
+
+    for (auto retry = 0; retry < retry_settings.max_attempts; ++retry) {
       if (context.IsCancelled()) {
         return client::ApiError::Cancelled();
       }
@@ -517,8 +519,8 @@ client::CancellationToken AuthenticationClientImpl::HandleUserRequest(
 
       response = ParseUserAuthResponse(status, auth_response.response);
 
-      if (client::DefaultRetryCondition(auth_response)) {
-        RetryDelay(retry);
+      if (retry_settings.retry_condition(auth_response)) {
+        RetryDelay(retry_settings, retry);
         continue;
       }
 
@@ -560,10 +562,12 @@ client::CancellationToken AuthenticationClientImpl::SignUpHereUser(
   std::string url = settings_.token_endpoint_url;
   url.append(kUserEndpoint);
   http::NetworkRequest request(url);
-  http::NetworkSettings network_settings;
-  if (settings_.network_proxy_settings) {
-    network_settings.WithProxySettings(settings_.network_proxy_settings.get());
-  }
+  auto network_settings =
+      http::NetworkSettings()
+          .WithTransferTimeout(settings_.retry_settings.timeout)
+          .WithConnectionTimeout(settings_.retry_settings.timeout)
+          .WithProxySettings(settings_.network_proxy_settings.get_value_or({}));
+
   request.WithVerb(http::NetworkRequest::HttpVerb::POST);
 
   auto auth_header = GenerateAuthorizationHeader(
@@ -637,10 +641,12 @@ client::CancellationToken AuthenticationClientImpl::SignOut(
   std::string url = settings_.token_endpoint_url;
   url.append(kSignoutEndpoint);
   http::NetworkRequest request(url);
-  http::NetworkSettings network_settings;
-  if (settings_.network_proxy_settings) {
-    network_settings.WithProxySettings(settings_.network_proxy_settings.get());
-  }
+  auto network_settings =
+      http::NetworkSettings()
+          .WithTransferTimeout(settings_.retry_settings.timeout)
+          .WithConnectionTimeout(settings_.retry_settings.timeout)
+          .WithProxySettings(settings_.network_proxy_settings.get_value_or({}));
+
   request.WithVerb(http::NetworkRequest::HttpVerb::POST);
   request.WithHeader(http::kAuthorizationHeader,
                      GenerateBearerHeader(access_token));

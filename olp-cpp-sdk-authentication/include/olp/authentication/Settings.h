@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 
+#include <olp/core/client/RetrySettings.h>
 #include <olp/core/http/NetworkProxySettings.h>
 
 #include "AuthenticationApi.h"
@@ -98,6 +99,12 @@ struct AUTHENTICATION_API Settings {
    * authentication server.
    */
   bool use_system_time{true};
+
+  /**
+   * @brief A collection of settings that controls how failed requests should be
+   * treated.
+   */
+  client::RetrySettings retry_settings;
 };
 
 }  // namespace authentication

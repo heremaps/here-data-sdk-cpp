@@ -81,6 +81,7 @@ set(OLP_SDK_CLIENT_HEADERS
     ./include/olp/core/client/OlpClientSettings.h
     ./include/olp/core/client/OlpClientSettingsFactory.h
     ./include/olp/core/client/PendingRequests.h
+    ./include/olp/core/client/RetrySettings.h
     ./include/olp/core/client/TaskContext.h
 )
 
@@ -253,11 +254,11 @@ set(OLP_SDK_CLIENT_SOURCES
     ./src/client/HRN.cpp
     ./src/client/OlpClient.cpp
     ./src/client/OlpClientFactory.cpp
-    ./src/client/OlpClientSettings.cpp
     ./src/client/OlpClientSettingsFactory.cpp
     ./src/client/PendingRequests.cpp
     ./src/client/PendingUrlRequests.h
     ./src/client/PendingUrlRequests.cpp
+    ./src/client/RetrySettings.cpp
     ./src/client/Tokenizer.h
 )
 
