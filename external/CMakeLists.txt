@@ -54,6 +54,9 @@ set(OLP_SDK_CPP_RAPIDJSON_TAG "master")
 set(OLP_SDK_CPP_BOOST_URL "https://github.com/boostorg/boost.git")
 set(OLP_SDK_CPP_BOOST_TAG "boost-1.72.0")
 
+set(OLP_SDK_CPP_LMDB_URL "https://github.com/LMDB/lmdb.git")
+set(OLP_SDK_CPP_LMDB_TAG "LMDB_0.9.29")
+
 # Add external projects
 find_package(GTest QUIET)
 if(NOT TARGET GTest AND NOT GTest_FOUND)
@@ -72,6 +75,15 @@ if(OLP_SDK_ENABLE_DEFAULT_CACHE)
         set(leveldb_DIR ${EXTERNAL_leveldb_DIR} PARENT_SCOPE)
         set(leveldb_INCLUDE_DIR ${EXTERNAL_leveldb_INCLUDE_DIR} PARENT_SCOPE)
         set(Snappy_DIR ${EXTERNAL_Snappy_DIR} PARENT_SCOPE)
+    endif()
+endif()
+
+if(OLD_SDK_ENABLE_DEFAULT_CACHE_LMDB)
+    find_package(lmdb QUIET)
+    if(NOT TARGET lmdb AND NOT lmdb_FOUND)
+        add_subdirectory(lmdb)
+        set(lmdb_DIR ${EXTERNAL_lmdb_DIR} PARENT_SCOPE)
+        set(lmdb_INCLUDE_DIR ${EXTERNAL_lmdb_INCLUDE_DIR} PARENT_SCOPE)
     endif()
 endif()
 
