@@ -70,6 +70,14 @@ class AUTHENTICATION_API SignInResult {
   const ErrorFields& GetErrorFields() const;
 
   /**
+   * @brief Gets a full response message.
+   *
+   * @return A string representation of a full json network response if it
+   * contains an error, an empty string otherwise.
+   */
+  const std::string& GetFullMessage() const;
+
+  /**
    * @brief Gets an access token.
    *
    * @return The string that contains the new HERE Account client or user access

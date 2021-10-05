@@ -96,14 +96,26 @@ class AUTHENTICATION_API TokenResult {
    * @return The status code of the HTTP response if a positive value is
    * returned. A negative value indicates a possible networking error. If you
    * get the negative value, retry the request.
+   *
+   * @deprecated Will be removed by 10.2022. Use
+   * `TokenResponse::GetError().GetHttpStatusCode()` instead.
    */
+  OLP_SDK_DEPRECATED(
+      "Will be removed by 10.2022. Use "
+      "`TokenResponse::GetError().GetHttpStatusCode()` instead.")
   int GetHttpStatus() const;
 
   /**
    * @brief Gets an error description.
    *
    * @return The error description of the failed request.
+   *
+   * @deprecated Will be removed by 10.2022. Use
+   * `TokenResponse::GetError().GetMessagee()` instead.
    */
+  OLP_SDK_DEPRECATED(
+      "Will be removed by 10.2022. Use "
+      "`TokenResponse::GetError().GetMessagee()` instead.")
   ErrorResponse GetErrorResponse() const;
 
  private:

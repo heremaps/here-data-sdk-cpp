@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,10 @@ using testing::_;
 namespace {
 const std::string kErrorOk = "OK";
 const std::string kTimestampUrl = R"(https://account.api.here.com/timestamp)";
+const std::string kUnauthorizedMessage =
+    R"JSON({"errorCode":401300,"message":"Signature mismatch. Authorization signature or client credential is wrong."})JSON";
 
-auth::TokenEndpoint::TokenResponse GetTokenFromSyncRequest(
+auth::TokenResponse GetTokenFromSyncRequest(
     olp::client::CancellationToken& cancellationToken,
     const auth::AutoRefreshingToken& autoToken,
     const std::chrono::seconds minimumValidity =
@@ -50,15 +52,15 @@ auth::TokenEndpoint::TokenResponse GetTokenFromSyncRequest(
   return autoToken.GetToken(cancellationToken, minimumValidity);
 }
 
-auth::TokenEndpoint::TokenResponse GetTokenFromAsyncRequest(
+auth::TokenResponse GetTokenFromAsyncRequest(
     olp::client::CancellationToken& cancellationToken,
     const auth::AutoRefreshingToken& autoToken,
     const std::chrono::seconds minimumValidity =
         auth::kDefaultMinimumValiditySeconds) {
-  std::promise<auth::TokenEndpoint::TokenResponse> promise;
+  std::promise<auth::TokenResponse> promise;
   auto future = promise.get_future();
   cancellationToken = autoToken.GetToken(
-      [&promise](auth::TokenEndpoint::TokenResponse tokenResponse) {
+      [&promise](auth::TokenResponse tokenResponse) {
         promise.set_value(tokenResponse);
       },
       minimumValidity);
@@ -67,15 +69,15 @@ auth::TokenEndpoint::TokenResponse GetTokenFromAsyncRequest(
 
 void TestAutoRefreshingTokenCancel(
     auth::TokenEndpoint& token_endpoint,
-    std::function<auth::TokenEndpoint::TokenResponse(
-        olp::client::CancellationToken& cancellationToken,
-        const auth::AutoRefreshingToken& autoToken,
-        const std::chrono::seconds minimumValidity)>
+    std::function<
+        auth::TokenResponse(olp::client::CancellationToken& cancellationToken,
+                            const auth::AutoRefreshingToken& autoToken,
+                            const std::chrono::seconds minimumValidity)>
         func) {
   auto autoToken = token_endpoint.RequestAutoRefreshingToken();
 
   std::thread threads[2];
-  auto tokenResponses = std::vector<auth::TokenEndpoint::TokenResponse>();
+  auto tokenResponses = std::vector<auth::TokenResponse>();
   std::mutex tokenResponsesMutex;
   olp::client::CancellationToken cancellationToken;
 
@@ -101,6 +103,8 @@ void TestAutoRefreshingTokenCancel(
   threads[1].join();
 
   ASSERT_EQ(tokenResponses.size(), 2u);
+  ASSERT_TRUE(tokenResponses[0]);
+  ASSERT_TRUE(tokenResponses[1]);
   ASSERT_EQ(tokenResponses[0].GetResult().GetAccessToken(),
             tokenResponses[1].GetResult().GetAccessToken());
   ASSERT_LE(std::abs(tokenResponses[1].GetResult().GetExpiryTime() -
@@ -213,9 +217,9 @@ TEST_F(HereAccountOauth2Test, AutoRefreshingTokenBackendError) {
       cancellationToken, token_endpoint.RequestAutoRefreshingToken(),
       auth::kDefaultMinimumValiditySeconds);
 
-  EXPECT_TRUE(token.IsSuccessful());
-  EXPECT_NE(token.GetResult().GetErrorResponse().code, 0);
-  EXPECT_EQ(token.GetResult().GetHttpStatus(),
+  EXPECT_FALSE(token);
+  EXPECT_EQ(token.GetError().GetMessage(), kUnauthorizedMessage);
+  EXPECT_EQ(token.GetError().GetHttpStatusCode(),
             olp::http::HttpStatusCode::UNAUTHORIZED);
 }
 

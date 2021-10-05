@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 #include <olp/authentication/AuthenticationError.h>
 #include <olp/authentication/AuthorizeResult.h>
 #include <olp/authentication/IntrospectAppResult.h>
+#include <olp/authentication/TokenResult.h>
 #include <olp/authentication/UserAccountInfoResponse.h>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
@@ -56,5 +57,8 @@ using UserAccountInfoResponse = Response<model::UserAccountInfoResponse>;
 
 /// Called when the get user account request is completed.
 using UserAccountInfoCallback = Callback<model::UserAccountInfoResponse>;
+
+/// The access token response type.
+using TokenResponse = Response<TokenResult>;
 }  // namespace authentication
 }  // namespace olp

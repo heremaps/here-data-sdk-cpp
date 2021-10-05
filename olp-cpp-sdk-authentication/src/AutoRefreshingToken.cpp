@@ -31,10 +31,15 @@ namespace {
 constexpr auto kLogTag = "authentication::AutoRefreshingToken";
 
 std::chrono::steady_clock::time_point ComputeRefreshTime(
-    std::chrono::seconds expires_in,
+    const olp::authentication::TokenResponse& current_token,
     const std::chrono::seconds& minimum_validity) {
   auto now = std::chrono::steady_clock::now();
-  auto expiry_time_chrono = now + expires_in;
+
+  if (!current_token) {
+    return now;
+  }
+
+  auto expiry_time_chrono = now + current_token.GetResult().GetExpiresIn();
   return (expiry_time_chrono <= now) ? now
                                      : (expiry_time_chrono - minimum_validity);
 }
@@ -52,9 +57,8 @@ struct AutoRefreshingToken::Impl {
         current_token_(),
         token_refresh_time_() {}
 
-  TokenEndpoint::TokenResponse GetToken(
-      client::CancellationToken& cancellation_token,
-      std::chrono::seconds minimum_validity) {
+  TokenResponse GetToken(client::CancellationToken& cancellation_token,
+                         std::chrono::seconds minimum_validity) {
     if (ForceRefresh(minimum_validity) || ShouldRefreshNow()) {
       OLP_SDK_LOG_INFO_F(kLogTag, "Time to refresh token");
       TryRefreshCurrentToken(cancellation_token, minimum_validity);
@@ -93,23 +97,17 @@ struct AutoRefreshingToken::Impl {
 
     if (!current_token_.IsSuccessful()) {
       OLP_SDK_LOG_INFO_F(
-          kLogTag, "Token NOK, code=%d, error=%s",
+          kLogTag, "Token NOK, error_code=%d, http_status=%d, message='%s'",
           static_cast<int>(current_token_.GetError().GetErrorCode()),
+          current_token_.GetError().GetHttpStatusCode(),
           current_token_.GetError().GetMessage().c_str());
-    } else if (current_token_.GetResult().GetErrorResponse().code != 0) {
-      const auto& result = current_token_.GetResult();
-      OLP_SDK_LOG_INFO_F(kLogTag, "Token NOK, status=%d, code=%d, error=%s",
-                         static_cast<int>(result.GetHttpStatus()),
-                         static_cast<int>(result.GetErrorResponse().code),
-                         result.GetErrorResponse().message.c_str());
     } else {
       auto expiry_time = current_token_.GetResult().GetExpiryTime();
       OLP_SDK_LOG_INFO_F(kLogTag, "Token OK, expires=%s",
                          std::asctime(std::gmtime(&expiry_time)));
     }
 
-    token_refresh_time_ = ComputeRefreshTime(
-        current_token_.GetResult().GetExpiresIn(), minimum_validity);
+    token_refresh_time_ = ComputeRefreshTime(current_token_, minimum_validity);
   }
 
   client::CancellationToken TryRefreshCurrentToken(
@@ -123,37 +121,32 @@ struct AutoRefreshingToken::Impl {
 
     return token_endpoint_.RequestToken(
         token_request_,
-        [&, callback, minimum_validity](TokenEndpoint::TokenResponse response) {
-          current_token = response;
+        [&, callback, minimum_validity](TokenResponse response) {
+          current_token = std::move(response);
 
           if (!current_token.IsSuccessful()) {
             OLP_SDK_LOG_INFO_F(
-                kLogTag, "Token NOK, code=%d, error=%s",
+                kLogTag,
+                "Token NOK, error_code=%d, http_status=%d, message='%s'",
                 static_cast<int>(current_token.GetError().GetErrorCode()),
+                current_token.GetError().GetHttpStatusCode(),
                 current_token.GetError().GetMessage().c_str());
-          } else if (current_token.GetResult().GetErrorResponse().code != 0) {
-            const auto& result = current_token.GetResult();
-            OLP_SDK_LOG_INFO_F(kLogTag,
-                               "Token NOK, status=%d code=%d, error=%s",
-                               static_cast<int>(result.GetHttpStatus()),
-                               static_cast<int>(result.GetErrorResponse().code),
-                               result.GetErrorResponse().message.c_str());
           } else {
             auto expiry_time = current_token.GetResult().GetExpiryTime();
             OLP_SDK_LOG_INFO_F(kLogTag, "Token OK, expires=%s",
                                std::asctime(std::gmtime(&expiry_time)));
           }
 
-          token_refresh_time = ComputeRefreshTime(
-              current_token.GetResult().GetExpiresIn(), minimum_validity);
-          callback(response);
+          token_refresh_time =
+              ComputeRefreshTime(current_token, minimum_validity);
+          callback(current_token);
         });
   }
 
  private:
   TokenEndpoint token_endpoint_;
   TokenRequest token_request_;
-  TokenEndpoint::TokenResponse current_token_;
+  TokenResponse current_token_;
   std::chrono::steady_clock::time_point token_refresh_time_;
   std::mutex token_mutex_;
 };
@@ -163,13 +156,13 @@ AutoRefreshingToken::AutoRefreshingToken(TokenEndpoint token_endpoint,
     : impl_(std::make_shared<AutoRefreshingToken::Impl>(
           std::move(token_endpoint), std::move(token_request))) {}
 
-TokenEndpoint::TokenResponse AutoRefreshingToken::GetToken(
+TokenResponse AutoRefreshingToken::GetToken(
     client::CancellationToken& cancellation_token,
     const std::chrono::seconds& minimum_validity) const {
   return impl_->GetToken(cancellation_token, minimum_validity);
 }
 
-TokenEndpoint::TokenResponse AutoRefreshingToken::GetToken(
+TokenResponse AutoRefreshingToken::GetToken(
     const std::chrono::seconds& minimum_validity) const {
   client::CancellationToken cancellation_token;
   return impl_->GetToken(cancellation_token, minimum_validity);

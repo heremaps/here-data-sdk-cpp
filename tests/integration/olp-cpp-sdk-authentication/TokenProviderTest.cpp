@@ -90,6 +90,9 @@ static const std::string kResponseToken =
     "dcYqkJcZh195ojzeAcvDGI6HqS2zUMTdpYUhlwwfpkxGwrFmlAxgx58xKSeVt0sPvtabZBAW8u"
     "h2NGg";
 
+static const std::string kResponseTooManyRequests =
+    R"JSON({"errorCode":429002,"message":"Request blocked because too many requests were made. Please wait for a while before making a new request."})JSON";
+
 http::NetworkResponse GetResponse(int status) {
   return http::NetworkResponse().WithStatus(status);
 }
@@ -290,15 +293,93 @@ TEST_F(TokenProviderTest, RetrySettings) {
   EXPECT_CALL(*network_mock_, Send(retry_predicate, _, _, _, _))
       .Times(kMaxRetryAttempts)
       .WillRepeatedly(ReturnHttpResponse(
-          GetResponse(olp::http::HttpStatusCode::TOO_MANY_REQUESTS)
+          GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS)
               .WithError("Too many requests"),
           kResponseTooManyRequests));
 
-  const authentication::TokenProvider<authentication::kDefaultMinimumValidity>
-      token_provider(token_provider_settings);
+  const authentication::TokenProviderDefault token_provider(
+      token_provider_settings);
 
-  const auto token = token_provider();
-  EXPECT_TRUE(token.empty());
+  client::CancellationContext context;
+  const auto token = token_provider(context);
+  ASSERT_FALSE(token);
+  EXPECT_EQ(token.GetError().GetHttpStatusCode(),
+            http::HttpStatusCode::TOO_MANY_REQUESTS);
+}
+
+TEST_F(TokenProviderTest, CancellableProvider) {
+  authentication::Settings token_provider_settings(
+      {"fake.key.id", "fake.key.secret"});
+  token_provider_settings.task_scheduler = settings_.task_scheduler;
+  token_provider_settings.network_request_handler =
+      settings_.network_request_handler;
+  token_provider_settings.use_system_time = true;
+  token_provider_settings.retry_settings.max_attempts = 1u;  // Disable retries
+
+  {
+    SCOPED_TRACE("TokenResult contains token");
+
+    const int status_code = http::HttpStatusCode::OK;
+
+    EXPECT_CALL(*network_mock_, Send(IsPostRequest(kOAuthTokenUrl), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(GetResponse(status_code), kResponseValidJson));
+
+    const authentication::TokenProviderDefault token_provider(
+        token_provider_settings);
+
+    client::CancellationContext context;
+    const auto token_response = token_provider(context);
+    ASSERT_TRUE(token_response);
+    EXPECT_EQ(token_response.GetResult().GetAccessToken(), kResponseToken);
+
+    EXPECT_TRUE(token_provider);
+    EXPECT_EQ(token_provider.GetHttpStatusCode(), status_code);
+
+    testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+
+  {
+    SCOPED_TRACE("TokenResult contains error");
+
+    const int status_code = http::HttpStatusCode::TOO_MANY_REQUESTS;
+
+    EXPECT_CALL(*network_mock_, Send(IsPostRequest(kOAuthTokenUrl), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            GetResponse(status_code).WithError("Too many requests"),
+            kResponseTooManyRequests));
+
+    const authentication::TokenProviderDefault token_provider(
+        token_provider_settings);
+
+    client::CancellationContext context;
+    const auto token_response = token_provider(context);
+    ASSERT_FALSE(token_response);
+    EXPECT_EQ(token_response.GetError().GetHttpStatusCode(), status_code);
+    EXPECT_EQ(token_response.GetError().GetMessage(), kResponseTooManyRequests);
+
+    testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+
+  {
+    SCOPED_TRACE("TokenResponse is not successful");
+
+    // Disables the network to get an error.
+    token_provider_settings.network_request_handler = nullptr;
+
+    const authentication::TokenProviderDefault token_provider(
+        token_provider_settings);
+
+    client::CancellationContext context;
+    const auto token_response = token_provider(context);
+    ASSERT_FALSE(token_response);
+    EXPECT_EQ(token_response.GetError().GetErrorCode(),
+              client::ErrorCode::NetworkConnection);
+    EXPECT_EQ(token_response.GetError().GetMessage(),
+              "Cannot sign in while offline");
+
+    testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
 }
 
 }  // namespace
