@@ -28,6 +28,10 @@ if(OLP_SDK_ENABLE_DEFAULT_CACHE)
     find_package(leveldb REQUIRED)
 endif()
 
+if(OLD_SDK_ENABLE_DEFAULT_CACHE_LMDB)
+    find_package(lmdb REQUIRED)
+endif()
+
 configure_file(./include/olp/core/Config.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/olp/core/Config.h)
 
 include(configs/ConfigNetwork.cmake)
@@ -372,6 +376,10 @@ if(OLP_SDK_ENABLE_DEFAULT_CACHE)
     set(OLP_SDK_CORE_SOURCES ${OLP_SDK_CORE_SOURCES} ${OLP_SDK_CACHE_SOURCES})
 endif()
 
+if(OLP_SDK_ENABLE_DEFAULT_CACHE_LMDB)
+    # TODO: include LMDB cache implementation source files here
+endif()
+
 add_library(${PROJECT_NAME} ${OLP_SDK_CORE_SOURCES} ${OLP_SDK_CORE_HEADERS})
 
 if (OLP_SDK_DISABLE_DEBUG_LOGGING)
@@ -425,6 +433,17 @@ if(OLP_SDK_ENABLE_DEFAULT_CACHE)
     target_link_libraries(${PROJECT_NAME}
         PRIVATE
             leveldb::leveldb
+    )
+endif()
+
+if(OLD_SDK_ENABLE_DEFAULT_CACHE_LMDB)
+    target_include_directories(${PROJECT_NAME}
+        PUBLIC
+            $<BUILD_INTERFACE:${lmdb_INCLUDE_DIR}>
+    )
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+            lmdb::lmdb
     )
 endif()
 
