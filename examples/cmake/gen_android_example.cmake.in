@@ -1,4 +1,4 @@
-# Copyright (C) 2019 HERE Europe B.V.
+# Copyright (C) 2021 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -59,6 +59,11 @@ function(gen_android_example_application
     set(OLP_SDK_EXAMPLE_LEVELDB_DIR "-Dleveldb_DIR='path to the directory which contains LevelDB cmake config files'")
     if (DEFINED leveldb_DIR)
         set(OLP_SDK_EXAMPLE_LEVELDB_DIR "-Dleveldb_DIR=${leveldb_DIR}")
+    endif()
+
+    set(OLP_SDK_EXAMPLE_LMDB_DIR "-Dlmdb_DIR='path to the directory which contains LMDB cmake config files'")
+    if (DEFINED lmdb_DIR)
+        set(OLP_SDK_EXAMPLE_LMDB_DIR "-Dlmdb_DIR=${lmdb_DIR}")
     endif()
 
     configure_file(
