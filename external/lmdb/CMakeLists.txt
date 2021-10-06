@@ -45,4 +45,5 @@ if(result)
 endif()
 
 # Provide the dir to the lmdb cmake configuration files
+set(EXTERNAL_lmdb_DIR ${EXTERNAL_BINARY_INSTALL_DIR}/lib/cmake/lmdb PARENT_SCOPE)
 set(EXTERNAL_lmdb_INCLUDE_DIR ${EXTERNAL_BINARY_INSTALL_DIR}/include PARENT_SCOPE)

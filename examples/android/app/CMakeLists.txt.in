@@ -40,6 +40,10 @@ find_package(olp-cpp-sdk-dataservice-write REQUIRED)
 find_package(leveldb REQUIRED)
 find_package(Threads REQUIRED)
 
+if(OLP_SDK_ENABLE_DEFAULT_CACHE_LMDB)
+    find_package(lmdb REQUIRED)
+endif()
+
 add_library(@OLP_SDK_EXAMPLE_TARGET_NAME@ SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/Examples.h
 	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/ReadExample.h
