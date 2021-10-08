@@ -60,6 +60,13 @@ function(gen_android_example_application
     if (DEFINED leveldb_DIR)
         set(OLP_SDK_EXAMPLE_LEVELDB_DIR "-Dleveldb_DIR=${leveldb_DIR}")
     endif()
+	
+    if(OLP_SDK_ENABLE_DEFAULT_CACHE_LMDB)
+        set(OLP_SDK_EXAMPLE_LMDB_DIR "-Dlmdb_DIR='path to the directory which contains LMDB cmake config files'")
+        if (DEFINED lmdb_DIR)
+            set(OLP_SDK_EXAMPLE_LMDB_DIR "-Dlmdb_DIR=${lmdb_DIR}")
+        endif()
+    endif()
 
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/android/app/build.gradle.in

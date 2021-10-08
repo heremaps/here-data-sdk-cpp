@@ -21,13 +21,16 @@ android {
                 //  2. OLP_SDK_HTTP_CLIENT_JAR - path to the OlpHttpClient.jar file; usually it stored in the <olp-build-folder>/olp-cpp-sdk-core/
                 //  3. (If not installed to the sysroot) path to the levelDB library:
                 //      - leveldb_DIR;
-                //  4. (If not installed to the sysroot) - path to the OLP SDK cmake config files:
+                //  4. (If not installed to the sysroot) path to the lmdb library:
+                //      - lmdb_DIR;
+                //  5. (If not installed to the sysroot) - path to the OLP SDK cmake config files:
                 //      - olp-cpp-sdk-core_DIR;
                 //      - olp-cpp-sdk-dataservice-write_DIR;
                 //      - olp-cpp-sdk-authentication_DIR
                 arguments "@OLP_SDK_EXAMPLE_ANDROID_TOOLCHAIN_FILE@",
                         "@OLP_SDK_EXAMPLE_HTTP_CLIENT_JAR@",
                         "@OLP_SDK_EXAMPLE_LEVELDB_DIR@",
+                        "@OLP_SDK_EXAMPLE_LMDB_DIR@",
                         // required for finding installed packages in sysroot
                         "-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH",
                         "-DBOOST_ROOT=@BOOST_ROOT@",
