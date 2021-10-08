@@ -42,7 +42,8 @@ option(OLP_SDK_BUILD_EXTERNAL_DEPS "Download and build external dependencies" ON
 option(OLP_SDK_BUILD_EXAMPLES "Enable examples targets" OFF)
 option(OLP_SDK_MSVC_PARALLEL_BUILD_ENABLE "Enable parallel build on MSVC" ON)
 option(OLP_SDK_DISABLE_DEBUG_LOGGING "Disable debug and trace level logging" OFF)
-option(OLP_SDK_ENABLE_DEFAULT_CACHE "Enable default cache implementation" ON)
+option(OLP_SDK_ENABLE_DEFAULT_CACHE "Enable default cache implementation based on LevelDB" ON)
+option(OLP_SDK_ENABLE_DEFAULT_CACHE_LMDB "Enable default cache implementation based on LMDB" OFF)
 
 # C++ standard version. Minimum supported version is 11.
 set(CMAKE_CXX_STANDARD 11)

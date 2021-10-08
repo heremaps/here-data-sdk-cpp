@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2020 HERE Europe B.V.
+# Copyright (C) 2019-2021 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,6 +39,10 @@ find_package(olp-cpp-sdk-dataservice-write REQUIRED)
 
 find_package(leveldb REQUIRED)
 find_package(Threads REQUIRED)
+
+if(OLP_SDK_ENABLE_DEFAULT_CACHE_LMDB)
+    find_package(lmdb REQUIRED)
+endif()
 
 add_library(@OLP_SDK_EXAMPLE_TARGET_NAME@ SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/Examples.h

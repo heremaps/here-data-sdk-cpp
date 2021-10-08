@@ -186,6 +186,7 @@ cmake --build . --target docs
 | `OLP_SDK_MSVC_PARALLEL_BUILD_ENABLE` (Windows Only) | Defaults to `ON`. If enabled, the `/MP` compilation flag is added to build the Data SDK using multiple cores. |
 | `OLP_SDK_DISABLE_DEBUG_LOGGING`| Defaults to `OFF`. If enabled, the debug and trace level log messages are not printed. |
 | `OLP_SDK_ENABLE_DEFAULT_CACHE `| Defaults to `ON`. If enabled, the default cache implementation based on the LevelDB backend is enabled. |
+| `OLP_SDK_ENABLE_DEFAULT_CACHE_LMDB `| Defaults to `OFF`. If enabled, the default cache implementation based on the LMDB backend is enabled. |
 
 ## Use the SDK
 
