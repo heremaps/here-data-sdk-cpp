@@ -20,11 +20,10 @@
 #include "BaseResult.h"
 
 #include <rapidjson/document.h>
+#include <rapidjson/writer.h>
 
 #include "Constants.h"
 #include "olp/core/http/HttpStatusCode.h"
-
-using namespace rapidjson;
 
 namespace olp {
 namespace authentication {
@@ -36,7 +35,7 @@ static const char* ERROR_MESSAGE = "message";
 static const char* LINE_END = ".";
 
 BaseResult::BaseResult(int status, std::string error,
-                       std::shared_ptr<Document> json_document)
+                       std::shared_ptr<rapidjson::Document> json_document)
     : status_()
 
 {
@@ -48,6 +47,13 @@ BaseResult::BaseResult(int status, std::string error,
   if (!HasError() || !is_valid_ || !json_document->HasMember(ERROR_CODE)) {
     return;
   }
+
+  // The JSON document has an error code member, so save full JSON content to
+  // the `full_message_` string.
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  json_document->Accept(writer);
+  full_message_ = buffer.GetString();
 
   if (json_document->HasMember(ERROR_ID)) {
     error_.error_id = (*json_document)[ERROR_ID].GetString();
@@ -66,10 +72,10 @@ BaseResult::BaseResult(int status, std::string error,
   }
 
   error_.message = message.substr(0, message.find_first_of(LINE_END) + 1);
-  const Value& fields = (*json_document)[ERROR_FIELDS];
-  if (fields.GetType() == kArrayType) {
-    for (SizeType i = 0; i < fields.Size(); i++) {
-      const Value& field = fields[i];
+  const rapidjson::Value& fields = (*json_document)[ERROR_FIELDS];
+  if (fields.GetType() == rapidjson::kArrayType) {
+    for (rapidjson::SizeType i = 0u; i < fields.Size(); i++) {
+      const rapidjson::Value& field = fields[i];
       if (field.HasMember(ERROR_MESSAGE)) {
         ErrorField error_field;
         error_field.name = field[FIELD_NAME].GetString();
@@ -88,6 +94,8 @@ int BaseResult::GetStatus() const { return status_; }
 const ErrorResponse& BaseResult::GetErrorResponse() const { return error_; }
 
 const ErrorFields& BaseResult::GetErrorFields() const { return error_fields_; }
+
+const std::string& BaseResult::GetFullMessage() const { return full_message_; }
 
 bool BaseResult::HasError() const {
   return status_ != http::HttpStatusCode::OK;

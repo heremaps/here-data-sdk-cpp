@@ -29,7 +29,10 @@
 #include <olp/authentication/Settings.h>
 #include <olp/authentication/TokenEndpoint.h>
 #include <olp/authentication/TokenResult.h>
+#include <olp/authentication/Types.h>
+#include <olp/core/client/CancellationContext.h>
 #include <olp/core/http/HttpStatusCode.h>
+#include <olp/core/utils/WarningWorkarounds.h>
 
 namespace olp {
 namespace authentication {
@@ -85,8 +88,26 @@ class TokenProvider {
    *
    * @returns The access token string if the response is successful; an empty
    * string otherwise.
+   *
+   * @deprecated Will be removed by 10.2022. Use the operator with
+   * `CancellationContext` instead.
    */
+  OLP_SDK_DEPRECATED(
+      "Will be removed by 10.2022. Use the operator with `CancellationContext` "
+      "instead.")
   std::string operator()() const { return impl_->operator()(); }
+
+  /**
+   * @brief Returns the access token or an error.
+   *
+   * @param context Used to cancel the pending token request.
+   *
+   * @returns An `TokenResult` if the response is successful; an
+   * `AuthenticationError` otherwise.
+   */
+  TokenResponse operator()(client::CancellationContext& context) const {
+    return impl_->operator()(context);
+  }
 
   /**
    * @brief Allows the `olp::client::ApiError` object associated
@@ -107,9 +128,6 @@ class TokenProvider {
  private:
   class TokenProviderImpl {
    public:
-    static constexpr auto kValidTokenResponseCode = 0ul;
-    using TokenResponse = TokenEndpoint::TokenResponse;
-
     explicit TokenProviderImpl(Settings settings,
                                std::chrono::seconds minimum_validity)
         : minimum_validity_{minimum_validity},
@@ -119,42 +137,50 @@ class TokenProvider {
 
     /// @copydoc TokenProvider::operator()()
     std::string operator()() const {
-      auto response = GetResponse();
-      return response.IsSuccessful() ? response.GetResult().GetAccessToken()
-                                     : "";
+      client::CancellationContext context;
+      const auto response = GetResponse(context);
+      return response ? response.GetResult().GetAccessToken() : "";
+    }
+
+    /// @copydoc TokenProvider::operator()(client::CancellationContext)
+    TokenResponse operator()(client::CancellationContext& context) const {
+      return GetResponse(context);
     }
 
     /// @copydoc TokenProvider::GetErrorResponse()
     ErrorResponse GetErrorResponse() const {
-      auto response = GetResponse();
-      return response.IsSuccessful() ? response.GetResult().GetErrorResponse()
-                                     : ErrorResponse{};
+      client::CancellationContext context;
+      const auto response = GetResponse(context);
+      return response ? response.GetResult().GetErrorResponse()
+                      : ErrorResponse{};
     }
 
     /// @copydoc TokenProvider::GetHttpStatusCode()
     int GetHttpStatusCode() const {
-      auto response = GetResponse();
-      return response.IsSuccessful()
-                 ? response.GetResult().GetHttpStatus()
-                 : http::HttpStatusCode::SERVICE_UNAVAILABLE;
+      client::CancellationContext context;
+      const auto response = GetResponse(context);
+      return response ? response.GetResult().GetHttpStatus()
+                      : response.GetError().GetHttpStatusCode();
     }
 
-    /// Get the token response from AutoRefreshingToken or request a new token
-    /// if expired or not present.
-    TokenResponse GetResponse() const {
-      /// Mutex is needed to prevent multiple authorization requests, that could
-      /// happen when the token is not yet available, and multiple consumers
-      /// requested it.
+    /// Gets the token response from `AutoRefreshingToken` or requests a new
+    /// token if the token response expired or is not present.
+    TokenResponse GetResponse(client::CancellationContext& context) const {
+      OLP_SDK_CORE_UNUSED(context);
+
+      // Mutex is needed to prevent multiple authorization requests that can
+      // happen when the token is not available, and multiple consumers
+      // requested it.
       std::lock_guard<std::mutex> lock(request_mutex_);
       return token_.GetToken(minimum_validity_);
     }
 
-    /// Check if the available token response is valid, i.e. error code is 0.
+    /// Checks whether the available token response is valid.
     bool IsTokenResponseOK() const {
-      const auto response = GetResponse();
-      return response.IsSuccessful() &&
-             response.GetResult().GetErrorResponse().code ==
-                 kValidTokenResponseCode;
+      client::CancellationContext context;
+
+      // Token response is successful if and only if we have a valid token.
+      return GetResponse(context).IsSuccessful();
     }
 
    private:

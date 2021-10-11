@@ -56,8 +56,7 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed by 10.2020.")
    * @brief Specifies the callback signature that is required
    * when the get token request is completed.
    */
-  using GetTokenCallback =
-      std::function<void(const TokenEndpoint::TokenResponse& response)>;
+  using GetTokenCallback = std::function<void(const TokenResponse& response)>;
 
   /**
    * @brief Synchronously gets a token that is always fresh.
@@ -80,10 +79,9 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed by 10.2020.")
    * Otherwise, returns the cached `TokenResponse` instance.
    */
 
-  TokenEndpoint::TokenResponse GetToken(
-      client::CancellationToken& cancellation_token,
-      const std::chrono::seconds& minimum_validity =
-          kDefaultMinimumValiditySeconds) const;
+  TokenResponse GetToken(client::CancellationToken& cancellation_token,
+                         const std::chrono::seconds& minimum_validity =
+                             kDefaultMinimumValiditySeconds) const;
 
   /**
    * @brief Synchronously gets a token that is always fresh.
@@ -104,9 +102,8 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed by 10.2020.")
    * @return The `TokenResponse` instance if the old one is expired.
    * Otherwise, the cached `TokenResponse` instance.
    */
-  TokenEndpoint::TokenResponse GetToken(
-      const std::chrono::seconds& minimum_validity =
-          kDefaultMinimumValiditySeconds) const;
+  TokenResponse GetToken(const std::chrono::seconds& minimum_validity =
+                             kDefaultMinimumValiditySeconds) const;
 
   /**
    * @brief Asynchronously gets a token that is always fresh.

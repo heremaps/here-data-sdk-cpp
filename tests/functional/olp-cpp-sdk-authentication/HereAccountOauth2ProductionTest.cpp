@@ -45,21 +45,21 @@ PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 namespace {
 constexpr auto kTestMaxExecutionTime = std::chrono::seconds(30);
 
-authentication::TokenEndpoint::TokenResponse GetTokenFromSyncRequest(
+authentication::TokenResponse GetTokenFromSyncRequest(
     const authentication::AutoRefreshingToken& auto_token,
     const std::chrono::seconds minimum_validity =
         authentication::kDefaultMinimumValiditySeconds) {
   return auto_token.GetToken(minimum_validity);
 }
 
-authentication::TokenEndpoint::TokenResponse GetTokenFromAsyncRequest(
+authentication::TokenResponse GetTokenFromAsyncRequest(
     const authentication::AutoRefreshingToken& auto_token,
     const std::chrono::seconds minimum_validity =
         authentication::kDefaultMinimumValiditySeconds) {
-  std::promise<authentication::TokenEndpoint::TokenResponse> promise;
+  std::promise<authentication::TokenResponse> promise;
   auto future = promise.get_future();
   auto_token.GetToken(
-      [&promise](authentication::TokenEndpoint::TokenResponse token_response) {
+      [&promise](authentication::TokenResponse token_response) {
         promise.set_value(token_response);
       },
       minimum_validity);
@@ -68,7 +68,7 @@ authentication::TokenEndpoint::TokenResponse GetTokenFromAsyncRequest(
 
 void TestAutoRefreshingTokenValidRequest(
     authentication::TokenEndpoint& token_endpoint,
-    std::function<authentication::TokenEndpoint::TokenResponse(
+    std::function<authentication::TokenResponse(
         const authentication::AutoRefreshingToken& auto_token)>
         func) {
   auto token_response = func(token_endpoint.RequestAutoRefreshingToken());
@@ -79,7 +79,7 @@ void TestAutoRefreshingTokenValidRequest(
 
 void TestAutoRefreshingTokenInvalidRequest(
     const std::shared_ptr<olp::http::Network>& network,
-    std::function<authentication::TokenEndpoint::TokenResponse(
+    std::function<authentication::TokenResponse(
         const authentication::AutoRefreshingToken& auto_token)>
         func) {
   authentication::Settings settings({"BAD", "BAD"});
@@ -96,7 +96,7 @@ void TestAutoRefreshingTokenInvalidRequest(
 
 void TestAutoRefreshingTokenReuseToken(
     authentication::TokenEndpoint& token_endpoint,
-    std::function<authentication::TokenEndpoint::TokenResponse(
+    std::function<authentication::TokenResponse(
         const authentication::AutoRefreshingToken& auto_token)>
         func) {
   auto auto_token = token_endpoint.RequestAutoRefreshingToken();
@@ -110,7 +110,7 @@ void TestAutoRefreshingTokenReuseToken(
 
 void TestAutoRefreshingTokenForceRefresh(
     authentication::TokenEndpoint& token_endpoint,
-    std::function<authentication::TokenEndpoint::TokenResponse(
+    std::function<authentication::TokenResponse(
         const authentication::AutoRefreshingToken& auto_token,
         const std::chrono::seconds minimum_validity)>
         func) {
@@ -124,7 +124,7 @@ void TestAutoRefreshingTokenForceRefresh(
 
 void TestAutoRefreshingTokenExpiresInRefresh(
     authentication::TokenEndpoint& token_endpoint,
-    std::function<authentication::TokenEndpoint::TokenResponse(
+    std::function<authentication::TokenResponse(
         const authentication::AutoRefreshingToken& auto_token)>
         func) {
   auto auto_token = token_endpoint.RequestAutoRefreshingToken(
@@ -141,7 +141,7 @@ void TestAutoRefreshingTokenExpiresInRefresh(
 
 void TestAutoRefreshingTokenExpiresDoNotRefresh(
     authentication::TokenEndpoint& token_endpoint,
-    std::function<authentication::TokenEndpoint::TokenResponse(
+    std::function<authentication::TokenResponse(
         const authentication::AutoRefreshingToken& auto_token)>
         func) {
   auto auto_token = token_endpoint.RequestAutoRefreshingToken(
@@ -158,7 +158,7 @@ void TestAutoRefreshingTokenExpiresDoNotRefresh(
 
 void TestAutoRefreshingTokenExpiresDoRefresh(
     authentication::TokenEndpoint& token_endpoint,
-    std::function<authentication::TokenEndpoint::TokenResponse(
+    std::function<authentication::TokenResponse(
         const authentication::AutoRefreshingToken& auto_token,
         const std::chrono::seconds minimum_validity)>
         func) {
@@ -182,7 +182,7 @@ void TestAutoRefreshingTokenExpiresDoRefresh(
 
 void TestAutoRefreshingTokenExpiresInAnHour(
     authentication::TokenEndpoint& token_endpoint,
-    std::function<authentication::TokenEndpoint::TokenResponse(
+    std::function<authentication::TokenResponse(
         const authentication::AutoRefreshingToken& auto_token,
         const std::chrono::seconds minimum_validity)>
         func) {
@@ -200,7 +200,7 @@ void TestAutoRefreshingTokenExpiresInAnHour(
 
 void TestAutoRefreshingTokenExpiresInASecond(
     authentication::TokenEndpoint& token_endpoint,
-    std::function<authentication::TokenEndpoint::TokenResponse(
+    std::function<authentication::TokenResponse(
         const authentication::AutoRefreshingToken& auto_token,
         const std::chrono::seconds minimum_validity)>
         func) {
@@ -218,14 +218,13 @@ void TestAutoRefreshingTokenExpiresInASecond(
 
 void TestAutoRefreshingTokenMultiThread(
     authentication::TokenEndpoint& token_endpoint,
-    std::function<authentication::TokenEndpoint::TokenResponse(
+    std::function<authentication::TokenResponse(
         const authentication::AutoRefreshingToken& auto_token)>
         func) {
   auto auto_token = token_endpoint.RequestAutoRefreshingToken();
 
   std::thread threads[5];
-  auto token_responses =
-      std::vector<authentication::TokenEndpoint::TokenResponse>();
+  auto token_responses = std::vector<authentication::TokenResponse>();
   std::mutex token_responses_mutex;
 
   for (int i = 0; i < 5; i++) {
@@ -284,12 +283,19 @@ std::shared_ptr<olp::http::Network>
 TEST_F(HereAccountOuauth2ProductionTest, TokenProviderValidCredentialsValid) {
   authentication::TokenProviderDefault prov{settings_};
   ASSERT_TRUE(prov);
-  ASSERT_NE("", prov());
-  ASSERT_EQ(olp::http::HttpStatusCode::OK, prov.GetHttpStatusCode());
+
+  olp::client::CancellationContext context;
+  auto token_response = prov(context);
+  ASSERT_TRUE(token_response);
+  ASSERT_EQ(olp::http::HttpStatusCode::OK,
+            token_response.GetResult().GetHttpStatus());
 
   ASSERT_TRUE(prov);
-  ASSERT_NE("", prov());
-  ASSERT_EQ(olp::http::HttpStatusCode::OK, prov.GetHttpStatusCode());
+
+  token_response = prov(context);
+  ASSERT_TRUE(token_response);
+  ASSERT_EQ(olp::http::HttpStatusCode::OK,
+            token_response.GetResult().GetHttpStatus());
 }
 
 TEST_F(HereAccountOuauth2ProductionTest, TokenProviderValidCredentialsInvalid) {
@@ -298,10 +304,13 @@ TEST_F(HereAccountOuauth2ProductionTest, TokenProviderValidCredentialsInvalid) {
     settings.credentials = {key, secret};
     authentication::TokenProviderDefault prov{settings};
     ASSERT_FALSE(prov);
-    ASSERT_EQ("", prov());
-    ASSERT_EQ(401300, (int)prov.GetErrorResponse().code);
+
+    olp::client::CancellationContext context;
+    auto token_response = prov(context);
+    ASSERT_TRUE(token_response);
+    ASSERT_EQ(401300, (int)token_response.GetResult().GetErrorResponse().code);
     ASSERT_EQ(olp::http::HttpStatusCode::UNAUTHORIZED,
-              prov.GetHttpStatusCode());
+              token_response.GetResult().GetHttpStatus());
   };
 
   token_provider_test("BAD", CustomParameters::getArgument(
@@ -316,7 +325,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenValidCredentials) {
   auto barrier = std::make_shared<std::promise<void>>();
   token_endpoint_.RequestToken(
       authentication::TokenRequest{},
-      [barrier](authentication::TokenEndpoint::TokenResponse token_response) {
+      [barrier](authentication::TokenResponse token_response) {
 #if OAUTH2_TEST_DEBUG_OUTPUT
         std::cout << "Is successful : " << token_response.IsSuccessful()
                   << std::endl;
@@ -364,7 +373,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenBadAccessKey) {
   auto barrier = std::make_shared<std::promise<void>>();
   bad_token_endpoint.RequestToken(
       authentication::TokenRequest{},
-      [barrier](authentication::TokenEndpoint::TokenResponse token_response) {
+      [barrier](authentication::TokenResponse token_response) {
         EXPECT_TRUE(token_response.IsSuccessful());
         EXPECT_EQ(token_response.GetResult().GetHttpStatus(),
                   http::HttpStatusCode::UNAUTHORIZED);
@@ -385,7 +394,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenBadAccessSecret) {
   auto barrier = std::make_shared<std::promise<void>>();
   bad_token_endpoint.RequestToken(
       authentication::TokenRequest{},
-      [barrier](authentication::TokenEndpoint::TokenResponse token_response) {
+      [barrier](authentication::TokenResponse token_response) {
         EXPECT_TRUE(token_response.IsSuccessful());
         EXPECT_EQ(token_response.GetResult().GetHttpStatus(),
                   http::HttpStatusCode::UNAUTHORIZED);
@@ -407,7 +416,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenBadTokenUrl) {
   auto barrier = std::make_shared<std::promise<void>>();
   bad_token_endpoint.RequestToken(
       authentication::TokenRequest{},
-      [barrier](authentication::TokenEndpoint::TokenResponse token_response) {
+      [barrier](authentication::TokenResponse token_response) {
         EXPECT_FALSE(token_response.IsSuccessful());
         barrier->set_value();
       });
@@ -419,7 +428,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenValidExpiry) {
   auto barrier = std::make_shared<std::promise<void>>();
   token_endpoint_.RequestToken(
       authentication::TokenRequest{std::chrono::minutes(1)},
-      [barrier](authentication::TokenEndpoint::TokenResponse token_response) {
+      [barrier](authentication::TokenResponse token_response) {
         EXPECT_TRUE(token_response.IsSuccessful());
         EXPECT_LT(token_response.GetResult().GetExpiryTime(),
                   time(nullptr) + 120);
@@ -442,8 +451,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenConcurrent) {
       auto start = std::chrono::high_resolution_clock::now();
       token_endpoint_.RequestToken(
           authentication::TokenRequest{},
-          [&, barrier,
-           start](authentication::TokenEndpoint::TokenResponse token_response) {
+          [&, barrier, start](authentication::TokenResponse token_response) {
             auto delta = std::chrono::high_resolution_clock::now() - start;
             EXPECT_TRUE(token_response.IsSuccessful())
                 << token_response.GetError().GetMessage();
@@ -530,7 +538,7 @@ TEST_F(HereAccountOuauth2ProductionTest, NetworkProxySettings) {
   auto barrier = std::make_shared<std::promise<void>>();
   bad_token_endpoint.RequestToken(
       authentication::TokenRequest{},
-      [barrier](authentication::TokenEndpoint::TokenResponse token_response) {
+      [barrier](authentication::TokenResponse token_response) {
         // Bad proxy error code and message varies by platform
         EXPECT_FALSE(token_response.IsSuccessful());
         //        EXPECT_LT(token_response.GetError().GetErrorCode(), 0);

@@ -21,8 +21,6 @@
 
 #include "SignInResultImpl.h"
 
-using namespace rapidjson;
-
 namespace olp {
 namespace authentication {
 SignInResult::SignInResult() noexcept
@@ -38,6 +36,10 @@ const ErrorResponse& SignInResult::GetErrorResponse() const {
 
 const ErrorFields& SignInResult::GetErrorFields() const {
   return impl_->GetErrorFields();
+}
+
+const std::string& SignInResult::GetFullMessage() const {
+  return impl_->GetFullMessage();
 }
 
 const std::string& SignInResult::GetAccessToken() const {

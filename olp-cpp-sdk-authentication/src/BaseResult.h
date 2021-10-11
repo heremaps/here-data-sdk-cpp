@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,13 @@ class BaseResult {
   const ErrorFields& GetErrorFields() const;
 
   /**
+   * @brief Gets a full error response message
+   * @return A string representation of a full JSON network response if it
+   * contains an error; an empty string otherwise
+   */
+  const std::string& GetFullMessage() const;
+
+  /**
    * @brief has_error
    * @return True if response has an error status
    */
@@ -73,6 +80,7 @@ class BaseResult {
   int status_;
   ErrorResponse error_;
   ErrorFields error_fields_;
+  std::string full_message_;
 };
 }  // namespace authentication
 }  // namespace olp

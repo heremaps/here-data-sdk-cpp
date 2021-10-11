@@ -77,20 +77,26 @@ client::CancellationToken TokenEndpoint::Impl::RequestToken(
   return auth_client_.SignInClient(
       auth_credentials_, properties,
       [callback](
-          const AuthenticationClient::SignInClientResponse& signInResponse) {
-        if (signInResponse.IsSuccessful()) {
-          TokenResult result(signInResponse.GetResult().GetAccessToken(),
-                             signInResponse.GetResult().GetExpiresIn(),
-                             signInResponse.GetResult().GetStatus(),
-                             signInResponse.GetResult().GetErrorResponse());
-          callback(TokenResponse(result));
-        } else {
-          callback(signInResponse.GetError());
+          const AuthenticationClient::SignInClientResponse& sign_in_response) {
+        if (!sign_in_response) {
+          callback(sign_in_response.GetError());
+          return;
         }
+
+        const auto& sign_in_result = sign_in_response.GetResult();
+        if (sign_in_result.GetAccessToken().empty()) {
+          callback(client::ApiError{sign_in_result.GetStatus(),
+                                    sign_in_result.GetFullMessage()});
+          return;
+        }
+
+        callback(TokenResult{sign_in_result.GetAccessToken(),
+                             sign_in_result.GetExpiresIn(),
+                             http::HttpStatusCode::OK, ErrorResponse{}});
       });
 }
 
-std::future<TokenEndpoint::TokenResponse> TokenEndpoint::Impl::RequestToken(
+std::future<TokenResponse> TokenEndpoint::Impl::RequestToken(
     client::CancellationToken& cancel_token,
     const TokenRequest& token_request) {
   auto promise = std::make_shared<std::promise<TokenResponse>>();
@@ -124,13 +130,13 @@ client::CancellationToken TokenEndpoint::RequestToken(
   return impl_->RequestToken(token_request, callback);
 }
 
-std::future<TokenEndpoint::TokenResponse> TokenEndpoint::RequestToken(
+std::future<TokenResponse> TokenEndpoint::RequestToken(
     client::CancellationToken& cancellation_token,
     const TokenRequest& token_request) const {
   return impl_->RequestToken(cancellation_token, token_request);
 }
 
-std::future<TokenEndpoint::TokenResponse> TokenEndpoint::RequestToken(
+std::future<TokenResponse> TokenEndpoint::RequestToken(
     const TokenRequest& token_request) const {
   client::CancellationToken cancellation_token;
   return impl_->RequestToken(cancellation_token, token_request);
