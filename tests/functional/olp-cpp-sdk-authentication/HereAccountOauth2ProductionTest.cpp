@@ -19,7 +19,7 @@
 
 #include <thread>
 
-#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 #include <olp/authentication/AuthenticationClient.h>
 #include <olp/authentication/AuthenticationCredentials.h>
 #include <olp/authentication/AutoRefreshingToken.h>
@@ -44,6 +44,11 @@ PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 
 namespace {
 constexpr auto kTestMaxExecutionTime = std::chrono::seconds(30);
+
+const auto IsUnauthorizedMessage = testing::AllOf(
+    testing::HasSubstr("errorId"), testing::HasSubstr("httpStatus"),
+    testing::HasSubstr("errorCode"), testing::HasSubstr("message"),
+    testing::HasSubstr("401300"));
 
 authentication::TokenResponse GetTokenFromSyncRequest(
     const authentication::AutoRefreshingToken& auto_token,
@@ -72,7 +77,7 @@ void TestAutoRefreshingTokenValidRequest(
         const authentication::AutoRefreshingToken& auto_token)>
         func) {
   auto token_response = func(token_endpoint.RequestAutoRefreshingToken());
-  EXPECT_TRUE(token_response.IsSuccessful());
+  ASSERT_TRUE(token_response);
   EXPECT_GT(token_response.GetResult().GetAccessToken().length(), 42u);
   EXPECT_GT(token_response.GetResult().GetExpiryTime(), time(nullptr));
 }
@@ -88,10 +93,10 @@ void TestAutoRefreshingTokenInvalidRequest(
   settings.network_request_handler = network;
   auto bad_token_endpoint = authentication::TokenEndpoint(settings);
   auto token_response = func(bad_token_endpoint.RequestAutoRefreshingToken());
-  EXPECT_TRUE(token_response.IsSuccessful());
-  EXPECT_EQ(token_response.GetResult().GetHttpStatus(),
+  ASSERT_FALSE(token_response);
+  EXPECT_EQ(token_response.GetError().GetHttpStatusCode(),
             olp::http::HttpStatusCode::UNAUTHORIZED);
-  EXPECT_GT(token_response.GetResult().GetErrorResponse().code, 0u);
+  EXPECT_THAT(token_response.GetError().GetMessage(), IsUnauthorizedMessage);
 }
 
 void TestAutoRefreshingTokenReuseToken(
@@ -287,14 +292,14 @@ TEST_F(HereAccountOuauth2ProductionTest, TokenProviderValidCredentialsValid) {
   olp::client::CancellationContext context;
   auto token_response = prov(context);
   ASSERT_TRUE(token_response);
-  ASSERT_EQ(olp::http::HttpStatusCode::OK,
+  EXPECT_EQ(olp::http::HttpStatusCode::OK,
             token_response.GetResult().GetHttpStatus());
 
   ASSERT_TRUE(prov);
 
   token_response = prov(context);
   ASSERT_TRUE(token_response);
-  ASSERT_EQ(olp::http::HttpStatusCode::OK,
+  EXPECT_EQ(olp::http::HttpStatusCode::OK,
             token_response.GetResult().GetHttpStatus());
 }
 
@@ -307,10 +312,10 @@ TEST_F(HereAccountOuauth2ProductionTest, TokenProviderValidCredentialsInvalid) {
 
     olp::client::CancellationContext context;
     auto token_response = prov(context);
-    ASSERT_TRUE(token_response);
-    ASSERT_EQ(401300, (int)token_response.GetResult().GetErrorResponse().code);
-    ASSERT_EQ(olp::http::HttpStatusCode::UNAUTHORIZED,
-              token_response.GetResult().GetHttpStatus());
+    ASSERT_FALSE(token_response);
+    EXPECT_EQ(token_response.GetError().GetHttpStatusCode(),
+              olp::http::HttpStatusCode::UNAUTHORIZED);
+    EXPECT_THAT(token_response.GetError().GetMessage(), IsUnauthorizedMessage);
   };
 
   token_provider_test("BAD", CustomParameters::getArgument(
@@ -329,7 +334,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenValidCredentials) {
 #if OAUTH2_TEST_DEBUG_OUTPUT
         std::cout << "Is successful : " << token_response.IsSuccessful()
                   << std::endl;
-        if (token_response.IsSuccessful()) {
+        if (token_response) {
           std::cout << "Access Token : "
                     << token_response.GetResult().GetAccessToken() << std::endl;
           std::cout << "Expiry Time : "
@@ -345,7 +350,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenValidCredentials) {
                     << token_response.GetError().GetMessage() << std::endl;
         }
 #endif
-        EXPECT_TRUE(token_response.IsSuccessful());
+        ASSERT_TRUE(token_response);
         EXPECT_GT(token_response.GetResult().GetAccessToken().length(), 42u);
         EXPECT_GT(token_response.GetResult().GetExpiryTime(), time(nullptr));
         barrier->set_value();
@@ -359,7 +364,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenValidCredentialsFuture) {
             token_endpoint_.RequestToken().wait_for(kTestMaxExecutionTime));
   auto token_response = token_endpoint_.RequestToken().get();
 
-  EXPECT_TRUE(token_response.IsSuccessful());
+  ASSERT_TRUE(token_response);
   EXPECT_GT(token_response.GetResult().GetAccessToken().length(), 42u);
   EXPECT_GT(token_response.GetResult().GetExpiryTime(), time(nullptr));
 }
@@ -374,10 +379,11 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenBadAccessKey) {
   bad_token_endpoint.RequestToken(
       authentication::TokenRequest{},
       [barrier](authentication::TokenResponse token_response) {
-        EXPECT_TRUE(token_response.IsSuccessful());
-        EXPECT_EQ(token_response.GetResult().GetHttpStatus(),
+        ASSERT_FALSE(token_response);
+        EXPECT_EQ(token_response.GetError().GetHttpStatusCode(),
                   http::HttpStatusCode::UNAUTHORIZED);
-        EXPECT_GT(token_response.GetResult().GetErrorResponse().code, 0u);
+        EXPECT_THAT(token_response.GetError().GetMessage(),
+                    IsUnauthorizedMessage);
         barrier->set_value();
       });
   EXPECT_EQ(std::future_status::ready,
@@ -395,10 +401,11 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenBadAccessSecret) {
   bad_token_endpoint.RequestToken(
       authentication::TokenRequest{},
       [barrier](authentication::TokenResponse token_response) {
-        EXPECT_TRUE(token_response.IsSuccessful());
-        EXPECT_EQ(token_response.GetResult().GetHttpStatus(),
+        ASSERT_FALSE(token_response);
+        EXPECT_EQ(token_response.GetError().GetHttpStatusCode(),
                   http::HttpStatusCode::UNAUTHORIZED);
-        EXPECT_GT(token_response.GetResult().GetErrorResponse().code, 0u);
+        EXPECT_THAT(token_response.GetError().GetMessage(),
+                    IsUnauthorizedMessage);
         barrier->set_value();
       });
   EXPECT_EQ(std::future_status::ready,
@@ -417,7 +424,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenBadTokenUrl) {
   bad_token_endpoint.RequestToken(
       authentication::TokenRequest{},
       [barrier](authentication::TokenResponse token_response) {
-        EXPECT_FALSE(token_response.IsSuccessful());
+        EXPECT_FALSE(token_response);
         barrier->set_value();
       });
   EXPECT_EQ(std::future_status::ready,
@@ -429,7 +436,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenValidExpiry) {
   token_endpoint_.RequestToken(
       authentication::TokenRequest{std::chrono::minutes(1)},
       [barrier](authentication::TokenResponse token_response) {
-        EXPECT_TRUE(token_response.IsSuccessful());
+        ASSERT_TRUE(token_response);
         EXPECT_LT(token_response.GetResult().GetExpiryTime(),
                   time(nullptr) + 120);
         barrier->set_value();
@@ -453,7 +460,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenConcurrent) {
           authentication::TokenRequest{},
           [&, barrier, start](authentication::TokenResponse token_response) {
             auto delta = std::chrono::high_resolution_clock::now() - start;
-            EXPECT_TRUE(token_response.IsSuccessful())
+            ASSERT_TRUE(token_response)
                 << token_response.GetError().GetMessage();
             EXPECT_FALSE(token_response.GetResult().GetAccessToken().empty());
             {
@@ -496,8 +503,7 @@ TEST_F(HereAccountOuauth2ProductionTest, RequestTokenConcurrentFuture) {
       auto start = std::chrono::high_resolution_clock::now();
       auto token_response = token_endpoint_.RequestToken().get();
       auto delta = std::chrono::high_resolution_clock::now() - start;
-      EXPECT_TRUE(token_response.IsSuccessful())
-          << token_response.GetError().GetMessage();
+      ASSERT_TRUE(token_response) << token_response.GetError().GetMessage();
       EXPECT_FALSE(token_response.GetResult().GetAccessToken().empty());
       {
         std::lock_guard<std::mutex> guard(global_state_mutex);
@@ -540,7 +546,7 @@ TEST_F(HereAccountOuauth2ProductionTest, NetworkProxySettings) {
       authentication::TokenRequest{},
       [barrier](authentication::TokenResponse token_response) {
         // Bad proxy error code and message varies by platform
-        EXPECT_FALSE(token_response.IsSuccessful());
+        EXPECT_FALSE(token_response);
         //        EXPECT_LT(token_response.GetError().GetErrorCode(), 0);
         //        EXPECT_FALSE(token_response.GetError().GetMessage().empty());
         //        EXPECT_EQ(token_response.GetError().GetErrorCode(), 0);
