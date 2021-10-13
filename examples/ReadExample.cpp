@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,7 +143,7 @@ int RunExampleRead(const AccessKey& access_key, const std::string& catalog,
   // Setup AuthenticationSettings with a default token provider that will
   // retrieve an OAuth 2.0 token from OLP.
   olp::client::AuthenticationSettings auth_settings;
-  auth_settings.provider =
+  auth_settings.token_provider =
       olp::authentication::TokenProviderDefault(std::move(settings));
 
   // Setup OlpClientSettings and provide it to the CatalogClient.

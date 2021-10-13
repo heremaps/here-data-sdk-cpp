@@ -68,7 +68,9 @@ class MemoryTestBase : public ::testing::TestWithParam<Param> {
     network->WithTimeouts(parameter.with_network_timeouts);
 
     olp::client::AuthenticationSettings auth_settings;
-    auth_settings.provider = []() { return "invalid"; };
+    auth_settings.token_provider = [](olp::client::CancellationContext&) {
+      return olp::client::OauthToken("invalid", -1);
+    };
 
     olp::client::OlpClientSettings client_settings;
     client_settings.authentication_settings = auth_settings;

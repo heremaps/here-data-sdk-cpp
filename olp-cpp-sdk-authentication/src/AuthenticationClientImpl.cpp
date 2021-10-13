@@ -98,6 +98,7 @@ constexpr auto kOperator = "operator";
 // Values
 constexpr auto kErrorWrongTimestamp = 401204;
 constexpr auto kLogTag = "AuthenticationClient";
+const auto kMaxTime = std::numeric_limits<time_t>::max();
 
 bool HasWrongTimestamp(olp::authentication::SignInResult& result) {
   const auto& error_response = result.GetErrorResponse();
@@ -714,7 +715,10 @@ client::CancellationToken AuthenticationClientImpl::IntrospectApp(
     }
 
     client::AuthenticationSettings auth_settings;
-    auth_settings.provider = [&access_token]() { return access_token; };
+    auth_settings.token_provider =
+        [&access_token](client::CancellationContext&) {
+          return client::OauthToken(access_token, kMaxTime);
+        };
 
     client::OlpClient client = CreateOlpClient(settings_, auth_settings);
 
@@ -757,7 +761,10 @@ client::CancellationToken AuthenticationClientImpl::Authorize(
     }
 
     client::AuthenticationSettings auth_settings;
-    auth_settings.provider = [&access_token]() { return access_token; };
+    auth_settings.token_provider =
+        [&access_token](client::CancellationContext&) {
+          return client::OauthToken(access_token, kMaxTime);
+        };
 
     client::OlpClient client = CreateOlpClient(settings_, auth_settings);
 
@@ -813,7 +820,10 @@ client::CancellationToken AuthenticationClientImpl::GetMyAccount(
     }
 
     client::AuthenticationSettings auth_settings;
-    auth_settings.provider = [&access_token]() { return access_token; };
+    auth_settings.token_provider =
+        [&access_token](client::CancellationContext&) {
+          return client::OauthToken(access_token, kMaxTime);
+        };
 
     client::OlpClient client = CreateOlpClient(settings_, auth_settings);
 

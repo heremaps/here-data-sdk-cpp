@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ class VersionedLayerClientImplTest : public ::testing::Test {
     olp::authentication::TokenProviderDefault provider(auth_settings);
 
     olp::client::AuthenticationSettings auth_client_settings;
-    auth_client_settings.provider = provider;
+    auth_client_settings.token_provider = provider;
 
     settings_.network_request_handler = network_;
     settings_.cache = cache_;

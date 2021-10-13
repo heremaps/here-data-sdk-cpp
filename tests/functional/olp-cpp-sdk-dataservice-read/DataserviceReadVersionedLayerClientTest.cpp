@@ -54,7 +54,7 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
 
     olp::authentication::TokenProviderDefault provider(auth_settings);
     olp::client::AuthenticationSettings auth_client_settings;
-    auth_client_settings.provider = provider;
+    auth_client_settings.token_provider = provider;
 
     settings_ = std::make_shared<olp::client::OlpClientSettings>();
     settings_->network_request_handler = network;

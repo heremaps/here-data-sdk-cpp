@@ -80,7 +80,7 @@ class VolatileLayerClientTest : public ::testing::Test {
 
     olp::authentication::TokenProviderDefault provider(authentication_settings);
     olp::client::AuthenticationSettings auth_client_settings;
-    auth_client_settings.provider = provider;
+    auth_client_settings.token_provider = provider;
     settings_ = olp::client::OlpClientSettings();
     settings_.network_request_handler = network;
     settings_.authentication_settings = auth_client_settings;
@@ -103,7 +103,7 @@ class VolatileLayerClientTest : public ::testing::Test {
     prefetch_auth_settings.network_request_handler = network;
 
     olp::client::AuthenticationSettings prefetch_auth_client_settings;
-    prefetch_auth_client_settings.provider =
+    prefetch_auth_client_settings.token_provider =
         olp::authentication::TokenProviderDefault(prefetch_auth_settings);
 
     prefetch_settings_.authentication_settings = prefetch_auth_client_settings;

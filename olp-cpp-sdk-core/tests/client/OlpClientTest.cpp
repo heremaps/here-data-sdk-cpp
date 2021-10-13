@@ -1604,7 +1604,13 @@ TEST_P(OlpClientTest, ApiKey) {
   authentication_settings.api_key_provider = []() {
     return std::string("test-key");
   };
-  authentication_settings.provider = []() { return std::string("secret"); };
+
+  authentication_settings.token_provider =
+      [](olp::client::CancellationContext&) {
+        return olp::client::OauthToken("secret",
+                                       std::numeric_limits<time_t>::max());
+      };
+
   auto network = network_;
   client_settings_.authentication_settings = authentication_settings;
   client_.SetSettings(client_settings_);
@@ -1638,7 +1644,7 @@ TEST_P(OlpClientTest, ApiKey) {
   testing::Mock::VerifyAndClearExpectations(network.get());
 }
 
-TEST_P(OlpClientTest, EmptyBearerToken) {
+TEST_P(OlpClientTest, EmptyBearerTokenDeprecatedProvider) {
   // Make token provider generate empty strings. We expect no network requests
   // made in this case.
   auto authentication_settings = olp::client::AuthenticationSettings();
@@ -1653,6 +1659,54 @@ TEST_P(OlpClientTest, EmptyBearerToken) {
       call_wrapper_->CallApi("here.com", "GET", {}, {}, {}, nullptr, {});
   EXPECT_EQ(response.GetStatus(),
             static_cast<int>(http::ErrorCode::AUTHORIZATION_ERROR));
+
+  testing::Mock::VerifyAndClearExpectations(network.get());
+}
+
+TEST_P(OlpClientTest, EmptyBearerToken) {
+  // Make token provider generate empty strings. We expect no network requests
+  // made in this case.
+  auto authentication_settings = olp::client::AuthenticationSettings();
+  authentication_settings.token_provider =
+      [](olp::client::CancellationContext&) {
+        return olp::client::OauthToken("", std::chrono::seconds(5));
+      };
+
+  auto network = network_;
+  client_settings_.authentication_settings = authentication_settings;
+  client_.SetSettings(client_settings_);
+
+  EXPECT_CALL(*network, Send(_, _, _, _, _)).Times(0);
+
+  auto response =
+      call_wrapper_->CallApi("here.com", "GET", {}, {}, {}, nullptr, {});
+  EXPECT_EQ(response.GetStatus(),
+            static_cast<int>(http::ErrorCode::AUTHORIZATION_ERROR));
+
+  testing::Mock::VerifyAndClearExpectations(network.get());
+}
+
+TEST_P(OlpClientTest, ErrorOnTokenRequest) {
+  // Make token provider generate an error. We expect no network requests made
+  // in this case.
+  auto authentication_settings = olp::client::AuthenticationSettings();
+  authentication_settings.token_provider =
+      [](olp::client::CancellationContext&) {
+        return olp::client::ApiError(
+            static_cast<int>(http::ErrorCode::NETWORK_OVERLOAD_ERROR),
+            "Error message");
+      };
+
+  auto network = network_;
+  client_settings_.authentication_settings = authentication_settings;
+  client_.SetSettings(client_settings_);
+
+  EXPECT_CALL(*network, Send(_, _, _, _, _)).Times(0);
+
+  auto response =
+      call_wrapper_->CallApi("here.com", "GET", {}, {}, {}, nullptr, {});
+  EXPECT_EQ(response.GetStatus(),
+            static_cast<int>(http::ErrorCode::NETWORK_OVERLOAD_ERROR));
 
   testing::Mock::VerifyAndClearExpectations(network.get());
 }

@@ -292,15 +292,13 @@ TEST_F(HereAccountOuauth2ProductionTest, TokenProviderValidCredentialsValid) {
   olp::client::CancellationContext context;
   auto token_response = prov(context);
   ASSERT_TRUE(token_response);
-  EXPECT_EQ(olp::http::HttpStatusCode::OK,
-            token_response.GetResult().GetHttpStatus());
+  EXPECT_FALSE(token_response.GetResult().GetAccessToken().empty());
 
   ASSERT_TRUE(prov);
 
   token_response = prov(context);
   ASSERT_TRUE(token_response);
-  EXPECT_EQ(olp::http::HttpStatusCode::OK,
-            token_response.GetResult().GetHttpStatus());
+  EXPECT_FALSE(token_response.GetResult().GetAccessToken().empty());
 }
 
 TEST_F(HereAccountOuauth2ProductionTest, TokenProviderValidCredentialsInvalid) {

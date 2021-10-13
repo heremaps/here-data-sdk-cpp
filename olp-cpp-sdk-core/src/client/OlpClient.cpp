@@ -359,7 +359,9 @@ class OlpClient::OlpClientImpl {
       const ParametersType& query_params, const ParametersType& header_params,
       const RequestBodyType& post_body, const std::string& content_type) const;
 
-  bool AddBearer(bool query_empty, http::NetworkRequest& request) const;
+  boost::optional<ApiError> AddBearer(bool query_empty,
+                                      http::NetworkRequest& request,
+                                      CancellationContext& context) const;
 
  private:
   using MutexType = std::shared_mutex;
@@ -398,31 +400,46 @@ void OlpClient::OlpClientImpl::SetSettings(const OlpClientSettings& settings) {
   settings_ = settings;
 }
 
-bool OlpClient::OlpClientImpl::AddBearer(bool query_empty,
-                                         http::NetworkRequest& request) const {
+boost::optional<client::ApiError> OlpClient::OlpClientImpl::AddBearer(
+    bool query_empty, http::NetworkRequest& request,
+    CancellationContext& context) const {
   const auto& settings = settings_.authentication_settings;
   if (!settings) {
-    return true;
+    return boost::none;
   }
 
   if (settings->api_key_provider) {
     const auto& api_key = settings->api_key_provider();
     request.WithUrl(request.GetUrl() + (query_empty ? "?" : "&") +
                     kApiKeyParam + api_key);
-    return true;
+    return boost::none;
   }
 
-  if (settings->provider) {
-    const auto token = settings->provider();
-    if (token.empty()) {
-      return false;
+  std::string token;
+
+  if (settings->token_provider) {
+    auto response = settings->token_provider(context);
+    if (!response) {
+      return response.GetError();
     }
 
-    const std::string bearer = http::kBearer + std::string(" ") + token;
-    request.WithHeader(http::kAuthorizationHeader, bearer);
+    token = response.GetResult().GetAccessToken();
+  } else if (settings->provider) {
+    auto token = settings->provider();
+  } else {
+    // There is no token provider defined.
+    return boost::none;
   }
 
-  return true;
+  if (token.empty()) {
+    return client::ApiError(
+        static_cast<int>(http::ErrorCode::AUTHORIZATION_ERROR),
+        "Invalid bearer token.");
+    }
+
+    request.WithHeader(http::kAuthorizationHeader,
+                       http::kBearer + std::string(" ") + token);
+    return boost::none;
 }
 
 std::shared_ptr<http::NetworkRequest> OlpClient::OlpClientImpl::CreateRequest(
@@ -481,9 +498,12 @@ CancellationToken OlpClient::OlpClientImpl::CallApi(
   auto network_request = CreateRequest(path, method, query_params,
                                        header_params, post_body, content_type);
 
-  if (!AddBearer(query_params.empty(), *network_request)) {
-    callback({static_cast<int>(http::ErrorCode::AUTHORIZATION_ERROR),
-              "Invalid bearer token."});
+  CancellationContext context;
+  const auto optional_error =
+      AddBearer(query_params.empty(), *network_request, context);
+  if (optional_error) {
+    callback(
+        {optional_error->GetHttpStatusCode(), optional_error->GetMessage()});
     return CancellationToken();
   }
 
@@ -598,9 +618,10 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
   auto backdown_period =
       std::chrono::milliseconds(retry_settings.initial_backdown_period);
 
-  if (!AddBearer(query_params.empty(), network_request)) {
-    return {static_cast<int>(http::ErrorCode::AUTHORIZATION_ERROR),
-            "Invalid bearer token."};
+  const auto optional_error =
+      AddBearer(query_params.empty(), network_request, context);
+  if (optional_error) {
+    return {optional_error->GetHttpStatusCode(), optional_error->GetMessage()};
   }
 
   auto response =
