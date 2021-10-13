@@ -31,6 +31,7 @@
 #include <olp/authentication/TokenResult.h>
 #include <olp/authentication/Types.h>
 #include <olp/core/client/CancellationContext.h>
+#include <olp/core/client/OauthToken.h>
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/utils/WarningWorkarounds.h>
 
@@ -102,10 +103,11 @@ class TokenProvider {
    *
    * @param context Used to cancel the pending token request.
    *
-   * @returns An `TokenResult` if the response is successful; an
-   * `AuthenticationError` otherwise.
+   * @returns An `OauthTokenResponse` if the response is successful; an
+   * `ApiError` otherwise.
    */
-  TokenResponse operator()(client::CancellationContext& context) const {
+  client::OauthTokenResponse operator()(
+      client::CancellationContext& context) const {
     return impl_->operator()(context);
   }
 
@@ -142,9 +144,14 @@ class TokenProvider {
       return response ? response.GetResult().GetAccessToken() : "";
     }
 
-    /// @copydoc TokenProvider::operator()(client::CancellationContext)
-    TokenResponse operator()(client::CancellationContext& context) const {
-      return GetResponse(context);
+    /// @copydoc TokenProvider::operator()(client::CancellationContext&)
+    client::OauthTokenResponse operator()(
+        client::CancellationContext& context) const {
+      const auto response = GetResponse(context);
+      return response ? client::OauthTokenResponse(
+                            {response.GetResult().GetAccessToken(),
+                             response.GetResult().GetExpiryTime()})
+                      : client::OauthTokenResponse(response.GetError());
     }
 
     /// @copydoc TokenProvider::GetErrorResponse()

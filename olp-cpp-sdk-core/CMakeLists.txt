@@ -80,6 +80,7 @@ set(OLP_SDK_CLIENT_HEADERS
     ./include/olp/core/client/FetchOptions.h
     ./include/olp/core/client/HRN.h
     ./include/olp/core/client/HttpResponse.h
+    ./include/olp/core/client/OauthToken.h
     ./include/olp/core/client/OlpClient.h
     ./include/olp/core/client/OlpClientFactory.h
     ./include/olp/core/client/OlpClientSettings.h
@@ -256,6 +257,7 @@ set(OLP_SDK_CLIENT_SOURCES
     ./src/client/CancellationToken.cpp
     ./src/client/DefaultLookupEndpointProvider.cpp
     ./src/client/HRN.cpp
+    ./src/client/OauthToken.cpp
     ./src/client/OlpClient.cpp
     ./src/client/OlpClientFactory.cpp
     ./src/client/OlpClientSettingsFactory.cpp

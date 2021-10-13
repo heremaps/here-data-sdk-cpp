@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,13 +30,14 @@
 #include <olp/core/utils/Base64.h>
 #include <olp/dataservice/read/StreamLayerClient.h>
 
-using namespace olp::dataservice::read;
+namespace dataread = olp::dataservice::read;
+
 namespace {
 constexpr auto kLogTag = "read-stream-layer-example";
 constexpr auto kNumberOfThreads = 2u;
 
-bool CreateSubscription(StreamLayerClient& client,
-                        SubscribeRequest subscribe_request) {
+bool CreateSubscription(dataread::StreamLayerClient& client,
+                        dataread::SubscribeRequest subscribe_request) {
   auto subscribe_future = client.Subscribe(subscribe_request);
   auto subscribe_response = subscribe_future.GetFuture().get();
   if (!subscribe_response.IsSuccessful()) {
@@ -52,8 +53,8 @@ bool CreateSubscription(StreamLayerClient& client,
   return true;
 }
 
-int GetDataFromMessages(StreamLayerClient& client,
-                        const model::Messages& result) {
+int GetDataFromMessages(dataread::StreamLayerClient& client,
+                        const dataread::model::Messages& result) {
   const auto& messages = result.GetMessages();
   for (const auto& message : messages) {
     // If data is greater than 1 MB, the data handle is present. The data handle
@@ -90,7 +91,7 @@ int GetDataFromMessages(StreamLayerClient& client,
   return messages.size();
 }
 
-void RunPoll(StreamLayerClient& client) {
+void RunPoll(dataread::StreamLayerClient& client) {
   unsigned int total_messages_size = 0;
   // Get the messages, and commit offsets till all data is consumed, or max
   // times 5
@@ -122,7 +123,7 @@ void RunPoll(StreamLayerClient& client) {
   }
 }
 
-bool DeleteSubscription(StreamLayerClient& client) {
+bool DeleteSubscription(dataread::StreamLayerClient& client) {
   auto unsubscribe_future = client.Unsubscribe();
   auto unsubscribe_response = unsubscribe_future.GetFuture().get();
   if (!unsubscribe_response.IsSuccessful()) {
@@ -140,11 +141,12 @@ bool DeleteSubscription(StreamLayerClient& client) {
 int RunStreamLayerExampleRead(
     const AccessKey& access_key, const std::string& catalog,
     const std::string& layer_id,
-    SubscribeRequest::SubscriptionMode subscription_mode) {
+    dataread::SubscribeRequest::SubscriptionMode subscription_mode) {
   OLP_SDK_LOG_INFO_F(
       kLogTag, "Starting stream layer read, catalog=%s, layer=%s, mode=%s",
       catalog.c_str(), layer_id.c_str(),
-      (subscription_mode == SubscribeRequest::SubscriptionMode::kParallel)
+      (subscription_mode ==
+       dataread::SubscribeRequest::SubscriptionMode::kParallel)
           ? "parallel"
           : "serial");
   // Create a task scheduler instance
@@ -161,7 +163,7 @@ int RunStreamLayerExampleRead(
   // Setup AuthenticationSettings with a default token provider that will
   // retrieve an OAuth 2.0 token from OLP.
   olp::client::AuthenticationSettings auth_settings;
-  auth_settings.provider =
+  auth_settings.token_provider =
       olp::authentication::TokenProviderDefault(std::move(settings));
 
   // Setup OlpClientSettings and provide it to the StreamLayerClient.
@@ -173,22 +175,24 @@ int RunStreamLayerExampleRead(
   // Set consumer configuration options. Other options ant its default values
   // described here:
   // https://developer.here.com/olp/documentation/data-api/api-reference-stream.html
-  ConsumerOptions expected_options = {{"auto.offset.reset", "earliest"},
-                                      {"enable.auto.commit", "false"},
-                                      {"group.id", "group_id_1"}};
+  dataread::ConsumerOptions expected_options = {
+      {"auto.offset.reset", "earliest"},
+      {"enable.auto.commit", "false"},
+      {"group.id", "group_id_1"}};
 
   // Create subscription, used kSerial or kParallel subscription mode
-  SubscribeRequest subscribe_request =
-      SubscribeRequest()
+  dataread::SubscribeRequest subscribe_request =
+      dataread::SubscribeRequest()
           .WithSubscriptionMode(subscription_mode)
-          .WithConsumerProperties(ConsumerProperties(expected_options));
+          .WithConsumerProperties(
+              dataread::ConsumerProperties(expected_options));
 
   // value accumulate result
   std::atomic<int> value(0);
   auto read_from_stream_layer = [&]() {
     // Create stream layer client with settings and catalog, layer specified
-    StreamLayerClient client(olp::client::HRN{catalog}, layer_id,
-                             client_settings);
+    dataread::StreamLayerClient client(olp::client::HRN{catalog}, layer_id,
+                                       client_settings);
     if (!CreateSubscription(client, subscribe_request)) {
       value.store(-1);
     }
@@ -200,7 +204,8 @@ int RunStreamLayerExampleRead(
     }
   };
 
-  if (subscription_mode == SubscribeRequest::SubscriptionMode::kSerial) {
+  if (subscription_mode ==
+      dataread::SubscribeRequest::SubscriptionMode::kSerial) {
     // With serial subscription you can read  smaller volumes of data with a
     // single subscription.
     read_from_stream_layer();

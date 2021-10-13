@@ -81,7 +81,7 @@ class DataserviceWriteVersionedLayerClientTest : public ::testing::Test {
     olp::authentication::TokenProviderDefault provider(authentication_settings);
 
     olp::client::AuthenticationSettings auth_client_settings;
-    auth_client_settings.provider = provider;
+    auth_client_settings.token_provider = provider;
 
     olp::client::OlpClientSettings settings;
     settings.authentication_settings = auth_client_settings;

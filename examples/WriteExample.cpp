@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@
 #include <fstream>
 #include <iostream>
 
-using namespace olp::dataservice::write;
-using namespace olp::dataservice::write::model;
+namespace datawrite = olp::dataservice::write;
+namespace model = datawrite::model;
 
 namespace {
 const std::string kData("hello world");  // data to write
@@ -61,7 +61,7 @@ int RunExampleWrite(const AccessKey& access_key, const std::string& catalog,
   // Setup AuthenticationSettings with a default token provider that will
   // retrieve an OAuth 2.0 token from OLP.
   olp::client::AuthenticationSettings auth_settings;
-  auth_settings.provider =
+  auth_settings.token_provider =
       olp::authentication::TokenProviderDefault(std::move(settings));
 
   // Setup OlpClientSettings and provide it to the StreamLayerClient.
@@ -69,13 +69,14 @@ int RunExampleWrite(const AccessKey& access_key, const std::string& catalog,
   client_settings.authentication_settings = auth_settings;
   client_settings.network_request_handler = std::move(http_client);
 
-  auto stream_client_settings = StreamLayerClientSettings{};
-  auto client = std::make_shared<StreamLayerClient>(
+  auto stream_client_settings = datawrite::StreamLayerClientSettings{};
+  auto client = std::make_shared<datawrite::StreamLayerClient>(
       olp::client::HRN{catalog}, std::move(stream_client_settings),
       std::move(client_settings));
 
   // Create a publish data request
-  auto request = PublishDataRequest().WithData(buffer).WithLayerId(layer_id);
+  auto request =
+      model::PublishDataRequest().WithData(buffer).WithLayerId(layer_id);
 
   // Single publish to stream layer
   {
@@ -110,7 +111,7 @@ int RunExampleWrite(const AccessKey& access_key, const std::string& catalog,
     }
 
     // Flush and wait for uploading
-    auto flush_request = FlushRequest();
+    auto flush_request = model::FlushRequest();
     auto future_response = client->Flush(std::move(flush_request));
     auto responses = future_response.GetFuture().get();
     if (responses.empty()) {

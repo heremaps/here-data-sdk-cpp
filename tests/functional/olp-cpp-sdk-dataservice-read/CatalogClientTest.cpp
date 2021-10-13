@@ -136,7 +136,7 @@ class CatalogClientTest : public ::testing::TestWithParam<CacheType> {
             .WithType(olp::http::NetworkProxySettings::Type::HTTP);
     olp::authentication::TokenProviderDefault provider(auth_settings);
     olp::client::AuthenticationSettings auth_client_settings;
-    auth_client_settings.provider = provider;
+    auth_client_settings.token_provider = provider;
 
     settings_ = olp::client::OlpClientSettings();
     settings_.network_request_handler = network;

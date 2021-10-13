@@ -123,7 +123,7 @@ class TokenProviderTest : public ::testing::Test {
     token_provider_settings.network_request_handler =
         settings_.network_request_handler;
     token_provider_settings.use_system_time = use_system_time;
-    auth_settings.provider =
+    auth_settings.token_provider =
         authentication::TokenProvider<MinimumValidity>(token_provider_settings);
 
     client::OlpClientSettings settings = settings_;
@@ -151,10 +151,13 @@ TEST_F(TokenProviderTest, SingleTokenMultipleUsers) {
                                      kResponseValidJson));
 
     ASSERT_TRUE(settings.authentication_settings);
-    ASSERT_TRUE(settings.authentication_settings->provider);
+    ASSERT_TRUE(settings.authentication_settings->token_provider);
 
-    auto token = settings.authentication_settings->provider();
-    EXPECT_EQ(token, kResponseToken);
+    client::CancellationContext context;
+    const auto token_response =
+        settings.authentication_settings->token_provider(context);
+    ASSERT_TRUE(token_response);
+    EXPECT_EQ(token_response.GetResult().GetAccessToken(), kResponseToken);
 
     testing::Mock::VerifyAndClearExpectations(network_mock_.get());
   }
@@ -197,8 +200,11 @@ TEST_F(TokenProviderTest, SingleTokenMultipleUsers) {
       ASSERT_FALSE(response.GetResult()->empty());
 
       // Verify token is still the same
-      auto token = settings.authentication_settings->provider();
-      EXPECT_EQ(token, kResponseToken);
+      client::CancellationContext context;
+      const auto token_response =
+          settings.authentication_settings->token_provider(context);
+      ASSERT_TRUE(token_response);
+      EXPECT_EQ(token_response.GetResult().GetAccessToken(), kResponseToken);
     }
   }
 
@@ -217,10 +223,13 @@ TEST_F(TokenProviderTest, UseLocalAndServerTime) {
                                      kResponseValidJson));
     auto settings = GetSettings<authentication::kDefaultMinimumValidity>(true);
     ASSERT_TRUE(settings.authentication_settings);
-    ASSERT_TRUE(settings.authentication_settings->provider);
+    ASSERT_TRUE(settings.authentication_settings->token_provider);
 
-    auto token = settings.authentication_settings->provider();
-    EXPECT_EQ(token, kResponseToken);
+    client::CancellationContext context;
+    const auto token_response =
+        settings.authentication_settings->token_provider(context);
+    ASSERT_TRUE(token_response);
+    EXPECT_EQ(token_response.GetResult().GetAccessToken(), kResponseToken);
     testing::Mock::VerifyAndClearExpectations(network_mock_.get());
   }
 
@@ -236,10 +245,13 @@ TEST_F(TokenProviderTest, UseLocalAndServerTime) {
                                      kResponseValidJson));
     auto settings = GetSettings<authentication::kDefaultMinimumValidity>(false);
     ASSERT_TRUE(settings.authentication_settings);
-    ASSERT_TRUE(settings.authentication_settings->provider);
+    ASSERT_TRUE(settings.authentication_settings->token_provider);
 
-    auto token = settings.authentication_settings->provider();
-    EXPECT_EQ(token, kResponseToken);
+    client::CancellationContext context;
+    const auto token_response =
+        settings.authentication_settings->token_provider(context);
+    ASSERT_TRUE(token_response);
+    EXPECT_EQ(token_response.GetResult().GetAccessToken(), kResponseToken);
   }
   testing::Mock::VerifyAndClearExpectations(network_mock_.get());
 }
@@ -250,23 +262,26 @@ TEST_F(TokenProviderTest, ConcurrentRequests) {
                                    kResponseValidJson));
   auto settings = GetSettings<authentication::kDefaultMinimumValidity>(true);
   ASSERT_TRUE(settings.authentication_settings);
-  ASSERT_TRUE(settings.authentication_settings->provider);
+  ASSERT_TRUE(settings.authentication_settings->token_provider);
 
   const auto kRequestCount = 5;
   std::vector<std::thread> threads;
-  std::vector<std::future<std::string>> futures;
+  std::vector<std::future<client::OauthTokenResponse>> futures;
   for (auto i = 0; i < kRequestCount; ++i) {
-    auto promise = std::make_shared<std::promise<std::string>>();
+    auto promise = std::make_shared<std::promise<client::OauthTokenResponse>>();
     threads.emplace_back([promise, settings]() {
-      promise->set_value(settings.authentication_settings->provider());
+      client::CancellationContext context;
+      promise->set_value(
+          settings.authentication_settings->token_provider(context));
     });
     futures.emplace_back(promise->get_future());
   }
 
   for (auto i = 0; i < kRequestCount; ++i) {
     threads[i].join();
-    auto token = futures[i].get();
-    EXPECT_EQ(token, kResponseToken);
+    auto token_response = futures[i].get();
+    ASSERT_TRUE(token_response);
+    EXPECT_EQ(token_response.GetResult().GetAccessToken(), kResponseToken);
   }
 
   testing::Mock::VerifyAndClearExpectations(network_mock_.get());

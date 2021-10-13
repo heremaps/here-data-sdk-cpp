@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@ int RunExampleReadWithCache(const AccessKey& access_key,
   // Setup AuthenticationSettings with a default token provider that will
   // retrieve an OAuth 2.0 token from OLP.
   olp::client::AuthenticationSettings auth_settings;
-  auth_settings.provider =
+  auth_settings.token_provider =
       olp::authentication::TokenProviderDefault(std::move(settings));
 
   // Create and initialize cache

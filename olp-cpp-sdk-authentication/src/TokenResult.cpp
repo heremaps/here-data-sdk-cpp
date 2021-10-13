@@ -19,10 +19,6 @@
 
 #include <olp/authentication/TokenResult.h>
 
-namespace {
-const std::string kOauth2TokenEndpoint = "/oauth2/token";
-}  // namespace
-
 namespace olp {
 namespace authentication {
 TokenResult::TokenResult(std::string access_token, time_t expiry_time,
