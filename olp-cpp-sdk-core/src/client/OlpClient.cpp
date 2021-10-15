@@ -425,7 +425,7 @@ boost::optional<client::ApiError> OlpClient::OlpClientImpl::AddBearer(
 
     token = response.GetResult().GetAccessToken();
   } else if (settings->provider) {
-    auto token = settings->provider();
+    token = settings->provider();
   } else {
     // There is no token provider defined.
     return boost::none;

@@ -30,8 +30,8 @@
 #include <olp/core/client/OlpClient.h>
 #include <olp/core/client/OlpClientFactory.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
-
 #include <olp/core/http/Network.h>
+#include <olp/core/http/NetworkConstants.h>
 #include <olp/core/logging/Log.h>
 
 namespace {
@@ -1644,23 +1644,59 @@ TEST_P(OlpClientTest, ApiKey) {
   testing::Mock::VerifyAndClearExpectations(network.get());
 }
 
-TEST_P(OlpClientTest, EmptyBearerTokenDeprecatedProvider) {
-  // Make token provider generate empty strings. We expect no network requests
-  // made in this case.
-  auto authentication_settings = olp::client::AuthenticationSettings();
-  authentication_settings.provider = []() { return std::string(""); };
-  auto network = network_;
-  client_settings_.authentication_settings = authentication_settings;
-  client_.SetSettings(client_settings_);
+TEST_P(OlpClientTest, TokenDeprecatedProvider) {
+  {
+    SCOPED_TRACE("EmptyBearer");
+    // Make token provider generate empty strings. We expect no network requests
+    // made in this case.
+    auto authentication_settings = olp::client::AuthenticationSettings();
+    authentication_settings.provider = []() { return std::string(""); };
+    auto network = network_;
+    client_settings_.authentication_settings = authentication_settings;
+    client_.SetSettings(client_settings_);
 
-  EXPECT_CALL(*network, Send(_, _, _, _, _)).Times(0);
+    EXPECT_CALL(*network, Send(_, _, _, _, _)).Times(0);
 
-  auto response =
-      call_wrapper_->CallApi("here.com", "GET", {}, {}, {}, nullptr, {});
-  EXPECT_EQ(response.GetStatus(),
-            static_cast<int>(http::ErrorCode::AUTHORIZATION_ERROR));
+    auto response =
+        call_wrapper_->CallApi("here.com", "GET", {}, {}, {}, nullptr, {});
+    EXPECT_EQ(response.GetStatus(),
+              static_cast<int>(http::ErrorCode::AUTHORIZATION_ERROR));
 
-  testing::Mock::VerifyAndClearExpectations(network.get());
+    testing::Mock::VerifyAndClearExpectations(network.get());
+  }
+  {
+    SCOPED_TRACE("Non empty token");
+    std::string token("bearer-access-token");
+    auto authentication_settings = olp::client::AuthenticationSettings();
+    authentication_settings.provider = [token]() { return token; };
+    auto network = network_;
+    client_settings_.authentication_settings = authentication_settings;
+    client_.SetSettings(client_settings_);
+
+    olp::http::NetworkResponse response;
+    response.WithStatus(olp::http::HttpStatusCode::OK);
+
+    olp::http::NetworkRequest request("");
+    EXPECT_CALL(*network, Send(_, _, _, _, _))
+        .WillOnce(testing::DoAll(testing::SaveArg<0>(&request),
+                                 testing::InvokeArgument<2>(response),
+                                 testing::Return(olp::http::SendOutcome(0))));
+
+    auto api_response =
+        call_wrapper_->CallApi("here.com", "GET", {}, {}, {}, nullptr, {});
+
+    auto headers = request.GetHeaders();
+
+    auto header_it = std::find_if(
+        headers.begin(), headers.end(), [&](const olp::http::Header& header) {
+          return header.first == olp::http::kAuthorizationHeader &&
+                 header.second == "Bearer " + token;
+        });
+
+    EXPECT_NE(header_it, headers.end());
+
+    testing::Mock::VerifyAndClearExpectations(network.get());
+  }
 }
 
 TEST_P(OlpClientTest, EmptyBearerToken) {
