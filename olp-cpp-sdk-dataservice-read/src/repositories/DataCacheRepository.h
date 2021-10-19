@@ -54,9 +54,6 @@ class DataCacheRepository final {
 
   bool Clear(const std::string& layer_id, const std::string& data_handle);
 
-  std::string CreateKey(const std::string& layer_id,
-                        const std::string& datahandle) const;
-
  private:
   client::HRN hrn_;
   std::shared_ptr<cache::KeyValueCache> cache_;

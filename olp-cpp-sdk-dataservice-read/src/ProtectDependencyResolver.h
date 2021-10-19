@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,9 +58,9 @@ class ProtectDependencyResolver {
   bool ProcessTileKeyInCache(const geo::TileKey& tile);
 
  private:
+  const std::string catalog_;
   const std::string& layer_id_;
   const int64_t version_;
-  repository::DataCacheRepository data_cache_repository_;
   repository::PartitionsCacheRepository partitions_cache_repository_;
   std::map<geo::TileKey, read::QuadTreeIndex> quad_trees_;
   cache::KeyValueCache::KeyListType keys_to_protect_;

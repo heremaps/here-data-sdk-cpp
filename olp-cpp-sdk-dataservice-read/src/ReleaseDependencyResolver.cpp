@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@
 #include <string>
 #include <utility>
 
+#include <olp/core/cache/CacheKeyGenerator.h>
+
 namespace {
 constexpr auto kQuadTreeDepth = 4u;
 }  // namespace
@@ -35,7 +37,8 @@ namespace read {
 ReleaseDependencyResolver::ReleaseDependencyResolver(
     const client::HRN& catalog, const std::string& layer_id, int64_t version,
     const client::OlpClientSettings& settings)
-    : layer_id_(layer_id),
+    : catalog_(catalog.ToCatalogHRNString()),
+      layer_id_(layer_id),
       version_(version),
       cache_(settings.cache),
       data_cache_repository_(catalog, settings.cache),
@@ -76,8 +79,8 @@ void ReleaseDependencyResolver::ProcessTileKey(const geo::TileKey& tile_key) {
         // no more protected tiles associated with this quad tree
         // can add key for quad tree to be released and remove from map
         keys_to_release_.emplace_back(
-            partitions_cache_repository_.CreateQuadKey(
-                it->first, kQuadTreeDepth, version_));
+            cache::CacheKeyGenerator::CreateQuadTreeKey(
+                catalog_, layer_id_, it->first, version_, kQuadTreeDepth));
       }
       return true;
     }
@@ -105,8 +108,8 @@ ReleaseDependencyResolver::CheckProtectedTilesInQuad(
   auto index_data = cached_tree.GetIndexData();
   TilesDataKeysType protected_keys;
   for (const auto& ind : index_data) {
-    auto tile_data_key =
-        data_cache_repository_.CreateKey(layer_id_, ind.data_handle);
+    const auto tile_data_key = cache::CacheKeyGenerator::CreateDataHandleKey(
+        catalog_, layer_id_, ind.data_handle);
     if (cache_->IsProtected(tile_data_key)) {
       if (ind.tile_key == tile) {
         // add key to release list
@@ -134,8 +137,8 @@ void ReleaseDependencyResolver::ProcessQuadTreeCache(
         CheckProtectedTilesInQuad(cached_tree, tile, add_data_handle_key);
     if (protected_keys.empty()) {
       // no other tiles are protected, can add quad tree to release list
-      keys_to_release_.emplace_back(partitions_cache_repository_.CreateQuadKey(
-          root_quad_key, kQuadTreeDepth, version_));
+      keys_to_release_.emplace_back(cache::CacheKeyGenerator::CreateQuadTreeKey(
+          catalog_, layer_id_, root_quad_key, version_, kQuadTreeDepth));
     }
     // add quad key with other protected keys dependent on this quad to
     // reduce future calls to cache

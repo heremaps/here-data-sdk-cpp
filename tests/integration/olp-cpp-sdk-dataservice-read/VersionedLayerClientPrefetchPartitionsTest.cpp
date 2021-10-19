@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,9 @@
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/NetworkMock.h>
 #include <olp/authentication/Settings.h>
+#include <olp/core/cache/CacheKeyGenerator.h>
 #include <olp/core/cache/CacheSettings.h>
+#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
@@ -90,6 +92,16 @@ TEST_F(VersionedLayerClientPrefetchPartitionsTest, PrefetchPartitions) {
 
     for (const auto& partition : result.GetPartitions()) {
       ASSERT_TRUE(client.IsCached(partition));
+
+      const auto cache_key = olp::cache::CacheKeyGenerator::CreatePartitionKey(
+          kCatalog, kLayer, partition, version_);
+      EXPECT_TRUE(settings_.cache->Contains(cache_key));
+    }
+
+    for (const auto& data_handle : partition_data_handles) {
+      const auto cache_key = olp::cache::CacheKeyGenerator::CreateDataHandleKey(
+          kCatalog, kLayer, data_handle);
+      EXPECT_TRUE(settings_.cache->Contains(cache_key));
     }
   }
   {

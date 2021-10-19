@@ -60,6 +60,7 @@ include(cmake/android.cmake)
 include(cmake/ios.cmake)
 
 set(OLP_SDK_CACHE_HEADERS
+    ./include/olp/core/cache/CacheKeyGenerator.h
     ./include/olp/core/cache/CacheSettings.h
     ./include/olp/core/cache/DefaultCache.h
     ./include/olp/core/cache/KeyValueCache.h
@@ -223,6 +224,7 @@ set(OLP_SDK_GEO_SOURCES
 )
 
 set(OLP_SDK_CACHE_SOURCES
+    ./src/cache/CacheKeyGenerator.cpp
     ./src/cache/DefaultCache.cpp
     ./src/cache/DefaultCacheImpl.cpp
     ./src/cache/DefaultCacheImpl.h

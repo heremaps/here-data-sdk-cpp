@@ -26,6 +26,7 @@
 #include <utility>
 #include <vector>
 
+#include <olp/core/cache/CacheKeyGenerator.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/core/logging/Log.h>
@@ -197,8 +198,8 @@ client::NetworkStatistics PrefetchTilesRepository::LoadAggregatedSubQuads(
     while (root.Level() > aggregated_tile_key.Level()) {
       root = root.ChangedLevelBy(-kMaxQuadTreeIndexDepth - 1);
 
-      const auto quad_cache_key = cache_repository_.CreateQuadKey(
-          root, kMaxQuadTreeIndexDepth, version);
+      const auto quad_cache_key = cache::CacheKeyGenerator::CreateQuadTreeKey(
+          catalog_str_, layer_id_, root, version, kMaxQuadTreeIndexDepth);
 
       NamedMutex mutex(storage_, quad_cache_key);
       std::unique_lock<NamedMutex> lock(mutex);
@@ -225,8 +226,8 @@ SubQuadsResponse PrefetchTilesRepository::GetVersionedSubQuads(
   QuadTreeIndex quad_tree;
   client::NetworkStatistics network_stats;
 
-  const auto quad_cache_key =
-      cache_repository_.CreateQuadKey(tile, kMaxQuadTreeIndexDepth, version);
+  const auto quad_cache_key = cache::CacheKeyGenerator::CreateQuadTreeKey(
+      catalog_str_, layer_id_, tile, version, kMaxQuadTreeIndexDepth);
 
   NamedMutex mutex(storage_, quad_cache_key);
   std::lock_guard<NamedMutex> lock(mutex);

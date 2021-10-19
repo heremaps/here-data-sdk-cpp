@@ -24,6 +24,8 @@
 #include <string>
 #include <utility>
 
+#include <olp/core/cache/CacheKeyGenerator.h>
+
 namespace {
 constexpr auto kQuadTreeDepth = 4u;
 }  // namespace
@@ -35,9 +37,9 @@ namespace read {
 ProtectDependencyResolver::ProtectDependencyResolver(
     const client::HRN& catalog, const std::string& layer_id, int64_t version,
     const client::OlpClientSettings& settings)
-    : layer_id_(layer_id),
+    : catalog_(catalog.ToCatalogHRNString()),
+      layer_id_(layer_id),
       version_(version),
-      data_cache_repository_(catalog, settings.cache),
       partitions_cache_repository_(catalog, layer_id_, settings.cache),
       quad_trees_(),
       keys_to_protect_() {}
@@ -76,8 +78,8 @@ bool ProtectDependencyResolver::AddDataHandle(
     const geo::TileKey& tile, const read::QuadTreeIndex& quad_tree) {
   auto data = quad_tree.Find(tile, false);
   if (data) {
-    keys_to_protect_.emplace_back(
-        data_cache_repository_.CreateKey(layer_id_, data->data_handle));
+    keys_to_protect_.emplace_back(cache::CacheKeyGenerator::CreateDataHandleKey(
+        catalog_, layer_id_, data->data_handle));
     return true;
   }
   return false;
@@ -90,8 +92,8 @@ bool ProtectDependencyResolver::ProcessTileKeyInCache(
       AddDataHandle(tile, cached_tree)) {
     auto root_tile = cached_tree.GetRootTile();
     // add quad tree to list for protection
-    keys_to_protect_.emplace_back(partitions_cache_repository_.CreateQuadKey(
-        root_tile, kQuadTreeDepth, version_));
+    keys_to_protect_.emplace_back(cache::CacheKeyGenerator::CreateQuadTreeKey(
+        catalog_, layer_id_, root_tile, version_, kQuadTreeDepth));
     // save quad tree, because  there is could be more tiles to protect from
     // this quad
     quad_trees_[root_tile] = std::move(cached_tree);
