@@ -62,6 +62,7 @@ include(cmake/ios.cmake)
 set(OLP_SDK_CACHE_HEADERS
     ./include/olp/core/cache/CacheSettings.h
     ./include/olp/core/cache/DefaultCache.h
+    ./include/olp/core/cache/KeyGenerator.h
     ./include/olp/core/cache/KeyValueCache.h
 )
 
@@ -234,6 +235,7 @@ set(OLP_SDK_CACHE_SOURCES
     ./src/cache/DiskCacheSizeLimitEnv.h
     ./src/cache/DiskCacheSizeLimitWritableFile.cpp
     ./src/cache/DiskCacheSizeLimitWritableFile.h
+    ./src/cache/KeyGenerator.cpp
     ./src/cache/ProtectedKeyList.cpp
     ./src/cache/ProtectedKeyList.h
     ./src/cache/InMemoryCache.cpp

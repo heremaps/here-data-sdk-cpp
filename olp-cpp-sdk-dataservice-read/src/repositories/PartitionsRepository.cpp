@@ -22,10 +22,10 @@
 #include <algorithm>
 #include <utility>
 
-#include <boost/functional/hash.hpp>
-
+#include <olp/core/cache/KeyGenerator.h>
 #include <olp/core/client/Condition.h>
 #include <olp/core/logging/Log.h>
+#include <boost/functional/hash.hpp>
 #include "CatalogRepository.h"
 #include "generated/api/MetadataApi.h"
 #include "generated/api/QueryApi.h"
@@ -361,8 +361,9 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
   const auto& root_tile_key = tile_key.ChangedLevelBy(-kAggregateQuadTreeDepth);
   const auto root_tile_here = root_tile_key.ToHereTile();
 
-  const auto quad_cache_key =
-      cache_.CreateQuadKey(root_tile_key, kAggregateQuadTreeDepth, version);
+  const auto quad_cache_key = cache::KeyGenerator::CreateQuadTreeKey(
+      catalog_.ToCatalogHRNString(), layer_id_, root_tile_key, version,
+      kAggregateQuadTreeDepth);
 
   NamedMutex mutex(storage_, quad_cache_key);
   std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,7 @@ class ReleaseDependencyResolver {
                             bool& add_data_handle_key);
 
  private:
+  const std::string catalog_;
   const std::string& layer_id_;
   const int64_t version_;
   std::shared_ptr<cache::KeyValueCache> cache_;
