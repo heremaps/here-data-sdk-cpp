@@ -25,14 +25,22 @@
 
 namespace olp {
 namespace client {
+
 /**
- * @brief Default implementation of the lookup API endpoint provider.
+ * @brief The default implementation of the lookup API endpoint provider.
  *
- * This is returning the default lookup API endpoint URLs based on the HRN
- * partition.
+ * It returns the default lookup API endpoint URLs based on the partition
+ * HRN.
  */
 struct CORE_API DefaultLookupEndpointProvider {
  public:
+  /**
+   * @brief The funcion call operator.
+   * 
+   * @param partition The partition HRN.
+   *
+   * @return The default lookup API endpoint URLs.
+   */
   std::string operator()(const std::string& partition);
 };
 

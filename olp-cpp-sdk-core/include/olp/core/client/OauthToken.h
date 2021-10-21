@@ -86,6 +86,7 @@ class CORE_API OauthToken {
   time_t expiry_time_;
 };
 
+/// An alias for the OAuth token response.
 using OauthTokenResponse = ApiResponse<OauthToken, ApiError>;
 
 }  // namespace client

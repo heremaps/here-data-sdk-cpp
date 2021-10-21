@@ -65,10 +65,16 @@ class TokenProvider {
       : impl_(std::make_shared<TokenProviderImpl>(
             std::move(settings), std::chrono::seconds(MinimumValidity))) {}
 
-  // Default copyable, default movable.
+  /// A default copy constructor.
   TokenProvider(const TokenProvider& other) = default;
+
+  /// A default move constructor.
   TokenProvider(TokenProvider&& other) noexcept = default;
+
+  /// A default copy assignment operator.
   TokenProvider& operator=(const TokenProvider& other) = default;
+
+  /// A default move assignment operator.
   TokenProvider& operator=(TokenProvider&& other) noexcept = default;
 
   /**

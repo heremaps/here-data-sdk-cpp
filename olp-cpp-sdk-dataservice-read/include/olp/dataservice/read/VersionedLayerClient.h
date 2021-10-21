@@ -126,10 +126,16 @@ class DATASERVICE_READ_API VersionedLayerClient final {
                        boost::optional<int64_t> catalog_version,
                        client::OlpClientSettings settings);
 
-  /// Movable, non-copyable
+  /// A copy constructor.
   VersionedLayerClient(const VersionedLayerClient& other) = delete;
+
+  /// A default move constructor.
   VersionedLayerClient(VersionedLayerClient&& other) noexcept;
+
+  /// A copy assignment operator.
   VersionedLayerClient& operator=(const VersionedLayerClient& other) = delete;
+
+  /// A move assignment operator.
   VersionedLayerClient& operator=(VersionedLayerClient&& other) noexcept;
 
   ~VersionedLayerClient();

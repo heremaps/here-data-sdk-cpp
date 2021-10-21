@@ -58,7 +58,10 @@ using PublishSdiiCallback = std::function<void(PublishSdiiResponse response)>;
 /// @brief Client responsible for writing data to a HERE platform stream layer.
 class DATASERVICE_WRITE_API StreamLayerClient {
  public:
+  /// An alias for the flush response.
   using FlushResponse = std::vector<PublishDataResponse>;
+
+  /// An alias for the flush callback.
   using FlushCallback = std::function<void(FlushResponse response)>;
 
   /**

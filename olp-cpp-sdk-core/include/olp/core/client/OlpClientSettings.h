@@ -50,14 +50,14 @@ class Network;
 
 namespace client {
 /**
- * @brief The type alias of the asynchronous network callback.
+ * @brief An alias for the asynchronous network callback.
  *
  * Used to receive the `HttpResponse` instance.
  */
 using NetworkAsyncCallback = std::function<void(HttpResponse)>;
 
 /**
- * @brief The type alias of the cancel function.
+ * @brief An alias for the cancel function.
  *
  * Used to cancel the asynchronous network operation.
  */
@@ -73,9 +73,7 @@ using NetworkAsyncCancel = std::function<void()>;
  * The struct is used internally by the `OlpClient` class.
  */
 struct CORE_API AuthenticationSettings {
-  /**
-   * @brief The alias for the `ApiKey` provider.
-   */
+  /// An alias for the `ApiKey` provider.
   using ApiKeyProviderType = std::function<std::string()>;
 
   /**
@@ -186,7 +184,7 @@ struct CORE_API AuthenticationSettings {
  */
 struct CORE_API ApiLookupSettings {
   /**
-   * @brief The type alias of the lookup provider function.
+   * @brief An alias for the lookup provider function.
    *
    * Users of this provider should always return full lookup API path, e.g.
    * for "here" partition return
@@ -199,7 +197,7 @@ struct CORE_API ApiLookupSettings {
   using LookupEndpointProvider = std::function<std::string(const std::string&)>;
 
   /**
-   * @brief The type alias of the catalog endpoint provider function.
+   * @brief An alias for the catalog endpoint provider function.
    *
    * Catalogs that have a static URL or can be accessed through
    * a proxy service can input the URL provider here. This URL provider is taken

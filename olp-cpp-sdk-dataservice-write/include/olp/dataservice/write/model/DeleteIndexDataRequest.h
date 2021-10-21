@@ -30,8 +30,10 @@ namespace dataservice {
 namespace write {
 namespace model {
 
+/// Deletes index data from an index layer.
 class DATASERVICE_WRITE_API DeleteIndexDataRequest {
  public:
+  /// A default constructor.
   DeleteIndexDataRequest() = default;
 
   /**

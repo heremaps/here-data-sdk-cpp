@@ -41,7 +41,7 @@ class AUTHENTICATION_API Permission {
   /**
    * @brief Sets the action associated with the resource.
    *
-   * @param The action to associate with.
+   * @param action The action to associate with.
    */
   void SetAction(std::string action) { action_ = std::move(action); }
 
@@ -55,7 +55,7 @@ class AUTHENTICATION_API Permission {
   /**
    * @brief Sets the resource with which the action and decision are associated.
    *
-   * @param The resource to associate with the decision and action.
+   * @param resource The resource to associate with the decision and action.
    */
   void SetResource(std::string resource) { resource_ = std::move(resource); }
 
@@ -69,7 +69,7 @@ class AUTHENTICATION_API Permission {
   /**
    * @brief Sets the decision associated with the resource.
    *
-   * @param The decision to associate with the resource.
+   * @param decision The decision to associate with the resource.
    */
   void SetDecision(DecisionType decision) { decision_ = decision; }
 
@@ -107,7 +107,7 @@ class AUTHENTICATION_API ActionResult {
   /**
    * @brief Sets the policy decision.
    *
-   * @param The policy decision.
+   * @param decision The policy decision.
    */
   void SetDecision(DecisionType decision) { decision_ = decision; }
 
@@ -179,7 +179,7 @@ class AUTHENTICATION_API AuthorizeResult {
   /**
    * @brief Sets the client ID.
    *
-   * @param The client ID.
+   * @param client_id The client ID.
    */
   void SetClientId(std::string client_id) { client_id_ = std::move(client_id); }
 

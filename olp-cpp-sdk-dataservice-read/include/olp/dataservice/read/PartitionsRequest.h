@@ -39,7 +39,7 @@ namespace read {
  */
 class DATASERVICE_READ_API PartitionsRequest final {
  public:
-  /// The alias type of the vector of partitions ids
+  /// An alias for the vector of partitions IDs.
   using PartitionIds = std::vector<std::string>;
 
   /// Additional field to request partition data size, see GetPartitions
@@ -55,7 +55,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
   /// Additional field to request partition crc, see GetPartitions
   static constexpr const char* kCrc = "crc";
 
-  /// The alias type of the set of additional fields
+  /// An alias for the set of additional fields.
   using AdditionalFields = std::vector<std::string>;
 
   /**
@@ -65,7 +65,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
    * layer metadata. Additionally, a single request supports up to 100
    * partitions.
    *
-   * @param partitions The list of partitions to request.
+   * @param partition_ids The list of partitions to request.
    *
    * @return A reference to the updated `PartitionsRequest` instance.
    */
@@ -91,7 +91,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
    *  - compressedDataSize
    *  - crc
    *
-   * @param fields The list of additional fields.
+   * @param additional_fields The list of additional fields.
    *
    * @return A reference to the updated `PartitionsRequest` instance.
    */
@@ -183,6 +183,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
    * @brief Creates a readable format for the request.
    *
    * @param layer_id The ID of the layer that is used for the request.
+   * @param version The catalog version.
    *
    * @return A string representation of the request.
    */

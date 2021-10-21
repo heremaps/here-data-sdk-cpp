@@ -39,7 +39,7 @@ namespace read {
  */
 class DATASERVICE_READ_API PrefetchPartitionsRequest final {
  public:
-  /// The alias type of the vector of partitions ids
+  /// An alias for the vector of partitions IDs.
   using PartitionIds = std::vector<std::string>;
 
   /**
@@ -50,7 +50,7 @@ class DATASERVICE_READ_API PrefetchPartitionsRequest final {
    * partitions. If partitions list has more than 100, it will be split
    * internally to multiple requests.
    *
-   * @param partitions The list of partitions to request.
+   * @param partition_ids The list of partitions to request.
    *
    * @return A reference to the updated `PrefetchPartitionsRequest` instance.
    */
@@ -86,7 +86,7 @@ class DATASERVICE_READ_API PrefetchPartitionsRequest final {
    *
    * @see `GetBillingTag()` for information on usage and format.
    *
-   * @param billingTag The `BillingTag` string or `boost::none`.
+   * @param billing_tag The `BillingTag` string or `boost::none`.
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
@@ -101,7 +101,7 @@ class DATASERVICE_READ_API PrefetchPartitionsRequest final {
    *
    * @see `GetBillingTag()` for information on usage and format.
    *
-   * @param billingTag The rvalue reference to the `BillingTag` string or
+   * @param billing_tag The rvalue reference to the `BillingTag` string or
    * `boost::none`.
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
@@ -136,6 +136,7 @@ class DATASERVICE_READ_API PrefetchPartitionsRequest final {
    * @brief Creates a readable format for the request.
    *
    * @param layer_id The ID of the layer that is used for the request.
+   * @param version The catalog version.
    *
    * @return A string representation of the request.
    */

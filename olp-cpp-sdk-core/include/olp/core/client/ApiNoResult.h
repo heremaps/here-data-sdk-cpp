@@ -32,7 +32,7 @@ namespace client {
  */
 class ApiNoResult {};
 
-/// The alias to the response without result.
+/// An alias for the response without result.
 using ApiNoResponse = ApiResponse<ApiNoResult, ApiError>;
 
 }  // namespace client

@@ -36,9 +36,7 @@ namespace cache {
 using Encoder = std::function<std::string()>;
 using Decoder = std::function<boost::any(const std::string&)>;
 
-/**
- * @brief An interface for a cache that expects a key-value pair.
- */
+/// An interface for a cache that expects a key-value pair.
 class CORE_API KeyValueCache {
  public:
   /**
@@ -48,19 +46,13 @@ class CORE_API KeyValueCache {
    */
   static constexpr time_t kDefaultExpiry = std::numeric_limits<time_t>::max();
 
-  /**
-   * @brief The value type that is stored in the DB.
-   */
+  /// The value type that is stored in the DB.
   using ValueType = std::vector<unsigned char>;
 
-  /**
-   * @brief The shared pointer type of the DB entry.
-   */
+  /// The shared pointer type of the DB entry.
   using ValueTypePtr = std::shared_ptr<ValueType>;
 
-  /**
-   * @brief Alias for the list of keys to be protected or released.
-   */
+  /// An alias for the list of keys to be protected or released.
   using KeyListType = std::vector<std::string>;
 
   virtual ~KeyValueCache() = default;
@@ -94,7 +86,7 @@ class CORE_API KeyValueCache {
    * @brief Gets the key-value pair from the cache.
    *
    * @param key The key that is used to look for the key-value pair.
-   * @param decoder Decodes the value from a string.
+   * @param encoder Decodes the value from a string.
    *
    * @return The key-value pair.
    */
@@ -129,11 +121,11 @@ class CORE_API KeyValueCache {
   virtual bool RemoveKeysWithPrefix(const std::string& prefix) = 0;
 
   /**
-   * @brief Check if key is in the cache.
+   * @brief Checks if the key is in the cache.
    *
    * @param key The key for the value.
    *
-   * @return True if the key/value cached ; false otherwise.
+   * @return True if the key is cached; false otherwise.
    */
   virtual bool Contains(const std::string& key) const {
     OLP_SDK_CORE_UNUSED(key);

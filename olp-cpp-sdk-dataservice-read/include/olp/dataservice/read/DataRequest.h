@@ -224,6 +224,7 @@ class DATASERVICE_READ_API DataRequest final {
    * @brief Creates a readable format for the request.
    *
    * @param layer_id The ID of the layer that is used for the request.
+   * @param version The catalog version.
    *
    * @return A string representation of the request.
    */

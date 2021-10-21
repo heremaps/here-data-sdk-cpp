@@ -29,10 +29,19 @@ namespace dataservice {
 namespace write {
 namespace model {
 
+/// Represents catalog and version dependencies.
 class DATASERVICE_WRITE_API VersionDependency {
  public:
   VersionDependency() = default;
   virtual ~VersionDependency() = default;
+
+  /**
+   * @brief Creates the `VersionDependency` instance.
+   *
+   * @param direct Specifies if the dependency is direct.
+   * @param hrn The catalog HRN.
+   * @param version The catalog version.
+   */
   VersionDependency(bool direct, std::string hrn, int64_t version)
       : direct_(direct), hrn_(std::move(hrn)), version_(version) {}
 
@@ -42,16 +51,67 @@ class DATASERVICE_WRITE_API VersionDependency {
   int64_t version_{0};
 
  public:
+  /**
+   * @brief Gets the direct dependency status.
+   *
+   * @return The direct dependency status.
+   */
   const bool& GetDirect() const { return direct_; }
+
+  /**
+   * @brief Gets a mutable reference to the direct dependency status.
+   *
+   * @return The mutable reference to the direct dependency status.
+   */
   bool& GetMutableDirect() { return direct_; }
+
+  /**
+   * @brief Sets the direct dependency status.
+   *
+   * @param value The direct dependency status.
+   */
   void SetDirect(const bool& value) { this->direct_ = value; }
 
+  /**
+   * @brief Gets the catalog HRN.
+   *
+   * @return The catalog HRN.
+   */
   const std::string& GetHrn() const { return hrn_; }
+
+  /**
+   * @brief Gets a mutable reference to the catalog HRN.
+   *
+   * @return The mutable reference to the catalog HRN.
+   */
   std::string& GetMutableHrn() { return hrn_; }
+
+  /**
+   * @brief Sets the catalog HRN.
+   *
+   * @param value The catalog HRN.
+   */
   void SetHrn(const std::string& value) { this->hrn_ = value; }
 
+  /**
+   * @brief Gets the catalog version.
+   *
+   * @return The catalog version.
+   */
   const int64_t& GetVersion() const { return version_; }
+
+  /**
+   * @brief Gets a mutable reference to the catalog version.
+   *
+   * @return The mutable reference to the catalog version.
+   */
   int64_t& GetMutableVersion() { return version_; }
+
+  /**
+   * @brief Sets the catalog version.
+   *
+   * @param value The catalog version.
+   */
   void SetVersion(const int64_t& value) { this->version_ = value; }
 };
 

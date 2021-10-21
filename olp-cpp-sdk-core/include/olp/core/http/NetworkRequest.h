@@ -30,12 +30,10 @@
 namespace olp {
 namespace http {
 
-/**
- * @brief A network request abstraction for an HTTP request.
- */
+/// A network request abstraction for an HTTP request.
 class CORE_API NetworkRequest final {
  public:
-  /// The short type alias for the HTTP request body.
+  /// An alias for the HTTP request body.
   using RequestBodyType = std::shared_ptr<const std::vector<std::uint8_t>>;
 
   /// The HTTP method, as specified at https://tools.ietf.org/html/rfc2616.

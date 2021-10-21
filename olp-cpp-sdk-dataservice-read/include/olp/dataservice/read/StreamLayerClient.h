@@ -107,10 +107,16 @@ class DATASERVICE_READ_API StreamLayerClient final {
   StreamLayerClient(client::HRN catalog, std::string layer_id,
                     client::OlpClientSettings settings);
 
-  /// Movable, non-copyable
+  /// A copy constructor.
   StreamLayerClient(const StreamLayerClient& other) = delete;
+
+  /// A default move constructor.
   StreamLayerClient(StreamLayerClient&& other) noexcept;
+
+  /// A copy assignment operator.
   StreamLayerClient& operator=(const StreamLayerClient& other) = delete;
+
+  /// A move assignment operator.
   StreamLayerClient& operator=(StreamLayerClient&& other) noexcept;
 
   ~StreamLayerClient();

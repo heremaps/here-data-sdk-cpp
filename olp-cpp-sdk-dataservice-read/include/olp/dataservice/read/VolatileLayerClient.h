@@ -92,10 +92,16 @@ class DATASERVICE_READ_API VolatileLayerClient final {
   VolatileLayerClient(client::HRN catalog, std::string layer_id,
                       client::OlpClientSettings settings);
 
-  /// Movable, non-copyable
+  /// A copy constructor.
   VolatileLayerClient(const VolatileLayerClient& other) = delete;
+
+  /// A default move constructor.
   VolatileLayerClient(VolatileLayerClient&& other) noexcept;
+
+  /// A copy assignment operator.
   VolatileLayerClient& operator=(const VolatileLayerClient& other) = delete;
+
+  /// A move assignment operator.
   VolatileLayerClient& operator=(VolatileLayerClient&& other) noexcept;
 
   ~VolatileLayerClient();

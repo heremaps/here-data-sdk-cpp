@@ -32,7 +32,7 @@ namespace read {
  */
 class DATASERVICE_READ_API SeekRequest final {
  public:
-  /// The alias type of the stream offsets.
+  /// An alias for the stream offsets.
   using StreamOffsets = model::StreamOffsets;
 
   /**

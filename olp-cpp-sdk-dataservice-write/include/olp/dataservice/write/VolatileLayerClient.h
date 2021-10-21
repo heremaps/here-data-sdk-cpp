@@ -178,7 +178,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
                                           GetBatchCallback callback);
 
   /**
-   * Publish meta data to the HERE platform.
+   * @brief Publish meta data to the HERE platform.
    *
    * A volatile layer publishing task consists 2 steps:
    * <list type = "number">
@@ -190,6 +190,8 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
    * data blob, otherwise clients will receive an empty vector from publishing
    * data blob result. Note that changing the meta data of a partition will
    * result in updating the catalog version.
+   *
+   * @param pub The `Publication` instance.
    * @param partitions a group of PublishPartitionDataRequest that has following
    * fields defined: <list type = "bullet"> <item>Layer ID (required)</item>
    * <item>Partition (required)</item>
@@ -197,7 +199,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
    * <item>Data - must NOT be defiend as this call is for updating metadata
    * (e.g. Partition IDs) only.</item>
    * </list>
-   * @param callback called when the operation completes.
+   *
    * @return cancellation token that can be used to cancel the request.
    */
   olp::client::CancellableFuture<PublishToBatchResponse> PublishToBatch(
@@ -205,7 +207,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
       const std::vector<model::PublishPartitionDataRequest>& partitions);
 
   /**
-   * Publish meta data to the HERE platform.
+   * @brief Publish meta data to the HERE platform.
    *
    * A volatile layer publishing task consists 2 steps:
    * <list type = "number">
@@ -217,6 +219,8 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
    * data blob, otherwise clients will receive an empty vector from publishing
    * data blob result. Note that changing the meta data of a partition will
    * result in updating the catalog version.
+   *
+   * @param pub The `Publication` instance.
    * @param partitions a group of PublishPartitionDataRequest that has following
    * fields defined: <list type = "bullet"> <item>Layer ID (required)</item>
    * <item>Partition (required)</item>
@@ -225,6 +229,7 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
    * (e.g. Partition IDs) only.</item>
    * </list>
    * @param callback called when the operation completes.
+   *
    * @return cancellation token that can be used to cancel the request.
    */
   olp::client::CancellationToken PublishToBatch(
@@ -234,7 +239,8 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
 
   /**
    * @brief Complete the given batch operation and commit to the HERE platform.
-   * @param pub the publication to complete
+   *
+   * @param pub The `Publication` instance.
    * @return future containing the batch response
    */
   olp::client::CancellableFuture<CompleteBatchResponse> CompleteBatch(
@@ -242,7 +248,8 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
 
   /**
    * @brief Complete the given batch operation and commit to the HERE platform.
-   * @param pub the publication to complete
+   *
+   * @param pub The `Publication` instance.
    * @param callback called when the operation completes.
    * @return cancellation token
    */

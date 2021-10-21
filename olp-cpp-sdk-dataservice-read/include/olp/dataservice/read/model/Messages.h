@@ -81,7 +81,7 @@ class DATASERVICE_READ_API Metadata final {
   /**
    * @brief (Optional) Gets the compressed size of the content (in bytes).
    *
-   * It is present only if the \ref `GetDataHandle` method is not empty.
+   * It is present only if the `GetDataHandle` method is not empty.
    * Applicable also if `Content-Encoding` is set to `gzip` when uploading and
    * downloading data.
    *
@@ -105,7 +105,7 @@ class DATASERVICE_READ_API Metadata final {
   /**
    * @brief (Optional) Gets the nominal size (in bytes) of the content.
    *
-   * It is present only if the \ref `GetDataHandle` method is not empty.
+   * It is present only if the `GetDataHandle` method is not empty.
    *
    * @note When compression is enabled, this field contains the size of
    * the uncompressed content.
@@ -123,7 +123,7 @@ class DATASERVICE_READ_API Metadata final {
   void SetDataSize(boost::optional<int64_t> value) { data_size_ = value; }
 
   /**
-   * @brief Gets the data of this \ref `Metadata` instance.
+   * @brief Gets the data of this `Metadata` instance.
    *
    * The data represents content published directly in the metadata and encoded
    * in Base64. The size of the content is limited. It is present only if
@@ -202,28 +202,28 @@ class DATASERVICE_READ_API Metadata final {
 class DATASERVICE_READ_API Message final {
  public:
   /**
-   * @brief Gets the \ref `Metadata` instance of this message.
+   * @brief Gets the `Metadata` instance of this message.
    *
-   * @return The \ref `Metadata` instance.
+   * @return The `Metadata` instance.
    */
   const Metadata& GetMetaData() const { return meta_data_; }
   /**
-   * @brief Sets the \ref `Metadata` instance of this message.
+   * @brief Sets the `Metadata` instance of this message.
    *
-   * @param value The \ref `Metadata` instance.
+   * @param value The `Metadata` instance.
    */
   void SetMetaData(Metadata value) { meta_data_ = std::move(value); }
 
   /**
    * @brief Gets the offset in a specific partition of the stream layer.
    *
-   * @return The \ref `StreamOffset` instance.
+   * @return The `StreamOffset` instance.
    */
   const StreamOffset& GetOffset() const { return offset_; }
   /**
-   * @brief Sets the \ref `StreamOffset` instance of this message.
+   * @brief Sets the `StreamOffset` instance of this message.
    *
-   * @param value The \ref `StreamOffset` instance.
+   * @param value The `StreamOffset` instance.
    */
   void SetOffset(StreamOffset value) { offset_ = std::move(value); }
 
@@ -247,13 +247,13 @@ class DATASERVICE_READ_API Messages final {
   /**
    * @brief Gets the vector of messages.
    *
-   * @return The vector of messages consumed from \ref `StreamLayerClient`.
+   * @return The vector of messages consumed from `StreamLayerClient`.
    */
   const std::vector<Message>& GetMessages() const { return messages_; }
   /**
    * @brief Sets the vector of messages.
    *
-   * @param value The vector of messages consumed from \ref `StreamLayerClient`.
+   * @param value The vector of messages consumed from `StreamLayerClient`.
    */
   void SetMessages(std::vector<Message> value) { messages_ = std::move(value); }
 

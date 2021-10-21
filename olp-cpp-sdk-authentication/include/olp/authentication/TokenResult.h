@@ -34,9 +34,9 @@ namespace authentication {
  * @brief A parsed response received from the OAuth2.0 token endpoint.
  *
  * You can get the following information: the access token issued by
- * the authorization server ( \ref GetAccessToken ), its expiry time
- * ( \ref GetExpiryTime ), HTTP status code ( \ref GetHttpStatus ),
- * and error description ( \ref GetErrorResponse ) in case of a failure.
+ * the authorization server (`GetAccessToken`), its expiry time
+ * (`GetExpiryTime`), HTTP status code (`GetHttpStatus`),
+ * and error description (`GetErrorResponse`) in case of a failure.
  */
 class AUTHENTICATION_API TokenResult {
  public:

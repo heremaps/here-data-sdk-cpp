@@ -33,9 +33,7 @@ namespace olp {
 /// Provides a platform specific network abstraction layer.
 namespace http {
 
-/**
- * @brief An HTTP client abstraction.
- */
+/// An HTTP client abstraction.
 class CORE_API Network {
  public:
   /// The callback that is called when the request is processed or canceled.
@@ -52,16 +50,17 @@ class CORE_API Network {
   /// The request and response payload type.
   using Payload = std::shared_ptr<std::ostream>;
 
-  /**
-   * @brief Network statistics for a specific bucket.
-   */
+  /// Network statistics for a specific bucket.
   struct Statistics {
     /// The total bytes downloaded, including the size of headers and payload.
     uint64_t bytes_downloaded{0ull};
+
     /// The total bytes uploaded, including the size of headers and payload.
     uint64_t bytes_uploaded{0ull};
+
     /// The total number of requests made by network.
     uint32_t total_requests{0u};
+
     /// The total number of requests that failed.
     uint32_t total_failed{0u};
   };
@@ -82,7 +81,7 @@ class CORE_API Network {
    * is received. You can trigger triggered multiple times before the final
    * `Callback` call.
    *
-   * @return `SendOutcome` that represent either a valid `RequestId` as
+   * @return `SendOutcome` that represents either a valid `RequestId` as
    * the unique request identifier or an `ErrorCode` in case of failure.
    * In case of failure, no callbacks are triggered.
    */
@@ -130,7 +129,7 @@ class CORE_API Network {
   /**
    * @brief Sets the current bucket statistics.
    *
-   * @param[in] bucked_id The bucket ID.
+   * @param[in] bucket_id The bucket ID.
    */
   virtual void SetCurrentBucket(uint8_t bucket_id);
 
@@ -140,16 +139,14 @@ class CORE_API Network {
    * By default, it returns the statistics for the default bucket and the ID
    * that equals 0.
    *
-   * @param[in] bucked_id The bucket ID.
+   * @param[in] bucket_id The bucket ID.
    *
    * @return The statistic for the requested bucket.
    */
   virtual Statistics GetStatistics(uint8_t bucket_id = 0);
 };
 
-/**
- * @brief Creates a default `Network` implementation.
- */
+/// Creates a default `Network` implementation.
 CORE_API std::shared_ptr<Network> CreateDefaultNetwork(
     size_t max_requests_count);
 
