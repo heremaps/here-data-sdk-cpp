@@ -311,9 +311,15 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
     return ToHttpResponse(kCancelledErrorResponse);
   }
 
-  HttpResponse response{response_data->response.GetStatus(),
-                        std::move(*response_body),
-                        std::move(response_data->headers)};
+  HttpResponse response = [&]() {
+    const auto status = response_data->response.GetStatus();
+    if (status < 0) {
+      return HttpResponse{status, response_data->response.GetError()};
+    } else {
+      return HttpResponse{status, std::move(*response_body),
+                          std::move(response_data->headers)};
+    }
+  }();
 
   response.SetNetworkStatistics(GetStatistics(response_data->response));
 
