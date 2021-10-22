@@ -470,15 +470,15 @@ public class HttpClient {
             httpClient.completeRequest(request.requestId(), status, uploadedContentSize, downloadContentSize, error, contentType);
           } while (!isDone);
         } catch (SSLException e) {
-          completeErrorRequest(request.requestId(), AUTHORIZATION_ERROR, uploadedContentSize, downloadContentSize, "SSL connection failed.");
+          completeErrorRequest(request.requestId(), IO_ERROR, uploadedContentSize, downloadContentSize, "SSL connection failed: " + e);
         } catch (MalformedURLException e) {
-          completeErrorRequest(request.requestId(), INVALID_URL_ERROR, uploadedContentSize, downloadContentSize, "The provided URL is not valid.");
+          completeErrorRequest(request.requestId(), INVALID_URL_ERROR, uploadedContentSize, downloadContentSize, "The provided URL is not valid: " + e);
         } catch (OperationCanceledException e) {
-          completeErrorRequest(request.requestId(), CANCELLED_ERROR, uploadedContentSize, downloadContentSize, "Cancelled");
+          completeErrorRequest(request.requestId(), CANCELLED_ERROR, uploadedContentSize, downloadContentSize, "Cancelled: " + e);
         } catch (SocketTimeoutException e) {
-          completeErrorRequest(request.requestId(), TIMEOUT_ERROR, uploadedContentSize, downloadContentSize, "Timed out");
+          completeErrorRequest(request.requestId(), TIMEOUT_ERROR, uploadedContentSize, downloadContentSize, "Timed out: " + e);
         } catch (UnknownHostException e) {
-          completeErrorRequest(request.requestId(), OFFLINE_ERROR, uploadedContentSize, downloadContentSize, "The device has no internet connectivity");
+          completeErrorRequest(request.requestId(), OFFLINE_ERROR, uploadedContentSize, downloadContentSize, "The device has no internet connectivity: " + e);
         } catch (Exception e) {
           Log.e(LOGTAG, "HttpClient::HttpTask::run exception: " + e);
           e.printStackTrace();
