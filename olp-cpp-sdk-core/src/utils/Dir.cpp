@@ -467,7 +467,8 @@ uint64_t Dir::Size(const std::string& path, FilterFunction filter_fn) {
           default:
             break;
         }
-      } else {
+      } else if (errno != ENOENT) {
+        // Ignore ENOENT errors as its a common case, e.g. cache compaction.
         result = 0;
         break;
       }
