@@ -20,6 +20,8 @@
 #include <gmock/gmock.h>
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/NetworkMock.h>
+#include <olp/core/cache/KeyGenerator.h>
+#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/http/Network.h>
@@ -60,6 +62,10 @@ TEST_P(CatalogClientTest, GetCatalog) {
 
   ASSERT_TRUE(catalog_response.IsSuccessful())
       << ApiErrorToString(catalog_response.GetError());
+
+  const auto cache_key =
+      olp::cache::KeyGenerator::CreateCatalogKey(GetTestCatalog());
+  EXPECT_TRUE(settings_.cache->Contains(cache_key));
 }
 
 TEST_P(CatalogClientTest, GetCatalogCallback) {
@@ -248,6 +254,10 @@ TEST_P(CatalogClientTest, GetCatalogVersion) {
 
   ASSERT_TRUE(catalog_version_response.IsSuccessful())
       << ApiErrorToString(catalog_version_response.GetError());
+
+  const auto cache_key =
+      olp::cache::KeyGenerator::CreateLatestVersionKey(GetTestCatalog());
+  EXPECT_TRUE(settings_.cache->Contains(cache_key));
 }
 
 TEST_P(CatalogClientTest, GetCatalogVersionCancel) {

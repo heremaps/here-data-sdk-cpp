@@ -21,6 +21,7 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./cache/Helpers.cpp
     ./cache/Helpers.h
     ./cache/InMemoryCacheTest.cpp
+    ./cache/KeyGeneratorTest.cpp
     ./cache/ProtectedKeyListTest.cpp
 
     ./client/ApiLookupClientImplTest.cpp

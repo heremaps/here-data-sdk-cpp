@@ -25,6 +25,7 @@
 #include <utility>
 #include <vector>
 
+#include <olp/core/cache/KeyGenerator.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/logging/Log.h>
 // clang-format off
@@ -43,27 +44,6 @@ constexpr auto kLogTag = "PartitionsCacheRepository";
 constexpr auto kChronoSecondsMax = std::chrono::seconds::max();
 constexpr auto kTimetMax = std::numeric_limits<time_t>::max();
 constexpr auto kMaxQuadTreeIndexDepth = 4u;
-
-std::string CreateKey(const std::string& hrn, const std::string& layer_id,
-                      const std::string& partitionId,
-                      const boost::optional<int64_t>& version) {
-  return hrn + "::" + layer_id + "::" + partitionId +
-         "::" + (version ? std::to_string(*version) + "::" : "") + "partition";
-}
-
-std::string CreateKey(const std::string& hrn, const std::string& layer_id,
-                      const boost::optional<int64_t>& version) {
-  return hrn + "::" + layer_id +
-         "::" + (version ? std::to_string(*version) + "::" : "") + "partitions";
-}
-std::string CreateKey(const std::string& hrn, const int64_t catalogVersion) {
-  return hrn + "::" + std::to_string(catalogVersion) + "::layerVersions";
-}
-
-std::string CreateKey(const std::string& hrn, const std::string& layer_id,
-                      const std::string& datahandle) {
-  return hrn + "::" + layer_id + "::" + datahandle + "::Data";
-}
 
 time_t ConvertTime(std::chrono::seconds time) {
   return time == kChronoSecondsMax ? kTimetMax : time.count();
@@ -92,8 +72,8 @@ client::ApiNoResponse PartitionsCacheRepository::Put(
   partition_ids.reserve(partitions_list.size());
 
   for (const auto& partition : partitions_list) {
-    auto key =
-        CreateKey(catalog_, layer_id_, partition.GetPartition(), version);
+    const auto key = cache::KeyGenerator::CreatePartitionKey(
+        catalog_, layer_id_, partition.GetPartition(), version);
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
     const auto put_result = cache_->Put(
@@ -111,7 +91,8 @@ client::ApiNoResponse PartitionsCacheRepository::Put(
   }
 
   if (layer_metadata) {
-    auto key = CreateKey(catalog_, layer_id_, version);
+    const auto key =
+        cache::KeyGenerator::CreatePartitionsKey(catalog_, layer_id_, version);
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
     const auto put_result =
@@ -136,7 +117,8 @@ model::Partitions PartitionsCacheRepository::Get(
   cached_partitions.reserve(partition_ids.size());
 
   for (const auto& partition_id : partition_ids) {
-    auto key = CreateKey(catalog_, layer_id_, partition_id, version);
+    const auto key = cache::KeyGenerator::CreatePartitionKey(
+        catalog_, layer_id_, partition_id, version);
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Get '%s'", key.c_str());
 
     auto cached_partition =
@@ -156,7 +138,8 @@ model::Partitions PartitionsCacheRepository::Get(
 
 boost::optional<model::Partitions> PartitionsCacheRepository::Get(
     const PartitionsRequest& request, const boost::optional<int64_t>& version) {
-  auto key = CreateKey(catalog_, layer_id_, version);
+  const auto key =
+      cache::KeyGenerator::CreatePartitionsKey(catalog_, layer_id_, version);
   boost::optional<model::Partitions> partitions;
   const auto& partition_ids = request.GetPartitionIds();
 
@@ -188,7 +171,8 @@ boost::optional<model::Partitions> PartitionsCacheRepository::Get(
 
 void PartitionsCacheRepository::Put(
     int64_t catalog_version, const model::LayerVersions& layer_versions) {
-  const auto key = CreateKey(catalog_, catalog_version);
+  const auto key =
+      cache::KeyGenerator::CreateLayerVersionsKey(catalog_, catalog_version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
   cache_->Put(key, layer_versions,
@@ -198,7 +182,8 @@ void PartitionsCacheRepository::Put(
 
 boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
     int64_t catalog_version) {
-  auto key = CreateKey(catalog_, catalog_version);
+  const auto key =
+      cache::KeyGenerator::CreateLayerVersionsKey(catalog_, catalog_version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
 
   auto cached_layer_versions =
@@ -216,7 +201,8 @@ boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
 client::ApiNoResponse PartitionsCacheRepository::Put(
     geo::TileKey tile_key, int32_t depth, const QuadTreeIndex& quad_tree,
     const boost::optional<int64_t>& version) {
-  const auto key = CreateQuadKey(tile_key, depth, version);
+  const auto key = cache::KeyGenerator::CreateQuadTreeKey(
+      catalog_, layer_id_, tile_key, version, depth);
 
   if (quad_tree.IsNull()) {
     OLP_SDK_LOG_WARNING_F(kLogTag, "Put: invalid QuadTreeIndex -> '%s'",
@@ -237,8 +223,10 @@ client::ApiNoResponse PartitionsCacheRepository::Put(
 bool PartitionsCacheRepository::Get(geo::TileKey tile_key, int32_t depth,
                                     const boost::optional<int64_t>& version,
                                     QuadTreeIndex& tree) {
-  auto key = CreateQuadKey(tile_key, depth, version);
+  const auto key = cache::KeyGenerator::CreateQuadTreeKey(
+      catalog_, layer_id_, tile_key, version, depth);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
+
   auto data = cache_->Get(key);
   if (data) {
     tree = QuadTreeIndex(data);
@@ -272,8 +260,10 @@ void PartitionsCacheRepository::ClearPartitions(
 bool PartitionsCacheRepository::ClearQuadTree(
     geo::TileKey tile_key, int32_t depth,
     const boost::optional<int64_t>& version) {
-  const auto key = CreateQuadKey(tile_key, depth, version);
+  const auto key = cache::KeyGenerator::CreateQuadTreeKey(
+      catalog_, layer_id_, tile_key, version, depth);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "ClearQuadTree -> '%s'", key.c_str());
+
   return cache_->RemoveKeysWithPrefix(key);
 }
 
@@ -281,7 +271,8 @@ bool PartitionsCacheRepository::ClearPartitionMetadata(
     const std::string& partition_id,
     const boost::optional<int64_t>& catalog_version,
     boost::optional<model::Partition>& out_partition) {
-  auto key = CreateKey(catalog_, layer_id_, partition_id, catalog_version);
+  const auto key = cache::KeyGenerator::CreatePartitionKey(
+      catalog_, layer_id_, partition_id, catalog_version);
   OLP_SDK_LOG_INFO_F(kLogTag, "ClearPartitionMetadata -> '%s'", key.c_str());
 
   auto cached_partition =
@@ -300,8 +291,10 @@ bool PartitionsCacheRepository::ClearPartitionMetadata(
 bool PartitionsCacheRepository::GetPartitionHandle(
     const std::string& partition_id,
     const boost::optional<int64_t>& catalog_version, std::string& data_handle) {
-  auto key = CreateKey(catalog_, layer_id_, partition_id, catalog_version);
+  const auto key = cache::KeyGenerator::CreatePartitionKey(
+      catalog_, layer_id_, partition_id, catalog_version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "IsPartitionCached -> '%s'", key.c_str());
+
   auto cached_partition =
       cache_->Get(key, [](const std::string& serialized_object) {
         return parser::parse<model::Partition>(serialized_object);
@@ -313,14 +306,6 @@ bool PartitionsCacheRepository::GetPartitionHandle(
   auto partition = boost::any_cast<model::Partition>(cached_partition);
   data_handle = partition.GetDataHandle();
   return true;
-}
-
-std::string PartitionsCacheRepository::CreateQuadKey(
-    geo::TileKey key, int32_t depth,
-    const boost::optional<int64_t>& version) const {
-  return catalog_ + "::" + layer_id_ + "::" + key.ToHereTile() +
-         "::" + (version ? std::to_string(*version) + "::" : "") +
-         std::to_string(depth) + "::quadtree";
 }
 
 bool PartitionsCacheRepository::FindQuadTree(geo::TileKey key,
@@ -349,7 +334,8 @@ bool PartitionsCacheRepository::FindQuadTree(geo::TileKey key,
 bool PartitionsCacheRepository::ContainsTree(
     geo::TileKey key, int32_t depth,
     const boost::optional<int64_t>& version) const {
-  return cache_->Contains(CreateQuadKey(key, depth, version));
+  return cache_->Contains(cache::KeyGenerator::CreateQuadTreeKey(
+      catalog_, layer_id_, key, version, depth));
 }
 
 cache::KeyValueCache::KeyListType
@@ -359,8 +345,9 @@ PartitionsCacheRepository::CreatePartitionKeys(
 
   if (GetPartitionHandle(partition_id, version, handle)) {
     return cache::KeyValueCache::KeyListType{
-        CreateKey(catalog_, layer_id_, partition_id, version),
-        CreateKey(catalog_, layer_id_, handle)};
+        cache::KeyGenerator::CreatePartitionKey(catalog_, layer_id_,
+                                                partition_id, version),
+        cache::KeyGenerator::CreateDataHandleKey(catalog_, layer_id_, handle)};
   }
 
   return {};

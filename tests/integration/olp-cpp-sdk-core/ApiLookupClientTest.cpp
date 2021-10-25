@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 #include <mocks/CacheMock.h>
 #include <mocks/NetworkMock.h>
 #include <olp/core/cache/CacheSettings.h>
+#include <olp/core/cache/KeyGenerator.h>
 #include <olp/core/client/ApiLookupClient.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 
@@ -103,6 +104,11 @@ TEST_F(ApiLookupClientTest, LookupApi) {
 
     EXPECT_TRUE(response.IsSuccessful());
     EXPECT_EQ(response.GetResult().GetBaseUrl(), kConfigBaseUrl);
+
+    const auto api_cache_key = olp::cache::KeyGenerator::CreateApiKey(
+        catalog, service_name, service_version);
+    EXPECT_TRUE(settings_.cache->Contains(api_cache_key));
+
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }
 

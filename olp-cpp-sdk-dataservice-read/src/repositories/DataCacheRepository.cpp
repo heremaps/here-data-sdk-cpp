@@ -22,6 +22,7 @@
 #include <limits>
 #include <string>
 
+#include <olp/core/cache/KeyGenerator.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/logging/Log.h>
 
@@ -49,7 +50,9 @@ DataCacheRepository::DataCacheRepository(
 client::ApiNoResponse DataCacheRepository::Put(const model::Data& data,
                                                const std::string& layer_id,
                                                const std::string& data_handle) {
-  auto key = CreateKey(layer_id, data_handle);
+  const std::string hrn(hrn_.ToCatalogHRNString());
+  const auto key =
+      cache::KeyGenerator::CreateDataHandleKey(hrn, layer_id, data_handle);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
   if (!cache_->Put(key, data, default_expiry_)) {
@@ -62,7 +65,9 @@ client::ApiNoResponse DataCacheRepository::Put(const model::Data& data,
 
 boost::optional<model::Data> DataCacheRepository::Get(
     const std::string& layer_id, const std::string& data_handle) {
-  auto key = CreateKey(layer_id, data_handle);
+  const std::string hrn(hrn_.ToCatalogHRNString());
+  const auto key =
+      cache::KeyGenerator::CreateDataHandleKey(hrn, layer_id, data_handle);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Get '%s'", key.c_str());
 
   auto cached_data = cache_->Get(key);
@@ -75,23 +80,22 @@ boost::optional<model::Data> DataCacheRepository::Get(
 
 bool DataCacheRepository::IsCached(const std::string& layer_id,
                                    const std::string& data_handle) const {
-  auto data_key = CreateKey(layer_id, data_handle);
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "IsCached key -> '%s'", data_key.c_str());
-  return cache_->Contains(data_key);
+  const std::string hrn(hrn_.ToCatalogHRNString());
+  const auto key =
+      cache::KeyGenerator::CreateDataHandleKey(hrn, layer_id, data_handle);
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "IsCached key -> '%s'", key.c_str());
+
+  return cache_->Contains(key);
 }
 
 bool DataCacheRepository::Clear(const std::string& layer_id,
                                 const std::string& data_handle) {
-  auto key = CreateKey(layer_id, data_handle);
+  const std::string hrn(hrn_.ToCatalogHRNString());
+  const auto key =
+      cache::KeyGenerator::CreateDataHandleKey(hrn, layer_id, data_handle);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Clear -> '%s'", key.c_str());
 
   return cache_->RemoveKeysWithPrefix(key);
-}
-
-std::string DataCacheRepository::CreateKey(
-    const std::string& layer_id, const std::string& datahandle) const {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  return hrn + "::" + layer_id + "::" + datahandle + "::Data";
 }
 
 }  // namespace repository

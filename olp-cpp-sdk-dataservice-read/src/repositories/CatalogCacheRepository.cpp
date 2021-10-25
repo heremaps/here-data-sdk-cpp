@@ -21,6 +21,7 @@
 
 #include <string>
 
+#include <olp/core/cache/KeyGenerator.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/logging/Log.h>
 
@@ -39,11 +40,6 @@ constexpr auto kLogTag = "CatalogCacheRepository";
 constexpr auto kChronoSecondsMax = std::chrono::seconds::max();
 constexpr auto kTimetMax = std::numeric_limits<time_t>::max();
 
-std::string CreateKey(const std::string& hrn) { return hrn + "::catalog"; }
-std::string VersionKey(const std::string& hrn) {
-  return hrn + "::latestVersion";
-}
-
 time_t ConvertTime(std::chrono::seconds time) {
   return time == kChronoSecondsMax ? kTimetMax : time.count();
 }
@@ -59,8 +55,8 @@ CatalogCacheRepository::CatalogCacheRepository(
     : hrn_(hrn), cache_(cache), default_expiry_(ConvertTime(default_expiry)) {}
 
 void CatalogCacheRepository::Put(const model::Catalog& catalog) {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  auto key = CreateKey(hrn);
+  const std::string hrn(hrn_.ToCatalogHRNString());
+  const auto key = cache::KeyGenerator::CreateCatalogKey(hrn);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
   cache_->Put(key, catalog,
@@ -69,8 +65,8 @@ void CatalogCacheRepository::Put(const model::Catalog& catalog) {
 }
 
 boost::optional<model::Catalog> CatalogCacheRepository::Get() {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  auto key = CreateKey(hrn);
+  const std::string hrn(hrn_.ToCatalogHRNString());
+  const auto key = cache::KeyGenerator::CreateCatalogKey(hrn);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
 
   auto cached_catalog = cache_->Get(key, [](const std::string& value) {
@@ -85,17 +81,18 @@ boost::optional<model::Catalog> CatalogCacheRepository::Get() {
 }
 
 void CatalogCacheRepository::PutVersion(const model::VersionResponse& version) {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "PutVersion -> '%s'", hrn.c_str());
+  const std::string hrn(hrn_.ToCatalogHRNString());
+  const auto key = cache::KeyGenerator::CreateLatestVersionKey(hrn);
+  OLP_SDK_LOG_DEBUG_F(kLogTag, "PutVersion -> '%s'", key.c_str());
 
-  cache_->Put(VersionKey(hrn), version,
+  cache_->Put(key, version,
               [&]() { return olp::serializer::serialize(version); },
               default_expiry_);
 }
 
 boost::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  auto key = VersionKey(hrn);
+  const std::string hrn(hrn_.ToCatalogHRNString());
+  const auto key = cache::KeyGenerator::CreateLatestVersionKey(hrn);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "GetVersion -> '%s'", key.c_str());
 
   auto cached_version = cache_->Get(key, [](const std::string& value) {
@@ -109,8 +106,9 @@ boost::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
 }
 
 void CatalogCacheRepository::Clear() {
-  std::string hrn(hrn_.ToCatalogHRNString());
-  OLP_SDK_LOG_INFO_F(kLogTag, "Clear -> '%s'", CreateKey(hrn).c_str());
+  const std::string hrn(hrn_.ToCatalogHRNString());
+  const auto key = cache::KeyGenerator::CreateCatalogKey(hrn);
+  OLP_SDK_LOG_INFO_F(kLogTag, "Clear -> '%s'", key.c_str());
 
   cache_->RemoveKeysWithPrefix(hrn);
 }

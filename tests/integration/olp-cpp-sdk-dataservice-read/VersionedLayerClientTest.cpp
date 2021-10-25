@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@
 #include <mocks/NetworkMock.h>
 #include <olp/authentication/Settings.h>
 #include <olp/core/cache/CacheSettings.h>
+#include <olp/core/cache/KeyGenerator.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
@@ -114,6 +115,7 @@ class DataserviceReadVersionedLayerClientTest : public ::testing::Test {
     settings_.network_request_handler = network_mock_;
     settings_.task_scheduler =
         client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
+    settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
 
     SetUpCommonNetworkMockCalls();
   }
@@ -295,6 +297,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
   ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
   ASSERT_NE(response.GetResult(), nullptr);
   ASSERT_NE(response.GetResult()->size(), 0u);
+
+  const auto cache_key = olp::cache::KeyGenerator::CreatePartitionKey(
+      GetTestCatalog(), kTestLayer, kTestPartition, kTestVersion);
+  EXPECT_TRUE(settings_.cache->Contains(cache_key));
 }
 
 template <typename T>
@@ -857,6 +863,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsNoError) {
 
   ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
   ASSERT_EQ(4u, response.GetResult().GetPartitions().size());
+
+  const auto version = 4;
+  const auto cache_key = olp::cache::KeyGenerator::CreatePartitionsKey(
+      GetTestCatalog(), kTestLayer, version);
+  EXPECT_TRUE(settings_.cache->Contains(cache_key));
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest,
@@ -1440,6 +1451,13 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
       ASSERT_TRUE(tile_result->IsSuccessful());
       ASSERT_TRUE(tile_result->tile_key_.IsValid());
     }
+
+    const auto tree_root = olp::geo::TileKey::FromQuadKey64(92259);
+    const auto version = 4;
+    const auto depth = 4;
+    const auto cache_key = olp::cache::KeyGenerator::CreateQuadTreeKey(
+        GetTestCatalog(), kLayerId, tree_root, version, depth);
+    EXPECT_TRUE(settings_.cache->Get(cache_key));
   }
 
   {
@@ -3420,6 +3438,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, Eviction) {
 TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
   const auto tile_key = geo::TileKey::FromHereTile("23618364");
 
+  // Disable cache as we rewrite same quad tree in each test case.
+  settings_.cache.reset();
+
   {
     SCOPED_TRACE("Same tile");
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
@@ -3728,6 +3749,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedDataErrors) {
 TEST_F(DataserviceReadVersionedLayerClientTest,
        GetAggregatedDataCancelableFuture) {
   const auto tile_key = geo::TileKey::FromHereTile("23618364");
+
+  // Disable cache as we rewrite same quad tree in several test cases.
+  settings_.cache.reset();
+
   http::RequestId request_id;
   NetworkCallback send_mock;
   CancelCallback cancel_mock;
@@ -4322,6 +4347,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ProtectAndReleaseWithEviction) {
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, CatalogEndpointProvider) {
+  // Disable cache as we don't want to save APIs to its.
+  settings_.cache.reset();
+
   {
     SCOPED_TRACE("Static url catalog");
 
