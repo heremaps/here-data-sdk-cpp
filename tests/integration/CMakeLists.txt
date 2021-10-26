@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2020 HERE Europe B.V.
+# Copyright (C) 2019-2021 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 set(OLP_SDK_INTEGRATIONAL_TESTS_SOURCES
     ./olp-cpp-sdk-authentication/AuthenticationClientTest.cpp
     ./olp-cpp-sdk-authentication/HereAccountOauth2Test.cpp
+    ./olp-cpp-sdk-authentication/TokenEndpointTest.cpp
     ./olp-cpp-sdk-authentication/TokenProviderTest.cpp
     ./olp-cpp-sdk-dataservice-read/CatalogClientCacheTest.cpp
     ./olp-cpp-sdk-dataservice-read/VolatileLayerClientCacheTest.cpp
