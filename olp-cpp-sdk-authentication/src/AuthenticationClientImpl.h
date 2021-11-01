@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,6 +177,11 @@ class AuthenticationClientImpl {
 
   SignInUserResult ParseUserAuthResponse(int status,
                                          std::stringstream& auth_response);
+
+  template <typename SignInResponseType>
+  Response<SignInResponseType> GetSignInResponse(
+      const client::HttpResponse& auth_response,
+      const client::CancellationContext& context, const std::string& key);
 
   template <typename SignInResponseType>
   boost::optional<SignInResponseType> FindInCache(const std::string& key);
