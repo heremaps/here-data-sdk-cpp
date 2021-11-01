@@ -30,12 +30,14 @@
 #include <olp/authentication/TokenResult.h>
 #include <olp/authentication/Types.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/porting/warning_disable.h>
 
 namespace olp {
 namespace authentication {
 class AutoRefreshingToken;
+class TokenEndpointImpl;
 
 /**
  * @brief Corresponds to the token endpoint as specified in the OAuth2.0
@@ -90,6 +92,22 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 10.2020")
       const TokenRequest& token_request = TokenRequest()) const;
 
   /**
+   * @brief Executes the POST request method to the token endpoint.
+   *
+   * The request gets the HERE Access token that is used to access the HERE
+   * platform Services. Returns the token that is used as the `Authorization:
+   * Bearer` token value.
+   *
+   * @param context Used to cancel the pending token request.
+   * @param token_request The `TokenRequest` instance.
+   *
+   * @return The `TokenResponse` instance.
+   */
+  TokenResponse RequestToken(
+      client::CancellationContext& context,
+      const TokenRequest& token_request = TokenRequest()) const;
+
+  /**
    * Executes the POST request method to the token endpoint.
    *
    * The request gets the HERE Access token that is used to access the HERE platform
@@ -127,8 +145,7 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 10.2020")
   explicit TokenEndpoint(Settings settings);
 
  private:
-  class Impl;
-  std::shared_ptr<Impl> impl_;
+  std::shared_ptr<TokenEndpointImpl> impl_;
 };
 
 }  // namespace authentication

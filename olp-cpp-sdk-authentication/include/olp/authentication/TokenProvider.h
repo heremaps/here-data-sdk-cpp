@@ -173,13 +173,11 @@ class TokenProvider {
     /// Gets the token response from `AutoRefreshingToken` or requests a new
     /// token if the token response expired or is not present.
     TokenResponse GetResponse(client::CancellationContext& context) const {
-      OLP_SDK_CORE_UNUSED(context);
-
       // Mutex is needed to prevent multiple authorization requests that can
       // happen when the token is not available, and multiple consumers
       // requested it.
       std::lock_guard<std::mutex> lock(request_mutex_);
-      return token_.GetToken(minimum_validity_);
+      return token_.GetToken(context, minimum_validity_);
     }
 
     /// Checks whether the available token response is valid.

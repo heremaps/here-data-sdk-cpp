@@ -28,6 +28,7 @@
 #include "TokenRequest.h"
 #include "TokenResult.h"
 
+#include "olp/core/client/CancellationContext.h"
 #include "olp/core/client/CancellationToken.h"
 #include "olp/core/porting/warning_disable.h"
 
@@ -67,8 +68,6 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed by 10.2020.")
    * @note This method is blocked when a new token needs to be retrieved.
    * Therefore, the token should not be called from a time-sensitive thread (for
    * example, the UI thread).
-   * @throw std::future_error Thrown when a failure occurs.
-   * Contains the error code and message.
    *
    * @param cancellation_token The token used to cancel the operation.
    * @param minimum_validity (Optional) Sets the minimum validity period of
@@ -78,8 +77,29 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed by 10.2020.")
    * @return The `TokenResponse` instance if the old one is expired.
    * Otherwise, returns the cached `TokenResponse` instance.
    */
-
   TokenResponse GetToken(client::CancellationToken& cancellation_token,
+                         const std::chrono::seconds& minimum_validity =
+                             kDefaultMinimumValiditySeconds) const;
+
+  /**
+   * @brief Synchronously gets a token that is always fresh.
+   *
+   * If no token has been retrieved yet or the current token is expired or
+   * expires within five minutes, a new token is requested. Otherwise,
+   * the cached token is returned. This method is thread-safe.
+   * @note This method is blocked when a new token needs to be retrieved.
+   * Therefore, the token should not be called from a time-sensitive thread (for
+   * example, the UI thread).
+   *
+   * @param context Used to cancel the pending token request.
+   * @param minimum_validity (Optional) Sets the minimum validity period of
+   * the token in seconds. The default validity period is 5 minutes. If
+   * the period is set to 0, the token is refreshed immediately.
+   *
+   * @return The `TokenResponse` instance if the old one is expired.
+   * Otherwise, returns the cached `TokenResponse` instance.
+   */
+  TokenResponse GetToken(client::CancellationContext& context,
                          const std::chrono::seconds& minimum_validity =
                              kDefaultMinimumValiditySeconds) const;
 
@@ -92,8 +112,6 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed by 10.2020.")
    * @note This method is blocked when a new token needs to be retrieved.
    * Therefore, it should not be called from a time-sensitive thread (for
    * example, the UI thread).
-   * @throw std::future_error Thrown when a failure occurs.
-   * Contains the error code and message.
    *
    * @param minimum_validity (Optional) Sets the minimum validity period of
    * the token in seconds. The default validity period is 5 minutes. If

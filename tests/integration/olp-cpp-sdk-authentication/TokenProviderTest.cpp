@@ -47,7 +47,8 @@ static constexpr auto kLayer = "testlayer";
 static constexpr auto kPartition = "269";
 constexpr auto kWaitTimeout = std::chrono::seconds(3);
 constexpr auto kMaxRetryAttempts = 5;
-constexpr auto kRetryTimeout = 10;
+constexpr auto kMinTimeout = 1;
+constexpr auto kRequestId = 42;
 
 // Request defines
 static const std::string kTimestampUrl =
@@ -295,31 +296,73 @@ TEST_F(TokenProviderTest, RetrySettings) {
       settings_.network_request_handler;
   token_provider_settings.use_system_time = true;
   token_provider_settings.retry_settings.max_attempts = kMaxRetryAttempts;
-  token_provider_settings.retry_settings.timeout = kRetryTimeout;
+  token_provider_settings.retry_settings.timeout = kMinTimeout;
 
   const auto retry_predicate = testing::Property(
       &http::NetworkRequest::GetSettings,
       testing::AllOf(
           testing::Property(&http::NetworkSettings::GetConnectionTimeout,
-                            kRetryTimeout),
+                            kMinTimeout),
           testing::Property(&http::NetworkSettings::GetTransferTimeout,
-                            kRetryTimeout)));
+                            kMinTimeout)));
+  {
+    SCOPED_TRACE("Max attempts");
 
-  EXPECT_CALL(*network_mock_, Send(retry_predicate, _, _, _, _))
-      .Times(kMaxRetryAttempts)
-      .WillRepeatedly(ReturnHttpResponse(
-          GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS)
-              .WithError("Too many requests"),
-          kResponseTooManyRequests));
+    EXPECT_CALL(*network_mock_, Send(retry_predicate, _, _, _, _))
+        .Times(kMaxRetryAttempts)
+        .WillRepeatedly(ReturnHttpResponse(
+            GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS)
+                .WithError("Too many requests"),
+            kResponseTooManyRequests));
 
-  const authentication::TokenProviderDefault token_provider(
-      token_provider_settings);
+    const authentication::TokenProviderDefault token_provider(
+        token_provider_settings);
 
-  client::CancellationContext context;
-  const auto token = token_provider(context);
-  ASSERT_FALSE(token);
-  EXPECT_EQ(token.GetError().GetHttpStatusCode(),
-            http::HttpStatusCode::TOO_MANY_REQUESTS);
+    client::CancellationContext context;
+    const auto token = token_provider(context);
+    ASSERT_FALSE(token);
+    EXPECT_EQ(token.GetError().GetHttpStatusCode(),
+              http::HttpStatusCode::TOO_MANY_REQUESTS);
+
+    testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+
+  {
+    SCOPED_TRACE("Timeout");
+
+    std::future<void> async_finish_future;
+    client::CancellationContext context;
+
+    EXPECT_CALL(*network_mock_, Send(IsPostRequest(kOAuthTokenUrl), _, _, _, _))
+        .WillOnce(
+            testing::WithArg<2>([&](http::Network::Callback callback) {
+              async_finish_future = std::async(std::launch::async, [=]() {
+                // Oversleep the timeout period.
+                std::this_thread::sleep_for(
+                    std::chrono::seconds(kMinTimeout * 2));
+
+                callback(http::NetworkResponse()
+                             .WithStatus(http::HttpStatusCode::OK)
+                             .WithRequestId(kRequestId));
+              });
+
+              return http::SendOutcome(kRequestId);
+            }));
+
+    EXPECT_CALL(*network_mock_, Cancel(kRequestId)).Times(1);
+
+    const authentication::TokenProviderDefault token_provider(
+        token_provider_settings);
+    const auto token_response = token_provider(context);
+
+    ASSERT_EQ(async_finish_future.wait_for(kWaitTimeout),
+              std::future_status::ready);
+    ASSERT_FALSE(token_response);
+    EXPECT_EQ(token_response.GetError().GetHttpStatusCode(),
+              static_cast<int>(http::ErrorCode::TIMEOUT_ERROR));
+
+    testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
 }
 
 TEST_F(TokenProviderTest, CancellableProvider) {
@@ -329,7 +372,7 @@ TEST_F(TokenProviderTest, CancellableProvider) {
   token_provider_settings.network_request_handler =
       settings_.network_request_handler;
   token_provider_settings.use_system_time = true;
-  token_provider_settings.retry_settings.max_attempts = 1u;  // Disable retries
+  token_provider_settings.retry_settings.max_attempts = 1;  // Disable retries
 
   {
     SCOPED_TRACE("TokenResult contains token");
@@ -372,6 +415,50 @@ TEST_F(TokenProviderTest, CancellableProvider) {
     ASSERT_FALSE(token_response);
     EXPECT_EQ(token_response.GetError().GetHttpStatusCode(), status_code);
     EXPECT_EQ(token_response.GetError().GetMessage(), kResponseTooManyRequests);
+
+    testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+
+  {
+    SCOPED_TRACE("Token request cancelled");
+
+    std::future<void> async_finish_future;
+    std::promise<void> network_wait_promise;
+
+    client::CancellationContext context;
+    EXPECT_CALL(*network_mock_, Send(IsPostRequest(kOAuthTokenUrl), _, _, _, _))
+        .WillOnce(
+            testing::WithArg<2>([&](http::Network::Callback callback) {
+              async_finish_future =
+                  std::async(std::launch::async, [&, callback]() {
+                    std::this_thread::sleep_for(
+                        std::chrono::seconds(kMinTimeout));
+                    context.CancelOperation();
+
+                    EXPECT_EQ(network_wait_promise.get_future().wait_for(
+                                  kWaitTimeout),
+                              std::future_status::ready);
+
+                    callback(http::NetworkResponse()
+                                 .WithStatus(http::HttpStatusCode::OK)
+                                 .WithRequestId(kRequestId));
+                  });
+
+              return http::SendOutcome(kRequestId);
+            }));
+
+    EXPECT_CALL(*network_mock_, Cancel(kRequestId)).Times(1);
+
+    const authentication::TokenProviderDefault token_provider(
+        token_provider_settings);
+    const auto token_response = token_provider(context);
+    network_wait_promise.set_value();
+
+    ASSERT_EQ(async_finish_future.wait_for(kWaitTimeout),
+              std::future_status::ready);
+    ASSERT_FALSE(token_response);
+    EXPECT_EQ(token_response.GetError().GetHttpStatusCode(),
+              static_cast<int>(http::ErrorCode::CANCELLED_ERROR));
 
     testing::Mock::VerifyAndClearExpectations(network_mock_.get());
   }

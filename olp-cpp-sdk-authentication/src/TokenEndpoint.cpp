@@ -17,17 +17,15 @@
  * License-Filename: LICENSE
  */
 
-#include "olp/authentication/TokenEndpoint.h"
+#include <olp/authentication/TokenEndpoint.h>
 
 PORTING_PUSH_WARNINGS()
 PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 
-#include "olp/authentication/AuthenticationClient.h"
-#include "olp/authentication/AuthenticationCredentials.h"
-#include "olp/authentication/AutoRefreshingToken.h"
-#include "olp/authentication/ErrorResponse.h"
-#include "olp/authentication/SignInResult.h"
-#include "olp/core/logging/Log.h"
+#include <olp/authentication/AuthenticationClient.h>
+#include <olp/authentication/AutoRefreshingToken.h>
+#include <olp/core/logging/Log.h>
+#include "TokenEndpointImpl.h"
 
 namespace olp {
 namespace authentication {
@@ -35,76 +33,7 @@ namespace authentication {
 namespace {
 static const std::string kOauth2TokenEndpoint = "/oauth2/token";
 static constexpr auto kLogTag = "TokenEndpoint";
-
-AuthenticationSettings ConvertSettings(Settings settings) {
-  AuthenticationSettings auth_settings;
-  auth_settings.network_proxy_settings = settings.network_proxy_settings;
-  // Ignore task scheduler. It can cause a dealock on the sign in when used from
-  // another task within `TaskScheduler` with 1 thread.
-  //auth_settings.task_scheduler = settings.task_scheduler;
-  auth_settings.network_request_handler = settings.network_request_handler;
-  auth_settings.token_endpoint_url = settings.token_endpoint_url;
-  auth_settings.use_system_time = settings.use_system_time;
-  auth_settings.retry_settings = settings.retry_settings;
-  return auth_settings;
-}
 }  // namespace
-
-class TokenEndpoint::Impl {
- public:
-  explicit Impl(Settings settings);
-
-  client::CancellationToken RequestToken(const TokenRequest& token_request,
-                                         const RequestTokenCallback& callback);
-
-  std::future<TokenResponse> RequestToken(
-      client::CancellationToken& cancel_token,
-      const TokenRequest& token_request);
-
- private:
-  AuthenticationClient auth_client_;
-  AuthenticationCredentials auth_credentials_;
-};
-
-TokenEndpoint::Impl::Impl(Settings settings)
-    : auth_client_(ConvertSettings(settings)),
-      auth_credentials_(std::move(settings.credentials)) {}
-
-client::CancellationToken TokenEndpoint::Impl::RequestToken(
-    const TokenRequest& token_request, const RequestTokenCallback& callback) {
-  AuthenticationClient::SignInProperties properties;
-  properties.expires_in = token_request.GetExpiresIn();
-  return auth_client_.SignInClient(
-      auth_credentials_, properties,
-      [callback](
-          const AuthenticationClient::SignInClientResponse& sign_in_response) {
-        if (!sign_in_response) {
-          callback(sign_in_response.GetError());
-          return;
-        }
-
-        const auto& sign_in_result = sign_in_response.GetResult();
-        if (sign_in_result.GetAccessToken().empty()) {
-          callback(client::ApiError{sign_in_result.GetStatus(),
-                                    sign_in_result.GetFullMessage()});
-          return;
-        }
-
-        callback(TokenResult{sign_in_result.GetAccessToken(),
-                             sign_in_result.GetExpiresIn(),
-                             http::HttpStatusCode::OK, ErrorResponse{}});
-      });
-}
-
-std::future<TokenResponse> TokenEndpoint::Impl::RequestToken(
-    client::CancellationToken& cancel_token,
-    const TokenRequest& token_request) {
-  auto promise = std::make_shared<std::promise<TokenResponse>>();
-  cancel_token = RequestToken(token_request, [promise](TokenResponse response) {
-    promise->set_value(std::move(response));
-  });
-  return promise->get_future();
-}
 
 TokenEndpoint::TokenEndpoint(Settings settings) {
   // The underlying auth library expects a base URL and appends /oauth2/token
@@ -121,7 +50,7 @@ TokenEndpoint::TokenEndpoint(Settings settings) {
         "standard OAuth2 token endpoint URLs are supported.");
   }
 
-  impl_ = std::make_shared<TokenEndpoint::Impl>(std::move(settings));
+  impl_ = std::make_shared<TokenEndpointImpl>(std::move(settings));
 }
 
 client::CancellationToken TokenEndpoint::RequestToken(
@@ -134,6 +63,12 @@ std::future<TokenResponse> TokenEndpoint::RequestToken(
     client::CancellationToken& cancellation_token,
     const TokenRequest& token_request) const {
   return impl_->RequestToken(cancellation_token, token_request);
+}
+
+TokenResponse TokenEndpoint::RequestToken(
+    client::CancellationContext& context,
+    const TokenRequest& token_request) const {
+  return impl_->RequestToken(context, token_request);
 }
 
 std::future<TokenResponse> TokenEndpoint::RequestToken(
