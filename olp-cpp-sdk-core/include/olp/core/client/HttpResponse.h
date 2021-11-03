@@ -180,7 +180,7 @@ class CORE_API HttpResponse {
    *
    * @param output Reference to a string.
    */
-  void GetResponse(std::string& output) { output = response.str(); }
+  void GetResponse(std::string& output) const { output = response.str(); }
 
   /**
    * @brief Return the const reference to the response headers.

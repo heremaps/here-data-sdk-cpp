@@ -44,10 +44,9 @@
 #include "olp/core/logging/Log.h"
 #include "olp/core/thread/TaskScheduler.h"
 
+namespace olp {
+namespace authentication {
 namespace {
-namespace client = olp::client;
-
-using olp::authentication::Constants;
 
 using RequestBodyData = client::OlpClient::RequestBodyType::element_type;
 
@@ -100,10 +99,10 @@ constexpr auto kErrorWrongTimestamp = 401204;
 constexpr auto kLogTag = "AuthenticationClient";
 const auto kMaxTime = std::numeric_limits<time_t>::max();
 
-bool HasWrongTimestamp(olp::authentication::SignInResult& result) {
+bool HasWrongTimestamp(SignInResult& result) {
   const auto& error_response = result.GetErrorResponse();
   const auto status = result.GetStatus();
-  return status == olp::http::HttpStatusCode::UNAUTHORIZED &&
+  return status == http::HttpStatusCode::UNAUTHORIZED &&
          error_response.code == kErrorWrongTimestamp;
 }
 
@@ -114,7 +113,7 @@ void RetryDelay(const client::RetrySettings& retry_settings, size_t retry) {
 }
 
 client::OlpClient::RequestBodyType GenerateAppleSignInBody(
-    const olp::authentication::AppleSignInProperties& sign_in_properties) {
+    const AppleSignInProperties& sign_in_properties) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();
@@ -142,9 +141,6 @@ client::OlpClient::RequestBodyType GenerateAppleSignInBody(
 }
 
 }  // namespace
-
-namespace olp {
-namespace authentication {
 
 AuthenticationClientImpl::RequestTimer::RequestTimer()
     : timer_start_{std::chrono::steady_clock::now()},
@@ -218,6 +214,35 @@ SignInUserResult AuthenticationClientImpl::ParseUserAuthResponse(
   document->ParseStream(stream);
   return std::make_shared<SignInUserResultImpl>(
       status, olp::http::HttpErrorToString(status), document);
+}
+
+template <typename SignInResponseType>
+Response<SignInResponseType> AuthenticationClientImpl::GetSignInResponse(
+    const client::HttpResponse& auth_response,
+    const client::CancellationContext& context, const std::string& key) {
+  const auto status = auth_response.GetStatus();
+
+  // If a timeout occurred, the cancellation is done through the context.
+  // So this case needs to be handled independently of context state.
+  if (status != static_cast<int>(http::ErrorCode::TIMEOUT_ERROR) &&
+      context.IsCancelled()) {
+    return client::ApiError::Cancelled();
+  }
+
+  auto result = FindInCache<SignInResponseType>(key);
+  if (result) {
+    return *result;
+  }
+
+  // Auth response message may be empty in case of unknown errors.
+  // Fill in the message as a status string representation in this case.
+  std::string message;
+  auth_response.GetResponse(message);
+  if (message.empty()) {
+    message = http::HttpErrorToString(status);
+  }
+
+  return client::ApiError(status, message);
 }
 
 template <>
@@ -295,18 +320,9 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
                    timer.GetRequestTime());
 
       const auto status = auth_response.status;
-
       if (status < 0) {
-        if (context.IsCancelled()) {
-          return client::ApiError::Cancelled();
-        }
-
-        auto result = FindInCache<SignInResult>(credentials.GetKey());
-        if (!result) {
-          return client::ApiError(status, auth_response.response.str());
-        }
-
-        return *result;
+        return GetSignInResponse<SignInResult>(auth_response, context,
+                                               credentials.GetKey());
       }
 
       response = ParseAuthResponse(status, auth_response.response);
@@ -423,18 +439,9 @@ client::CancellationToken AuthenticationClientImpl::SignInApple(
                                   properties.GetAccessToken(), request_body);
 
     auto status = auth_response.GetStatus();
-
     if (status < 0) {
-      if (context.IsCancelled()) {
-        return client::ApiError::Cancelled();
-      }
-
-      auto result = FindInCache<SignInUserResult>(properties.GetClientId());
-      if (!result) {
-        return client::ApiError(status, auth_response.response.str());
-      }
-
-      return *result;
+      return GetSignInResponse<SignInUserResult>(auth_response, context,
+                                                 properties.GetClientId());
     }
 
     auto response = ParseUserAuthResponse(status, auth_response.response);
@@ -504,18 +511,9 @@ client::CancellationToken AuthenticationClientImpl::HandleUserRequest(
                                     request_body, timer.GetRequestTime());
 
       auto status = auth_response.status;
-
       if (status < 0) {
-        if (context.IsCancelled()) {
-          return client::ApiError::Cancelled();
-        }
-
-        auto result = FindInCache<SignInUserResult>(credentials.GetKey());
-        if (!result) {
-          return client::ApiError(status, auth_response.response.str());
-        }
-
-        return *result;
+        return GetSignInResponse<SignInUserResult>(auth_response, context,
+                                                   credentials.GetKey());
       }
 
       response = ParseUserAuthResponse(status, auth_response.response);
