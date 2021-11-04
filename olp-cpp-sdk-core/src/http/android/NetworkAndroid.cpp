@@ -956,8 +956,7 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
       static_cast<jint>(request.GetSettings().GetTransferTimeout());
   const jint jproxy_port = static_cast<jint>(proxy_settings.GetPort());
   const jint jproxy_type = static_cast<jint>(proxy_settings.GetType());
-  const jint jmax_retries =
-      static_cast<jint>(request.GetSettings().GetRetries());
+  const jint jmax_retries = 1;
   // Do sending
   {
     std::lock_guard<std::mutex> lock(requests_mutex_);
