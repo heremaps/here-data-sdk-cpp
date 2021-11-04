@@ -301,8 +301,12 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
   }
 
   if (!response_data->condition.Wait(timeout)) {
-    OLP_SDK_LOG_WARNING_F(kLogTag, "Request %" PRIu64 " timed out!",
-                          outcome.GetRequestId());
+    OLP_SDK_LOG_WARNING_F(
+        kLogTag,
+        "Request timed out, request_id=%" PRIu64
+        ", timeout=%i, retry_count=%i, url='%s'",
+        outcome.GetRequestId(), static_cast<int>(timeout.count()),
+        retry_settings.max_attempts, request.GetUrl().c_str());
     context.CancelOperation();
     return ToHttpResponse(kTimeoutErrorResponse);
   }
