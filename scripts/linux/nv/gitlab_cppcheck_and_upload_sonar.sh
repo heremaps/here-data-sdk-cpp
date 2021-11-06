@@ -56,11 +56,10 @@ mv cppcheck.xml "$cppcheck_folder/cppcheck.xml"
 
 # Set needed properties for Valgrind
 echo "sonar.host.url=${SONAR_HOST}" >> ${NV_HOME}/sonar-project.propertiesValgrind
+echo "sonar.login=${SONAR_TOKEN}" >> ${NV_HOME}/sonar-project.propertiesValgrind
 cp ${NV_HOME}/sonar-project.propertiesValgrind ${REPO_HOME}/sonar-project.properties
-
-SONAR_SCANNER_ROOT="/home/bldadmin/sonarqube-linux/sonar-scanner-3.2.0.1227-linux/bin"
 
 echo "#############################"
 echo "Sonar scanner run : "
 echo "#############################"
-$SONAR_SCANNER_ROOT/sonar-scanner -X
+$SONAR_SCANNER_ROOT/sonar-scanner -X -Dsonar.verbose=true
