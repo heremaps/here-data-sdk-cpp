@@ -72,10 +72,14 @@ class DATASERVICE_READ_API CatalogClient final {
    */
   CatalogClient(client::HRN catalog, client::OlpClientSettings settings);
 
-  // Movable, non-copyable
+  /// A copy constructor.
   CatalogClient(const CatalogClient& other) = delete;
+
+  /// A default move constructor.
   CatalogClient(CatalogClient&& other) noexcept;
   CatalogClient& operator=(const CatalogClient& other) = delete;
+
+  /// A copy assignment operator.
   CatalogClient& operator=(CatalogClient&& other) noexcept;
 
   ~CatalogClient();

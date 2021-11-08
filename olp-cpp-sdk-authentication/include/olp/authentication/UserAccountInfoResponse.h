@@ -263,7 +263,7 @@ class AUTHENTICATION_API UserAccountInfoResponse {
    * @brief Sets the timestamp (milliseconds since the Unix epoch) of when
    * the account was created.
    *
-   * @param time The epoch time when the account was created.
+   * @param created_time The epoch time when the account was created.
    */
   void SetCreatedTime(time_t created_time) { created_time_ = created_time; }
 

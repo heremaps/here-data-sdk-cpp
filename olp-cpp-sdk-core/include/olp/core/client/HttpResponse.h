@@ -30,8 +30,9 @@
 namespace olp {
 namespace client {
 
-/*
- * @brief Network statistics
+/**
+ * @brief Network statistics with information on the outbound and inbound trafic
+ * during API calls.
  */
 class NetworkStatistics {
  public:
@@ -62,9 +63,7 @@ class NetworkStatistics {
    */
   uint64_t GetBytesDownloaded() const { return bytes_downloaded_; }
 
-  /**
-   * @brief Overloaded addition operator for accumulating statistics.
-   */
+  /// An overloaded addition operator for accumulating statistics.
   NetworkStatistics& operator+=(const NetworkStatistics& other) {
     bytes_uploaded_ += other.bytes_uploaded_;
     bytes_downloaded_ += other.bytes_downloaded_;
@@ -118,7 +117,7 @@ class CORE_API HttpResponse {
         headers(std::move(headers)) {}
 
   /**
-   * @brief Copy constructor.
+   * @brief A copy constructor.
    *
    * This copy constructor creates a deep copy of the response body if a
    * non-shareable container type is used.
@@ -138,9 +137,9 @@ class CORE_API HttpResponse {
   }
 
   /**
-   * @brief Copy assign operator.
+   * @brief A copy assignment operator.
    *
-   * This copy assign operator creates a deep copy of the response body if a
+   * This copy assignment operator creates a deep copy of the response body if a
    * non-shareable container type is used.
    *
    * @param other The instance of `HttpStatus` to copy from.
@@ -155,8 +154,10 @@ class CORE_API HttpResponse {
     return *this;
   }
 
-  // Default move constructor and move assignment.
+  /// A default move constructor.
   HttpResponse(HttpResponse&&) = default;
+
+  /// A default move assignment operator.
   HttpResponse& operator=(HttpResponse&&) = default;
 
   /**

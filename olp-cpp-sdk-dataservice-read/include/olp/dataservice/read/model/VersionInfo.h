@@ -41,7 +41,7 @@ class DATASERVICE_READ_API VersionInfo final {
   /**
    * @brief Sets the vector of version dependencies.
    *
-   * @param The vector of version dependencies.
+   * @param dependencies The vector of version dependencies.
    */
   void SetDependencies(std::vector<VersionDependency> dependencies) {
     dependencies_ = std::move(dependencies);
@@ -50,7 +50,7 @@ class DATASERVICE_READ_API VersionInfo final {
   /**
    * @brief Sets the map of partition counts.
    *
-   * @param The map of partition counts.
+   * @param partition_counts The map of partition counts.
    */
   void SetPartitionCounts(
       std::map<std::string, std::int64_t> partition_counts) {
@@ -60,14 +60,14 @@ class DATASERVICE_READ_API VersionInfo final {
   /**
    * @brief Sets the catalog version.
    *
-   * @param The catalog version.
+   * @param version The catalog version.
    */
   void SetVersion(std::int64_t version) { version_ = version; }
 
   /**
    * @brief Sets the timestamp of the catalog version.
    *
-   * @param The timestamp of the catalog version.
+   * @param timestamp The timestamp of the catalog version.
    */
   void SetTimestamp(std::int64_t timestamp) { timestamp_ = timestamp; }
 

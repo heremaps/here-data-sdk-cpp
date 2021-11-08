@@ -35,15 +35,20 @@ namespace olp {
 namespace client {
 class ApiLookupClientImpl;
 
-/**
- * @brief Client to API lookup requests
- */
+/// A client for API lookup requests.
 class CORE_API ApiLookupClient final {
  public:
-  /// Alias for the parameters and responses.
+  /// Alias for the lookup API response.
   using LookupApiResponse = ApiResponse<OlpClient, ApiError>;
+  /// Alias for the lookup API callback.
   using LookupApiCallback = std::function<void(LookupApiResponse)>;
 
+  /**
+   * @brief Creates the `ApiLookupClient` instance.
+   * 
+   * @param catalog The catalog HRN.
+   * @param settings The `OlpClientSettings` instance.
+   */
   explicit ApiLookupClient(const HRN& catalog,
                            const OlpClientSettings& settings);
 
@@ -54,7 +59,7 @@ class CORE_API ApiLookupClient final {
    * ApiLookupSettings from OlpClientSettings.
    *
    * @param service The name of the required service.
-   * @param service_version Version of the required service.
+   * @param service_version The version of the required service.
    * @param options The fetch option that should be used to set the source from
    * which data should be fetched.
    * @param context The `CancellationContext` instance that is used to cancel
@@ -69,11 +74,12 @@ class CORE_API ApiLookupClient final {
                               CancellationContext context);
 
   /**
-   * @brief Gets a API for a single service async, internally uses
-   * ApiLookupSettings from OlpClientSettings.
+   * @brief Gets an API for a single service asynchronously.
+   *
+   * Internally, it uses `ApiLookupSettings` from `OlpClientSettings`.
    *
    * @param service The name of the required service.
-   * @param service_version Version of the required service.
+   * @param service_version The version of the required service.
    * @param options The fetch option that should be used to set the source from
    * which data should be fetched.
    * @param callback The function callback used to receive the

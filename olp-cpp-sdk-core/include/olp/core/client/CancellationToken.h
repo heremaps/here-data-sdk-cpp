@@ -32,9 +32,7 @@ namespace client {
  */
 class CORE_API CancellationToken {
  public:
-  /**
-   * @brief The alias for the cancellation function.
-   */
+  /// An alias for the cancellation function.
   using CancelFuncType = std::function<void()>;
 
   CancellationToken() = default;

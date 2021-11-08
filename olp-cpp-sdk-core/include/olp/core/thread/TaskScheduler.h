@@ -28,7 +28,8 @@
 namespace olp {
 namespace thread {
 
-/// Helper priority enum. NORMAL is a default value.
+/// The priority of a scheduler task.
+/// The default value is `NORMAL`.
 enum Priority : uint32_t { LOW = 100, NORMAL = 500, HIGH = 1000 };
 
 /**
@@ -43,7 +44,7 @@ enum Priority : uint32_t { LOW = 100, NORMAL = 500, HIGH = 1000 };
  */
 class CORE_API TaskScheduler {
  public:
-  /// Alias for the abstract interface input.
+  /// An alias for the abstract interface input.
   using CallFuncType = std::function<void()>;
 
   virtual ~TaskScheduler() = default;
@@ -81,11 +82,11 @@ class CORE_API TaskScheduler {
    *     void func(CancellationContext& context);
    * @endcode
    *
-   * @return Returns the \c CancellationContext copy to the caller. The copy can
+   * @return Returns the `CancellationContext` copy to the caller. The copy can
    * be used to cancel the enqueued tasks. Tasks can only be canceled before or
    * during execution if the task itself is designed to support this. Tasks are
    * also able to cancel the operation themselves as they get a non-const
-   * reference to the \c CancellationContext class.
+   * reference to the `CancellationContext` class.
    */
   template <class Function, typename std::enable_if<!std::is_convertible<
                                 decltype(std::declval<Function>()),
@@ -112,10 +113,6 @@ class CORE_API TaskScheduler {
    *
    * @note Tasks added trough this method should be scheduled with
    * Priority::NORMAL priority.
-   *
-   * @param[in] func The rvalue reference of the task that should be enqueued.
-   * Move this task into your queue. No internal references are
-   * kept. Once this method is called, you own the task.
    */
   virtual void EnqueueTask(CallFuncType&&) = 0;
 

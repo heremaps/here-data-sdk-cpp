@@ -185,8 +185,11 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
 
   /**
    * @brief Call to publish data into a versioned layer.
+   *
    * @note Content-type for this request will be set implicitly based on the
    * layer metadata for the target layer on the HERE platform.
+   *
+   * @param pub The `Publication` instance.
    * @param request PublishPartitionDataRequest object representing the
    * parameters for this publishData call.
    *
@@ -198,8 +201,11 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
 
   /**
    * @brief Call to publish data into a versioned layer.
+   *
    * @note Content-type for this request will be set implicitly based on the
    * layer metadata for the target layer on the HERE platform.
+   *
+   * @param pub The `Publication` instance.
    * @param request PublishPartitionDataRequest object representing the
    * parameters for this publishData call.
    * @param callback PublishPartitionDataCallback which will be called with the

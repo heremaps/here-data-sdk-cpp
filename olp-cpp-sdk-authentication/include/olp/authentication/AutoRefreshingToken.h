@@ -65,6 +65,7 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed by 10.2020.")
    * If no token has been retrieved yet or the current token is expired or
    * expires within five minutes, a new token is requested. Otherwise,
    * the cached token is returned. This method is thread-safe.
+   *
    * @note This method is blocked when a new token needs to be retrieved.
    * Therefore, the token should not be called from a time-sensitive thread (for
    * example, the UI thread).

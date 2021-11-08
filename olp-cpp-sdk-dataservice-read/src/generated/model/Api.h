@@ -31,7 +31,7 @@ namespace read {
  */
 namespace model {
 /**
- * @brief Api services provided by the OLP platform.
+ * @brief API services provided by the HERE platform.
  */
 class Api {
  public:
@@ -68,6 +68,7 @@ class Api {
   }
 };
 
+/// Alias for the platform base URLs.
 using Apis = std::vector<Api>;
 
 }  // namespace model

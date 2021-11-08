@@ -30,6 +30,7 @@ namespace dataservice {
 namespace write {
 namespace model {
 
+/// Checks whether the data is present in a layer.
 class DATASERVICE_WRITE_API CheckDataExistsRequest {
  public:
   CheckDataExistsRequest() = default;

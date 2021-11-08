@@ -119,6 +119,7 @@ class Api {
   std::map<std::string, std::string> parameters_;
 };
 
+/// An alias for the platform base URLs.
 using Apis = std::vector<Api>;
 
 }  // namespace client

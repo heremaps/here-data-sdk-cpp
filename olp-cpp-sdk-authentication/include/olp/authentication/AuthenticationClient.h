@@ -286,10 +286,16 @@ class AUTHENTICATION_API AuthenticationClient {
   explicit AuthenticationClient(AuthenticationSettings settings);
   virtual ~AuthenticationClient();
 
-  // Non-copyable but movable
+  /// A copy constructor.
   AuthenticationClient(const AuthenticationClient&) = delete;
+
+  /// A copy assignment operator.
   AuthenticationClient& operator=(const AuthenticationClient&) = delete;
+
+  /// A default move constructor.
   AuthenticationClient(AuthenticationClient&&) noexcept;
+
+  /// A move assignment operator.
   AuthenticationClient& operator=(AuthenticationClient&&) noexcept;
 
   /**
@@ -437,7 +443,7 @@ class AUTHENTICATION_API AuthenticationClient {
    * @brief Signs in with your valid Apple token and requests your user access
    * token.
    *
-   * @param sign_in_properties The `AppleSignInProperties` instance.
+   * @param properties The `AppleSignInProperties` instance.
    * @param callback The `SignInUserCallback` method that is called when
    * the user sign-in request is completed. If successful, the returned HTTP
    * status is 200. If a new account is created as a part of the sign-in

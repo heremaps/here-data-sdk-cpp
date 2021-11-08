@@ -28,12 +28,13 @@
 namespace olp {
 namespace authentication {
 
-/**
- * @brief Crypto class exposes the cryptographic algoritms used by the library.
- */
+/// The cryptographic algoritms used by the library.
 class AUTHENTICATION_API Crypto {
  public:
+  /// The hash length after the SHA-256 encryption.
   static const size_t Sha256DigestLength = 32;
+
+  /// An alias for the hash.
   using Sha256Digest = std::array<unsigned char, Sha256DigestLength>;
 
   /**

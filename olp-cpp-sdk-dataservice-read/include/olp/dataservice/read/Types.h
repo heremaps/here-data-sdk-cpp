@@ -51,21 +51,21 @@ using Response = client::ApiResponse<ResultType, client::ApiError>;
 template <typename ResultType>
 using Callback = std::function<void(Response<ResultType>)>;
 
-/// The alias type of the catalog configuration.
+/// An alias for the catalog configuration.
 using CatalogResult = model::Catalog;
 /// The catalog configuration response type.
 using CatalogResponse = Response<CatalogResult>;
 /// The callback type of the catalog configuration response.
 using CatalogResponseCallback = Callback<CatalogResult>;
 
-/// The alias type of the catalog version result.
+/// An alias for the catalog version result.
 using CatalogVersionResult = model::VersionResponse;
 /// The catalog version response type.
 using CatalogVersionResponse = Response<CatalogVersionResult>;
 /// The callback type of the catalog version response.
 using CatalogVersionCallback = Callback<CatalogVersionResult>;
 
-/// The alias type of the partition metadata result.
+/// An alias for the partition metadata result.
 using PartitionsResult = model::Partitions;
 /// The partition metadata response type.
 using PartitionsResponse = Response<PartitionsResult>;
@@ -84,7 +84,7 @@ using AggregatedDataResponse = Response<AggregatedDataResult>;
 /// The callback type of the aggregated data response.
 using AggregatedDataResponseCallback = Callback<AggregatedDataResult>;
 
-/// The alias of the prefetch tiles result.
+/// An alias for the prefetch tiles result.
 using PrefetchTilesResult = std::vector<std::shared_ptr<PrefetchTileResult>>;
 /// The prefetch tiles response type.
 using PrefetchTilesResponse = Response<PrefetchTilesResult>;
@@ -113,14 +113,14 @@ using UnsubscribeResponse = Response<SubscriptionId>;
 /// The unsubscribe completion callback type of the stream layer client.
 using UnsubscribeResponseCallback = Callback<SubscriptionId>;
 
-/// The alias type of the messages result.
+/// An alias for the messages result.
 using MessagesResult = model::Messages;
 /// The poll response type of the stream layer client.
 using PollResponse = Response<MessagesResult>;
 /// The poll completion callback type of the stream layer client.
 using PollResponseCallback = Callback<MessagesResult>;
 
-/** @brief The alias of the seek response result.
+/** @brief An alias for the seek response result.
  *
  * The status of the HTTP request.
  */
@@ -130,7 +130,7 @@ using SeekResponse = Response<SeekResult>;
 /// The seek completion callback type of the stream layer client.
 using SeekResponseCallback = Callback<SeekResult>;
 
-/// The alias type of version result.
+/// An alias for the version result.
 using VersionsResult = model::VersionInfos;
 /// The versions list of metadata response type for the versioned client.
 using VersionsResponse = Response<VersionsResult>;

@@ -22,27 +22,25 @@
 namespace olp {
 namespace client {
 
+/// @brief Fetch options that control how requests are handled.
 enum FetchOptions {
   /**
-   * A default option. Queries the network if the requested resource is not
-   * found in the cache.
+   * @brief (Default) Queries the network if the requested resource
+   * is not found in the cache.
    */
   OnlineIfNotFound,
 
-  /**
-   * Skips cache lookups and queries the network right away.
-   */
+  /// Skips cache lookups and queries the network right away.
   OnlineOnly,
 
-  /**
-   * Returns immediately if a cache lookup fails.
-   */
+  /// Returns immediately if a cache lookup fails.
   CacheOnly,
 
   /**
-   * Returns the requested cached resource if it is found and updates the cache
-   * in the background.
-   * @note Do not use for versioned layer client requests.
+   * @brief Returns the requested cached resource if it is found
+   * and updates the cache in the background.
+   *
+   * @note Do not use it for versioned layer client requests.
    */
   CacheWithUpdate
 };

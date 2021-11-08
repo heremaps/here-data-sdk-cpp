@@ -47,7 +47,7 @@ namespace authentication {
 class AUTHENTICATION_API AuthorizeRequest final {
  public:
   /**
-   * @brief The type alias for the action pair.
+   * @brief An alias for the action pair.
    *
    * The first parameter is the type of action.
    * The second one is optional and represents the resource.
@@ -58,7 +58,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
   using Action = std::pair<std::string, std::string>;
 
   /**
-   * @brief The type alias for the vector of actions.
+   * @brief An alias for the vector of actions.
    */
   using Actions = std::vector<Action>;
 

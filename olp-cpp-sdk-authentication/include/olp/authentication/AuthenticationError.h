@@ -31,7 +31,7 @@ namespace authentication {
  * @brief Contains information on the authentication error.
  *
  * You can get the following information on the authentication error: the error
- * code ( \ref GetErrorCode ) and error message ( \ref GetMessage ).
+ * code (`GetErrorCode`) and error message (`GetMessage`).
  *
  * @deprecated Will be removed by 12.2020. Use `client::ApiError` instead.
  */

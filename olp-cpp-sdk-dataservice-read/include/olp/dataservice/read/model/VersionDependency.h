@@ -35,16 +35,16 @@ namespace model {
 class DATASERVICE_READ_API VersionDependency final {
  public:
   /**
-   * @brief Gets the direct status.
+   * @brief Gets the direct dependency status.
    *
-   * @return The direct status.
+   * @return The direct dependency status.
    */
   bool GetDirect() const { return direct_; }
 
   /**
-   * @brief Sets the direct status.
+   * @brief Sets the direct dependency status.
    *
-   * @param direct status.
+   * @param direct The direct dependency status.
    */
   void SetDirect(bool direct) { direct_ = direct; }
 
@@ -58,7 +58,7 @@ class DATASERVICE_READ_API VersionDependency final {
   /**
    * @brief Sets the HRN.
    *
-   * @param The HRN that you want to set.
+   * @param hrn The HRN that you want to set.
    */
   void SetHrn(std::string hrn) { hrn_ = std::move(hrn); }
 
@@ -72,7 +72,7 @@ class DATASERVICE_READ_API VersionDependency final {
   /**
    * @brief Sets the catalog version.
    *
-   * @param The catalog version.
+   * @param version The catalog version.
    */
   void SetVersion(std::int64_t version) { version_ = version; }
 

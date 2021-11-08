@@ -41,7 +41,7 @@ class DATASERVICE_READ_API VersionInfos final {
   /**
    * @brief Sets the vector of version infos.
    *
-   * @param value The vector of version infos .
+   * @param versions The vector of version infos.
    */
   void SetVersions(std::vector<VersionInfo> versions) {
     versions_ = std::move(versions);

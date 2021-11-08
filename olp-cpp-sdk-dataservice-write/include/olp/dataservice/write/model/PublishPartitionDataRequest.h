@@ -100,11 +100,12 @@ class DATASERVICE_WRITE_API PublishPartitionDataRequest {
   }
 
   /**
-   * @param A key that specifies the partition that the content is related to.
-   * It is required. If the layer's partitioning scheme is set to heretile, the
+   * @brief Sets the ID of the partition to which you want to publish data.
+   * 
+   * @param partition_id A key that specifies the partition to which the content is related.
+   * If the layer partitioning scheme is set to HERE tile, the
    * partition key is the tile key. The maximum length of the partition key is
    * 500 characters.
-   * @note Optional.
    */
   inline PublishPartitionDataRequest& WithPartitionId(
       const std::string& partition_id) {
@@ -113,12 +114,13 @@ class DATASERVICE_WRITE_API PublishPartitionDataRequest {
   }
 
   /**
-   * @param A key that specifies the partition that the content is related to.
-   * It is required. If the layer's partitioning scheme is set to heretile, the
-   * partition key is the tile key. The maximum length of the partition key is
-   * 500 characters.
-   * @note Optional.
-   */
+    * @brief Sets the ID of the partition to which you want to publish data.
+    *
+    * @param partition_id A key that specifies the partition to which the content is related.
+    * If the layer partitioning scheme is set to HERE tile, the
+    * partition key is the tile key. The maximum length of the partition key is
+    * 500 characters.
+    */
   inline PublishPartitionDataRequest& WithPartitionId(
       std::string&& partition_id) {
     partition_id_ = std::move(partition_id);

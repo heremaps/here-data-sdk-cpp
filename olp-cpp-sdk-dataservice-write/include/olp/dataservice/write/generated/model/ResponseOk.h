@@ -29,8 +29,8 @@ namespace dataservice {
 namespace write {
 namespace model {
 /**
- * @brief Contains IDs which can be used to track your request and identify the
- * messages in the catalog.
+ * @brief Contains IDs that can be used to track your request and identify
+ * the messages in the catalog.
  */
 class DATASERVICE_WRITE_API TraceID {
  public:
@@ -43,41 +43,66 @@ class DATASERVICE_WRITE_API TraceID {
 
  public:
   /**
-   * @brief A unique ID for the messages list. You can use this ID to track your
-   * request and identify the message in the catalog.
+   * @brief Gets the unique ID of the list of messages.
+   *
+   * You can use this ID to track your request and identify
+   * each message in the catalog.
+   *
+   * @return The unique ID of the list of messages.
    */
   const std::string& GetParentID() const { return parent_id_; }
 
   /**
-   * @brief A unique ID for the messages list. You can use this ID to track your
-   * request and identify the message in the catalog.
+   * @brief Gets a mutable reference to the unique ID of the list of messages.
+   *
+   * You can use this ID to track your request and identify
+   * the message in the catalog.
+   *
+   * @return The mutable reference to the unique ID of the list of messages.
    */
   std::string& GetMutableParentID() { return parent_id_; }
 
+  /**
+   * @brief Sets the unique ID for the list of messages.
+   *
+   * You can use this ID to track your request and identify
+   * the message in the catalog.
+   *
+   * @param value The unique ID to set.
+   */
   void SetParentID(const std::string& value) { this->parent_id_ = value; }
 
   /**
-   * @brief Generated list of unique IDs for each message in a list. You can use
-   * this ID to track your request and identify the message in the catalog.
+   * @brief Gets the generated list of unique message IDs.
+   *
+   * You can use this ID to track your request and identify the message in the catalog.
+   *
+   * @return The generated list of unique message IDs.
    */
   const std::vector<std::string>& GetGeneratedIDs() const {
     return generated_ids_;
   }
 
   /**
-   * @brief Generated list of unique IDs for each message in a list. You can use
-   * this ID to track your request and identify the message in the catalog.
+   * @brief Gets a mutable reference to the generated list of unique message IDs.
+   *
+   * You can use this ID to track your request and identify the message in the catalog.
+   *
+   * @return The mutable reference to the generated list of unique message IDs.
    */
   std::vector<std::string>& GetMutableGeneratedIDs() { return generated_ids_; }
 
+  /**
+   * @brief Sets the generated list of unique message IDs.
+   *
+   * @param value The generated list of unique message IDs.
+   */
   void SetGeneratedIDs(const std::vector<std::string>& value) {
     this->generated_ids_ = value;
   }
 };
 
-/**
- * @brief Contians response data for a successful ingestSDII call.
- */
+/// Contians response data for a successful ingestSDII call.
 class DATASERVICE_WRITE_API ResponseOk {
  public:
   ResponseOk() = default;
@@ -88,17 +113,27 @@ class DATASERVICE_WRITE_API ResponseOk {
 
  public:
   /**
-   * @brief Contains IDs which can be used to track your request and identify
+   * @brief Gets the IDs that can be used to track your request and identify
    * the messages in the catalog.
+   *
+   * @return The trace IDs.
    */
   const TraceID& GetTraceID() const { return trace_id_; }
 
   /**
-   * @brief Contains IDs which can be used to track your request and identify
-   * the messages in the catalog.
+   * @brief Gets a mutable reference to the IDs that can be used to track
+   * your request and identify the messages in the catalog.
+   *
+   * @return The mutable reference to the trace IDs.
    */
   TraceID& GetMutableTraceID() { return trace_id_; }
 
+  /**
+   * @brief Sets the IDs that can be used to track your request and identify
+   * the messages in the catalog.
+   *
+   * @param value The trace IDs.
+   */
   void SetTraceID(const TraceID& value) { this->trace_id_ = value; }
 };
 

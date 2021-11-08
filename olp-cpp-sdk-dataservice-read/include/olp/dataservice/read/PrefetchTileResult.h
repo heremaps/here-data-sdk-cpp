@@ -28,12 +28,12 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
-/**
- * @brief A helper class for the 'ApiResponse` class.
- */
+/// A helper class for the 'ApiResponse` class.
 class DATASERVICE_READ_API PrefetchTileNoError {
  public:
   PrefetchTileNoError() = default;
+
+  /// A default copy constructor.
   PrefetchTileNoError(const PrefetchTileNoError& other) = default;
   ~PrefetchTileNoError() = default;
 };

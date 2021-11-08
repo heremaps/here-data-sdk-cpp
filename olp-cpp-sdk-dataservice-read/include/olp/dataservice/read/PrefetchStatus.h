@@ -25,9 +25,7 @@ namespace olp {
 namespace dataservice {
 namespace read {
 
-/*
- * @brief PrefetchStatus structure represent the progress of prefetch operation.
- */
+/// Represents the progress of a prefetch operation.
 struct PrefetchStatus {
   /// Tiles available (prefetched).
   size_t prefetched_tiles;
@@ -37,10 +35,7 @@ struct PrefetchStatus {
   size_t bytes_transferred;
 };
 
-/*
- * @brief PrefetchPartitionsStatus structure represent the progress of prefetch
- * operation for partitions.
- */
+/// Represents the progress of a prefetch for partitions.
 struct PrefetchPartitionsStatus {
   /// Partitions available (prefetched).
   size_t prefetched_partitions;

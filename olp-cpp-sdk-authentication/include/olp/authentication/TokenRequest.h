@@ -36,7 +36,8 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 10.2020")
  public:
   /**
    * @brief Creates the `TokenRequest` instance.
-   * @param expiresIn (Optional) The number of seconds left before the new
+   *
+   * @param expires_in (Optional) The number of seconds left before the new
    * access token expires.
    */
   TokenRequest(

@@ -38,18 +38,33 @@ namespace client {
  */
 class CORE_API OlpClient {
  public:
-  /// Alias for the parameters and headers type.
+  /// An alias for the parameters and headers type.
   using ParametersType = std::multimap<std::string, std::string>;
+
+  /// An alias for the HTTP request body.
   using RequestBodyType = std::shared_ptr<std::vector<std::uint8_t>>;
 
   OlpClient();
+
+  /**
+   * @brief Creates the `OlpClient` instance.
+   * 
+   * @param settings The `OlpClientSettings` instance.
+   * @param base_url The base URL to be used for all outgoing requests.
+   */
   OlpClient(const OlpClientSettings& settings, std::string base_url);
   virtual ~OlpClient();
 
-  // Movable and copyable
+  /// A copy constructor.
   OlpClient(const OlpClient&);
+
+  /// An assignement operator.
   OlpClient& operator=(const OlpClient&);
+
+  /// A move constructor.
   OlpClient(OlpClient&&) noexcept;
+
+  /// A move assignement operator.
   OlpClient& operator=(OlpClient&&) noexcept;
 
   /**

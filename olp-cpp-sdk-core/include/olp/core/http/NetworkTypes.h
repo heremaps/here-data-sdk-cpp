@@ -40,9 +40,7 @@ namespace http {
  */
 using RequestId = std::uint64_t;
 
-/**
- * @brief The list of special values for `NetworkRequestId`.
- */
+/// The list of special values for `NetworkRequestId`.
 enum class RequestIdConstants : RequestId {
   /// The value that indicates the invalid request ID.
   RequestIdInvalid = std::numeric_limits<RequestId>::min(),
@@ -52,9 +50,7 @@ enum class RequestIdConstants : RequestId {
   RequestIdMax = std::numeric_limits<RequestId>::max(),
 };
 
-/**
- * @brief The common `Network` error codes.
- */
+/// The common `Network` error codes.
 enum class ErrorCode {
   SUCCESS = 0,
   IO_ERROR = -1,
@@ -137,14 +133,10 @@ class CORE_API SendOutcome final {
  */
 CORE_API std::string ErrorCodeToString(ErrorCode code);
 
-/**
- * @brief The type alias for the HTTP header.
- */
+/// An alias for the HTTP header.
 using Header = std::pair<std::string, std::string>;
 
-/**
- * @brief The type alias for a vector of HTTP headers.
- */
+/// An alias for a vector of the HTTP headers.
 using Headers = std::vector<Header>;
 
 }  // namespace http

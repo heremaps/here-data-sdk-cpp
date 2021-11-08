@@ -40,11 +40,11 @@ namespace client {
 class CORE_API CancellationContext {
  public:
   /**
-   * @brief The type alias of the operation function.
+   * @brief An alias for the operation function.
    */
   using ExecuteFuncType = std::function<CancellationToken()>;
   /**
-   * @brief The type alias of the cancel function.
+   * @brief An alias for the cancellation function.
    */
   using CancelFuncType = std::function<void()>;
 
