@@ -1,7 +1,7 @@
 sonar.projectKey=com.here.edge-platform:olp-cpp-sdk-Valgrind
 sonar.projectName=olp-cpp-sdk-Valgrind
 sonar.projectVersion=data-sdk-cpp-${env.CI_COMMIT_BRANCH}:${env.CI_COMMIT_SHORT_SHA}-${env.CI_PIPELINE_ID}
-sonar.sources=./olp-cpp-sdk-authentication/src/,./olp-cpp-sdk-core/src/,./olp-cpp-sdk-dataservice-read/src/,./olp-cpp-sdk-dataservice-write/src/
+sonar.sources=./olp-cpp-sdk-authentication/src/,./olp-cpp-sdk-core/src/,./olp-cpp-sdk-dataservice-read/src/,./olp-cpp-sdk-dataservice-write/src/,./olp-cpp-sdk-authentication/include/,./olp-cpp-sdk-core/include/,./olp-cpp-sdk-dataservice-read/include/,./olp-cpp-sdk-dataservice-write/include/
 sonar.tests=./olp-cpp-sdk-authentication/tests/,./olp-cpp-sdk-core/tests/,./olp-cpp-sdk-dataservice-read/tests/,./olp-cpp-sdk-dataservice-write/tests/
 sonar.test.exclusions=./olp-cpp-sdk-authentication/tests/,./olp-cpp-sdk-core/tests/,./olp-cpp-sdk-dataservice-read/tests/,./olp-cpp-sdk-dataservice-write/tests/
 sonar.exclusions=**/*.java
