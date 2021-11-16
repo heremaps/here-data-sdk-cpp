@@ -833,27 +833,34 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupProtectedCache() {
   StorageSettings protected_storage_settings;
   protected_storage_settings.max_file_size = 32 * 1024 * 1024;
 
-  // In case user requested read-write acccess we will try to open protected
+  const auto& disk_path_protected = *settings_.disk_path_protected;
+
+  // In case user requested read-write access we will try to open protected
   // cache as read-write also to prevent high RAM usage when cache is recovering
   // from uncompacted close.
   OpenOptions open_mode = settings_.openOptions;
   bool is_read_only = (settings_.openOptions & ReadOnly) == ReadOnly;
   if (!is_read_only) {
-    if (utils::Dir::IsReadOnly(settings_.disk_path_protected.get())) {
+    // It is necessary to create target directory here since 'IsReadOnly'
+    // routine doesn't work correctly if the path doesn't exist.
+    // Intentionally ignore possible error.
+    utils::Dir::Create(disk_path_protected);
+
+    if (utils::Dir::IsReadOnly(disk_path_protected)) {
       OLP_SDK_LOG_INFO_F(kLogTag,
                          "R/W permission missing, opening protected cache in "
                          "r/o mode, disk_path_protected='%s'",
-                         settings_.disk_path_protected.get().c_str());
+                         disk_path_protected.c_str());
       open_mode = static_cast<OpenOptions>(open_mode | OpenOptions::ReadOnly);
     }
   }
 
-  auto status = protected_cache_->Open(
-      settings_.disk_path_protected.get(), settings_.disk_path_protected.get(),
-      protected_storage_settings, open_mode, false);
+  auto status =
+      protected_cache_->Open(disk_path_protected, disk_path_protected,
+                             protected_storage_settings, open_mode, false);
   if (status != OpenResult::Success) {
     OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to open protected cache %s",
-                        settings_.disk_path_protected.get().c_str());
+                        disk_path_protected.c_str());
 
     protected_cache_.reset();
     return ToStorageOpenResult(status);
