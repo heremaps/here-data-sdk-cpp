@@ -25,22 +25,63 @@
 #include <utility>
 
 #include <olp/authentication/AuthenticationCredentials.h>
-#include <olp/authentication/AutoRefreshingToken.h>
+#include <olp/authentication/ErrorResponse.h>
 #include <olp/authentication/Settings.h>
-#include <olp/authentication/TokenEndpoint.h>
-#include <olp/authentication/TokenResult.h>
 #include <olp/authentication/Types.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/OauthToken.h>
 #include <olp/core/http/HttpStatusCode.h>
-#include <olp/core/utils/WarningWorkarounds.h>
 
 namespace olp {
 namespace authentication {
 
-// Needed to avoid endless warnings from TokenRequest/TokenResult
-PORTING_PUSH_WARNINGS()
-PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
+static constexpr auto kDefaultMinimumValidity = 300ll;
+static constexpr auto kDefaultMinimumValiditySeconds =
+    std::chrono::seconds(kDefaultMinimumValidity);
+static constexpr auto kForceRefresh = std::chrono::seconds(0);
+
+namespace internal {
+
+class TokenProviderPrivate;
+
+/// An implementation of `TokenProvider`.
+/// @note This is a private implementation class for internal use only, and not
+/// bound to any API stability promises. Please do not use directly.
+class TokenProviderImpl {
+ public:
+  /**
+   * @brief Creates the `TokenProviderImpl` instance.
+   *
+   * @param settings The `Settings` object that is used to customize
+   * the `TokenEndpoint` instance.
+   * @param minimum_validity Sets the minimum validity period of
+   * the token in seconds.
+   */
+  TokenProviderImpl(Settings settings, std::chrono::seconds minimum_validity);
+
+  /// @copydoc TokenProvider::operator()()
+  std::string operator()() const;
+
+  /// @copydoc TokenProvider::operator()(client::CancellationContext&)
+  client::OauthTokenResponse operator()(
+      client::CancellationContext& context) const;
+
+  /// @copydoc TokenProvider::GetErrorResponse()
+  ErrorResponse GetErrorResponse() const;
+
+  /// @copydoc TokenProvider::GetHttpStatusCode()
+  int GetHttpStatusCode() const;
+
+  /// @copydoc TokenProvider::GetResponse()(client::CancellationContext&)
+  TokenResponse GetResponse(client::CancellationContext& context) const;
+
+  /// @copydoc TokenProvider::IsTokenResponseOK()
+  bool IsTokenResponseOK() const;
+
+ private:
+  std::shared_ptr<TokenProviderPrivate> impl_;
+};
+}  // namespace internal
 
 /**
  * @brief Provides the authentication tokens if the HERE platform
@@ -62,7 +103,7 @@ class TokenProvider {
    * the `TokenEndpoint` instance.
    */
   explicit TokenProvider(Settings settings)
-      : impl_(std::make_shared<TokenProviderImpl>(
+      : impl_(std::make_shared<internal::TokenProviderImpl>(
             std::move(settings), std::chrono::seconds(MinimumValidity))) {}
 
   /// A default copy constructor.
@@ -134,79 +175,12 @@ class TokenProvider {
   int GetHttpStatusCode() const { return impl_->GetHttpStatusCode(); }
 
  private:
-  class TokenProviderImpl {
-   public:
-    explicit TokenProviderImpl(Settings settings,
-                               std::chrono::seconds minimum_validity)
-        : minimum_validity_{minimum_validity},
-          token_(
-              TokenEndpoint(std::move(settings)).RequestAutoRefreshingToken()) {
-    }
-
-    /// @copydoc TokenProvider::operator()()
-    std::string operator()() const {
-      client::CancellationContext context;
-      const auto response = GetResponse(context);
-      return response ? response.GetResult().GetAccessToken() : "";
-    }
-
-    /// @copydoc TokenProvider::operator()(client::CancellationContext&)
-    client::OauthTokenResponse operator()(
-        client::CancellationContext& context) const {
-      const auto response = GetResponse(context);
-      return response ? client::OauthTokenResponse(
-                            {response.GetResult().GetAccessToken(),
-                             response.GetResult().GetExpiryTime()})
-                      : client::OauthTokenResponse(response.GetError());
-    }
-
-    /// @copydoc TokenProvider::GetErrorResponse()
-    ErrorResponse GetErrorResponse() const {
-      client::CancellationContext context;
-      const auto response = GetResponse(context);
-      return response ? response.GetResult().GetErrorResponse()
-                      : ErrorResponse{};
-    }
-
-    /// @copydoc TokenProvider::GetHttpStatusCode()
-    int GetHttpStatusCode() const {
-      client::CancellationContext context;
-      const auto response = GetResponse(context);
-      return response ? response.GetResult().GetHttpStatus()
-                      : response.GetError().GetHttpStatusCode();
-    }
-
-    /// Gets the token response from `AutoRefreshingToken` or requests a new
-    /// token if the token response expired or is not present.
-    TokenResponse GetResponse(client::CancellationContext& context) const {
-      // Mutex is needed to prevent multiple authorization requests that can
-      // happen when the token is not available, and multiple consumers
-      // requested it.
-      std::lock_guard<std::mutex> lock(request_mutex_);
-      return token_.GetToken(context, minimum_validity_);
-    }
-
-    /// Checks whether the available token response is valid.
-    bool IsTokenResponseOK() const {
-      client::CancellationContext context;
-
-      // Token response is successful if and only if we have a valid token.
-      return GetResponse(context).IsSuccessful();
-    }
-
-   private:
-    std::chrono::seconds minimum_validity_{kDefaultMinimumValidity};
-    AutoRefreshingToken token_;
-    mutable std::mutex request_mutex_;
-  };
-
-  std::shared_ptr<TokenProviderImpl> impl_;
+  std::shared_ptr<internal::TokenProviderImpl> impl_;
 };
 
 /// Provides the authentication tokens using the default minimum token
 /// validity.
 using TokenProviderDefault = TokenProvider<kDefaultMinimumValidity>;
 
-PORTING_POP_WARNINGS()
 }  // namespace authentication
 }  // namespace olp

@@ -26,9 +26,7 @@
 
 #include <olp/authentication/AuthenticationCredentials.h>
 #include <olp/authentication/Settings.h>
-#include <olp/authentication/TokenEndpoint.h>
 #include <olp/authentication/TokenProvider.h>
-#include <olp/authentication/TokenResult.h>
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/ApiError.h>

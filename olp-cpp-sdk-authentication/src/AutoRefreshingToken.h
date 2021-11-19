@@ -23,22 +23,13 @@
 #include <functional>
 #include <memory>
 
-#include "AuthenticationApi.h"
+#include <olp/authentication/AuthenticationApi.h>
+#include <olp/core/client/CancellationContext.h>
+#include <olp/core/client/CancellationToken.h>
 #include "TokenEndpoint.h"
-#include "TokenRequest.h"
-#include "TokenResult.h"
-
-#include "olp/core/client/CancellationContext.h"
-#include "olp/core/client/CancellationToken.h"
-#include "olp/core/porting/warning_disable.h"
 
 namespace olp {
 namespace authentication {
-
-static constexpr auto kDefaultMinimumValidity = 300ll;
-static constexpr auto kDefaultMinimumValiditySeconds =
-    std::chrono::seconds(kDefaultMinimumValidity);
-static constexpr auto kForceRefresh = std::chrono::seconds(0);
 
 /**
  * @brief Manages token requests.
@@ -46,13 +37,8 @@ static constexpr auto kForceRefresh = std::chrono::seconds(0);
  * Requests a new token from the token endpoint and automatically refreshes it
  * when the token is about to expire.
  */
-class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed by 10.2020.")
-    AutoRefreshingToken {
+class AutoRefreshingToken {
  public:
-  // Needed to avoid endless warnings from TokenRequest/TokenResult
-  PORTING_PUSH_WARNINGS()
-  PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
-
   /**
    * @brief Specifies the callback signature that is required
    * when the get token request is completed.
@@ -79,8 +65,7 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed by 10.2020.")
    * Otherwise, returns the cached `TokenResponse` instance.
    */
   TokenResponse GetToken(client::CancellationToken& cancellation_token,
-                         const std::chrono::seconds& minimum_validity =
-                             kDefaultMinimumValiditySeconds) const;
+                         const std::chrono::seconds& minimum_validity) const;
 
   /**
    * @brief Synchronously gets a token that is always fresh.
@@ -101,8 +86,7 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed by 10.2020.")
    * Otherwise, returns the cached `TokenResponse` instance.
    */
   TokenResponse GetToken(client::CancellationContext& context,
-                         const std::chrono::seconds& minimum_validity =
-                             kDefaultMinimumValiditySeconds) const;
+                         const std::chrono::seconds& minimum_validity) const;
 
   /**
    * @brief Synchronously gets a token that is always fresh.
@@ -121,8 +105,7 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed by 10.2020.")
    * @return The `TokenResponse` instance if the old one is expired.
    * Otherwise, the cached `TokenResponse` instance.
    */
-  TokenResponse GetToken(const std::chrono::seconds& minimum_validity =
-                             kDefaultMinimumValiditySeconds) const;
+  TokenResponse GetToken(const std::chrono::seconds& minimum_validity) const;
 
   /**
    * @brief Asynchronously gets a token that is always fresh.
@@ -141,8 +124,7 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed by 10.2020.")
    */
   client::CancellationToken GetToken(
       const GetTokenCallback& callback,
-      const std::chrono::seconds& minimum_validity =
-          kDefaultMinimumValiditySeconds) const;
+      const std::chrono::seconds& minimum_validity) const;
 
   /**
    * @brief Creates the `AutoRefreshingToken` instance.
@@ -152,8 +134,6 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed by 10.2020.")
    * @param token_request The token request that is sent to the token endpoint.
    */
   AutoRefreshingToken(TokenEndpoint token_endpoint, TokenRequest token_request);
-
-  PORTING_POP_WARNINGS()
 
  private:
   struct Impl;

@@ -75,8 +75,9 @@ if (ANDROID OR IOS)
 
     target_include_directories(${OLP_SDK_INTEGRATION_TESTS_LIB}
         PRIVATE
-            ${CMAKE_SOURCE_DIR}/../../olp-cpp-sdk-core/src
-			${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-write/src
+            ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-authentication/src
+            ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-core/src
+            ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-write/src
     )
 
 else()
@@ -93,7 +94,8 @@ else()
 
     target_include_directories(olp-cpp-sdk-integration-tests
         PRIVATE
-            ${CMAKE_SOURCE_DIR}/../../olp-cpp-sdk-core/src
-			${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-write/src
+            ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-authentication/src
+            ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-core/src
+            ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-write/src
     )
 endif()

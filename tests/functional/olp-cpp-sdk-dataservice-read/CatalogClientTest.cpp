@@ -29,9 +29,7 @@
 
 #include <olp/authentication/AuthenticationCredentials.h>
 #include <olp/authentication/Settings.h>
-#include <olp/authentication/TokenEndpoint.h>
 #include <olp/authentication/TokenProvider.h>
-#include <olp/authentication/TokenResult.h>
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>

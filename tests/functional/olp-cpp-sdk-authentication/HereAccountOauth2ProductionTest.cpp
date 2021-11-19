@@ -22,17 +22,15 @@
 #include <gmock/gmock.h>
 #include <olp/authentication/AuthenticationClient.h>
 #include <olp/authentication/AuthenticationCredentials.h>
-#include <olp/authentication/AutoRefreshingToken.h>
 #include <olp/authentication/Settings.h>
-#include <olp/authentication/TokenEndpoint.h>
 #include <olp/authentication/TokenProvider.h>
-#include <olp/authentication/TokenRequest.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/http/NetworkProxySettings.h>
 #include <olp/core/porting/warning_disable.h>
 #include <testutils/CustomParameters.hpp>
-
+#include "AutoRefreshingToken.h"
+#include "TokenRequest.h"
 #include "Utils.h"
 
 namespace authentication = ::olp::authentication;

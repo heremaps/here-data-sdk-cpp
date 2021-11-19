@@ -17,15 +17,13 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/authentication/TokenEndpoint.h>
-
-PORTING_PUSH_WARNINGS()
-PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
+#include "TokenEndpoint.h"
 
 #include <olp/authentication/AuthenticationClient.h>
-#include <olp/authentication/AutoRefreshingToken.h>
 #include <olp/core/logging/Log.h>
+#include "AutoRefreshingToken.h"
 #include "TokenEndpointImpl.h"
+#include "TokenRequest.h"
 
 namespace olp {
 namespace authentication {
@@ -82,6 +80,5 @@ AutoRefreshingToken TokenEndpoint::RequestAutoRefreshingToken(
   return AutoRefreshingToken(*this, token_request);
 }
 
-PORTING_POP_WARNINGS()
 }  // namespace authentication
 }  // namespace olp

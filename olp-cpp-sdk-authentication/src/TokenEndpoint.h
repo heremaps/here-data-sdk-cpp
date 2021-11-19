@@ -26,13 +26,11 @@
 #include <olp/authentication/AuthenticationCredentials.h>
 #include <olp/authentication/AuthenticationError.h>
 #include <olp/authentication/Settings.h>
-#include <olp/authentication/TokenRequest.h>
-#include <olp/authentication/TokenResult.h>
 #include <olp/authentication/Types.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
-#include <olp/core/porting/warning_disable.h>
+#include "TokenRequest.h"
 
 namespace olp {
 namespace authentication {
@@ -43,13 +41,8 @@ class TokenEndpointImpl;
  * @brief Corresponds to the token endpoint as specified in the OAuth2.0
  * specification.
  */
-class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 10.2020")
-    TokenEndpoint {
+class TokenEndpoint {
  public:
-  // Needed to avoid endless warnings from TokenRequest/TokenResult
-  PORTING_PUSH_WARNINGS()
-  PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
-
   /// Defines the signature used to return the response to the client.
   using TokenResponse = Response<TokenResult>;
   /// Defines the callback that is invoked when the response on
@@ -60,8 +53,8 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 10.2020")
    * @brief Executes the POST request method to the token endpoint.
    *
    * The request gets the HERE Access token that is used to access the HERE
-   * platform Services. Returns the token that is used as the `Authorization:
-   * Bearer` token value.
+   * platform Services. Returns the token that is used as
+   * the `Authorization: Bearer` token value.
    *
    * @param token_request The `TokenRequest` instance.
    * @param callback The `RequestTokenCallback` instance that passes
@@ -77,9 +70,9 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 10.2020")
   /**
    * @brief Executes the POST request method to the token endpoint.
    *
-   * The request gets the HERE Access token that is used to access the HERE platform
-   * Services. Returns the token that is used as the `Authorization: Bearer`
-   * token value.
+   * The request gets the HERE Access token that is used to access the HERE
+   * platform Services. Returns the token that is used as
+   * the `Authorization: Bearer` token value.
    *
    * @param cancellation_token The `CancellationToken` instance that can be used
    * to cancel the request.
@@ -95,8 +88,8 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 10.2020")
    * @brief Executes the POST request method to the token endpoint.
    *
    * The request gets the HERE Access token that is used to access the HERE
-   * platform Services. Returns the token that is used as the `Authorization:
-   * Bearer` token value.
+   * platform Services. Returns the token that is used as
+   * the `Authorization: Bearer` token value.
    *
    * @param context Used to cancel the pending token request.
    * @param token_request The `TokenRequest` instance.
@@ -110,9 +103,9 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 10.2020")
   /**
    * Executes the POST request method to the token endpoint.
    *
-   * The request gets the HERE Access token that is used to access the HERE platform
-   * Services. Returns the token that is used as the `Authorization: Bearer`
-   * token value.
+   * The request gets the HERE Access token that is used to access the HERE
+   * platform Services. Returns the token that is used as
+   * the `Authorization: Bearer` token value.
    *
    * @param token_request The `TokenRequest` instance.
    *
@@ -132,8 +125,6 @@ class AUTHENTICATION_API OLP_SDK_DEPRECATED("Will be removed in 10.2020")
    */
   AutoRefreshingToken RequestAutoRefreshingToken(
       const TokenRequest& token_request = TokenRequest());
-
-  PORTING_POP_WARNINGS()
 
   /**
    * @brief Creates the `TokenEndpoint` instance with the given `settings`

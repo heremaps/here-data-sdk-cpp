@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include "olp/authentication/TokenRequest.h"
+#include "TokenRequest.h"
 
 namespace olp {
 namespace authentication {

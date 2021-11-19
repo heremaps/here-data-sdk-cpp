@@ -24,11 +24,10 @@
 #include <olp/authentication/AuthenticationSettings.h>
 #include <olp/authentication/Settings.h>
 #include <olp/authentication/SignInResult.h>
-#include <olp/authentication/TokenRequest.h>
 #include <olp/authentication/Types.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/OlpClient.h>
-#include <olp/core/porting/warning_disable.h>
+#include "TokenRequest.h"
 
 namespace olp {
 namespace authentication {
@@ -42,10 +41,6 @@ class TokenEndpointImpl {
 
   /// @copydoc TokenEndpoint::TokenEndpoint()
   explicit TokenEndpointImpl(Settings settings);
-
-  // Needed to avoid endless warnings from TokenRequest
-  PORTING_PUSH_WARNINGS()
-  PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 
   /// @copydoc TokenEndpoint::RequestToken(const TokenRequest&, const
   /// RequestTokenCallback&)
@@ -64,8 +59,6 @@ class TokenEndpointImpl {
       client::CancellationContext& context,
       const TokenRequest& token_request = TokenRequest()) const;
 
-  PORTING_POP_WARNINGS()
-
  private:
   class RequestTimer {
    public:
@@ -81,14 +74,8 @@ class TokenEndpointImpl {
   static SignInResult ParseAuthResponse(int status,
                                         std::stringstream& auth_response);
 
-  // Needed to avoid endless warnings from TokenRequest
-  PORTING_PUSH_WARNINGS()
-  PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
-
   Response<SignInResult> SignInClient(client::CancellationContext& context,
                                       const TokenRequest& token_request) const;
-
-  PORTING_POP_WARNINGS()
 
   client::HttpResponse CallAuth(const client::OlpClient& client,
                                 const std::string& endpoint,

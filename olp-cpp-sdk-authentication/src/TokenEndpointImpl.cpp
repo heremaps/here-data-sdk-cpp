@@ -107,10 +107,6 @@ std::string GenerateUid() {
   });
 }
 
-// Needed to avoid endless warnings from TokenRequest
-PORTING_PUSH_WARNINGS()
-PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
-
 client::OlpClient::RequestBodyType GenerateClientBody(
     const TokenRequest& token_request) {
   rapidjson::StringBuffer data;
@@ -131,18 +127,12 @@ client::OlpClient::RequestBodyType GenerateClientBody(
   auto content = data.GetString();
   return std::make_shared<RequestBodyData>(content, content + data.GetSize());
 }
-
-PORTING_POP_WARNINGS()
 }  // namespace
 
 TokenEndpointImpl::TokenEndpointImpl(Settings settings)
     : credentials_(std::move(settings.credentials)),
       settings_(ConvertSettings(std::move(settings))),
       auth_client_(settings_) {}
-
-// Needed to avoid endless warnings from TokenRequest
-PORTING_PUSH_WARNINGS()
-PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 
 client::CancellationToken TokenEndpointImpl::RequestToken(
     const TokenRequest& token_request, const RequestTokenCallback& callback) {
@@ -281,8 +271,6 @@ SignInResponse TokenEndpointImpl::SignInClient(
 
   return response;
 }
-
-PORTING_POP_WARNINGS()
 
 SignInResult TokenEndpointImpl::ParseAuthResponse(
     int status, std::stringstream& auth_response) {
