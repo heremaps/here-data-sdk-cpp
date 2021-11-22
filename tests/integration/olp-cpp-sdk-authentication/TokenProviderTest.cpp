@@ -25,6 +25,7 @@
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/porting/make_unique.h>
+#include <olp/core/porting/warning_disable.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include "../olp-cpp-sdk-dataservice-read/HttpResponses.h"
 #include "AuthenticationMockedResponses.h"
@@ -393,6 +394,13 @@ TEST_F(TokenProviderTest, CancellableProvider) {
 
     EXPECT_TRUE(token_provider);
     EXPECT_EQ(token_provider.GetHttpStatusCode(), status_code);
+
+    EXPECT_EQ(token_provider.GetErrorResponse().code, 0);
+
+    PORTING_PUSH_WARNINGS()
+    PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
+    EXPECT_EQ(token_provider(), kResponseToken);
+    PORTING_POP_WARNINGS()
 
     testing::Mock::VerifyAndClearExpectations(network_mock_.get());
   }

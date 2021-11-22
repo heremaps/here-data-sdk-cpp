@@ -23,13 +23,13 @@
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/NetworkMock.h>
 #include <olp/authentication/AuthenticationClient.h>
-#include <olp/authentication/AutoRefreshingToken.h>
+#include <olp/authentication/TokenProvider.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/core/porting/warning_disable.h>
-
 #include "AuthenticationMockedResponses.h"
+#include "AutoRefreshingToken.h"
 
 //  OLPEDGE-1797
 PORTING_PUSH_WARNINGS()

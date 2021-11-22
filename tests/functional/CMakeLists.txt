@@ -61,6 +61,7 @@ if (ANDROID OR IOS)
         ${OLP_SDK_FUNCTIONAL_TESTS_HEADERS})
     target_include_directories(${OLP_SDK_FUNCTIONAL_TESTS_LIB}
         PRIVATE
+            ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-authentication/src
             ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-read/src
             ${PROJECT_SOURCE_DIR}/tests/utils/mock-server-client/
             utils
@@ -96,6 +97,7 @@ else()
         ${OLP_SDK_FUNCTIONAL_TESTS_HEADERS})
     target_include_directories(olp-cpp-sdk-functional-tests
     PRIVATE
+        ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-authentication/src
         ${PROJECT_SOURCE_DIR}/olp-cpp-sdk-dataservice-read/src
         ${PROJECT_SOURCE_DIR}/tests/utils/mock-server-client/
         utils

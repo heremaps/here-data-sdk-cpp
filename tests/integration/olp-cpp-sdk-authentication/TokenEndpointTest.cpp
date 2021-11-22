@@ -17,8 +17,6 @@
  * License-Filename: LICENSE
  */
 
-#include <olp/authentication/TokenEndpoint.h>
-
 #include <future>
 #include <memory>
 
@@ -31,6 +29,8 @@
 #include <olp/core/http/NetworkUtils.h>
 #include <olp/core/porting/make_unique.h>
 #include "AuthenticationMockedResponses.h"
+#include "TokenEndpoint.h"
+#include "TokenRequest.h"
 
 namespace auth = olp::authentication;
 namespace client = olp::client;
@@ -109,9 +109,6 @@ void ExpectTimestampRequest(NetworkMock& network) {
                                    kResponseTime));
 }
 }  // namespace
-
-PORTING_PUSH_WARNINGS()
-PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
 
 class TokenEndpointTest : public testing::Test {
  public:
@@ -797,5 +794,3 @@ TEST_F(TokenEndpointTest, Cancel) {
             static_cast<int>(http::ErrorCode::CANCELLED_ERROR));
   EXPECT_EQ(token_response.GetError().GetMessage(), kErrorCancelled);
 }
-
-PORTING_POP_WARNINGS()
