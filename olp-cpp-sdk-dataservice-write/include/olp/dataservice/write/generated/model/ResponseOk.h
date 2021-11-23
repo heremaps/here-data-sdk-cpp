@@ -30,7 +30,7 @@ namespace write {
 namespace model {
 /**
  * @brief Contains IDs that can be used to track your request and identify
- * the messages in the catalog.
+ * messages in a catalog.
  */
 class DATASERVICE_WRITE_API TraceID {
  public:
@@ -102,7 +102,7 @@ class DATASERVICE_WRITE_API TraceID {
   }
 };
 
-/// Contians response data for a successful ingestSDII call.
+/// Contians a response to a successful ingestSDII call.
 class DATASERVICE_WRITE_API ResponseOk {
  public:
   ResponseOk() = default;
@@ -113,26 +113,33 @@ class DATASERVICE_WRITE_API ResponseOk {
 
  public:
   /**
-   * @brief Gets the IDs that can be used to track your request and identify
-   * the messages in the catalog.
+   * @brief Gets the trace ID of the request.
    *
-   * @return The trace IDs.
+   * It is a unique message ID, such as a UUID.
+   * You can use this ID to track your request and identify the
+   * message in the catalog.
+   *
+   * @return The trace ID of the request.
    */
   const TraceID& GetTraceID() const { return trace_id_; }
 
   /**
-   * @brief Gets a mutable reference to the IDs that can be used to track
-   * your request and identify the messages in the catalog.
+   * @brief Gets a mutable reference to the trace ID of the request.
    *
-   * @return The mutable reference to the trace IDs.
+   * @see `GetTraceID` for more information on the trace ID.
+   *
+   * @return The trace ID of the request.
    */
   TraceID& GetMutableTraceID() { return trace_id_; }
 
   /**
-   * @brief Sets the IDs that can be used to track your request and identify
-   * the messages in the catalog.
+   * @brief Sets the trace ID of the request.
    *
-   * @param value The trace IDs.
+   * @param value A unique message ID, such as a UUID. If you want to
+   * define your ID, include it in the request. If you do not
+   * include an ID, it is generated during ingestion and included in
+   * the response. You can use this ID to track your request and identify
+   * the message in the catalog.
    */
   void SetTraceID(const TraceID& value) { this->trace_id_ = value; }
 };

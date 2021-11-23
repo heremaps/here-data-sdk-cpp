@@ -25,27 +25,30 @@ namespace olp {
 namespace dataservice {
 namespace write {
 namespace model {
-/**
- * @brief Flushes requests into a HERE platform stream layer.
- */
+/// Flushes requests in a stream layer.
 class DATASERVICE_WRITE_API FlushRequest {
  public:
   FlushRequest() = default;
 
   /**
-   * @return The number of \c PublishDataRequest requests, which will be
-   * flushed by \c StreamLayerCLient. By default this value is initilized to 0,
-   * thus, all queued \c StreamLayerClient's requests will be flushed.
+   * @brief Gets the number of partitions (`PublishDataRequest`) to be flushed.
+   *
+   * The default value is 0, which means that all queued
+   * `StreamLayerClient` requests are flushed.
+   *
+   * @return The number of publish data requests.
    */
   inline int GetNumberOfRequestsToFlush() const {
     return num_requests_per_flush_;
   }
 
+
   /**
-   * @param num_requests Maximum number of partitions (i.e. \c
-   * PublishDataRequest) to be flushed by \c StreamLayerClient. If this value is
-   * negative, nothing will be flushed. Set 0 to flush all requests.
-   * @note Required.
+   * @brief Sets the number of partitions (`PublishDataRequest`) to be flushed.
+   *
+   * @param num_requests The maximum number of partitions be flushed by
+   * `StreamLayerClient`. If the value is negative, nothing is flushed.
+   * To flush all requests, set the value to 0.
    */
   inline FlushRequest& WithNumberOfRequestsToFlush(int num_requests) {
     num_requests_per_flush_ = num_requests;
@@ -53,7 +56,7 @@ class DATASERVICE_WRITE_API FlushRequest {
   }
 
  private:
-  /// Number of requests to flush
+  /// The number of requests to flush.
   int num_requests_per_flush_ = 0;
 };
 

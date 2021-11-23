@@ -37,14 +37,18 @@ class DATASERVICE_WRITE_API DeleteIndexDataRequest {
   DeleteIndexDataRequest() = default;
 
   /**
-   * @return Layer ID previously set.
+   * @brief Gets the layer ID to which the data blob belongs.
+   *
+   * @return The layer ID.
    */
   inline const std::string& GetLayerId() const { return layer_id_; }
 
   /**
-   * @param layer_id The ID of the layer that the data blob belongs to.
-   * Must be index layer.
-   * @note Required.
+   * @brief Sets the layer ID to which the data blob belongs.
+   *
+   * Make sure the layer is of the index type.
+   *
+   * @param layer_id The layer ID.
    */
   inline DeleteIndexDataRequest& WithLayerId(const std::string& layer_id) {
     layer_id_ = layer_id;
@@ -52,9 +56,11 @@ class DATASERVICE_WRITE_API DeleteIndexDataRequest {
   }
 
   /**
-   * @param layer_id The ID of the layer that the data blob belongs to.
-   * Must be index layer.
-   * @note Required.
+   * @brief Sets the layer ID to which the data blob belongs.
+   *
+   * Make sure the layer is of the index type.
+   *
+   * @param layer_id The rvalue reference to the layer ID.
    */
   inline DeleteIndexDataRequest& WithLayerId(std::string&& layer_id) {
     layer_id_ = std::move(layer_id);
@@ -62,15 +68,19 @@ class DATASERVICE_WRITE_API DeleteIndexDataRequest {
   }
 
   /**
-   * @return Index ID previously set.
+   * @brief Gets the index ID that is associated with the data blob.
+   *
+   * @return The index ID.
    */
   inline const std::string& GetIndexId() const { return index_id_; }
 
   /**
-   * @param index_id Index ID which the data blob was associated with.
-   * @note Required. It should be included in the callback of
-   * IndexLayerClient::PublishIndex(const model::PublishIndexRequest& , const
-   * PublishIndexCallback&) if operation was successful.
+   * @brief Sets the index ID that is associated with the data blob.
+   *
+   * Include it in the callback of `IndexLayerClient::PublishIndex()`
+   * if the operation is successful.
+   *
+   * @param index_id The index ID.
    */
   inline DeleteIndexDataRequest& WithIndexId(const std::string& index_id) {
     index_id_ = index_id;
@@ -78,10 +88,12 @@ class DATASERVICE_WRITE_API DeleteIndexDataRequest {
   }
 
   /**
-   * @param index_id Index ID which the data blob was associated with.
-   * @note Required. It should be included in the callback of
-   * IndexLayerClient::PublishIndex(const model::PublishIndexRequest& , const
-   * PublishIndexCallback&) if operation was successful.
+   * @brief Sets the index ID that is associated with the data blob.
+   *
+   * Include it in the callback of `IndexLayerClient::PublishIndex()`
+   * if the operation is successful.
+   *
+   * @param index_id The rvalue reference to the index ID.
    */
   inline DeleteIndexDataRequest& WithIndexId(const std::string&& index_id) {
     index_id_ = std::move(index_id);

@@ -30,19 +30,22 @@ namespace dataservice {
 namespace write {
 namespace model {
 
-/// Checks whether the data is present in a layer.
+/// Checks whether data is present in a layer.
 class DATASERVICE_WRITE_API CheckDataExistsRequest {
  public:
   CheckDataExistsRequest() = default;
 
   /**
-   * @return Layer ID previously set.
+   * @brief Gets the layer ID to which the data blob belongs.
+   *
+   * @return The layer ID.
    */
   inline const std::string& GetLayerId() const { return layer_id_; }
 
   /**
-   * @param layer_id The ID of the layer that the data blob belongs to.
-   * @note Required.
+   * @brief Sets the layer ID to which the data blob belongs.
+   *
+   * @param layer_id The layer ID.
    */
   inline CheckDataExistsRequest& WithLayerId(const std::string& layer_id) {
     layer_id_ = layer_id;
@@ -50,8 +53,9 @@ class DATASERVICE_WRITE_API CheckDataExistsRequest {
   }
 
   /**
-   * @param layer_id The ID of the layer that the data blob belongs to.
-   * @note Required.
+   * @brief Sets the layer ID to which the data blob belongs.
+   *
+   * @param layer_id The rvalue reference to the layer ID.
    */
   inline CheckDataExistsRequest& WithLayerId(std::string&& layer_id) {
     layer_id_ = std::move(layer_id);
@@ -59,17 +63,19 @@ class DATASERVICE_WRITE_API CheckDataExistsRequest {
   }
 
   /**
-   * @return DataHandle previously set.
+   * @brief Gets the data handle that is associated with the data blob.
+   *
+   * @return The data handle.
    */
   inline const std::string& GetDataHandle() const { return data_handle_; }
 
   /**
-   * @param data_handle Data Handle which the data blob was associated with.
-   * @note Required. It should be included in the callback of
-   * VersionedLayerClient::PublishToBatch(
-   const model::Publication& pub,
-   const model::PublishPartitionDataRequest& request) if operation was
-   successful.
+   * @brief Sets the data handle that is associated with the data blob.
+   *
+   * Include it in the callback of `VersionedLayerClient::PublishToBatch()`.
+   * if the operation is successful.
+   *
+   * @param data_handle The data handle.
    */
   inline CheckDataExistsRequest& WithDataHandle(
       const std::string& data_handle) {
@@ -78,12 +84,12 @@ class DATASERVICE_WRITE_API CheckDataExistsRequest {
   }
 
   /**
-   * @param data_handle Index ID which the data blob was associated with.
-   * @note Required. It should be included in the callback of
-   * VersionedLayerClient::PublishToBatch(
-   const model::Publication& pub,
-   const model::PublishPartitionDataRequest& request) if operation was
-   successful.
+   * @brief Sets the data handle that is associated with the data blob.
+   *
+   * Include it in the callback of `VersionedLayerClient::PublishToBatch()`.
+   * if the operation is successful.
+   *
+   * @param data_handle The rvalue reference to the data handle.
    */
   inline CheckDataExistsRequest& WithDataHandle(
       const std::string&& data_handle) {

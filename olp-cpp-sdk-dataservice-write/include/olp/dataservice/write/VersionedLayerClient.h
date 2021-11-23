@@ -79,97 +79,127 @@ using CheckDataExistsCallback =
 
 class VersionedLayerClientImpl;
 
-/**
- * @brief Client class to ingest data into versioned layers.
- */
+/// Publishes data to a versioned layers.
 class DATASERVICE_WRITE_API VersionedLayerClient {
  public:
   /**
-   * @brief VersionedLayerClient constructor
-   * @param catalog the catalog this versioned layer client uses
-   * @param settings Client settings used to control behaviour of the client
-   * instance
+   * @brief Creates the `VersionedLayerClient` instance.
+   *
+   * @param catalog The HRN of the catalog to which this client writes.
+   * @param settings The client settings used to control the behavior
+   * of the client instance.
    */
   VersionedLayerClient(client::HRN catalog, client::OlpClientSettings settings);
 
   /**
-   * @brief Start a batch operation.
-   * @param request details of the batch operation to start
-   * @return olp::client::CancellableFuture<StartBatchResponse>
+   * @brief Starts the batch operation.
+   *
+   * @param request The `StartBatchRequest` object.
+   *
+   * @return `CancellableFuture` that contains `StartBatchResponse`.
    */
   olp::client::CancellableFuture<StartBatchResponse> StartBatch(
       model::StartBatchRequest request);
 
   /**
-   * @brief Start a batch operation.
-   * @param request details of the batch operation to start
-   * @param callback of type std::function<void(StartBatchResponse response)>
-   * @return olp::client::CancellationToken
+   * @brief Starts the batch operation.
+   *
+   * @param request The `StartBatchRequest` object.
+   * @param callback `StartBatchCallback` that is called with
+   * `StartBatchResponse` when the operation completes.
+   *
+   * @return `CancellationToken` that can be used to cancel the ongoing
+   * request.
    */
   olp::client::CancellationToken StartBatch(model::StartBatchRequest request,
                                             StartBatchCallback callback);
 
   /**
-   * @brief Get the latest version number of the catalog
-   * @return future holding the response object
+   * @brief Gets the latest version number of the catalog.
+   *
+   * @return `CancellableFuture` that contains the latest version number
+   * of the catalog.
    */
   olp::client::CancellableFuture<GetBaseVersionResponse> GetBaseVersion();
 
   /**
-   * @brief Get the latest version number of the catalog
-   * @param callback called when operation completes
-   * @return cancellationToken
+   * @brief Gets the latest version number of the catalog.
+   *
+   * @param callback `GetBaseVersionCallback` that is called with
+   * `GetBaseVersionResponse` when the operation completes.
+   *
+   * @return `CancellationToken` that can be used to cancel the ongoing
+   * request.
    */
   olp::client::CancellationToken GetBaseVersion(
       GetBaseVersionCallback callback);
 
   /**
-   * @brief Get the details of the given batch publication
-   * @param pub the publication to get the current details of
-   * @return future returning a batch response.
+   * @brief Gets the details of the batch publication.
+   *
+   * @param pub The `Publication` instance.
+   *
+   * @return `CancellableFuture` that contains the details of the batch
+   * publication.
    */
   olp::client::CancellableFuture<GetBatchResponse> GetBatch(
       const model::Publication& pub);
 
   /**
-   * @brief Get the details of the given batch publication
-   * @param pub the publication to get the current details of
-   * @param callback called when the operation completes
-   * @return cancellation token
+   * @brief Gets the details of the batch publication.
+   *
+   * @param pub The `Publication` instance.
+   * @param callback `GetBatchCallback` that is called with
+   * `GetBatchResponse` when the operation completes.
+   *
+   * @return `CancellationToken` that can be used to cancel the ongoing
+   * request.
    */
   olp::client::CancellationToken GetBatch(const model::Publication& pub,
                                           GetBatchCallback callback);
 
   /**
-   * @brief Complete the given batch operation and commit to the HERE platform.
-   * @param pub the publication to complete
-   * @return future containing the batch response
+   * @brief Completes the batch operation and commits it to the HERE platform.
+   *
+   * @param pub The `Publication` instance.
+   *
+   * @return `CancellableFuture` that contains `CompleteBatchResponse`.
    */
   olp::client::CancellableFuture<CompleteBatchResponse> CompleteBatch(
       const model::Publication& pub);
 
   /**
-   * @brief Complete the given batch operation and commit to the HERE platform.
-   * @param pub the publication to complete
-   * @param callback called when the operation completes.
-   * @return cancellation token
+   * @brief Completes the batch operation and commits it to the HERE platform.
+   *
+   * @param pub The `Publication` instance.
+   * @param callback `CompleteBatchCallback` that is called with
+   * `CompleteBatchResponse` when the operation completes.
+   *
+   * @return `CancellationToken` that can be used to cancel the ongoing
+   * request.
    */
   olp::client::CancellationToken CompleteBatch(const model::Publication& pub,
                                                CompleteBatchCallback callback);
 
   /**
-   * @brief Cancel the given batch operation
-   * @param pub the publication to cancel
-   * @return future containing the batch response
+   * @brief Cancels the batch operation
+   *
+   * @param pub The `Publication` instance.
+   *
+   * @return CancellableFuture` that contains `CancelBatchResponse`.
    */
   olp::client::CancellableFuture<CancelBatchResponse> CancelBatch(
       const model::Publication& pub);
 
   /**
-   * @brief Cancel the given batch operation
-   * @param pub the publication to cancel
-   * @param callback called when the operation cancel
-   * @return cancellation token
+   * @brief Cancels the batch operation.
+   *
+   * @param pub The `Publication` instance.
+   * @param callback `CancelBatchCallback` that is called with
+   * `CancelBatchResponse` when the operation is cancelled.
+   *
+   * @return `CancellationToken` that can be used to cancel the ongoing
+   * request.
    */
   olp::client::CancellationToken CancelBatch(const model::Publication& pub,
                                              CancelBatchCallback callback);
@@ -177,41 +207,39 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
   /**
    * @brief Cancels all the ongoing operations that this client started.
    *
-   * Returns instantly and does not wait for the callbacks.
+   * Returns instantly and does not wait for callbacks.
    * Use this operation to cancel all the pending requests without
    * destroying the actual client instance.
    */
   void CancelPendingRequests();
 
   /**
-   * @brief Call to publish data into a versioned layer.
+   * @brief Publishes data to the versioned layer.
    *
-   * @note Content-type for this request will be set implicitly based on the
-   * layer metadata for the target layer on the HERE platform.
+   * @note The content-type for this request is set implicitly based on
+   * the layer metadata of the target layer.
    *
    * @param pub The `Publication` instance.
-   * @param request PublishPartitionDataRequest object representing the
-   * parameters for this publishData call.
+   * @param request The `PublishPartitionDataRequest` object.
    *
-   * @return A CancellableFuture containing the PublishPartitionDataResponse.
+   * @return `CancellableFuture` that contains `PublishPartitionDataResponse`.
    */
   olp::client::CancellableFuture<PublishPartitionDataResponse> PublishToBatch(
       const model::Publication& pub,
       model::PublishPartitionDataRequest request);
 
   /**
-   * @brief Call to publish data into a versioned layer.
+   * @brief Publishes data to the versioned layer.
    *
-   * @note Content-type for this request will be set implicitly based on the
-   * layer metadata for the target layer on the HERE platform.
+   * @note The content-type for this request is set implicitly based on
+   * the layer metadata of the target layer.
    *
    * @param pub The `Publication` instance.
-   * @param request PublishPartitionDataRequest object representing the
-   * parameters for this publishData call.
-   * @param callback PublishPartitionDataCallback which will be called with the
-   * PublishPartitionDataResponse when the operation completes.
+   * @param request The `PublishPartitionDataRequest` object.
+   * @param callback `PublishPartitionDataCallback` that is called with
+   * `PublishPartitionDataResponse` when the operation completes.
    *
-   * @return A CancellationToken which can be used to cancel the ongoing
+   * @return `CancellationToken` that can be used to cancel the ongoing
    * request.
    */
   olp::client::CancellationToken PublishToBatch(
@@ -219,18 +247,24 @@ class DATASERVICE_WRITE_API VersionedLayerClient {
       PublishPartitionDataCallback callback);
 
   /**
-   * @brief Check if a datahandle exits.
-   * @param request details of the check data exists operation to start
-   * @return olp::client::CancellableFuture<CheckDataExistsResponse>
+   * @brief Checks whether the data handle exits.
+   *
+   * @param request The `CheckDataExistsRequest` object.
+   *
+   * @return `CancellableFuture` that contains `CheckDataExistsResponse`.
    */
   olp::client::CancellableFuture<CheckDataExistsResponse> CheckDataExists(
       model::CheckDataExistsRequest request);
 
   /**
-   * @brief Check if a datahandle exits.
-   * @param request details of the check data exists operation to start
-   * @param callback of type std::function<void(CheckDataResponse response)>
-   * @return olp::client::CancellationToken
+   * @brief Checks whether the data handle exits.
+   *
+   * @param request The `CheckDataExistsRequest` object.
+   * @param callback `CheckDataExistsCallback` that is called with
+   * `CheckDataExistsResponse` when the operation completes.
+   *
+   * @return `CancellationToken` that can be used to cancel the ongoing
+   * request.
    */
   olp::client::CancellationToken CheckDataExists(
       model::CheckDataExistsRequest request, CheckDataExistsCallback callback);

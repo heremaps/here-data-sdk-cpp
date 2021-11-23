@@ -30,8 +30,10 @@ namespace write {
 namespace model {
 
 /**
- * @brief Model to represent the version of the catalog metadata. Incremented
- * every time catalog metadata is changed. e.g. by publishing new partitions to
+ * @brief Represents the version of the catalog metadata.
+ *
+ * It is incremented every time catalog metadata is changed.
+ * For example, when new partitions are published to
  * durable layers.
  */
 class DATASERVICE_WRITE_API VersionResponse {
@@ -44,19 +46,24 @@ class DATASERVICE_WRITE_API VersionResponse {
 
  public:
   /**
-   * @brief Return the catalog version number associated with this response
-   * @return version number
+   * @brief Gets the catalog version number of this response.
+   *
+   * @return The catalog version number.
    */
   const int64_t& GetVersion() const { return version_; }
 
   /**
-   * @brief Return the catalog version number associated with this response
-   * @return version number
+   * @brief Get a mutable reference to the catalog version number
+   * of this response.
+   *
+   * @return The catalog version number.
    */
   int64_t& GetMutableVersion() { return version_; }
 
   /**
-   * @brief Set the version number of this response
+   * @brief Sets the catalog version number of this response.
+   *
+   * @param value The catalog version number.
    */
   void SetVersion(const int64_t& value) { this->version_ = value; }
 };

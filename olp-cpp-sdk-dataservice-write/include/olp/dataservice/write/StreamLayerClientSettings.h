@@ -28,13 +28,12 @@ namespace olp {
 namespace dataservice {
 namespace write {
 
-/**
- * @brief StreamLayerClientSettings settings class for \c StreamLayerClient. Use
- * this class to configure the behaviour of \c StreamLayerClient specific logic.
- */
+/// Configures the behavior of the `StreamLayerClient` specific logic.
 struct DATASERVICE_WRITE_API StreamLayerClientSettings {
   /**
-   * @brief The maximum number of requests that can be stored. Must be positive.
+   * @brief The maximum number of requests that can be stored.
+   *
+   * Make sure it is a positive number.
    */
   size_t maximum_requests = std::numeric_limits<size_t>::max();
 };
