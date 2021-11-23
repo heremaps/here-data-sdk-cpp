@@ -21,10 +21,24 @@
 
 namespace olp {
 namespace authentication {
-TokenRequest::TokenRequest(const std::chrono::seconds& expires_in)
-    : expires_in_(expires_in) {}
 
-std::chrono::seconds TokenRequest::GetExpiresIn() const { return expires_in_; }
+class TokenRequest::TokenRequestImpl {
+ public:
+  TokenRequestImpl(const std::chrono::seconds& expires_in)
+      : expires_in_(expires_in) {}
+
+  const std::chrono::seconds& GetExpiresIn() const { return expires_in_; }
+
+ private:
+  std::chrono::seconds expires_in_;
+};
+
+TokenRequest::TokenRequest(const std::chrono::seconds& expires_in)
+    : impl_(std::make_shared<TokenRequest::TokenRequestImpl>(expires_in)) {}
+
+std::chrono::seconds TokenRequest::GetExpiresIn() const {
+  return impl_->GetExpiresIn();
+}
 
 }  // namespace authentication
 }  // namespace olp

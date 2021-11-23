@@ -21,6 +21,7 @@
 
 #include <chrono>
 #include <cstdint>
+#include <memory>
 
 #include <olp/authentication/AuthenticationApi.h>
 
@@ -52,7 +53,8 @@ class TokenRequest {
   std::chrono::seconds GetExpiresIn() const;
 
  private:
-  std::chrono::seconds expires_in_;
+  class TokenRequestImpl;
+  std::shared_ptr<TokenRequestImpl> impl_;
 };
 
 }  // namespace authentication
