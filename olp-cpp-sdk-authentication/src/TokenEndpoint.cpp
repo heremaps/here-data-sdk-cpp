@@ -75,10 +75,5 @@ std::future<TokenResponse> TokenEndpoint::RequestToken(
   return impl_->RequestToken(cancellation_token, token_request);
 }
 
-AutoRefreshingToken TokenEndpoint::RequestAutoRefreshingToken(
-    const TokenRequest& token_request) {
-  return AutoRefreshingToken(*this, token_request);
-}
-
 }  // namespace authentication
 }  // namespace olp

@@ -74,7 +74,7 @@ void TestAutoRefreshingTokenCancel(
                             const auth::AutoRefreshingToken& autoToken,
                             const std::chrono::seconds minimumValidity)>
         func) {
-  auto autoToken = token_endpoint.RequestAutoRefreshingToken();
+  auto autoToken = auth::AutoRefreshingToken(token_endpoint, {});
 
   std::thread threads[2];
   auto tokenResponses = std::vector<auth::TokenResponse>();
@@ -214,7 +214,7 @@ TEST_F(HereAccountOauth2Test, AutoRefreshingTokenBackendError) {
   olp::client::CancellationToken cancellationToken;
 
   auto token = GetTokenFromSyncRequest(
-      cancellationToken, token_endpoint.RequestAutoRefreshingToken(),
+      cancellationToken, auth::AutoRefreshingToken(token_endpoint, {}),
       auth::kDefaultMinimumValiditySeconds);
 
   EXPECT_FALSE(token);

@@ -74,7 +74,8 @@ void TestAutoRefreshingTokenValidRequest(
     std::function<authentication::TokenResponse(
         const authentication::AutoRefreshingToken& auto_token)>
         func) {
-  auto token_response = func(token_endpoint.RequestAutoRefreshingToken());
+  auto token_response =
+      func(authentication::AutoRefreshingToken(token_endpoint, {}));
   ASSERT_TRUE(token_response);
   EXPECT_GT(token_response.GetResult().GetAccessToken().length(), 42u);
   EXPECT_GT(token_response.GetResult().GetExpiryTime(), time(nullptr));
@@ -90,7 +91,8 @@ void TestAutoRefreshingTokenInvalidRequest(
       olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
   settings.network_request_handler = network;
   auto bad_token_endpoint = authentication::TokenEndpoint(settings);
-  auto token_response = func(bad_token_endpoint.RequestAutoRefreshingToken());
+  auto token_response =
+      func(authentication::AutoRefreshingToken(bad_token_endpoint, {}));
   ASSERT_FALSE(token_response);
   EXPECT_EQ(token_response.GetError().GetHttpStatusCode(),
             olp::http::HttpStatusCode::UNAUTHORIZED);
@@ -102,7 +104,7 @@ void TestAutoRefreshingTokenReuseToken(
     std::function<authentication::TokenResponse(
         const authentication::AutoRefreshingToken& auto_token)>
         func) {
-  auto auto_token = token_endpoint.RequestAutoRefreshingToken();
+  auto auto_token = authentication::AutoRefreshingToken(token_endpoint, {});
   auto token_response_one = func(auto_token);
   auto token_response_two = func(auto_token);
   EXPECT_EQ(token_response_one.GetResult().GetAccessToken(),
@@ -117,7 +119,7 @@ void TestAutoRefreshingTokenForceRefresh(
         const authentication::AutoRefreshingToken& auto_token,
         const std::chrono::seconds minimum_validity)>
         func) {
-  auto auto_token = token_endpoint.RequestAutoRefreshingToken();
+  auto auto_token = authentication::AutoRefreshingToken(token_endpoint, {});
   auto token_response_one = func(auto_token, std::chrono::minutes(5));
   auto token_response_two = func(auto_token, authentication::kForceRefresh);
 
@@ -130,8 +132,8 @@ void TestAutoRefreshingTokenExpiresInRefresh(
     std::function<authentication::TokenResponse(
         const authentication::AutoRefreshingToken& auto_token)>
         func) {
-  auto auto_token = token_endpoint.RequestAutoRefreshingToken(
-      authentication::TokenRequest{std::chrono::seconds(302)});
+  auto auto_token = authentication::AutoRefreshingToken(
+      token_endpoint, authentication::TokenRequest{std::chrono::seconds(302)});
   auto token_response_one = func(auto_token);
   std::this_thread::sleep_for(std::chrono::seconds(4));
   auto token_response_two = func(auto_token);
@@ -147,8 +149,8 @@ void TestAutoRefreshingTokenExpiresDoNotRefresh(
     std::function<authentication::TokenResponse(
         const authentication::AutoRefreshingToken& auto_token)>
         func) {
-  auto auto_token = token_endpoint.RequestAutoRefreshingToken(
-      authentication::TokenRequest{std::chrono::seconds(305)});
+  auto auto_token = authentication::AutoRefreshingToken(
+      token_endpoint, authentication::TokenRequest{std::chrono::seconds(305)});
   auto token_response_one = func(auto_token);
   std::this_thread::sleep_for(std::chrono::seconds(2));
   auto token_response_two = func(auto_token);
@@ -165,7 +167,8 @@ void TestAutoRefreshingTokenExpiresDoRefresh(
         const authentication::AutoRefreshingToken& auto_token,
         const std::chrono::seconds minimum_validity)>
         func) {
-  auto auto_token = token_endpoint.RequestAutoRefreshingToken(
+  auto auto_token = authentication::AutoRefreshingToken(
+      token_endpoint,
       authentication::TokenRequest{std::chrono::seconds(1)});  // 1 second
   auto token_response_one =
       func(auto_token, std::chrono::seconds(1));  // 1 sec validity window,
@@ -189,8 +192,8 @@ void TestAutoRefreshingTokenExpiresInAnHour(
         const authentication::AutoRefreshingToken& auto_token,
         const std::chrono::seconds minimum_validity)>
         func) {
-  auto auto_token = token_endpoint.RequestAutoRefreshingToken(
-      authentication::TokenRequest{std::chrono::hours(1)});
+  auto auto_token = authentication::AutoRefreshingToken(
+      token_endpoint, authentication::TokenRequest{std::chrono::hours(1)});
   auto token_response_one = func(auto_token, std::chrono::seconds(1));
   std::this_thread::sleep_for(std::chrono::seconds(2));
   auto token_response_two = func(auto_token, std::chrono::seconds(1));
@@ -207,8 +210,8 @@ void TestAutoRefreshingTokenExpiresInASecond(
         const authentication::AutoRefreshingToken& auto_token,
         const std::chrono::seconds minimum_validity)>
         func) {
-  auto auto_token = token_endpoint.RequestAutoRefreshingToken(
-      authentication::TokenRequest{std::chrono::seconds(1)});
+  auto auto_token = authentication::AutoRefreshingToken(
+      token_endpoint, authentication::TokenRequest{std::chrono::seconds(1)});
   auto token_response_one = func(auto_token, std::chrono::seconds(1));
   std::this_thread::sleep_for(std::chrono::seconds(2));
   auto token_response_two = func(auto_token, std::chrono::seconds(1));
@@ -224,7 +227,7 @@ void TestAutoRefreshingTokenMultiThread(
     std::function<authentication::TokenResponse(
         const authentication::AutoRefreshingToken& auto_token)>
         func) {
-  auto auto_token = token_endpoint.RequestAutoRefreshingToken();
+  auto auto_token = authentication::AutoRefreshingToken(token_endpoint, {});
 
   std::thread threads[5];
   auto token_responses = std::vector<authentication::TokenResponse>();
