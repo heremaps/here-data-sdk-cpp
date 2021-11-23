@@ -21,10 +21,72 @@
 
 namespace olp {
 namespace authentication {
-TokenRequest::TokenRequest(const std::chrono::seconds& expires_in)
-    : expires_in_(expires_in) {}
 
-std::chrono::seconds TokenRequest::GetExpiresIn() const { return expires_in_; }
+class TokenRequest::TokenRequestImpl {
+ public:
+  TokenRequestImpl(const std::chrono::seconds& expires_in)
+      : expires_in_(expires_in), request_body_(), credentials_("", "") {}
+
+  TokenRequestImpl& WithExpiresIn(const std::chrono::seconds& expires_in) {
+    expires_in_ = std::move(expires_in);
+    return *this;
+  }
+
+  const std::chrono::seconds& GetExpiresIn() const { return expires_in_; }
+
+  const RequestBodyType& GetBody() const { return request_body_; }
+
+  TokenRequestImpl& WithBody(RequestBodyType body) {
+    request_body_ = std::move(body);
+    return *this;
+  }
+
+  TokenRequestImpl& WithCredentials(AuthenticationCredentials credentials) {
+    credentials_ = std::move(credentials);
+    return *this;
+  }
+
+  const AuthenticationCredentials& GetCredentials() const {
+    return credentials_;
+  }
+
+ private:
+  std::chrono::seconds expires_in_;
+  RequestBodyType request_body_;
+  AuthenticationCredentials credentials_;
+};
+
+TokenRequest::TokenRequest(const std::chrono::seconds& expires_in)
+    : impl_(std::make_shared<TokenRequest::TokenRequestImpl>(expires_in)) {}
+
+TokenRequest& TokenRequest::WithExpiresIn(
+    const std::chrono::seconds& expires_in) {
+  *impl_ = impl_->WithExpiresIn(expires_in);
+  return *this;
+}
+
+std::chrono::seconds TokenRequest::GetExpiresIn() const {
+  return impl_->GetExpiresIn();
+}
+
+TokenRequest& TokenRequest::WithCredentials(
+    AuthenticationCredentials credentials) {
+  *impl_ = impl_->WithCredentials(std::move(credentials));
+  return *this;
+}
+
+const AuthenticationCredentials& TokenRequest::GetCredentials() const {
+  return impl_->GetCredentials();
+}
+
+const RequestBodyType& TokenRequest::GetBody() const {
+  return impl_->GetBody();
+}
+
+TokenRequest& TokenRequest::WithBody(RequestBodyType body) {
+  *impl_ = impl_->WithBody(std::move(body));
+  return *this;
+}
 
 }  // namespace authentication
 }  // namespace olp

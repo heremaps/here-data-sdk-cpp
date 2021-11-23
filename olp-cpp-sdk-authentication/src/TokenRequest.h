@@ -21,11 +21,17 @@
 
 #include <chrono>
 #include <cstdint>
+#include <memory>
+#include <vector>
 
 #include <olp/authentication/AuthenticationApi.h>
+#include <olp/authentication/AuthenticationCredentials.h>
 
 namespace olp {
 namespace authentication {
+
+using RequestBodyType = std::shared_ptr<const std::vector<std::uint8_t>>;
+
 /**
  * @brief Holds the parameters of the OAuth2.0 Authorization
  * Grant request.
@@ -42,6 +48,17 @@ class TokenRequest {
       const std::chrono::seconds& expires_in = std::chrono::seconds(0));
 
   /**
+   * @brief Sets the expiration time.
+   *
+   * @param expires_in (Optional) The number of seconds left before the new
+   * access token expires.
+   *
+   * @return A reference to *this.
+   */
+  TokenRequest& WithExpiresIn(
+      const std::chrono::seconds& expires_in = std::chrono::seconds(0));
+
+  /**
    * @brief The number of seconds left before the token expires.
    *
    * Ignored if it is zero or greater than the default expiration time supported
@@ -51,8 +68,43 @@ class TokenRequest {
    */
   std::chrono::seconds GetExpiresIn() const;
 
+  /**
+   * @brief Sets authentication credentials.
+   *
+   * @param credentials Client credentials obtained when registering application
+   * on HERE developer portal.
+   *
+   * @return A reference to *this.
+   */
+  TokenRequest& WithCredentials(AuthenticationCredentials credentials);
+
+  /**
+   * @brief Gets the authentication credentials
+   *
+   * @return reference to `AuthenticationCredentials` instance.
+   */
+  const AuthenticationCredentials& GetCredentials() const;
+
+  /**
+   * @brief Sets the request body.
+   *
+   * @param body The shared pointer to the vector that contains the request
+   * body.
+   *
+   * @return A reference to *this.
+   */
+  TokenRequest& WithBody(RequestBodyType body);
+
+  /**
+   * @brief Gets the request body.
+   *
+   * @return The shared pointer to the vector that contains the request body.
+   */
+  const RequestBodyType& GetBody() const;
+
  private:
-  std::chrono::seconds expires_in_;
+  class TokenRequestImpl;
+  std::shared_ptr<TokenRequestImpl> impl_;
 };
 
 }  // namespace authentication
