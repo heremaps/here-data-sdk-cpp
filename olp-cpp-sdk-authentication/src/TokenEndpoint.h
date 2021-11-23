@@ -115,18 +115,6 @@ class TokenEndpoint {
       const TokenRequest& token_request = TokenRequest()) const;
 
   /**
-   * @brief Gets the `AutoRefreshingToken` instance that caches the requested
-   * token and refreshes it when needed.
-   *
-   * @param token_request The `TokenRequest` instance.
-   *
-   * @return The `AutoRefreshingToken` instance that caches the requested
-   * token and refreshes it when needed.
-   */
-  AutoRefreshingToken RequestAutoRefreshingToken(
-      const TokenRequest& token_request = TokenRequest());
-
-  /**
    * @brief Creates the `TokenEndpoint` instance with the given `settings`
    * parameter.
    *

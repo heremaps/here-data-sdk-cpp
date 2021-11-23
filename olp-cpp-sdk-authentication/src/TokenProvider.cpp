@@ -32,7 +32,7 @@ class TokenProviderPrivate {
   TokenProviderPrivate(Settings settings, std::chrono::seconds minimum_validity)
       : minimum_validity_{minimum_validity},
         token_(std::make_shared<AutoRefreshingToken>(
-            TokenEndpoint(std::move(settings)).RequestAutoRefreshingToken())) {}
+            TokenEndpoint(std::move(settings)), TokenRequest())) {}
 
   std::string operator()() const {
     client::CancellationContext context;
