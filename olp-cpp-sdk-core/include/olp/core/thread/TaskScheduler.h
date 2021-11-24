@@ -96,7 +96,7 @@ class CORE_API TaskScheduler {
     auto task = [func, context]() {
       if (!context.IsCancelled()) {
         func(context);
-      };
+      }
     };
     EnqueueTask(std::move(task));
     return context;
@@ -137,6 +137,26 @@ class CORE_API TaskScheduler {
     EnqueueTask(std::forward<CallFuncType>(func));
   }
 };
+
+/**
+ * @brief Common function used to add a lambda function and schedule this to a
+ * task scheduler.
+ *
+ * @param task_scheduler Task scheduler instance.
+ * @param func Function that will be executed.
+ */
+inline CORE_API void ExecuteOrSchedule(
+    const std::shared_ptr<TaskScheduler>& scheduler,
+    TaskScheduler::CallFuncType&& func) {
+  if (!scheduler) {
+    // User didn't specify a TaskScheduler, execute sync
+    func();
+    return;
+  }
+
+  // Schedule for async execution
+  scheduler->ScheduleTask(std::move(func));
+}
 
 }  // namespace thread
 }  // namespace olp

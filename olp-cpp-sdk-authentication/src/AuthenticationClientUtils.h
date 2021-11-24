@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,16 +37,6 @@ namespace olp {
 namespace authentication {
 
 /*
- * @brief Common function used to add a lambda function and  schedule this to a
- * task scheduler.
- * @param task_scheduler Task scheduler instance.
- * @param func Function that will be executed.
- */
-void ExecuteOrSchedule(
-    const std::shared_ptr<thread::TaskScheduler>& task_scheduler,
-    thread::TaskScheduler::CallFuncType&& func);
-
-/*
  * @brief Common function used to wrap a lambda function and a callback that
  * consumes the function result with a TaskContext class and schedule this to a
  * task scheduler.
@@ -67,7 +57,7 @@ inline client::CancellationToken AddTask(
       std::move(task), std::move(callback), std::forward<Args>(args)...);
   pending_requests->Insert(context);
 
-  ExecuteOrSchedule(task_scheduler, [=] {
+  thread::ExecuteOrSchedule(task_scheduler, [=] {
     context.Execute();
     pending_requests->Remove(context);
   });

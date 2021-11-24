@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,18 +57,6 @@ namespace write {
 namespace {
 constexpr auto kLogTag = "StreamLayerClientImpl";
 constexpr int64_t kTwentyMib = 20971520;  // 20 MiB
-
-void ExecuteOrSchedule(const std::shared_ptr<thread::TaskScheduler>& scheduler,
-                       thread::TaskScheduler::CallFuncType&& func) {
-  if (!scheduler) {
-    // User didn't specify a TaskScheduler, execute sync
-    func();
-    return;
-  }
-
-  // Schedule for async execution
-  scheduler->ScheduleTask(std::move(func));
-}
 }  // namespace
 
 StreamLayerClientImpl::StreamLayerClientImpl(
@@ -268,7 +256,7 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
   auto pending_requests = pending_requests_;
   pending_requests->Insert(task_context);
 
-  ExecuteOrSchedule(task_scheduler_, [=]() {
+  thread::ExecuteOrSchedule(task_scheduler_, [=]() {
     task_context.Execute();
     pending_requests->Remove(task_context);
   });
@@ -302,7 +290,7 @@ client::CancellationToken StreamLayerClientImpl::PublishData(
   auto pending_requests = pending_requests_;
   pending_requests->Insert(task_context);
 
-  ExecuteOrSchedule(task_scheduler_, [=]() {
+  thread::ExecuteOrSchedule(task_scheduler_, [=]() {
     task_context.Execute();
     pending_requests->Remove(task_context);
   });
@@ -491,7 +479,7 @@ client::CancellationToken StreamLayerClientImpl::PublishSdii(
   auto pending_requests = pending_requests_;
   pending_requests->Insert(context);
 
-  ExecuteOrSchedule(task_scheduler_, [=]() {
+  thread::ExecuteOrSchedule(task_scheduler_, [=]() {
     context.Execute();
     pending_requests->Remove(context);
   });

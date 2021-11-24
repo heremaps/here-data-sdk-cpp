@@ -25,6 +25,7 @@
 
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/thread/ThreadPoolTaskScheduler.h>
+#include "mocks/TaskSchedulerMock.h"
 
 using SyncTaskType = std::function<void()>;
 using CancellationContext = olp::client::CancellationContext;
@@ -279,4 +280,24 @@ TEST(ThreadPoolTaskSchedulerTest, Move) {
   // SyncQueue and threads join should be done in destructor.
   thread_pool.reset();
   testing::Mock::VerifyAndClearExpectations(&mockop);
+}
+
+TEST(ThreadPoolTaskSchedulerTest, ExecuteOrSchedule) {
+  {
+    using testing::_;
+    SCOPED_TRACE("Schedule Task, ExecuteOrSchedule");
+
+    auto scheduler = std::make_shared<TaskSchedulerMock>();
+    EXPECT_CALL(*scheduler, EnqueueTask(_)).Times(1);
+
+    olp::thread::ExecuteOrSchedule(scheduler, []() {});
+  }
+
+  {
+    SCOPED_TRACE("Execute task immediately, ExecuteOrSchedule");
+
+    auto counter(0u);
+    olp::thread::ExecuteOrSchedule(nullptr, [&counter]() { counter++; });
+    EXPECT_EQ(counter, 1);
+  }
 }

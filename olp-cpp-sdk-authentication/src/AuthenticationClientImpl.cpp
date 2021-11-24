@@ -551,7 +551,7 @@ client::CancellationToken AuthenticationClientImpl::SignUpHereUser(
     const AuthenticationCredentials& credentials,
     const SignUpProperties& properties, const SignUpCallback& callback) {
   if (!settings_.network_request_handler) {
-    ExecuteOrSchedule(settings_.task_scheduler, [callback] {
+    thread::ExecuteOrSchedule(settings_.task_scheduler, [callback] {
       callback(
           client::ApiError::NetworkConnection("Cannot sign up while offline"));
     });
@@ -606,7 +606,8 @@ client::CancellationToken AuthenticationClientImpl::SignUpHereUser(
       });
 
   if (!send_outcome.IsSuccessful()) {
-    ExecuteOrSchedule(settings_.task_scheduler, [send_outcome, callback] {
+    thread::ExecuteOrSchedule(settings_.task_scheduler, [send_outcome,
+                                                         callback] {
       std::string error_message =
           ErrorCodeToString(send_outcome.GetErrorCode());
       AuthenticationError result({static_cast<int>(send_outcome.GetErrorCode()),
@@ -630,7 +631,7 @@ client::CancellationToken AuthenticationClientImpl::SignOut(
     const AuthenticationCredentials& credentials,
     const std::string& access_token, const SignOutUserCallback& callback) {
   if (!settings_.network_request_handler) {
-    ExecuteOrSchedule(settings_.task_scheduler, [callback] {
+    thread::ExecuteOrSchedule(settings_.task_scheduler, [callback] {
       callback(
           client::ApiError::NetworkConnection("Cannot sign out while offline"));
     });
@@ -680,7 +681,8 @@ client::CancellationToken AuthenticationClientImpl::SignOut(
       });
 
   if (!send_outcome.IsSuccessful()) {
-    ExecuteOrSchedule(settings_.task_scheduler, [send_outcome, callback] {
+    thread::ExecuteOrSchedule(settings_.task_scheduler, [send_outcome,
+                                                         callback] {
       std::string error_message =
           ErrorCodeToString(send_outcome.GetErrorCode());
       AuthenticationError result({static_cast<int>(send_outcome.GetErrorCode()),
