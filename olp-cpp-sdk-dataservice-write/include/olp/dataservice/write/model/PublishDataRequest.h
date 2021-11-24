@@ -32,23 +32,24 @@ namespace olp {
 namespace dataservice {
 namespace write {
 namespace model {
-/**
- * @brief PublishDataRequest used to publish data into a HERE platform stream layer.
- */
+/// Publishes data to a stream layer.
 class DATASERVICE_WRITE_API PublishDataRequest {
  public:
   PublishDataRequest() = default;
 
   /**
-   * @return data previously set.
+   * @brief Gets the data to be published to the HERE platform.
+   *
+   * @return The data to be published.
    */
   inline std::shared_ptr<std::vector<unsigned char>> GetData() const {
     return data_;
   }
 
   /**
-   * @param data Content to be uploaded to the HERE platform.
-   * @note Required.
+   * @brief Sets the data to be published to the HERE platform.
+   *
+   * @param data The data to be published.
    */
   inline PublishDataRequest& WithData(
       const std::shared_ptr<std::vector<unsigned char>>& data) {
@@ -57,8 +58,9 @@ class DATASERVICE_WRITE_API PublishDataRequest {
   }
 
   /**
-   * @param data Content to be uploaded to the HERE platform.
-   * @note Required.
+   * @brief Sets the data to be published to the HERE platform.
+   *
+   * @param data The rvalue reference to the data to be published.
    */
   inline PublishDataRequest& WithData(
       std::shared_ptr<std::vector<unsigned char>>&& data) {
@@ -67,14 +69,18 @@ class DATASERVICE_WRITE_API PublishDataRequest {
   }
 
   /**
-   * @return Layer ID previously set.
+   * @brief Gets the layer ID of the catalog where you want to store the data.
+   *
+   * @return The layer ID of the catalog.
    */
   inline const std::string& GetLayerId() const { return layer_id_; }
 
   /**
-   * @param layer_id Layer ID of the catalog where you want to store the data.
-   * The layer type must be Stream.
-   * @note Required.
+   * @brief Sets the layer ID of the catalog where you want to store the data.
+   *
+   * Make sure the layer is of the stream type.
+   *
+   * @param layer_id The layer ID of the catalog.
    */
   inline PublishDataRequest& WithLayerId(const std::string& layer_id) {
     layer_id_ = layer_id;
@@ -82,9 +88,11 @@ class DATASERVICE_WRITE_API PublishDataRequest {
   }
 
   /**
-   * @param layer_id Layer ID of the catalog where you want to store the data.
-   * The layer type must be Stream.
-   * @note Required.
+   * @brief Sets the layer ID of the catalog where you want to store the data.
+   *
+   * Make sure the layer is of the stream type.
+   *
+   * @param layer_id The rvalue reference to the layer ID of the catalog.
    */
   inline PublishDataRequest& WithLayerId(std::string&& layer_id) {
     layer_id_ = std::move(layer_id);
@@ -92,19 +100,26 @@ class DATASERVICE_WRITE_API PublishDataRequest {
   }
 
   /**
-   * @return Trace ID previously set.
+   * @brief Gets the trace ID of the request.
+   *
+   * It is a unique message ID, such as a UUID.
+   * You can use this ID to track your request and identify the
+   * message in the catalog.
+   *
+   * @return The trace ID of the request.
    */
   inline const boost::optional<std::string>& GetTraceId() const {
     return trace_id_;
   }
 
   /**
-   * @param trace_id A unique message ID, such as a UUID. This can be included
-   * in the request if you want to use an ID that you define. If you do not
-   * include an ID, one will be generated during ingestion and included in the
-   * response. You can use this ID to track your request and identify the
-   * message in the catalog.
-   * @note Optional.
+   * @brief Sets the trace ID of the request.
+   *
+   * @param trace_id A unique message ID, such as a UUID. If you want to
+   * define your ID, include it in the request. If you do not
+   * include an ID, it is generated during ingestion and included in
+   * the response. You can use this ID to track your request and identify
+   * the message in the catalog.
    */
   inline PublishDataRequest& WithTraceId(const std::string& trace_id) {
     trace_id_ = trace_id;
@@ -112,12 +127,13 @@ class DATASERVICE_WRITE_API PublishDataRequest {
   }
 
   /**
-   * @param trace_id A unique message ID, such as a UUID. This can be included
-   * in the request if you want to use an ID that you define. If you do not
-   * include an ID, one will be generated during ingestion and included in the
-   * response. You can use this ID to track your request and identify the
-   * message in the catalog.
-   * @note Optional.
+   * @brief Sets the trace ID of the request.
+   *
+   * @param trace_id The rvalue reference to the unique message ID,
+   * such as a UUID. If you want to define your ID, include it in the request.
+   * If you do not include an ID, it is generated during ingestion and included
+   * in the response. You can use this ID to track your request and identify
+   * the message in the catalog.
    */
   inline PublishDataRequest& WithTraceId(std::string&& trace_id) {
     trace_id_ = std::move(trace_id);
@@ -125,17 +141,25 @@ class DATASERVICE_WRITE_API PublishDataRequest {
   }
 
   /**
-   * @return Billing Tag previously set.
+   * @brief Gets the billing tag to group billing records together.
+   *
+   * The billing tag is an optional free-form tag that is used for grouping
+   * billing records together. If supplied, it must be 4–16 characters
+   * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
+   *
+   * @return The `BillingTag` string or `boost::none` if the billing tag is not
+   * set.
    */
   inline const boost::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
   /**
-   * @param billing_tag An optional free-form tag which is used for grouping
-   * billing records together. If supplied, it must be between 4 - 16
-   * characters, contain only alpha/numeric ASCII characters [A-Za-z0-9].
-   * @note Optional.
+   * @brief Sets the billing tag for the request.
+   *
+   * @see `GetBillingTag()` for information on usage and format.
+   *
+   * @param billing_tag The `BillingTag` string or `boost::none`.
    */
   inline PublishDataRequest& WithBillingTag(const std::string& billing_tag) {
     billing_tag_ = billing_tag;
@@ -143,10 +167,12 @@ class DATASERVICE_WRITE_API PublishDataRequest {
   }
 
   /**
-   * @param billing_tag An optional free-form tag which is used for grouping
-   * billing records together. If supplied, it must be between 4 - 16
-   * characters, contain only alpha/numeric ASCII characters [A-Za-z0-9].
-   * @note Optional.
+   * @brief Sets the billing tag for the request.
+   *
+   * @see `GetBillingTag()` for information on usage and format.
+   *
+   * @param billing_tag The rvalue reference to the `BillingTag` string or
+   * `boost::none`.
    */
   inline PublishDataRequest& WithBillingTag(std::string&& billing_tag) {
     billing_tag_ = std::move(billing_tag);
@@ -154,19 +180,26 @@ class DATASERVICE_WRITE_API PublishDataRequest {
   }
 
   /**
-   * @return Checksum previously set.
+   * @brief Gets the request checksum.
+   *
+   * It is an SHA-256 hash that you can provide for
+   * validation against the calculated value on the request body hash.
+   * It verifies the integrity of your request and prevents modification
+   * by a third party. If not provided, it is created by the service.
+   * The SHA-256 hash consists of 256 bits or 64 chars.
+   *
+   * @return The request checksum.
    */
   inline const boost::optional<std::string>& GetChecksum() const {
     return checksum_;
   }
 
   /**
-   * @param checksum A SHA-256 hash you can provide for
-   * validation against the calculated value on the request body hash. This
-   * verifies the integrity of your request and prevents modification by a third
-   * party.It will be created by the service if not provided. A SHA-256 hash
-   * consists of 256 bits or 64 chars.
-   * @note Optional.
+   * @brief Sets the request checksum.
+   *
+   * @see `GetChecksum` for information on the checksum.
+   *
+   * @param checksum The request checksum.
    */
   inline PublishDataRequest& WithChecksum(const std::string& checksum) {
     checksum_ = checksum;
@@ -174,12 +207,11 @@ class DATASERVICE_WRITE_API PublishDataRequest {
   }
 
   /**
-   * @param checksum A SHA-256 hash you can provide for
-   * validation against the calculated value on the request body hash. This
-   * verifies the integrity of your request and prevents modification by a third
-   * party.It will be created by the service if not provided. A SHA-256 hash
-   * consists of 256 bits or 64 chars.
-   * @note Optional.
+   * @brief Sets the request checksum.
+   *
+   * @see `GetChecksum` for information on the checksum.
+   *
+   * @param checksum The rvalue reference to the request checksum.
    */
   inline PublishDataRequest& WithChecksum(std::string&& checksum) {
     checksum_ = std::move(checksum);

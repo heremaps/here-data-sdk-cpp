@@ -32,24 +32,24 @@ namespace olp {
 namespace dataservice {
 namespace write {
 namespace model {
-/**
- * @brief PublishPartitionRequest used to publish data into
- * a HERE platform versioned/volatile layer.
- */
+/// Publishes data to a versioned and volatile layer.
 class DATASERVICE_WRITE_API PublishPartitionDataRequest {
  public:
   PublishPartitionDataRequest() = default;
 
   /**
-   * @return data previously set.
+   * @brief Gets the data to be published to the HERE platform.
+   *
+   * @return The data to be published.
    */
   inline std::shared_ptr<std::vector<unsigned char>> GetData() const {
     return data_;
   }
 
   /**
-   * @param data Content to be uploaded to the HERE platform.
-   * @note Required.
+   * @brief Sets the data to be published to the HERE platform.
+   *
+   * @param data The data to be published.
    */
   inline PublishPartitionDataRequest& WithData(
       const std::shared_ptr<std::vector<unsigned char>>& data) {
@@ -58,8 +58,9 @@ class DATASERVICE_WRITE_API PublishPartitionDataRequest {
   }
 
   /**
-   * @param data Content to be uploaded to the HERE platform.
-   * @note Required.
+   * @brief Sets the data to be published to the HERE platform.
+   *
+   * @param data The rvalue reference to the data to be published.
    */
   inline PublishPartitionDataRequest& WithData(
       std::shared_ptr<std::vector<unsigned char>>&& data) {
@@ -68,14 +69,18 @@ class DATASERVICE_WRITE_API PublishPartitionDataRequest {
   }
 
   /**
-   * @return Layer ID previously set.
+   * @brief Gets the layer ID of the catalog where you want to store the data.
+   *
+   * @return The layer ID of the catalog.
    */
   inline const std::string& GetLayerId() const { return layer_id_; }
 
   /**
-   * @param layer_id Layer ID of the catalog where you want to store the data.
-   * The layer type must be Versioned/Volatile.
-   * @note Required.
+   * @brief Sets the layer ID of the catalog where you want to store the data.
+   *
+   * Make sure the layer is of the volative or versioned type.
+   *
+   * @param layer_id The layer ID of the catalog.
    */
   inline PublishPartitionDataRequest& WithLayerId(const std::string& layer_id) {
     layer_id_ = layer_id;
@@ -83,9 +88,11 @@ class DATASERVICE_WRITE_API PublishPartitionDataRequest {
   }
 
   /**
-   * @param layer_id Layer ID of the catalog where you want to store the data.
-   * The layer type must be Versioned/Volatile.
-   * @note Required.
+   * @brief Sets the layer ID of the catalog where you want to store the data.
+   *
+   * Make sure the layer is of the volative or versioned type.
+   *
+   * @param layer_id The rvalue reference to the layer ID of the catalog.
    */
   inline PublishPartitionDataRequest& WithLayerId(std::string&& layer_id) {
     layer_id_ = std::move(layer_id);
@@ -93,7 +100,9 @@ class DATASERVICE_WRITE_API PublishPartitionDataRequest {
   }
 
   /**
-   * @return Partition ID previously set.
+   * @brief Gets the ID of the partition to which you want to publish data.
+   *
+   * @return The partition ID.
    */
   inline const boost::optional<std::string>& GetPartitionId() const {
     return partition_id_;
@@ -101,11 +110,11 @@ class DATASERVICE_WRITE_API PublishPartitionDataRequest {
 
   /**
    * @brief Sets the ID of the partition to which you want to publish data.
-   * 
-   * @param partition_id A key that specifies the partition to which the content is related.
-   * If the layer partitioning scheme is set to HERE tile, the
-   * partition key is the tile key. The maximum length of the partition key is
-   * 500 characters.
+   *
+   * @param partition_id A key that specifies the partition to which
+   * the content is related. If the layer partitioning scheme is set to
+   * HERE tile, the partition key is the tile key. The maximum length of
+   * the partition key is 500 characters.
    */
   inline PublishPartitionDataRequest& WithPartitionId(
       const std::string& partition_id) {
@@ -116,10 +125,10 @@ class DATASERVICE_WRITE_API PublishPartitionDataRequest {
   /**
     * @brief Sets the ID of the partition to which you want to publish data.
     *
-    * @param partition_id A key that specifies the partition to which the content is related.
-    * If the layer partitioning scheme is set to HERE tile, the
-    * partition key is the tile key. The maximum length of the partition key is
-    * 500 characters.
+    * @param partition_id A key that specifies the partition to which
+   * the content is related. If the layer partitioning scheme is set to
+   * HERE tile, the partition key is the tile key. The maximum length of
+   * the partition key is 500 characters.
     */
   inline PublishPartitionDataRequest& WithPartitionId(
       std::string&& partition_id) {
@@ -128,17 +137,25 @@ class DATASERVICE_WRITE_API PublishPartitionDataRequest {
   }
 
   /**
-   * @return Billing Tag previously set.
+   * @brief Gets the billing tag to group billing records together.
+   *
+   * The billing tag is an optional free-form tag that is used for grouping
+   * billing records together. If supplied, it must be 4–16 characters
+   * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
+   *
+   * @return The `BillingTag` string or `boost::none` if the billing tag is not
+   * set.
    */
   inline const boost::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
   /**
-   * @param billing_tag An optional free-form tag which is used for grouping
-   * billing records together. If supplied, it must be between 4 - 16
-   * characters, contain only alpha/numeric ASCII characters [A-Za-z0-9].
-   * @note Optional.
+   * @brief Sets the billing tag for the request.
+   *
+   * @see `GetBillingTag()` for information on usage and format.
+   *
+   * @param billing_tag The `BillingTag` string or `boost::none`.
    */
   inline PublishPartitionDataRequest& WithBillingTag(
       const std::string& billing_tag) {
@@ -147,10 +164,12 @@ class DATASERVICE_WRITE_API PublishPartitionDataRequest {
   }
 
   /**
-   * @param billing_tag An optional free-form tag which is used for grouping
-   * billing records together. If supplied, it must be between 4 - 16
-   * characters, contain only alpha/numeric ASCII characters [A-Za-z0-9].
-   * @note Optional.
+   * @brief Sets the billing tag for the request.
+   *
+   * @see `GetBillingTag()` for information on usage and format.
+   *
+   * @param billing_tag The rvalue reference to the `BillingTag` string or
+   * `boost::none`.
    */
   inline PublishPartitionDataRequest& WithBillingTag(
       std::string&& billing_tag) {
@@ -159,19 +178,26 @@ class DATASERVICE_WRITE_API PublishPartitionDataRequest {
   }
 
   /**
-   * @return Checksum previously set.
+   * @brief Gets the request checksum.
+   *
+   * It is an SHA-256 hash that you can provide for
+   * validation against the calculated value on the request body hash.
+   * It verifies the integrity of your request and prevents modification
+   * by a third party. If not provided, it is created by the service.
+   * The SHA-256 hash consists of 256 bits or 64 chars.
+   *
+   * @return The request checksum.
    */
   inline const boost::optional<std::string>& GetChecksum() const {
     return checksum_;
   }
 
   /**
-   * @param checksum A SHA-256 hash you can provide for
-   * validation against the calculated value on the request body hash. This
-   * verifies the integrity of your request and prevents modification by a third
-   * party.It will be created by the service if not provided. A SHA-256 hash
-   * consists of 256 bits or 64 chars.
-   * @note Optional.
+   * @brief Sets the request checksum.
+   *
+   * @see `GetChecksum` for information on the checksum.
+   *
+   * @param checksum The request checksum.
    */
   inline PublishPartitionDataRequest& WithChecksum(
       const std::string& checksum) {
@@ -180,12 +206,11 @@ class DATASERVICE_WRITE_API PublishPartitionDataRequest {
   }
 
   /**
-   * @param checksum A SHA-256 hash you can provide for
-   * validation against the calculated value on the request body hash. This
-   * verifies the integrity of your request and prevents modification by a third
-   * party.It will be created by the service if not provided. A SHA-256 hash
-   * consists of 256 bits or 64 chars.
-   * @note Optional.
+   * @brief Sets the request checksum.
+   *
+   * @see `GetChecksum` for information on the checksum.
+   *
+   * @param checksum The rvalue reference to the request checksum.
    */
   inline PublishPartitionDataRequest& WithChecksum(std::string&& checksum) {
     checksum_ = std::move(checksum);

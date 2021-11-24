@@ -33,23 +33,24 @@ namespace olp {
 namespace dataservice {
 namespace write {
 namespace model {
-/**
- * @brief UpdateIndexRequest used to update index to
- * a HERE platform index layer.
- */
+/// Updates an index in an index layer.
 class DATASERVICE_WRITE_API UpdateIndexRequest {
  public:
   UpdateIndexRequest() = default;
 
   /**
-   * @return Layer ID previously set.
+   * @brief Gets the layer ID of the catalog where you want to store the data.
+   *
+   * @return The layer ID of the catalog.
    */
   inline const std::string& GetLayerId() const { return layer_id_; }
 
   /**
-   * @param layer_id Layer ID of the catalog where you want to store the data.
-   * The layer type must be Index.
-   * @note Required.
+   * @brief Sets the layer ID of the catalog where you want to store the data.
+   *
+   * Make sure the layer is of the index type.
+   *
+   * @param layer_id The layer ID of the catalog.
    */
   inline UpdateIndexRequest& WithLayerId(const std::string& layer_id) {
     layer_id_ = layer_id;
@@ -57,9 +58,11 @@ class DATASERVICE_WRITE_API UpdateIndexRequest {
   }
 
   /**
-   * @param layer_id Layer ID of the catalog where you want to store the data.
-   * The layer type must be Index.
-   * @note Required.
+   * @brief Sets the layer ID of the catalog where you want to store the data.
+   *
+   * Make sure the layer is of the index type.
+   *
+   * @param layer_id The rvalue reference to the layer ID of the catalog.
    */
   inline UpdateIndexRequest& WithLayerId(std::string&& layer_id) {
     layer_id_ = std::move(layer_id);
@@ -67,17 +70,25 @@ class DATASERVICE_WRITE_API UpdateIndexRequest {
   }
 
   /**
-   * @return Billing Tag previously set.
+   * @brief Gets the billing tag to group billing records together.
+   *
+   * The billing tag is an optional free-form tag that is used for grouping
+   * billing records together. If supplied, it must be 4–16 characters
+   * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
+   *
+   * @return The `BillingTag` string or `boost::none` if the billing tag is not
+   * set.
    */
   inline const boost::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
   /**
-   * @param billing_tag An optional free-form tag which is used for grouping
-   * billing records together. If supplied, it must be between 4 - 16
-   * characters, contain only alpha/numeric ASCII characters [A-Za-z0-9].
-   * @note Optional.
+   * @brief Sets the billing tag for the request.
+   *
+   * @see `GetBillingTag()` for information on usage and format.
+   *
+   * @param billing_tag The `BillingTag` string or `boost::none`.
    */
   inline UpdateIndexRequest& WithBillingTag(const std::string& billing_tag) {
     billing_tag_ = billing_tag;
@@ -85,10 +96,12 @@ class DATASERVICE_WRITE_API UpdateIndexRequest {
   }
 
   /**
-   * @param billing_tag An optional free-form tag which is used for grouping
-   * billing records together. If supplied, it must be between 4 - 16
-   * characters, contain only alpha/numeric ASCII characters [A-Za-z0-9].
-   * @note Optional.
+   * @brief Sets the billing tag for the request.
+   *
+   * @see `GetBillingTag()` for information on usage and format.
+   *
+   * @param billing_tag The rvalue reference to the `BillingTag` string or
+   * `boost::none`.
    */
   inline UpdateIndexRequest& WithBillingTag(std::string&& billing_tag) {
     billing_tag_ = std::move(billing_tag);
@@ -96,19 +109,26 @@ class DATASERVICE_WRITE_API UpdateIndexRequest {
   }
 
   /**
-   * @return Checksum previously set.
+   * @brief Gets the request checksum.
+   *
+   * It is an SHA-256 hash that you can provide for
+   * validation against the calculated value on the request body hash.
+   * It verifies the integrity of your request and prevents modification
+   * by a third party. If not provided, it is created by the service.
+   * The SHA-256 hash consists of 256 bits or 64 chars.
+   *
+   * @return The request checksum.
    */
   inline const boost::optional<std::string>& GetChecksum() const {
     return checksum_;
   }
 
   /**
-   * @param checksum A SHA-256 hash you can provide for
-   * validation against the calculated value on the request body hash. This
-   * verifies the integrity of your request and prevents modification by a third
-   * party.It will be created by the service if not provided. A SHA-256 hash
-   * consists of 256 bits or 64 chars.
-   * @note Optional.
+   * @brief Sets the request checksum.
+   *
+   * @see `GetChecksum` for information on the checksum.
+   *
+   * @param checksum The request checksum.
    */
   inline UpdateIndexRequest& WithChecksum(const std::string& checksum) {
     checksum_ = checksum;
@@ -116,12 +136,11 @@ class DATASERVICE_WRITE_API UpdateIndexRequest {
   }
 
   /**
-   * @param checksum A SHA-256 hash you can provide for
-   * validation against the calculated value on the request body hash. This
-   * verifies the integrity of your request and prevents modification by a third
-   * party.It will be created by the service if not provided. A SHA-256 hash
-   * consists of 256 bits or 64 chars.
-   * @note Required.
+   * @brief Sets the request checksum.
+   *
+   * @see `GetChecksum` for information on the checksum.
+   *
+   * @param checksum The rvalue reference to the request checksum.
    */
   inline UpdateIndexRequest& WithChecksum(std::string&& checksum) {
     checksum_ = std::move(checksum);
@@ -129,16 +148,18 @@ class DATASERVICE_WRITE_API UpdateIndexRequest {
   }
 
   /**
-   * @return IndexAdditions previously set.
+   * @brief Gets the indexes to be added anew to the index layer.
+   *
+   * @return The indexes to be added anew.
    */
   inline const std::vector<Index>& GetIndexAdditions() const {
     return indexAdditions_;
   }
 
   /**
-   * @param indexAdditions Contains indexes that need to be newly added to an
-   * index layer.
-   * @note Required.
+   * @brief Sets the indexes to be added anew to the index layer.
+   *
+   * @param indexAdditions The indexes to be added anew.
    */
   inline UpdateIndexRequest& WithIndexAdditions(
       const std::vector<Index>& indexAdditions) {
@@ -147,9 +168,10 @@ class DATASERVICE_WRITE_API UpdateIndexRequest {
   }
 
   /**
-   * @param indexAdditions Contains indexes that need to be newly added to an
-   * index layer.
-   * @note Required.
+   * @brief Sets the indexes to be added anew to the index layer.
+   *
+   * @param indexAdditions The rvalue reference to the indexes
+   * to be added anew.
    */
   inline UpdateIndexRequest& WithIndexAdditions(
       std::vector<Index>&& indexAdditions) {
@@ -158,16 +180,20 @@ class DATASERVICE_WRITE_API UpdateIndexRequest {
   }
 
   /**
-   * @return IndexRemovals previously set.
+   * @brief Gets the data handles of the indexes that you want to remove
+   * from the index layer.
+   *
+   * @return The data handles of the indexes that you want to remove.
    */
   inline const std::vector<std::string>& GetIndexRemovals() const {
     return indexRemovals_;
   }
 
   /**
-   * @param indexRemovals Contains dataHandles which associate indexes need to
-   * be removed from an index layer.
-   * @note Required.
+   * @brief Sets the data handles of the indexes that you want to remove from
+   * the index layer.
+   *
+   * @param indexRemovals The data handles of the indexes that you want to remove.
    */
   inline UpdateIndexRequest& WithIndexRemovals(
       const std::vector<std::string>& indexRemovals) {
@@ -176,9 +202,11 @@ class DATASERVICE_WRITE_API UpdateIndexRequest {
   }
 
   /**
-   * @param indexRemovals Contains dataHandles which associate indexes need to
-   * be removed from an index layer.
-   * @note Required.
+   * @brief Sets the data handles of the indexes that you want to remove from
+   * the index layer.
+   *
+   * @param indexRemovals The rvalue reference to the data handles of
+   * the indexes that you want to remove.
    */
   inline UpdateIndexRequest& WithIndexRemovals(
       std::vector<std::string>&& indexRemovals) {

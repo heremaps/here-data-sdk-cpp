@@ -28,8 +28,8 @@ namespace dataservice {
 namespace write {
 namespace model {
 /**
- * @brief Model to represent response for successful data upload to catalog
- * layer.
+ * @brief Represents a response to a successful data upload operation
+ * to a catalog layer.
  */
 class DATASERVICE_WRITE_API ResponseOkSingle {
  public:
@@ -41,17 +41,33 @@ class DATASERVICE_WRITE_API ResponseOkSingle {
 
  public:
   /**
-   * @brief Get the partition id where the handle to the data can be found.
+   * @brief Gets the trace ID of the request.
+   *
+   * It is a unique message ID, such as a UUID.
+   * You can use this ID to track your request and identify the
+   * message in the catalog.
+   *
+   * @return The trace ID of the request.
    */
   const std::string& GetTraceID() const { return trace_id_; }
 
   /**
-   * @brief Get the partition id where the handle to the data can be found.
+   * @brief Gets a mutable reference to the trace ID of the request.
+   *
+   * @see `GetTraceID` for more information on the trace ID.
+   *
+   * @return The trace ID of the request.
    */
   std::string& GetMutableTraceID() { return trace_id_; }
 
   /**
-   * @brief Set the partition id where the handle to the data can be found.
+   * @brief Sets the trace ID of the request.
+   *
+   * @param value A unique message ID, such as a UUID. If you want to
+   * define your ID, include it in the request. If you do not
+   * include an ID, it is generated during ingestion and included in
+   * the response. You can use this ID to track your request and identify
+   * the message in the catalog.
    */
   void SetTraceID(const std::string& value) { this->trace_id_ = value; }
 };

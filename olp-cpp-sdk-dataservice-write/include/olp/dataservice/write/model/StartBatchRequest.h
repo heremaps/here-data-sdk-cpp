@@ -33,17 +33,15 @@ namespace dataservice {
 namespace write {
 namespace model {
 
-/**
- * @brief StartBatchRequest is use to start a versioned batch operation.
- */
+/// Starts a versioned batch operation.
 class DATASERVICE_WRITE_API StartBatchRequest {
  public:
   StartBatchRequest() = default;
 
   /**
-   * @brief set the layers used in this batch operation
-   * @param layers layer id's to be used
-   * @return reference to this object
+   * @brief Sets the layers used in the batch operation.
+   *
+   * @param layers The layer IDs.
    */
   inline StartBatchRequest& WithLayers(std::vector<std::string> layers) {
     layers_ = std::move(layers);
@@ -51,17 +49,18 @@ class DATASERVICE_WRITE_API StartBatchRequest {
   }
 
   /**
-   * @brief get the layers used in this batch operation
-   * @return collection of layers in boost::optional
+   * @brief Gets the layers used in the batch operation.
+   *
+   * @return The layer IDs.
    */
   inline const boost::optional<std::vector<std::string>>& GetLayers() const {
     return layers_;
   }
 
   /**
-   * @brief set the version dependencies used in this batch operation
-   * @param versionDependencies collection of VersionDependencies
-   * @return reference to this object
+   * @brief Sets the version dependencies used in the batch operation.
+   * 
+   * @param versionDependencies The version dependencies.
    */
   inline StartBatchRequest& WithVersionDependencies(
       std::vector<VersionDependency> versionDependencies) {
@@ -70,8 +69,9 @@ class DATASERVICE_WRITE_API StartBatchRequest {
   }
 
   /**
-   * @brief gets the VersionDependencies of this batch operation
-   * @return boost::optional holding the collection of VersionDependencies
+   * @brief Gets the version dependencies used in the batch operation.
+   *
+   * @return The version dependencies.
    */
   inline const boost::optional<std::vector<VersionDependency>>&
   GetVersionDependencies() const {
@@ -79,17 +79,25 @@ class DATASERVICE_WRITE_API StartBatchRequest {
   }
 
   /**
-   * @return Billing Tag previously set.
+   * @brief Gets the billing tag to group billing records together.
+   *
+   * The billing tag is an optional free-form tag that is used for grouping
+   * billing records together. If supplied, it must be 4–16 characters
+   * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
+   *
+   * @return The `BillingTag` string or `boost::none` if the billing tag is not
+   * set.
    */
   inline const boost::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
   /**
-   * @param billing_tag An optional free-form tag which is used for grouping
-   * billing records together. If supplied, it must be between 4 - 16
-   * characters, contain only alpha/numeric ASCII characters [A-Za-z0-9].
-   * @note Optional.
+   * @brief Sets the billing tag for the request.
+   *
+   * @see `GetBillingTag()` for information on usage and format.
+   *
+   * @param billing_tag The `BillingTag` string or `boost::none`.
    */
   inline StartBatchRequest& WithBillingTag(std::string billing_tag) {
     billing_tag_ = std::move(billing_tag);

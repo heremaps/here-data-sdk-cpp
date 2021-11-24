@@ -78,51 +78,51 @@ using CompleteBatchResponse =
 using CompleteBatchCallback =
     std::function<void(CompleteBatchResponse response)>;
 
-/**
- * @brief Client responsible for writing data into a HERE platform volatile
- * layer.
- */
+/// Publishes data to a volatile layer.
 class DATASERVICE_WRITE_API VolatileLayerClient {
  public:
   /**
-   * @brief VolatileLayerClient Constructor.
-   * @param catalog The HRN specifying the catalog this client will write to.
-   * @param settings Client settings used to control behaviour of the client
-   * instance. Volatile.
+   * @brief Creates the `VolatileLayerClient` instance.
+   *
+   * @param catalog The HRN of the catalog to which this client writes.
+   * @param settings The client settings used to control the behavior
+   * of the client instance.
    */
   VolatileLayerClient(client::HRN catalog, client::OlpClientSettings settings);
 
   /**
    * @brief Cancels all the ongoing operations that this client started.
    *
-   * Returns instantly and does not wait for the callbacks.
+   * Returns instantly and does not wait for callbacks.
    * Use this operation to cancel all the pending requests without
    * destroying the actual client instance.
    */
   void CancelPendingRequests();
 
   /**
-   * @brief Call to publish data into a volatile layer.
-   * @note Content-type for this request will be set implicitly based on the
-   * layer metadata for the target layer on the HERE platform.
-   * @param request PublishPartitionDataRequest object representing the
-   * parameters for this publishData call.
+   * @brief Publishes data to the volatile layer.
    *
-   * @return A CancellableFuture containing the PublishPartitionDataResponse.
+   * @note The content-type for this request is set implicitly based on
+   * the layer metadata of the target layer.
+   *
+   * @param request The `PublishPartitionDataRequest` object.
+   *
+   * @return `CancellableFuture` that contains `PublishPartitionDataResponse`.
    */
   olp::client::CancellableFuture<PublishPartitionDataResponse>
   PublishPartitionData(model::PublishPartitionDataRequest request);
 
   /**
-   * @brief Call to publish data into a volatile layer.
-   * @note Content-type for this request will be set implicitly based on the
-   * layer metadata for the target layer on the HERE platform.
-   * @param request PublishPartitionDataRequest object representing the
-   * parameters for this publishData call.
-   * @param callback PublishPartitionDataCallback which will be called with the
-   * PublishPartitionDataResponse when the operation completes.
+   * @brief Publishes data to the volatile layer.
    *
-   * @return A CancellationToken which can be used to cancel the ongoing
+   * @note The content-type for this request is set implicitly based on
+   * the layer metadata of the target layer.
+   *
+   * @param request The `PublishPartitionDataRequest` object.
+   * @param callback `PublishPartitionDataCallback` that is called with
+   * `PublishPartitionDataResponse` when the operation completes.
+   *
+   * @return `CancellationToken` that can be used to cancel the ongoing
    * request.
    */
   olp::client::CancellationToken PublishPartitionData(
@@ -130,107 +130,121 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
       PublishPartitionDataCallback callback);
 
   /**
-   * @brief Get the latest version number of the catalog
-   * @return future holding the response object
+   * @brief Gets the latest version number of the catalog.
+   *
+   * @return `CancellableFuture` that contains the latest version number
+   * of the catalog.
    */
   olp::client::CancellableFuture<GetBaseVersionResponse> GetBaseVersion();
 
   /**
-   * @brief Get the latest version number of the catalog
-   * @param callback called when operation completes
-   * @return cancellationToken
+   * @brief Gets the latest version number of the catalog.
+   *
+   * @param callback `GetBaseVersionCallback` that is called with
+   * `GetBaseVersionResponse` when the operation completes.
+   *
+   * @return `CancellationToken` that can be used to cancel the ongoing
+   * request.
    */
   olp::client::CancellationToken GetBaseVersion(
       GetBaseVersionCallback callback);
 
   /**
-   * @brief Start a batch operation.
-   * @param request details of the batch operation to start
-   * @return olp::client::CancellableFuture<StartBatchResponse>
+   * @brief Starts the batch operation.
+   *
+   * @param request The `StartBatchRequest` object.
+   *
+   * @return `CancellableFuture` that contains `StartBatchResponse`.
    */
   olp::client::CancellableFuture<StartBatchResponse> StartBatch(
       model::StartBatchRequest request);
 
   /**
-   * @brief Start a batch operation.
-   * @param request details of the batch operation to start
-   * @param callback of type std::function<void(StartBatchResponse response)>
-   * @return olp::client::CancellationToken
+   * @brief Starts the batch operation.
+   *
+   * @param request The `StartBatchRequest` object.
+   * @param callback `StartBatchCallback` that is called with
+   * `StartBatchResponse` when the operation completes.
+   *
+   * @return `CancellationToken` that can be used to cancel the ongoing
+   * request.
    */
   olp::client::CancellationToken StartBatch(model::StartBatchRequest request,
                                             StartBatchCallback callback);
 
   /**
-   * @brief Get the details of the given batch publication
-   * @param pub the publication to get the current details of
-   * @return future returning a batch response.
+   * @brief Gets the details of the batch publication.
+   *
+   * @param pub The `Publication` instance.
+   *
+   * @return `CancellableFuture` that contains the details of the batch
+   * publication.
    */
   olp::client::CancellableFuture<GetBatchResponse> GetBatch(
       const model::Publication& pub);
 
   /**
-   * @brief Get the details of the given batch publication
-   * @param pub the publication to get the current details of
-   * @param callback called when the operation completes
-   * @return cancellation token
+   * @brief Gets the details of the batch publication.
+   *
+   * @param pub The `Publication` instance.
+   * @param callback `GetBatchCallback` that is called with
+   * `GetBatchResponse` when the operation completes.
+   *
+   * @return `CancellationToken` that can be used to cancel the ongoing
+   * request.
    */
   olp::client::CancellationToken GetBatch(const model::Publication& pub,
                                           GetBatchCallback callback);
 
   /**
-   * @brief Publish meta data to the HERE platform.
+   * @brief Publishes metadata to the HERE platform.
    *
-   * A volatile layer publishing task consists 2 steps:
-   * <list type = "number">
-   * <item>Publish meta data</item>
-   * <item>Publish data blob</item>
-   * </list>
+   * This task consists of two steps:
    *
-   * This API handles the 1st step, it has to be done <b>before</b> publishing
-   * data blob, otherwise clients will receive an empty vector from publishing
-   * data blob result. Note that changing the meta data of a partition will
-   * result in updating the catalog version.
+   * 1. Publish the metadata.
+   * 2. Publish the data blob.
+   *
+   * This API handles the first step, which has to be done before publishing
+   * the data blob. Otherwise, clients will receive an empty vector from
+   * the publishing result. Changing the metadata of the partition
+   * results in updating the catalog version.
    *
    * @param pub The `Publication` instance.
-   * @param partitions a group of PublishPartitionDataRequest that has following
-   * fields defined: <list type = "bullet"> <item>Layer ID (required)</item>
-   * <item>Partition (required)</item>
-   * <item>HERE checksum (optional)</item>
-   * <item>Data - must NOT be defiend as this call is for updating metadata
-   * (e.g. Partition IDs) only.</item>
-   * </list>
+   * @param partitions A group of `PublishPartitionDataRequest` objects
+   * that have the following fields: layer ID, partition, HERE checksum,
+   * and data. Do not define the data as this call is only for updating
+   * metadata.
    *
-   * @return cancellation token that can be used to cancel the request.
+   * @return `CancellationToken` that can be used to cancel the ongoing
+   * request.
    */
   olp::client::CancellableFuture<PublishToBatchResponse> PublishToBatch(
       const model::Publication& pub,
       const std::vector<model::PublishPartitionDataRequest>& partitions);
 
   /**
-   * @brief Publish meta data to the HERE platform.
+   * @brief Publishes metadata to the HERE platform.
    *
-   * A volatile layer publishing task consists 2 steps:
-   * <list type = "number">
-   * <item>Publish meta data</item>
-   * <item>Publish data blob</item>
-   * </list>
+   * This task consists of two steps:
    *
-   * This API handles the 1st step, it has to be done <b>before</b> publishing
-   * data blob, otherwise clients will receive an empty vector from publishing
-   * data blob result. Note that changing the meta data of a partition will
-   * result in updating the catalog version.
+   * 1. Publish the metadata.
+   * 2. Publish the data blob.
+   *
+   * This API handles the first step, which has to be done before publishing
+   * the data blob. Otherwise, clients will receive an empty vector from
+   * the publishing result. Changing the metadata of the partition
+   * results in updating the catalog version.
    *
    * @param pub The `Publication` instance.
-   * @param partitions a group of PublishPartitionDataRequest that has following
-   * fields defined: <list type = "bullet"> <item>Layer ID (required)</item>
-   * <item>Partition (required)</item>
-   * <item>HERE checksum (optional)</item>
-   * <item>Data - must NOT be defiend as this call is for updating metadata
-   * (e.g. Partition IDs) only.</item>
-   * </list>
-   * @param callback called when the operation completes.
+   * @param partitions A group of `PublishPartitionDataRequest` objects
+   * that have the following fields: layer ID, partition, HERE checksum,
+   * and data. Do not define the data as this call is only for updating
+   * metadata.
+   * @param callback `PublishToBatchCallback that is called with
+   * `PublishToBatchResponse` when the operation completes.
    *
-   * @return cancellation token that can be used to cancel the request.
+   * @return `CancellationToken` that can be used to cancel the ongoing
+   * request.
    */
   olp::client::CancellationToken PublishToBatch(
       const model::Publication& pub,
@@ -238,20 +252,24 @@ class DATASERVICE_WRITE_API VolatileLayerClient {
       PublishToBatchCallback callback);
 
   /**
-   * @brief Complete the given batch operation and commit to the HERE platform.
+   * @brief Completes the batch operation and commits it to the HERE platform.
    *
    * @param pub The `Publication` instance.
-   * @return future containing the batch response
+   *
+   * @return `CancellableFuture` that contains `CompleteBatchResponse`.
    */
   olp::client::CancellableFuture<CompleteBatchResponse> CompleteBatch(
       const model::Publication& pub);
 
   /**
-   * @brief Complete the given batch operation and commit to the HERE platform.
+   * @brief Completes the batch operation and commits it to the HERE platform.
    *
    * @param pub The `Publication` instance.
-   * @param callback called when the operation completes.
-   * @return cancellation token
+   * @param callback `CompleteBatchCallback` that is called with
+   * `CompleteBatchResponse` when the operation completes.
+   *
+   * @return `CancellationToken` that can be used to cancel the ongoing
+   * request.
    */
   olp::client::CancellationToken CompleteBatch(const model::Publication& pub,
                                                CompleteBatchCallback callback);

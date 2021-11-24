@@ -33,24 +33,24 @@ namespace olp {
 namespace dataservice {
 namespace write {
 namespace model {
-/**
- * @brief PublishIndexRequest used to publish data into
- * a HERE platform index layer.
- */
+/// Publishes data to an index layer.
 class DATASERVICE_WRITE_API PublishIndexRequest {
  public:
   PublishIndexRequest() = default;
 
   /**
-   * @return data previously set.
+   * @brief Gets the data to be published to the HERE platform.
+   *
+   * @return The data to be published.
    */
   inline std::shared_ptr<std::vector<unsigned char>> GetData() const {
     return data_;
   }
 
   /**
-   * @param data Content to be uploaded to the HERE platform.
-   * @note Required.
+   * @brief Sets the data to be published to the HERE platform.
+   *
+   * @param data The data to be published.
    */
   inline PublishIndexRequest& WithData(
       const std::shared_ptr<std::vector<unsigned char>>& data) {
@@ -59,8 +59,9 @@ class DATASERVICE_WRITE_API PublishIndexRequest {
   }
 
   /**
-   * @param data Content to be uploaded to the HERE platform.
-   * @note Required.
+   * @brief Sets the data to be published to the HERE platform.
+   *
+   * @param data The rvalue reference to the data to be published.
    */
   inline PublishIndexRequest& WithData(
       std::shared_ptr<std::vector<unsigned char>>&& data) {
@@ -69,14 +70,18 @@ class DATASERVICE_WRITE_API PublishIndexRequest {
   }
 
   /**
-   * @return Layer ID previously set.
+   * @brief Gets the layer ID of the catalog where you want to store the data.
+   *
+   * @return The layer ID of the catalog.
    */
   inline const std::string& GetLayerId() const { return layer_id_; }
 
   /**
-   * @param layer_id Layer ID of the catalog where you want to store the data.
-   * The layer type must be Index.
-   * @note Required.
+   * @brief Sets the layer ID of the catalog where you want to store the data.
+   *
+   * Make sure the layer is of the index type.
+   *
+   * @param layer_id The layer ID of the catalog.
    */
   inline PublishIndexRequest& WithLayerId(const std::string& layer_id) {
     layer_id_ = layer_id;
@@ -84,9 +89,11 @@ class DATASERVICE_WRITE_API PublishIndexRequest {
   }
 
   /**
-   * @param layer_id Layer ID of the catalog where you want to store the data.
-   * The layer type must be Index.
-   * @note Required.
+   * @brief Sets the layer ID of the catalog where you want to store the data.
+   *
+   * Make sure the layer is of the index type.
+   *
+   * @param layer_id The rvalue reference to the layer ID of the catalog.
    */
   inline PublishIndexRequest& WithLayerId(std::string&& layer_id) {
     layer_id_ = std::move(layer_id);
@@ -94,17 +101,26 @@ class DATASERVICE_WRITE_API PublishIndexRequest {
   }
 
   /**
-   * @return Billing Tag previously set.
+   * @brief Gets the billing tag to group billing records together.
+   *
+   * The billing tag is an optional free-form tag that is used for grouping
+   * billing records together. If supplied, it must be 4–16 characters
+   * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
+   *
+   * @return The `BillingTag` string or `boost::none` if the billing tag is not
+   * set.
    */
   inline const boost::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
   /**
-   * @param billing_tag An optional free-form tag which is used for grouping
-   * billing records together. If supplied, it must be between 4 - 16
-   * characters, contain only alpha/numeric ASCII characters [A-Za-z0-9].
-   * @note Optional.
+   * @brief Sets the billing tag for the request.
+   *
+   * @see `GetBillingTag()` for information on usage and format.
+   *
+   * @param billing_tag The rvalue reference to the `BillingTag` string or
+   * `boost::none`.
    */
   inline PublishIndexRequest& WithBillingTag(const std::string& billing_tag) {
     billing_tag_ = billing_tag;
@@ -112,10 +128,12 @@ class DATASERVICE_WRITE_API PublishIndexRequest {
   }
 
   /**
-   * @param billing_tag An optional free-form tag which is used for grouping
-   * billing records together. If supplied, it must be between 4 - 16
-   * characters, contain only alpha/numeric ASCII characters [A-Za-z0-9].
-   * @note Optional.
+   * @brief Sets the billing tag for the request.
+   *
+   * @see `GetBillingTag()` for information on usage and format.
+   *
+   * @param billing_tag The rvalue reference to the `BillingTag` string or
+   * `boost::none`.
    */
   inline PublishIndexRequest& WithBillingTag(std::string&& billing_tag) {
     billing_tag_ = std::move(billing_tag);
@@ -123,19 +141,26 @@ class DATASERVICE_WRITE_API PublishIndexRequest {
   }
 
   /**
-   * @return Checksum previously set.
+   * @brief Gets the request checksum.
+   *
+   * It is an SHA-256 hash that you can provide for
+   * validation against the calculated value on the request body hash.
+   * It verifies the integrity of your request and prevents modification
+   * by a third party. If not provided, it is created by the service.
+   * The SHA-256 hash consists of 256 bits or 64 chars.
+   *
+   * @return The request checksum.
    */
   inline const boost::optional<std::string>& GetChecksum() const {
     return checksum_;
   }
 
   /**
-   * @param checksum A SHA-256 hash you can provide for
-   * validation against the calculated value on the request body hash. This
-   * verifies the integrity of your request and prevents modification by a third
-   * party.It will be created by the service if not provided. A SHA-256 hash
-   * consists of 256 bits or 64 chars.
-   * @note Optional.
+   * @brief Sets the request checksum.
+   *
+   * @see `GetChecksum` for information on the checksum.
+   *
+   * @param checksum The request checksum.
    */
   inline PublishIndexRequest& WithChecksum(const std::string& checksum) {
     checksum_ = checksum;
@@ -143,12 +168,11 @@ class DATASERVICE_WRITE_API PublishIndexRequest {
   }
 
   /**
-   * @param checksum A SHA-256 hash you can provide for
-   * validation against the calculated value on the request body hash. This
-   * verifies the integrity of your request and prevents modification by a third
-   * party.It will be created by the service if not provided. A SHA-256 hash
-   * consists of 256 bits or 64 chars.
-   * @note Required.
+   * @brief Sets the request checksum.
+   *
+   * @see `GetChecksum` for information on the checksum.
+   *
+   * @param checksum The rvalue reference to the request checksum.
    */
   inline PublishIndexRequest& WithChecksum(std::string&& checksum) {
     checksum_ = std::move(checksum);
@@ -156,15 +180,24 @@ class DATASERVICE_WRITE_API PublishIndexRequest {
   }
 
   /**
-   * @return Index previously set.
+   * @brief Gets the `Index` object that contains the index information
+   * to be published to the index layer.
+   *
+   * It consists of the following fields: metadata, ID, types of index fields,
+   * and size.
+   *
+   * @see `Index` for more information.
+   *
+   * @return The `Index` object. 
    */
   inline const Index& GetIndex() const { return index_; }
 
   /**
-   * @param index A index object that contains index information need to insert
-   * into the index layer. It contains fields like metadata, id, indexfields,
-   * and size.
-   * @note Required.
+   * @brief Sets the `Index` object.
+   *
+   * @see `Index` for more information.
+   *
+   * @param index The `Index` object.
    */
   inline PublishIndexRequest& WithIndex(const Index& index) {
     index_ = index;
@@ -172,10 +205,11 @@ class DATASERVICE_WRITE_API PublishIndexRequest {
   }
 
   /**
-   * @param index A index object that contains index information need to insert
-   * into the index layer. It contains fields like metadata, id, indexfields,
-   * and size.
-   * @note Required.
+   * @brief Sets the `Index` object.
+   *
+   * @see `Index` for more information.
+   *
+   * @param index The rvalue reference to the `Index` object.
    */
   inline PublishIndexRequest& WithIndex(Index&& index) {
     index_ = std::move(index);

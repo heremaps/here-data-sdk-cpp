@@ -55,7 +55,7 @@ using PublishSdiiResponse =
     client::ApiResponse<PublishSdiiResult, client::ApiError>;
 using PublishSdiiCallback = std::function<void(PublishSdiiResponse response)>;
 
-/// @brief Client responsible for writing data to a HERE platform stream layer.
+/// Publishes data to a stream layer.
 class DATASERVICE_WRITE_API StreamLayerClient {
  public:
   /// An alias for the flush response.
@@ -65,14 +65,14 @@ class DATASERVICE_WRITE_API StreamLayerClient {
   using FlushCallback = std::function<void(FlushResponse response)>;
 
   /**
-   * @brief StreamLayerClient Constructor.
-   * @param catalog The HRN that specifies the catalog to which this client
-   * writes.
-   * @param client_settings \c StreamLayerClient settings used to control
-   * the behaviour of flush mechanism and other StreamLayerClient specific
+   * @brief Creates the `StreamLayerClient` insatnce.
+   *
+   * @param catalog The HRN of the catalog to which this client writes.
+   * @param client_settings The `StreamLayerClient` settings used to control
+   * the behavior of the flush mechanism and other `StreamLayerClient`
    * properties.
-   * @param settings Client settings used to control behaviour of this
-   * StreamLayerClient instance.
+   * @param settings The client settings used to control the behavior
+   * of the client instance.
    */
   StreamLayerClient(client::HRN catalog,
                     StreamLayerClientSettings client_settings,
@@ -81,66 +81,72 @@ class DATASERVICE_WRITE_API StreamLayerClient {
   /**
    * @brief Cancels all the ongoing publish operations that this client started.
    *
-   * Returns instantly and does not wait for the callbacks.
+   * Returns instantly and does not wait for callbacks.
    * Use this operation to cancel all the pending publish requests without
    * destroying the actual client instance.
-   * @note This operation does not cancel publish requests queued by the \ref
-   * Queue method.
+   *
+   * @note This operation does not cancel publish requests queued by the
+   * `Queue` method.
    */
   void CancelPendingRequests();
 
   /**
-   * @brief Publishes data to a stream layer.
-   * @note Content-Type for this request is implicitly based on the
-   * layer metadata for the target layer on the HERE platform.
-   * @param request PublishDataRequest object that represents the parameters for
-   * this PublishData call.
-   * @return CancellableFuture that contains the PublishDataResponse.
+   * @brief Publishes data to the stream layer.
+   *
+   * @note The content-type for this request is set implicitly based on
+   * the layer metadata of the target layer.
+   *
+   * @param request The `PublishDataRequest` object.
+   *
+   * @return `CancellableFuture` that contains `PublishDataResponse`.
    */
   olp::client::CancellableFuture<PublishDataResponse> PublishData(
       model::PublishDataRequest request);
 
   /**
-   * @brief Publishes data to a stream layer.
-   * @note Content-Type for this request is set implicitly based on the
-   * layer metadata for the target layer on the HERE platform.
-   * @param request PublishDataRequest object that represents the parameters for
-   * this PublishData call.
-   * @param callback PublishDataCallback that is called with the
-   * PublishDataResponse when the operation completes.
-   * @return CancellationToken that can be used to cancel the ongoing
+   * @brief Publishes data to the stream layer.
+   *
+   * @note The content-type for this request is set implicitly based on
+   * the layer metadata of the target layer.
+   *
+   * @param request The `PublishDataRequest` object.
+   * @param callback `PublishDataCallback` that is called with
+   * `PublishDataResponse` when the operation completes.
+   *
+   * @return `CancellationToken` that can be used to cancel the ongoing
    * request.
    */
   olp::client::CancellationToken PublishData(model::PublishDataRequest request,
                                              PublishDataCallback callback);
 
   /**
-   * @brief Enqueues a PublishDataRequest that is sent over the wire.
-   * @param request PublishDataRequest object that represents the parameters for
-   * the call.
-   * @return Optional boost that is boost::none if the queue call is
+   * @brief Enqueues `PublishDataRequest` that is sent over the wire.
+   *
+   * @param request The `PublishDataRequest` object.
+   *
+   * @return An optional boost that is `boost::none` if the queue call is
    * successful. Otherwise, it contains a string with error details.
    */
   boost::optional<std::string> Queue(model::PublishDataRequest request);
 
   /**
-   * @brief Flush PublishDataRequests that were queued via the Queue
-   * API.
-   * @param request \c FlushRequest object thatr represents the parameters for
-   * this \c Flush method call.
-   * @return CancellableFuture that contains the FlushResponse.
+   * @brief Flushes `PublishDataRequests` that are queued via the Queue API.
+   *
+   * @param request The `FlushRequest` object.
+   *
+   * @return `CancellableFuture` that contains `FlushResponse`.
    */
   olp::client::CancellableFuture<FlushResponse> Flush(
       model::FlushRequest request);
 
   /**
-   * @brief Flush PublishDataRequests that were queued via the Queue
-   * API.
-   * @param request \c FlushRequest object that represents the parameters for
-   * this \c Flush method call.
+   * @brief Flushes `PublishDataRequests` that are queued via the Queue API.
+   *
+   * @param request The `FlushRequest` object.
    * @param callback The callback that is called when all the flush
-   * results (see \c FlushResponse) are available.
-   * @return CancellationToken that can be used to cancel the ongoing
+   * results (see `FlushResponse`) are available.
+   *
+   * @return `CancellationToken` that can be used to cancel the ongoing
    * request.
    */
   olp::client::CancellationToken Flush(model::FlushRequest request,
@@ -148,26 +154,32 @@ class DATASERVICE_WRITE_API StreamLayerClient {
 
   /**
    * @brief Sends a list of SDII messages to a stream layer.
-   * The SDII message data must be in the SDII MessageList protobuf format. For
-   * more information, please see the HERE platform Sensor Data Ingestion Interface
+   *
+   * SDII message data must be in the SDII Message List protobuf format.
+   * The maximum size is 20 MB.
+   * For more information, see the HERE platform Sensor Data Ingestion Interface
    * documentation and schemas.
-   * @param request PublishSdiiRequest object that represents the parameters for
-   * this PublishSdii call.
-   * @return CancellableFuture that contains the PublishSdiiResponse.
+   *
+   * @param request The `PublishSdiiRequest` object.
+   *
+   * @return `CancellableFuture` that contains `PublishSdiiResponse`.
    */
   olp::client::CancellableFuture<PublishSdiiResponse> PublishSdii(
       model::PublishSdiiRequest request);
 
   /**
    * @brief Sends a list of SDII messages to a stream layer.
-   * The SDII message data must be in the SDII MessageList protobuf format. For
-   * more information, please see the HERE platform Sensor Data Ingestion Interface
+   *
+   * SDII message data must be in the SDII Message List protobuf format.
+   * The maximum size is 20 MB.
+   * For more information, see the HERE platform Sensor Data Ingestion Interface
    * documentation and schemas.
-   * @param request PublishSdiiRequest object that represents the parameters for
-   * this PublishSdii call.
-   * @param callback PublishSdiiCallback that is called with the
-   * PublishSdiiResponse when the operation completes.
-   * @return CancellationToken that can be used to cancel the ongoing
+   *
+   * @param request `PublishSdiiRequest` object.
+   * @param callback `PublishSdiiCallback` that is called with
+   * `PublishSdiiResponse` when the operation completes.
+   *
+   * @return `CancellationToken` that can be used to cancel the ongoing
    * request.
    */
   olp::client::CancellationToken PublishSdii(model::PublishSdiiRequest request,
