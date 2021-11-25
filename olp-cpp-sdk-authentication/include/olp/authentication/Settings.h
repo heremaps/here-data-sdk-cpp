@@ -28,6 +28,7 @@
 
 #include "AuthenticationApi.h"
 #include "AuthenticationCredentials.h"
+#include "AuthenticationSettings.h"
 
 namespace olp {
 namespace http {
@@ -86,7 +87,7 @@ struct AUTHENTICATION_API Settings {
    * @note Only standard OAuth2 Token URLs (those ending in `oauth2/token`) are
    * supported.
    */
-  std::string token_endpoint_url{kHereAccountProductionTokenUrl};
+  std::string token_endpoint_url{kHereAccountProductionUrl};
 
   /**
    * @brief Uses system system time in authentication requests rather than
