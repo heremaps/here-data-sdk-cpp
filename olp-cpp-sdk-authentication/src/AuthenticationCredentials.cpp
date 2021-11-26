@@ -28,6 +28,7 @@ namespace {
 const std::regex kRegex{"\\s*=\\s*"};
 const std::string kHereAccessKeyId = "here.access.key.id";
 const std::string kHereAccessKeySecret = "here.access.key.secret";
+const std::string kHereTokenEndpointUrl = "here.token.endpoint.url";
 
 /// Forms a default path that is valid for the current OS.
 std::string GetDefaultPath() {
@@ -57,6 +58,7 @@ boost::optional<AuthenticationCredentials>
 AuthenticationCredentials::ReadFromStream(std::istream& stream) {
   std::string access_key_id;
   std::string access_key_secret;
+  std::string token_endpoint_url;
   std::string line;
 
   while (std::getline(stream, line)) {
@@ -72,12 +74,15 @@ AuthenticationCredentials::ReadFromStream(std::istream& stream) {
       access_key_id = token[1];
     } else if (token[0] == kHereAccessKeySecret) {
       access_key_secret = token[1];
+    } else if (token[0] == kHereTokenEndpointUrl) {
+      token_endpoint_url = token[1];
     }
   }
 
   return (!access_key_id.empty() && !access_key_secret.empty())
              ? boost::make_optional<AuthenticationCredentials>(
-                   {std::move(access_key_id), std::move(access_key_secret)})
+                   {std::move(access_key_id), std::move(access_key_secret),
+                    std::move(token_endpoint_url)})
              : boost::none;
 }
 
@@ -95,10 +100,22 @@ AuthenticationCredentials::AuthenticationCredentials(std::string key,
                                                      std::string secret)
     : key_(std::move(key)), secret_(std::move(secret)) {}
 
+AuthenticationCredentials::AuthenticationCredentials(std::string key,
+                                                     std::string secret,
+                                                     std::string endpoint_url)
+    : key_(std::move(key)),
+      secret_(std::move(secret)),
+      endpoint_url_(std::move(endpoint_url)) {}
+
 const std::string& AuthenticationCredentials::GetKey() const { return key_; }
 
 const std::string& AuthenticationCredentials::GetSecret() const {
   return secret_;
 }
+
+const std::string& AuthenticationCredentials::GetEndpointUrl() const {
+  return endpoint_url_;
+}
+
 }  // namespace authentication
 }  // namespace olp

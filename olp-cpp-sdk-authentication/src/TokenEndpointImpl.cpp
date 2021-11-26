@@ -51,13 +51,29 @@ constexpr auto kClientGrantType = "client_credentials";
 constexpr auto kLogTag = "TokenEndpointImpl";
 constexpr auto kErrorWrongTimestamp = 401204;
 
+std::string GetBasePath(const std::string& base_string) {
+  // Remove /oauth2/token from url to make sure only the base url is used
+  auto new_base_string = base_string;
+  auto pos = new_base_string.find(kOauthEndpoint);
+  if (pos != std::string::npos) {
+    new_base_string.erase(pos, std::strlen(kOauthEndpoint));
+  }
+
+  OLP_SDK_LOG_INFO_F(
+      kLogTag,
+      "GetBasePath: old_token_endpoint_url='%s', token_endpoint_url='%s'",
+      base_string.c_str(), new_base_string.c_str());
+
+  return new_base_string;
+}
+
 AuthenticationSettings ConvertSettings(Settings settings) {
   AuthenticationSettings auth_settings;
   auth_settings.network_proxy_settings =
       std::move(settings.network_proxy_settings);
   auth_settings.network_request_handler =
       std::move(settings.network_request_handler);
-  auth_settings.token_endpoint_url = std::move(settings.token_endpoint_url);
+  auth_settings.token_endpoint_url = GetBasePath(settings.token_endpoint_url);
   auth_settings.use_system_time = settings.use_system_time;
   auth_settings.retry_settings = std::move(settings.retry_settings);
 

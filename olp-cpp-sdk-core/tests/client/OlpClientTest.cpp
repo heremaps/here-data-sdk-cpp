@@ -687,7 +687,7 @@ TEST_P(OlpClientTest, HttpResponse) {
 
 TEST_P(OlpClientTest, Paths) {
   auto network = network_;
-  client_.SetBaseUrl("here.com");
+  client_.SetBaseUrl("https://here.com");
   client_.SetSettings(client_settings_);
 
   std::future<void> future;
@@ -699,7 +699,7 @@ TEST_P(OlpClientTest, Paths) {
                     olp::http::Network::Callback callback,
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
-        EXPECT_EQ("here.com/index", request.GetUrl());
+        EXPECT_EQ("https://here.com/index", request.GetUrl());
         auto current_request_id = request_id++;
 
         future = std::async(std::launch::async, [=]() {
@@ -1624,7 +1624,7 @@ TEST_P(OlpClientTest, ApiKey) {
                     olp::http::Network::Callback callback,
                     olp::http::Network::HeaderCallback /*header_callback*/,
                     olp::http::Network::DataCallback /*data_callback*/) {
-        EXPECT_EQ(request.GetUrl(), "here.com?apiKey=test-key");
+        EXPECT_EQ(request.GetUrl(), "https://here.com?apiKey=test-key");
         auto current_request_id = request_id++;
 
         future = std::async(std::launch::async, [=]() {
@@ -1637,8 +1637,8 @@ TEST_P(OlpClientTest, ApiKey) {
         return olp::http::SendOutcome(current_request_id);
       });
 
-  auto response =
-      call_wrapper_->CallApi("here.com", "GET", {}, {}, {}, nullptr, {});
+  auto response = call_wrapper_->CallApi("https://here.com", "GET", {}, {}, {},
+                                         nullptr, {});
 
   future.wait();
   testing::Mock::VerifyAndClearExpectations(network.get());
@@ -1657,8 +1657,8 @@ TEST_P(OlpClientTest, TokenDeprecatedProvider) {
 
     EXPECT_CALL(*network, Send(_, _, _, _, _)).Times(0);
 
-    auto response =
-        call_wrapper_->CallApi("here.com", "GET", {}, {}, {}, nullptr, {});
+    auto response = call_wrapper_->CallApi("https://here.com", "GET", {}, {},
+                                           {}, nullptr, {});
     EXPECT_EQ(response.GetStatus(),
               static_cast<int>(http::ErrorCode::AUTHORIZATION_ERROR));
 
@@ -1682,8 +1682,8 @@ TEST_P(OlpClientTest, TokenDeprecatedProvider) {
                                  testing::InvokeArgument<2>(response),
                                  testing::Return(olp::http::SendOutcome(0))));
 
-    auto api_response =
-        call_wrapper_->CallApi("here.com", "GET", {}, {}, {}, nullptr, {});
+    auto api_response = call_wrapper_->CallApi("https://here.com", "GET", {},
+                                               {}, {}, nullptr, {});
 
     auto headers = request.GetHeaders();
 
@@ -1714,8 +1714,8 @@ TEST_P(OlpClientTest, EmptyBearerToken) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _)).Times(0);
 
-  auto response =
-      call_wrapper_->CallApi("here.com", "GET", {}, {}, {}, nullptr, {});
+  auto response = call_wrapper_->CallApi("https://here.com", "GET", {}, {}, {},
+                                         nullptr, {});
   EXPECT_EQ(response.GetStatus(),
             static_cast<int>(http::ErrorCode::AUTHORIZATION_ERROR));
 
@@ -1739,8 +1739,8 @@ TEST_P(OlpClientTest, ErrorOnTokenRequest) {
 
   EXPECT_CALL(*network, Send(_, _, _, _, _)).Times(0);
 
-  auto response =
-      call_wrapper_->CallApi("here.com", "GET", {}, {}, {}, nullptr, {});
+  auto response = call_wrapper_->CallApi("https://here.com", "GET", {}, {}, {},
+                                         nullptr, {});
   EXPECT_EQ(response.GetStatus(),
             static_cast<int>(http::ErrorCode::NETWORK_OVERLOAD_ERROR));
 
@@ -2159,6 +2159,19 @@ TEST_F(OlpClientMergeTest, NoMergeMultipleCallbacks) {
     }
 
     release_and_wait(3u, index);
+  }
+}
+
+TEST_P(OlpClientTest, UrlWithoutProtocol) {
+  {
+    SCOPED_TRACE("Url without protocol");
+
+    client_.SetBaseUrl("here.com");
+    client_.SetSettings(client_settings_);
+
+    auto response = call_wrapper_->CallApi("", "GET", {}, {}, {}, nullptr, {});
+    EXPECT_EQ(response.GetStatus(),
+              static_cast<int>(http::ErrorCode::INVALID_URL_ERROR));
   }
 }
 

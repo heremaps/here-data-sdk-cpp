@@ -28,28 +28,8 @@
 namespace olp {
 namespace authentication {
 
-namespace {
-static const std::string kOauth2TokenEndpoint = "/oauth2/token";
-static constexpr auto kLogTag = "TokenEndpoint";
-}  // namespace
-
-TokenEndpoint::TokenEndpoint(Settings settings) {
-  // The underlying auth library expects a base URL and appends /oauth2/token
-  // endpoint to it. Therefore if /oauth2/token is found it is stripped from the
-  // endpoint URL provided. The underlying auth library should be updated to
-  // support an arbitrary token endpoint URL.
-  auto pos = settings.token_endpoint_url.find(kOauth2TokenEndpoint);
-  if (pos != std::string::npos) {
-    settings.token_endpoint_url.erase(pos, kOauth2TokenEndpoint.size());
-  } else {
-    OLP_SDK_LOG_ERROR(
-        kLogTag,
-        "Expected '/oauth2/token' endpoint in the token_endpoint_url. Only "
-        "standard OAuth2 token endpoint URLs are supported.");
-  }
-
-  impl_ = std::make_shared<TokenEndpointImpl>(std::move(settings));
-}
+TokenEndpoint::TokenEndpoint(Settings settings)
+    : impl_(std::make_shared<TokenEndpointImpl>(std::move(settings))) {}
 
 client::CancellationToken TokenEndpoint::RequestToken(
     const TokenRequest& token_request,

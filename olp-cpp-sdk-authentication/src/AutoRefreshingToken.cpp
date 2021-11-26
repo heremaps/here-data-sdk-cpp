@@ -28,7 +28,7 @@
 #include "TokenRequest.h"
 
 namespace {
-constexpr auto kLogTag = "authentication::AutoRefreshingToken";
+constexpr auto kLogTag = "AutoRefreshingToken";
 
 std::chrono::steady_clock::time_point ComputeRefreshTime(
     const olp::authentication::TokenResponse& current_token,
