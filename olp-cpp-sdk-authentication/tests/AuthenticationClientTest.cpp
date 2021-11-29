@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@
  */
 
 #include <cstdio>
-#include <fstream>
+#include <memory>
+#include <string>
 
 #include <gmock/gmock.h>
 
-#include "../src/AuthenticationClientImpl.h"
-#include "../src/AuthenticationClientUtils.h"
+#include "AuthenticationClientImpl.h"
+#include "AuthenticationClientUtils.h"
 #include "mocks/NetworkMock.h"
-#include "olp/core/http/HttpStatusCode.h"
 
 namespace {
 constexpr auto kTime = "Fri, 29 May 2020 11:07:45 GMT";
@@ -54,6 +54,84 @@ class AuthenticationClientImplTestable : public auth::AuthenticationClientImpl {
 };
 
 ACTION_P(Wait, time) { std::this_thread::sleep_for(time); }
+
+TEST(AuthenticationClientTest, AuthenticationWithoutNetwork) {
+  auth::AuthenticationSettings settings;
+  settings.network_request_handler = nullptr;
+
+  AuthenticationClientImplTestable auth_impl(settings);
+
+  const auth::AuthenticationCredentials credentials("", "");
+
+  {
+    SCOPED_TRACE("SignUpHereUser, Offline");
+
+    auth_impl.SignUpHereUser(
+        credentials, {},
+        [=](const auth::AuthenticationClient::SignUpResponse& response) {
+          EXPECT_FALSE(response.IsSuccessful());
+          EXPECT_EQ(response.GetError().GetErrorCode(),
+                    client::ErrorCode::NetworkConnection);
+        });
+  }
+
+  {
+    SCOPED_TRACE("SignOut, Offline");
+
+    auth_impl.SignOut(
+        credentials, {},
+        [=](const auth::AuthenticationClient::SignOutUserResponse& response) {
+          EXPECT_FALSE(response.IsSuccessful());
+          EXPECT_EQ(response.GetError().GetErrorCode(),
+                    client::ErrorCode::NetworkConnection);
+        });
+  }
+}
+
+TEST(AuthenticationClientTest, AuthenticationWithUnsuccessfulSend) {
+  using testing::_;
+
+  auth::AuthenticationSettings settings;
+  auto networkMock = std::make_shared<NetworkMock>();
+
+  ON_CALL(*networkMock, Send(_, _, _, _, _))
+      .WillByDefault([](olp::http::NetworkRequest, olp::http::Network::Payload,
+                        olp::http::Network::Callback,
+                        olp::http::Network::HeaderCallback,
+                        olp::http::Network::DataCallback) {
+        return olp::http::SendOutcome(olp::http::ErrorCode::UNKNOWN_ERROR);
+      });
+
+  settings.network_request_handler = networkMock;
+
+  AuthenticationClientImplTestable auth_impl(settings);
+
+  const auth::AuthenticationCredentials credentials("", "");
+
+  {
+    SCOPED_TRACE("SignUpHereUser, Unsuccessful send");
+
+    auth_impl.SignUpHereUser(
+        credentials, {},
+        [=](const auth::AuthenticationClient::SignUpResponse& response) {
+          EXPECT_FALSE(response.IsSuccessful());
+          EXPECT_EQ(response.GetError().GetErrorCode(),
+                    client::ErrorCode::Unknown);
+        });
+  }
+
+  {
+    SCOPED_TRACE("SignOut, Unsuccessful send");
+
+    auth_impl.SignOut(
+        credentials, {},
+        [=](const auth::AuthenticationClient::SignOutUserResponse& response) {
+          EXPECT_FALSE(response.IsSuccessful());
+          EXPECT_EQ(response.GetError().GetErrorCode(),
+                    client::ErrorCode::Unknown);
+        });
+  }
+}
 
 TEST(AuthenticationClientTest, Timestamp) {
   using testing::_;

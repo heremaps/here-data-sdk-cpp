@@ -119,19 +119,6 @@ boost::optional<std::time_t> GetTimestampFromHeaders(
   return boost::none;
 }
 
-void ExecuteOrSchedule(
-    const std::shared_ptr<olp::thread::TaskScheduler>& task_scheduler,
-    olp::thread::TaskScheduler::CallFuncType&& func) {
-  if (!task_scheduler) {
-    // User didn't specify a TaskScheduler, execute sync
-    func();
-    return;
-  }
-
-  // Schedule for async execution
-  task_scheduler->ScheduleTask(std::move(func));
-}
-
 IntrospectAppResult GetIntrospectAppResult(const rapidjson::Document& doc) {
   return ResponseFromJsonBuilder<IntrospectAppResult>::Build(doc)
       .Value(Constants::CLIENT_ID, &IntrospectAppResult::SetClientId)
