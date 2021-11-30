@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,9 +47,9 @@ namespace write {
 
 IndexLayerClientImpl::IndexLayerClientImpl(client::HRN catalog,
                                            client::OlpClientSettings settings)
-    : catalog_(catalog),
-      catalog_settings_(catalog, settings),
-      settings_(settings),
+    : catalog_(std::move(catalog)),
+      catalog_settings_(catalog_, settings),
+      settings_(std::move(settings)),
       apiclient_config_(nullptr),
       apiclient_blob_(nullptr),
       apiclient_index_(nullptr),

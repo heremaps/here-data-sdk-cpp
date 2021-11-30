@@ -72,8 +72,6 @@ class TaskSink {
 
   bool ScheduleTask(client::TaskContext task, uint32_t priority);
 
-  void ExecuteTask(client::TaskContext task);
-
   const std::shared_ptr<thread::TaskScheduler> task_scheduler_;
   const std::shared_ptr<client::PendingRequests> pending_requests_;
   std::mutex mutex_;

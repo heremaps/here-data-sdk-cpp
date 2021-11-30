@@ -26,7 +26,9 @@ namespace dataservice {
 namespace read {
 namespace {
 constexpr auto kLogTag = "TaskSink";
-}
+
+void ExecuteTask(client::TaskContext task) { task.Execute(); }
+}  // namespace
 
 TaskSink::TaskSink(std::shared_ptr<thread::TaskScheduler> task_scheduler)
     : task_scheduler_(std::move(task_scheduler)),
@@ -92,8 +94,6 @@ bool TaskSink::ScheduleTask(client::TaskContext task, uint32_t priority) {
 
   return true;
 }
-
-void TaskSink::ExecuteTask(client::TaskContext task) { task.Execute(); }
 
 }  // namespace read
 }  // namespace dataservice

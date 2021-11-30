@@ -46,11 +46,11 @@ namespace dataservice {
 namespace write {
 VolatileLayerClientImpl::VolatileLayerClientImpl(
     client::HRN catalog, client::OlpClientSettings settings)
-    : catalog_(catalog),
-      settings_(settings),
-      catalog_settings_(catalog, settings),
+    : catalog_(std::move(catalog)),
+      settings_(std::move(settings)),
+      catalog_settings_(catalog_, settings_),
       pending_requests_(std::make_shared<client::PendingRequests>()),
-      task_scheduler_(settings.task_scheduler) {}
+      task_scheduler_(settings_.task_scheduler) {}
 
 VolatileLayerClientImpl::~VolatileLayerClientImpl() {
   tokenList_.CancelAll();
