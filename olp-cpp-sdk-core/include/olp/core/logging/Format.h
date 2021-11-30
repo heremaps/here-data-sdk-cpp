@@ -82,11 +82,11 @@ CORE_API std::string formatLocalTime(const TimePoint& timestamp);
  * @return The formatted string.
  */
 CORE_API std::string formatLocalTime(const TimePoint& timestamp,
-                                    const char* formatStr);
+                                     const char* formatStr);
 
 /**
- * @brief Creates a string for a timestamp using the UTC time standard with the default
- * format string.
+ * @brief Creates a string for a timestamp using the UTC time standard with the
+ * default format string.
  *
  * The default format string is `%Y-%m-%d %H:%M:%S`.
  *
@@ -105,7 +105,7 @@ CORE_API std::string formatUtcTime(const TimePoint& timestamp);
  * @return The formatted string.
  */
 CORE_API std::string formatUtcTime(const TimePoint& timestamp,
-                                  const char* formatStr);
+                                   const char* formatStr);
 
 /**
  * @brief Attempts to format a string to a buffer before falling back
@@ -115,6 +115,8 @@ CORE_API std::string formatUtcTime(const TimePoint& timestamp,
  */
 class CORE_API FormatBuffer {
  public:
+  FormatBuffer() = default;
+
   /**
    * @brief Formats a string using a printf-style format string.
    *
@@ -160,8 +162,8 @@ class CORE_API FormatBuffer {
                               const char* formatStr);
 
   /**
-   * @brief Creates a string for a timestamp using the UTC time standard with the default
-   * format string.
+   * @brief Creates a string for a timestamp using the UTC time standard with
+   * the default format string.
    *
    * The default format string is `%Y-%m-%d %H:%M:%S`.
    *
@@ -187,7 +189,7 @@ class CORE_API FormatBuffer {
   const char* formatTm(const struct tm& timestampTm, const char* formatStr);
 
   static const unsigned int bufferSize = 256;
-  char m_buffer[bufferSize];
+  char m_buffer[bufferSize]{};
   std::vector<char> m_auxBuffer;
 };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,12 +110,11 @@ class ResponseFromJsonBuilder {
 
       // in the ideal scenario all fields should be processed
       for (const auto& field : fields_) {
-        OLP_SDK_LOG_WARNING_F(kLogTag,
-                              "Absent value, response=%s, field=%s",
+        OLP_SDK_LOG_WARNING_F(kLogTag, "Absent value, response=%s, field=%s",
                               kTargetTypeName.c_str(), field.first.c_str());
       }
 
-      return std::move(result);
+      return result;
     }
 
    private:

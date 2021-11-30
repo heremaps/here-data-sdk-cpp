@@ -140,6 +140,22 @@ client::OlpClient::RequestBodyType GenerateAppleSignInBody(
   return std::make_shared<RequestBodyData>(content, content + data.GetSize());
 }
 
+std::string GenerateBearerHeader(const std::string& bearer_token) {
+  return std::string(http::kBearer + std::string(" ") + bearer_token);
+}
+
+client::HttpResponse CallApi(const client::OlpClient& client,
+                             const std::string& endpoint,
+                             client::CancellationContext context,
+                             const std::string& auth_header,
+                             client::OlpClient::RequestBodyType body) {
+  client::OlpClient::ParametersType headers{
+      {http::kAuthorizationHeader, auth_header}};
+
+  return client.CallApi(endpoint, "POST", {}, std::move(headers), {},
+                        std::move(body), kApplicationJson, std::move(context));
+}
+
 }  // namespace
 
 AuthenticationClientImpl::RequestTimer::RequestTimer()
@@ -182,17 +198,6 @@ olp::client::HttpResponse AuthenticationClientImpl::CallAuth(
 
   client::OlpClient::ParametersType headers = {
       {http::kAuthorizationHeader, std::move(auth_header)}};
-
-  return client.CallApi(endpoint, "POST", {}, std::move(headers), {},
-                        std::move(body), kApplicationJson, std::move(context));
-}
-
-olp::client::HttpResponse AuthenticationClientImpl::CallAuth(
-    const client::OlpClient& client, const std::string& endpoint,
-    client::CancellationContext context, const std::string& auth_header,
-    client::OlpClient::RequestBodyType body) {
-  client::OlpClient::ParametersType headers{
-      {http::kAuthorizationHeader, auth_header}};
 
   return client.CallApi(endpoint, "POST", {}, std::move(headers), {},
                         std::move(body), kApplicationJson, std::move(context));
@@ -435,8 +440,8 @@ client::CancellationToken AuthenticationClientImpl::SignInApple(
 
     client::OlpClient client = CreateOlpClient(settings_, boost::none);
 
-    auto auth_response = CallAuth(client, kOauthEndpoint, context,
-                                  properties.GetAccessToken(), request_body);
+    auto auth_response = CallApi(client, kOauthEndpoint, context,
+                                 properties.GetAccessToken(), request_body);
 
     auto status = auth_response.GetStatus();
     if (status < 0) {
@@ -837,13 +842,6 @@ client::CancellationToken AuthenticationClientImpl::GetMyAccount(
                  std::move(callback));
 }
 
-std::string AuthenticationClientImpl::GenerateBearerHeader(
-    const std::string& bearer_token) {
-  std::string authorization = http::kBearer + std::string(" ");
-  authorization += bearer_token;
-  return authorization;
-}
-
 client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateClientBody(
     const SignInProperties& properties) {
   rapidjson::StringBuffer data;
@@ -1041,7 +1039,8 @@ AuthenticationClientImpl::GenerateAcceptTermBody(
 }
 
 client::OlpClient::RequestBodyType
-AuthenticationClientImpl::GenerateAuthorizeBody(AuthorizeRequest properties) {
+AuthenticationClientImpl::GenerateAuthorizeBody(
+    const AuthorizeRequest& properties) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();

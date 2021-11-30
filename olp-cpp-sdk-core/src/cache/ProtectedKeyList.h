@@ -72,10 +72,6 @@ class ProtectedKeyList {
     }
   };
 
-  bool IsPrefix(const std::string& prefix, const std::string& key) const;
-
-  bool IsEqualOrPrefix(const std::string& prefix, const std::string& key) const;
-
   std::set<std::string, CustomCompare> protected_data_;
   std::uint64_t size_written_;
   bool dirty_;

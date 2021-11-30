@@ -215,7 +215,7 @@ class AUTHENTICATION_API UserAccountInfoResponse {
    * @param phone_number The phone number.
    */
   void SetPhoneNumber(std::string phone_number) {
-    phone_number_ = phone_number;
+    phone_number_ = std::move(phone_number);
   }
 
   /**

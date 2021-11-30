@@ -74,6 +74,12 @@ struct ComparePrioritizedTask {
   }
 };
 
+void SetExecutorName(size_t idx) {
+  std::string thread_name = "OLPSDKPOOL_" + std::to_string(idx);
+  SetCurrentThreadName(thread_name);
+  OLP_SDK_LOG_INFO_F(kLogTag, "Starting thread '%s'", thread_name.c_str());
+}
+
 }  // namespace
 
 class ThreadPoolTaskScheduler::QueueImpl {
@@ -81,9 +87,7 @@ class ThreadPoolTaskScheduler::QueueImpl {
   using ElementType = PrioritizedTask;
 
   bool Pull(ElementType& element) { return sync_queue_.Pull(element); }
-
   void Push(ElementType&& element) { sync_queue_.Push(std::move(element)); }
-
   void Close() { sync_queue_.Close(); }
 
  private:
@@ -92,17 +96,14 @@ class ThreadPoolTaskScheduler::QueueImpl {
   SyncQueue<ElementType, PriorityQueue> sync_queue_;
 };
 
-ThreadPoolTaskScheduler::ThreadPoolTaskScheduler(size_t thread_count) {
-  queue_ = std::make_unique<QueueImpl>();
-
+ThreadPoolTaskScheduler::ThreadPoolTaskScheduler(size_t thread_count)
+    : queue_{std::make_unique<QueueImpl>()} {
   thread_pool_.reserve(thread_count);
 
   for (size_t idx = 0; idx < thread_count; ++idx) {
     std::thread executor([this, idx]() {
       // Set thread name for easy profiling and debugging
-      std::string thread_name = "OLPSDKPOOL_" + std::to_string(idx);
-      SetCurrentThreadName(thread_name);
-      OLP_SDK_LOG_INFO_F(kLogTag, "Starting thread '%s'", thread_name.c_str());
+      SetExecutorName(idx);
 
       for (;;) {
         PrioritizedTask task;

@@ -147,6 +147,7 @@ class CORE_API HttpResponse {
   HttpResponse& operator=(const HttpResponse& other) {
     if (this != &other) {
       status = other.status;
+      response = std::stringstream{};
       response << other.response.rdbuf();
       headers = other.headers;
     }

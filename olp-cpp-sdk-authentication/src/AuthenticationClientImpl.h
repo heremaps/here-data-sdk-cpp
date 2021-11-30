@@ -144,8 +144,6 @@ class AuthenticationClientImpl {
 
   static TimeResponse ParseTimeResponse(std::stringstream& payload);
 
-  std::string GenerateBearerHeader(const std::string& bearer_token);
-
   client::OlpClient::RequestBodyType GenerateClientBody(
       const SignInProperties& properties);
   client::OlpClient::RequestBodyType GenerateUserBody(
@@ -159,19 +157,13 @@ class AuthenticationClientImpl {
   client::OlpClient::RequestBodyType GenerateAcceptTermBody(
       const std::string& reacceptance_token);
   client::OlpClient::RequestBodyType GenerateAuthorizeBody(
-      AuthorizeRequest properties);
+      const AuthorizeRequest& properties);
 
   virtual olp::client::HttpResponse CallAuth(
       const client::OlpClient& client, const std::string& endpoint,
       client::CancellationContext context,
       const AuthenticationCredentials& credentials,
       client::OlpClient::RequestBodyType body, std::time_t timestamp);
-
-  olp::client::HttpResponse CallAuth(const client::OlpClient& client,
-                                     const std::string& endpoint,
-                                     client::CancellationContext context,
-                                     const std::string& auth_header,
-                                     client::OlpClient::RequestBodyType body);
 
   SignInResult ParseAuthResponse(int status, std::stringstream& auth_response);
 
