@@ -38,6 +38,8 @@
 namespace {
 constexpr auto kLogTag = "OlpClient";
 constexpr auto kApiKeyParam = "apiKey=";
+constexpr auto kHttpPrefix = "http://";
+constexpr auto kHttpsPrefix = "https://";
 
 struct RequestSettings {
   explicit RequestSettings(const int initial_backdown_period_ms,
@@ -381,6 +383,8 @@ class OlpClient::OlpClientImpl {
   ParametersType default_headers_;
   OlpClientSettings settings_;
   PendingUrlRequestsPtr pending_requests_;
+
+  bool ValidateBaseUrl() const;
 };
 
 OlpClient::OlpClientImpl::OlpClientImpl()
@@ -452,6 +456,13 @@ boost::optional<client::ApiError> OlpClient::OlpClientImpl::AddBearer(
     return boost::none;
 }
 
+bool OlpClient::OlpClientImpl::ValidateBaseUrl() const {
+  return base_url_.locked([](const std::string& base_url) {
+    return base_url == "" || (base_url.find(kHttpPrefix) != std::string::npos ||
+                              base_url.find(kHttpsPrefix) != std::string::npos);
+  });
+}
+
 std::shared_ptr<http::NetworkRequest> OlpClient::OlpClientImpl::CreateRequest(
     const std::string& path, const std::string& method,
     const OlpClient::ParametersType& query_params,
@@ -502,6 +513,12 @@ CancellationToken OlpClient::OlpClientImpl::CallApi(
   if (!settings_.network_request_handler) {
     callback({static_cast<int>(http::ErrorCode::OFFLINE_ERROR),
               "Network layer offline or missing."});
+    return CancellationToken();
+  }
+
+  if (!ValidateBaseUrl()) {
+    callback({static_cast<int>(http::ErrorCode::INVALID_URL_ERROR),
+              "Base URI does not contain a protocol"});
     return CancellationToken();
   }
 
@@ -583,6 +600,12 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
   if (!settings_.network_request_handler) {
     return HttpResponse(static_cast<int>(olp::http::ErrorCode::OFFLINE_ERROR),
                         "Network request handler is empty.");
+  }
+
+  if (!ValidateBaseUrl()) {
+    return HttpResponse(
+        static_cast<int>(olp::http::ErrorCode::INVALID_URL_ERROR),
+        "Base URI does not contain a protocol");
   }
 
   const auto& retry_settings = settings_.retry_settings;
@@ -679,7 +702,7 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
   return response;
 }
 
-OlpClient::OlpClient() : impl_(std::make_shared<OlpClientImpl>()){};
+OlpClient::OlpClient() : impl_(std::make_shared<OlpClientImpl>()) {}
 OlpClient::OlpClient(const OlpClientSettings& settings, std::string base_url)
     : impl_(std::make_shared<OlpClientImpl>(settings, std::move(base_url))) {}
 OlpClient::~OlpClient() = default;

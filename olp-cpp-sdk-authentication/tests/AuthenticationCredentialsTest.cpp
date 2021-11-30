@@ -23,18 +23,18 @@
 #include <gtest/gtest.h>
 #include "olp/authentication/AuthenticationCredentials.h"
 
-using namespace olp::authentication;
+namespace auth = olp::authentication;
 
 namespace {
-const std::string valid_file_path = "existing.file";
-const std::string invalid_file_path = "nonexisting.file";
-const std::string valid_credentials =
+constexpr auto valid_file_path = "existing.file";
+constexpr auto invalid_file_path = "nonexisting.file";
+constexpr auto valid_credentials =
     "here.user.id = HERE-111\n"
     "here.client.id = 123\n"
     "here.access.key.id = 234\n"
     "here.access.key.secret = 345\n"
     "here.token.endpoint.url = https://account.api.here.com/oauth2/token";
-const std::string invalid_credentials =
+constexpr auto invalid_credentials =
     "here.user.id = HERE-111\n"
     "here.client.id = 222\n"
     "here.access.key.id = 333\n"
@@ -47,7 +47,8 @@ TEST(AuthenticationCredentialsTest, ReadFromStream) {
     SCOPED_TRACE("Credentials parse succeeds");
 
     std::stringstream ss(valid_credentials);
-    const auto credentials = AuthenticationCredentials::ReadFromStream(ss);
+    const auto credentials =
+        auth::AuthenticationCredentials::ReadFromStream(ss);
 
     EXPECT_TRUE(credentials);
 
@@ -58,7 +59,8 @@ TEST(AuthenticationCredentialsTest, ReadFromStream) {
     SCOPED_TRACE("Bad content in the stream");
 
     std::stringstream ss(invalid_credentials);
-    const auto credentials = AuthenticationCredentials::ReadFromStream(ss);
+    const auto credentials =
+        auth::AuthenticationCredentials::ReadFromStream(ss);
 
     EXPECT_FALSE(credentials);
   }
@@ -74,18 +76,19 @@ TEST(AuthenticationCredentialsTest, ReadFromFile) {
     stream.close();
 
     const auto credentials =
-        AuthenticationCredentials::ReadFromFile(valid_file_path);
+        auth::AuthenticationCredentials::ReadFromFile(valid_file_path);
 
     EXPECT_TRUE(credentials);
+    EXPECT_NE(credentials.value().GetEndpointUrl(), "");
 
     // Remove the file.
-    remove(valid_file_path.c_str());
+    remove(valid_file_path);
   }
   {
     SCOPED_TRACE("Missing credential file");
 
     const auto credentials =
-        AuthenticationCredentials::ReadFromFile(invalid_file_path);
+        auth::AuthenticationCredentials::ReadFromFile(invalid_file_path);
 
     EXPECT_FALSE(credentials);
   }
@@ -93,8 +96,8 @@ TEST(AuthenticationCredentialsTest, ReadFromFile) {
 
 
 TEST(AuthenticationCredentialsTest, CanBeCopied) {
-  AuthenticationCredentials credentials("test_key", "test_secred");
-  AuthenticationCredentials copy = credentials;
+  auth::AuthenticationCredentials credentials("test_key", "test_secret");
+  auth::AuthenticationCredentials copy = credentials;
   EXPECT_EQ(credentials.GetKey(), copy.GetKey());
   EXPECT_EQ(credentials.GetSecret(), copy.GetSecret());
 }
