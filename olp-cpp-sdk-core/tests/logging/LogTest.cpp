@@ -154,9 +154,9 @@ TEST(LogTest, DifferentLevelsForConsoleAndFileLogging) {
   }
   olp::logging::Log::setLevel(olp::logging::Level::Trace);
 
-  // redirecting cout to stringstream
+  // redirecting clog to stringstream
   std::stringstream string_stream;
-  auto default_cout_buffer = std::cout.rdbuf(string_stream.rdbuf());
+  auto default_clog_buffer = std::clog.rdbuf(string_stream.rdbuf());
 
   OLP_SDK_LOG_INFO("info", "Info "
                                << "message");
@@ -169,8 +169,8 @@ TEST(LogTest, DifferentLevelsForConsoleAndFileLogging) {
   OLP_SDK_LOG_FATAL("fatal", "Fatal "
                                  << "message");
 
-  // resetting cout
-  std::cout.rdbuf(default_cout_buffer);
+  // resetting clog
+  std::clog.rdbuf(default_clog_buffer);
 
   // Clear out configuration so the file file handles are closed.
   olp::logging::Log::configure(olp::logging::Configuration::createDefault());
