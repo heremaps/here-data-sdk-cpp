@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <utility>
 #include <vector>
 
 #include <olp/dataservice/read/model/StreamOffsets.h>
@@ -45,7 +46,7 @@ class DATASERVICE_READ_API SeekRequest final {
    * @return A reference to the updated `SeekRequest` instance.
    */
   SeekRequest& WithOffsets(StreamOffsets offsets) {
-    stream_offsets_ = offsets;
+    stream_offsets_ = std::move(offsets);
     return *this;
   }
 

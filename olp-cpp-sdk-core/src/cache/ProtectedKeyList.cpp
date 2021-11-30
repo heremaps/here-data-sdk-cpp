@@ -35,6 +35,15 @@ class ReadBuffer : public std::basic_streambuf<char> {
   ReadBuffer(char* p, size_t l) { setg(p, p, p + l); }
 };
 
+bool IsPrefix(const std::string& prefix, const std::string& key) {
+  return (key.size() > prefix.size() &&
+          std::equal(prefix.begin(), prefix.end(), key.begin()));
+}
+
+bool IsEqualOrPrefix(const std::string& prefix, const std::string& key) {
+  return (key.size() >= prefix.size() &&
+          std::equal(prefix.begin(), prefix.end(), key.begin()));
+}
 }  // namespace
 
 namespace olp {
@@ -152,18 +161,6 @@ bool ProtectedKeyList::IsProtected(const std::string& key) const {
     return true;
   }
   return false;
-}
-
-bool ProtectedKeyList::IsPrefix(const std::string& prefix,
-                                const std::string& key) const {
-  return (key.size() > prefix.size() &&
-          std::equal(prefix.begin(), prefix.end(), key.begin()));
-}
-
-bool ProtectedKeyList::IsEqualOrPrefix(const std::string& prefix,
-                                       const std::string& key) const {
-  return (key.size() >= prefix.size() &&
-          std::equal(prefix.begin(), prefix.end(), key.begin()));
 }
 
 std::uint64_t ProtectedKeyList::Size() const { return size_written_; }

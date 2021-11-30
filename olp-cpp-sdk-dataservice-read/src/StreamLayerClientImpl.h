@@ -81,10 +81,10 @@ class StreamLayerClientImpl {
                              std::string subscription_mode,
                              std::string x_correlation_id,
                              std::shared_ptr<client::OlpClient> client)
-        : subscription_id(subscription_id),
-          subscription_mode(subscription_mode),
-          x_correlation_id(x_correlation_id),
-          client(client) {}
+        : subscription_id(std::move(subscription_id)),
+          subscription_mode(std::move(subscription_mode)),
+          x_correlation_id(std::move(x_correlation_id)),
+          client(std::move(client)) {}
 
     std::string subscription_id;
     std::string subscription_mode;

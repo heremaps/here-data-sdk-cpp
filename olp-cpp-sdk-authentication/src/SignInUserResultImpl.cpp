@@ -41,7 +41,7 @@ SignInUserResultImpl::SignInUserResultImpl() noexcept
 SignInUserResultImpl::SignInUserResultImpl(
     int status, std::string error,
     std::shared_ptr<rapidjson::Document> json_document) noexcept
-    : SignInResultImpl(status, error, json_document) {
+    : SignInResultImpl(status, std::move(error), json_document) {
   if (BaseResult::IsValid()) {
     if (json_document->HasMember(kTermsReacceptanceToken))
       term_acceptance_token_ =

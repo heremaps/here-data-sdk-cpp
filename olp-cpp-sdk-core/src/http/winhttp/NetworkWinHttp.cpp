@@ -607,9 +607,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
   }
 
   NetworkWinHttp* network = handle->self;
-
   ResultData& request_result = *handle->result_data;
-
   handle->connection_data->last_used = GetTickCount64();
 
   if (status == WINHTTP_CALLBACK_STATUS_REQUEST_ERROR) {
@@ -617,7 +615,6 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
     WINHTTP_ASYNC_RESULT* result =
         reinterpret_cast<WINHTTP_ASYNC_RESULT*>(status_info);
     request_result.status = result->dwError;
-
     request_result.error = true;
 
     OLP_SDK_LOG_DEBUG(kLogTag, "RequestCallback - request error, status="

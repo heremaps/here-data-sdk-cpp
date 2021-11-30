@@ -86,9 +86,6 @@ class TokenEndpointImpl {
   RequestTimer CreateRequestTimer(const client::OlpClient& client,
                                   client::CancellationContext& context) const;
 
-  Response<time_t> GetTimeFromServer(client::CancellationContext& context,
-                                     const client::OlpClient& client) const;
-
   const AuthenticationCredentials credentials_;
   const AuthenticationSettings settings_;
   AuthenticationClient auth_client_;

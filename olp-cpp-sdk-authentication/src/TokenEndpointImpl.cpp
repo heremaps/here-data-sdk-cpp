@@ -80,10 +80,9 @@ void RetryDelay(const client::RetrySettings& retry_settings, size_t retry) {
       retry));
 }
 
-TimeResponse ParseTimeResponse(std::stringstream& payload) {
+TimeResponse ParseTimeResponse(const std::string& payload) {
   rapidjson::Document document;
-  rapidjson::IStreamWrapper stream(payload);
-  document.ParseStream(stream);
+  document.Parse(payload.c_str());
 
   if (!document.IsObject()) {
     return AuthenticationError(client::ErrorCode::InternalFailure,
@@ -127,6 +126,35 @@ client::OlpClient::RequestBodyType GenerateClientBody(
   auto content = data.GetString();
   return std::make_shared<RequestBodyData>(content, content + data.GetSize());
 }
+
+TimeResponse GetTimeFromServer(client::CancellationContext& context,
+                               const client::OlpClient& client) {
+  auto http_result = client.CallApi(kTimestampEndpoint, "GET", {}, {}, {},
+                                    nullptr, {}, context);
+
+  std::string response;
+  http_result.GetResponse(response);
+
+  if (http_result.status != http::HttpStatusCode::OK) {
+    OLP_SDK_LOG_WARNING_F(
+        kLogTag, "Failed to get time from server, status=%d, response='%s'",
+        http_result.GetStatus(), response.c_str());
+
+    return AuthenticationError(http_result.GetStatus(), std::move(response));
+  }
+
+  auto server_time = ParseTimeResponse(response);
+  if (!server_time) {
+    const auto& error = server_time.GetError();
+    const auto& message = error.GetMessage();
+    OLP_SDK_LOG_WARNING_F(kLogTag,
+                          "Failed to decode time from server, message='%s'",
+                          message.c_str());
+  }
+
+  return server_time;
+}
+
 }  // namespace
 
 TokenEndpointImpl::TokenEndpointImpl(Settings settings)
@@ -310,33 +338,6 @@ TokenEndpointImpl::RequestTimer TokenEndpointImpl::CreateRequestTimer(
   }
 
   return RequestTimer(server_time.GetResult());
-}
-
-TimeResponse TokenEndpointImpl::GetTimeFromServer(
-    client::CancellationContext& context,
-    const client::OlpClient& client) const {
-  auto http_result = client.CallApi(kTimestampEndpoint, "GET", {}, {}, {},
-                                    nullptr, {}, context);
-
-  if (http_result.status != http::HttpStatusCode::OK) {
-    auto response = http_result.response.str();
-    OLP_SDK_LOG_WARNING_F(
-        kLogTag, "Failed to get time from server, status=%d, response='%s'",
-        http_result.status, response.c_str());
-    return AuthenticationError(http_result.status, http_result.response.str());
-  }
-
-  auto server_time = ParseTimeResponse(http_result.response);
-
-  if (!server_time) {
-    const auto& error = server_time.GetError();
-    const auto& message = error.GetMessage();
-    OLP_SDK_LOG_WARNING_F(kLogTag,
-                          "Failed to decode time from server, message='%s'",
-                          message.c_str());
-  }
-
-  return server_time;
 }
 
 TokenEndpointImpl::RequestTimer::RequestTimer()
