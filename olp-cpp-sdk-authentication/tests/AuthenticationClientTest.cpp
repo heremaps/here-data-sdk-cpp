@@ -117,6 +117,25 @@ TEST(AuthenticationClientTest, SignUpWithUnsuccessfulSend) {
       });
 }
 
+TEST(AuthenticationClientTest, SignOutAccessDenied) {
+  using testing::_;
+
+  auth::AuthenticationSettings settings;
+  settings.network_request_handler = std::make_shared<NetworkMock>();
+
+  AuthenticationClientImplTestable auth_impl(settings);
+
+  const auth::AuthenticationCredentials credentials("", "");
+
+  auth_impl.SignOut(
+      credentials, {},
+      [=](const auth::AuthenticationClient::SignOutUserResponse& response) {
+        EXPECT_FALSE(response.IsSuccessful());
+        EXPECT_EQ(response.GetError().GetErrorCode(),
+                  client::ErrorCode::AccessDenied);
+      });
+}
+
 TEST(AuthenticationClientTest, Timestamp) {
   using testing::_;
 
