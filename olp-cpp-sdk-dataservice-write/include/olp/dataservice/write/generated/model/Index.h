@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,15 +49,15 @@ enum class DATASERVICE_WRITE_API IndexType {
   /**
    * @brief The index value of the HERE tile type.
    *
-   * Represents the tile ID in the HERE map tiling scheme. 
+   * Represents the tile ID in the HERE map tiling scheme.
    */
   Heretile,
-
 
   /**
    * @brief The index value of the time window type.
    *
-   * The minimum value is 10 minutes, and the maximum is 24 hours (1440 minutes).
+   * The minimum value is 10 minutes, and the maximum is 24 hours (1440
+   * minutes).
    */
   TimeWindow,
 
@@ -102,7 +102,7 @@ class DATASERVICE_WRITE_API IndexValue {
 /// Represents values that are not supported by the index layer.
 class DATASERVICE_WRITE_API UnsupportedIndexValue final : public IndexValue {
  public:
- /**
+  /**
    * @brief Creates the `UnsupportedIndexValue` instance.
    *
    * @param type The`IndexType` instance.
@@ -199,9 +199,8 @@ class DATASERVICE_WRITE_API StringIndexValue final : public IndexValue {
    * @param stringValue The string value.
    * @param type The `IndexType` instance.
    */
-  StringIndexValue(std::string stringValue, IndexType type) : IndexValue(type) {
-    stringValue_ = std::move(stringValue);
-  }
+  StringIndexValue(std::string stringValue, IndexType type)
+      : IndexValue(type), stringValue_{std::move(stringValue)} {}
 
   /**
    * @brief Gets the string value of the index layer.
@@ -239,9 +238,7 @@ class DATASERVICE_WRITE_API TimeWindowIndexValue final : public IndexValue {
    * @param type  The `IndexType` instance.
    */
   TimeWindowIndexValue(int64_t timeWindowValue, IndexType type)
-      : IndexValue(type) {
-    timeWindowValue_ = std::move(timeWindowValue);
-  }
+      : IndexValue(type), timeWindowValue_{std::move(timeWindowValue)} {}
 
   /**
    * @brief Gets the time vindow value of the index layer.
@@ -251,7 +248,8 @@ class DATASERVICE_WRITE_API TimeWindowIndexValue final : public IndexValue {
   const int64_t& GetValue() const { return timeWindowValue_; }
 
   /**
-   * @brief Gets a mutable reference to the time window value of the index layer.
+   * @brief Gets a mutable reference to the time window value of the index
+   * layer.
    *
    * @return The mutable reference to the time window value.
    */
@@ -276,9 +274,8 @@ class DATASERVICE_WRITE_API HereTileIndexValue final : public IndexValue {
    * @param hereTileValue The HERE tile value.
    * @param type The `IndexType` instance.
    */
-  HereTileIndexValue(int64_t hereTileValue, IndexType type) : IndexValue(type) {
-    hereTileValue_ = std::move(hereTileValue);
-  }
+  HereTileIndexValue(int64_t hereTileValue, IndexType type)
+      : IndexValue(type), hereTileValue_{std::move(hereTileValue)} {}
 
   /**
    * @brief Gets the HERE tile value of the index layer.
@@ -329,7 +326,7 @@ class DATASERVICE_WRITE_API Index final {
    */
   Index(std::string uuid,
         std::map<IndexName, std::shared_ptr<IndexValue>> indexFields)
-      : id_(uuid), indexFields_(indexFields) {}
+      : id_(std::move(uuid)), indexFields_(std::move(indexFields)) {}
 
  private:
   boost::optional<std::string> checksum_;

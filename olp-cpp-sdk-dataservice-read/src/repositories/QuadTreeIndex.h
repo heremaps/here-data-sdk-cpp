@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,7 +126,6 @@ class QuadTreeIndex {
     return reinterpret_cast<const uint8_t*>(data_) + size_;
   }
 
-  bool WriteIndexData(const IndexData& data, BlobDataWriter& writer);
   bool ReadIndexData(IndexData& data, uint32_t offset) const;
 
   DataHeader* data_ = nullptr;

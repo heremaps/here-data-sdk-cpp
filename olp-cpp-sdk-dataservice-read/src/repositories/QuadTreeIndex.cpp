@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,9 @@
 #include "BlobDataReader.h"
 #include "BlobDataWriter.h"
 
+namespace olp {
+namespace dataservice {
+namespace read {
 namespace {
 constexpr auto kParentQuadsKey = "parentQuads";
 constexpr auto kSubQuadsKey = "subQuads";
@@ -70,11 +73,18 @@ olp::dataservice::read::QuadTreeIndex::IndexData ParseCommonIndexData(
   }
   return data;
 }
-}  // namespace
 
-namespace olp {
-namespace dataservice {
-namespace read {
+bool WriteIndexData(const QuadTreeIndex::IndexData& data,
+                    BlobDataWriter& writer) {
+  bool success = writer.Write(data.version);
+  success &= writer.Write(data.data_size);
+  success &= writer.Write(data.compressed_data_size);
+  success &= writer.Write(data.data_handle);
+  success &= writer.Write(data.checksum);
+  success &= writer.Write(data.additional_metadata);
+  return success;
+}
+}  // namespace
 
 QuadTreeIndex::QuadTreeIndex(cache::KeyValueCache::ValueTypePtr data) {
   if (data == nullptr || data->empty()) {
@@ -155,17 +165,6 @@ bool QuadTreeIndex::ReadIndexData(QuadTreeIndex::IndexData& data,
   success &= reader.Read(data.data_handle);
   success &= reader.Read(data.checksum);
   success &= reader.Read(data.additional_metadata);
-  return success;
-}
-
-bool QuadTreeIndex::WriteIndexData(const IndexData& data,
-                                   BlobDataWriter& writer) {
-  bool success = writer.Write(data.version);
-  success &= writer.Write(data.data_size);
-  success &= writer.Write(data.compressed_data_size);
-  success &= writer.Write(data.data_handle);
-  success &= writer.Write(data.checksum);
-  success &= writer.Write(data.additional_metadata);
   return success;
 }
 

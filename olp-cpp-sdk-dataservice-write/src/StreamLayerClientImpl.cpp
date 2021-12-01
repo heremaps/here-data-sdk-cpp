@@ -62,9 +62,9 @@ constexpr int64_t kTwentyMib = 20971520;  // 20 MiB
 StreamLayerClientImpl::StreamLayerClientImpl(
     client::HRN catalog, StreamLayerClientSettings client_settings,
     client::OlpClientSettings settings)
-    : catalog_(catalog),
-      settings_(settings),
-      catalog_settings_(catalog, settings),
+    : catalog_(std::move(catalog)),
+      settings_(std::move(settings)),
+      catalog_settings_(catalog_, settings_),
       cache_(settings_.cache),
       cache_mutex_(),
       stream_client_settings_(std::move(client_settings)),

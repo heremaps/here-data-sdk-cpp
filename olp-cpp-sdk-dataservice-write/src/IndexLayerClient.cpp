@@ -26,7 +26,8 @@ namespace dataservice {
 namespace write {
 IndexLayerClient::IndexLayerClient(client::HRN catalog,
                                    client::OlpClientSettings settings)
-    : impl_(std::make_shared<IndexLayerClientImpl>(catalog, settings)) {}
+    : impl_(std::make_shared<IndexLayerClientImpl>(std::move(catalog),
+                                                   std::move(settings))) {}
 
 void IndexLayerClient::CancelPendingRequests() {
   impl_->CancelPendingRequests();
