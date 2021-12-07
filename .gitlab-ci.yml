@@ -15,7 +15,6 @@ variables:
   ADB_INSTALL_TIMEOUT: "8"
 # Gitlab SAST scanner
   SAST_EXCLUDED_PATHS: "tests, examples, docs, scripts"
-  SAST_EXCLUDED_ANALYZERS: "flawfinder"
 
 stages:
   - build
