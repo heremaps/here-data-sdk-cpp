@@ -29,8 +29,7 @@ weekly_perf_reports:
   image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_USER}:${DOCKER_IMAGE_USER_VERSION}
   only:
     refs:
-      - branches
-      - master
+      - web
       - schedules
     variables:
       - $PERFORMANCE
@@ -50,30 +49,6 @@ weekly_perf_reports:
       - reports/*.xml
     expire_in: 1 year
 
-wv_security_job:
-  stage: test
-  tags:
-  - docker-prod
-  image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_SECURITY}:${DOCKER_IMAGE_SECURITY_VERSION}
-  variables:
-    LD_PRELOAD: "/lib64/libSegFault.so"
-    SEGFAULT_SIGNALS: "all"
-  script:
-  - $CI_PROJECT_DIR/scripts/linux/weekly/build_centos_debug_wv.sh --centos
-  - $CI_PROJECT_DIR/scripts/linux/weekly/security_scanner_upload_wv.sh build/binaries.tar.gz OLP_EDGE_CI@here.com
-  only:
-    refs:
-      - branches
-      - master
-      - schedules
-    variables:
-      - $SECURITY
-  artifacts:
-    when: always
-    paths:
-      - build/binaries.tar.gz
-    expire_in: 1 year # save our archive for 1 year as job artifacts
-
 build_linux_armhf_fv:
   stage: build
   tags:
@@ -83,8 +58,7 @@ build_linux_armhf_fv:
   - $CI_PROJECT_DIR/scripts/linux-armhf/fv/gitlab_build_armhf_fv.sh
   only:
     refs:
-      - branches
-      - master
+      - web
       - schedules
     variables:
       - $FV
@@ -103,8 +77,7 @@ build_test_linux_fv:
 
   only:
     refs:
-      - branches
-      - master
+      - web
       - schedules
     variables:
       - $FV
@@ -128,8 +101,7 @@ build_test_nv:
   - $CI_PROJECT_DIR/scripts/misc/artifactory_upload.sh edge-sdks/sdk-for-cpp/releases/test-reports/$CI_JOB_NAME/$CI_JOB_ID/${CI_JOB_NAME}_test_reports.tar.gz ${CI_JOB_NAME}_test_reports.tar.gz
   only:
     refs:
-      - branches
-      - master
+      - web
       - schedules
     variables:
       - $NV
@@ -151,8 +123,7 @@ test_performance_nv:
   - $CI_PROJECT_DIR/scripts/misc/artifactory_upload.sh edge-sdks/sdk-for-cpp/releases/test-reports/$CI_JOB_NAME/$CI_JOB_ID/${CI_JOB_NAME}_test_reports.tar.gz ${CI_JOB_NAME}_test_reports.tar.gz
   only:
     refs:
-      - branches
-      - master
+      - web
       - schedules
     variables:
       - $NV
@@ -174,8 +145,7 @@ upload_sonar_nv:
   - $CI_PROJECT_DIR/scripts/linux/nv/gitlab_cppcheck_and_upload_sonar.sh
   only:
     refs:
-      - branches
-      - master
+      - web
       - schedules
     variables:
       - $NV
@@ -185,7 +155,6 @@ translate_report_fv:
   tags:
   - docker-prod
   image: python:3.6
-  when: always
   before_script:
     - pip install junit2html
   script:
@@ -210,8 +179,7 @@ translate_report_fv:
       - .public
   only:
     refs:
-      - branches
-      - master
+      - web
       - schedules
     variables:
       - $FV
@@ -221,7 +189,6 @@ translate_report_nv:
   tags:
   - docker-prod
   image: python:3.6
-  when: always
   before_script:
     - pip install junit2html
   script:
@@ -234,8 +201,7 @@ translate_report_nv:
       - .public
   only:
     refs:
-      - branches
-      - master
+      - web
       - schedules
     variables:
       - $NV
@@ -244,7 +210,6 @@ pages:
   stage: deploy
   tags:
     - docker-prod
-  when: always
   script: mv .public public
   artifacts:
     paths:
@@ -252,8 +217,7 @@ pages:
     expire_in: 1 year
   only:
     refs:
-      - branches
-      - master
+      - web
       - schedules
     variables:
       - $FV
