@@ -88,7 +88,7 @@ TEST(AuthenticationClientTest, AuthenticationWithoutNetwork) {
   }
 }
 
-TEST(AuthenticationClientTest, AuthenticationWithUnsuccessfulSend) {
+TEST(AuthenticationClientTest, SignUpWithUnsuccessfulSend) {
   using testing::_;
 
   auth::AuthenticationSettings settings;
@@ -108,29 +108,13 @@ TEST(AuthenticationClientTest, AuthenticationWithUnsuccessfulSend) {
 
   const auth::AuthenticationCredentials credentials("", "");
 
-  {
-    SCOPED_TRACE("SignUpHereUser, Unsuccessful send");
-
-    auth_impl.SignUpHereUser(
-        credentials, {},
-        [=](const auth::AuthenticationClient::SignUpResponse& response) {
-          EXPECT_FALSE(response.IsSuccessful());
-          EXPECT_EQ(response.GetError().GetErrorCode(),
-                    client::ErrorCode::Unknown);
-        });
-  }
-
-  {
-    SCOPED_TRACE("SignOut, Unsuccessful send");
-
-    auth_impl.SignOut(
-        credentials, {},
-        [=](const auth::AuthenticationClient::SignOutUserResponse& response) {
-          EXPECT_FALSE(response.IsSuccessful());
-          EXPECT_EQ(response.GetError().GetErrorCode(),
-                    client::ErrorCode::Unknown);
-        });
-  }
+  auth_impl.SignUpHereUser(
+      credentials, {},
+      [=](const auth::AuthenticationClient::SignUpResponse& response) {
+        EXPECT_FALSE(response.IsSuccessful());
+        EXPECT_EQ(response.GetError().GetErrorCode(),
+                  client::ErrorCode::Unknown);
+      });
 }
 
 TEST(AuthenticationClientTest, Timestamp) {

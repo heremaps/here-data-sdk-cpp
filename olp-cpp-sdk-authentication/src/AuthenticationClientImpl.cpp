@@ -555,81 +555,46 @@ client::CancellationToken AuthenticationClientImpl::HandleUserRequest(
 client::CancellationToken AuthenticationClientImpl::SignUpHereUser(
     const AuthenticationCredentials& credentials,
     const SignUpProperties& properties, const SignUpCallback& callback) {
-  if (!settings_.network_request_handler) {
-    thread::ExecuteOrSchedule(settings_.task_scheduler, [callback] {
-      callback(
-          client::ApiError::NetworkConnection("Cannot sign up while offline"));
-    });
-    return client::CancellationToken();
-  }
-  std::weak_ptr<http::Network> weak_network(settings_.network_request_handler);
-  std::string url = settings_.token_endpoint_url;
-  url.append(kUserEndpoint);
-  http::NetworkRequest request(url);
-  auto network_settings =
-      http::NetworkSettings()
-          .WithTransferTimeout(settings_.retry_settings.timeout)
-          .WithConnectionTimeout(settings_.retry_settings.timeout)
-          .WithProxySettings(settings_.network_proxy_settings.get_value_or({}));
+  using ResponseType = client::ApiResponse<SignUpResult, client::ApiError>;
 
-  request.WithVerb(http::NetworkRequest::HttpVerb::POST);
-
-  auto auth_header = GenerateAuthorizationHeader(
-      credentials, url, std::time(nullptr), GenerateUid());
-
-  request.WithHeader(http::kAuthorizationHeader, std::move(auth_header));
-  request.WithHeader(http::kContentTypeHeader, kApplicationJson);
-  request.WithHeader(http::kUserAgentHeader, http::kOlpSdkUserAgent);
-  request.WithSettings(std::move(network_settings));
-
-  std::shared_ptr<std::stringstream> payload =
-      std::make_shared<std::stringstream>();
-  request.WithBody(GenerateSignUpBody(properties));
-  auto send_outcome = settings_.network_request_handler->Send(
-      request, payload,
-      [callback, payload,
-       credentials](const http::NetworkResponse& network_response) {
-        auto response_status = network_response.GetStatus();
-        auto error_msg = network_response.GetError();
-
-        if (response_status < 0) {
-          // Network error response
-          AuthenticationError error(response_status, error_msg);
-          callback(error);
-          return;
-        }
-
-        auto document = std::make_shared<rapidjson::Document>();
-        rapidjson::IStreamWrapper stream(*payload.get());
-        document->ParseStream(stream);
-
-        std::shared_ptr<SignUpResultImpl> resp_impl =
-            std::make_shared<SignUpResultImpl>(response_status, error_msg,
-                                               document);
-        SignUpResult response(resp_impl);
-        callback(response);
-      });
-
-  if (!send_outcome.IsSuccessful()) {
-    thread::ExecuteOrSchedule(settings_.task_scheduler, [send_outcome,
-                                                         callback] {
-      std::string error_message =
-          ErrorCodeToString(send_outcome.GetErrorCode());
-      AuthenticationError result({static_cast<int>(send_outcome.GetErrorCode()),
-                                  std::move(error_message)});
-      callback(result);
-    });
-    return client::CancellationToken();
-  }
-
-  auto request_id = send_outcome.GetRequestId();
-  return client::CancellationToken([weak_network, request_id]() {
-    auto network = weak_network.lock();
-
-    if (network) {
-      network->Cancel(request_id);
+  auto signup_task = [=](client::CancellationContext context) -> ResponseType {
+    if (!settings_.network_request_handler) {
+      return client::ApiError::NetworkConnection(
+          "Cannot sign up while offline");
     }
-  });
+
+    if (context.IsCancelled()) {
+      return client::ApiError::Cancelled();
+    }
+
+    client::OlpClient client = CreateOlpClient(settings_, {}, false);
+
+    const auto url = settings_.token_endpoint_url + kUserEndpoint;
+    auto auth_header = GenerateAuthorizationHeader(
+        credentials, url, std::time(nullptr), GenerateUid());
+
+    client::OlpClient::ParametersType headers = {
+        {http::kAuthorizationHeader, std::move(auth_header)}};
+
+    auto signup_response = client.CallApi(kUserEndpoint, "POST", {}, headers,
+                                          {}, GenerateSignUpBody(properties),
+                                          kApplicationJson, std::move(context));
+
+    const auto status = signup_response.GetStatus();
+    std::string response_text;
+    signup_response.GetResponse(response_text);
+    if (status < 0) {
+      return client::ApiError(status, response_text);
+    }
+
+    auto document = std::make_shared<rapidjson::Document>();
+    document->Parse(response_text.c_str());
+    return {std::make_shared<SignUpResultImpl>(
+        status, olp::http::HttpErrorToString(status), document)};
+  };
+
+  return AddTask(settings_.task_scheduler, pending_requests_,
+                 std::move(signup_task), std::move(callback));
 }
 
 client::CancellationToken AuthenticationClientImpl::SignOut(
