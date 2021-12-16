@@ -85,7 +85,7 @@ const auto kHrn = olp::client::HRN::FromString(kCatalog);
 class CatalogRepositoryTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    cache_ = std::make_shared<testing::NiceMock<CacheMock>>();
+    cache_ = std::make_shared<testing::NaggyMock<CacheMock>>();
     network_ = std::make_shared<testing::NiceMock<NetworkMock>>();
 
     settings_.network_request_handler = network_;
@@ -158,6 +158,36 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyNotFound) {
   EXPECT_FALSE(response.IsSuccessful());
   EXPECT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::NotFound);
+}
+
+TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyRequestWithMinVersion) {
+  olp::client::CancellationContext context;
+
+  auto request = read::CatalogVersionRequest();
+  request.WithFetchOption(olp::dataservice::read::CacheOnly)
+      .WithStartVersion(kStartVersion);
+
+  EXPECT_CALL(*cache_, Get(_, _))
+      .Times(1)
+      .WillOnce(testing::Return(boost::any{}));
+
+  EXPECT_CALL(*cache_, Put(_, _, _, _)).Times(1);
+
+  ON_CALL(*network_, Send(_, _, _, _, _))
+      .WillByDefault([](olp::http::NetworkRequest, olp::http::Network::Payload,
+                        olp::http::Network::Callback,
+                        olp::http::Network::HeaderCallback,
+                        olp::http::Network::DataCallback) {
+        ADD_FAILURE() << "Should not be called with CacheOnly";
+        return olp::http::SendOutcome(olp::http::ErrorCode::UNKNOWN_ERROR);
+      });
+
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
+  auto response = repository.GetLatestVersion(request, context);
+
+  EXPECT_TRUE(response.IsSuccessful());
+  EXPECT_EQ(response.GetResult().GetVersion(), kStartVersion);
 }
 
 TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyNotFound) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,13 +110,14 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
       catalog_, settings_.cache, settings_.default_cache_expiration);
 
   const auto fetch_option = request.GetFetchOption();
-  // in case if get version online was never called and version was not found in
+  // in case get version online was never called and version was not found in
   // cache
   CatalogVersionResponse version_response = {
       {client::ErrorCode::NotFound, "Failed to find version."}};
 
   if (fetch_option != CacheOnly) {
-    version_response = GetLatestVersionOnline(request.GetBillingTag(), context);
+    version_response =
+        GetLatestVersionOnline(request.GetBillingTag(), std::move(context));
 
     if (fetch_option == OnlineOnly) {
       return version_response;
@@ -135,26 +136,48 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
     }
   }
 
-  const auto cached_version = repository.GetVersion();
+  auto cached_version = repository.GetVersion();
+
+  // Using `GetStartVersion` to set up new latest version for CacheOnly
+  // requests in case of absence of previous latest version or it less than the
+  // new user set version
+  if (fetch_option == CacheOnly) {
+    constexpr auto kDefaultStartVersion = 0;
+
+    auto user_set_version = request.GetStartVersion();
+    if (user_set_version != kDefaultStartVersion) {
+      if (!cached_version || user_set_version > cached_version->GetVersion()) {
+        model::VersionResponse new_response;
+        new_response.SetVersion(user_set_version);
+        version_response = new_response;
+      }
+    }
+  }
 
   if (version_response.IsSuccessful()) {
-    const auto online_version = version_response.GetResult().GetVersion();
+    const auto new_version = version_response.GetResult().GetVersion();
     // Write or update the version in cache, updating happens only when the new
     // version is greater than cached.
-    if (!cached_version || (*cached_version).GetVersion() < online_version) {
+    if (!cached_version || (*cached_version).GetVersion() < new_version) {
       repository.PutVersion(version_response.GetResult());
-      OLP_SDK_LOG_DEBUG_F(
-          kLogTag, "Latest online version, hrn='%s', version=%" PRId64,
-          catalog_.ToCatalogHRNString().c_str(), online_version);
+      if (fetch_option == CacheOnly) {
+        OLP_SDK_LOG_DEBUG_F(
+            kLogTag, "Latest user set version, hrn='%s', version=%" PRId64,
+            catalog_.ToCatalogHRNString().c_str(), new_version);
+      } else {
+        OLP_SDK_LOG_DEBUG_F(kLogTag,
+                            "Latest online version, hrn='%s', version=%" PRId64,
+                            catalog_.ToCatalogHRNString().c_str(), new_version);
+      }
     }
     return version_response;
   }
 
   if (cached_version) {
-    version_response = std::move(*cached_version);
     OLP_SDK_LOG_DEBUG_F(
         kLogTag, "Latest cached version, hrn='%s', version=%" PRId64,
         catalog_.ToCatalogHRNString().c_str(), (*cached_version).GetVersion());
+    version_response = *std::move(cached_version);
   }
 
   return version_response;
