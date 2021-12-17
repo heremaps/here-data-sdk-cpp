@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2021 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,6 +119,14 @@ class DATASERVICE_READ_API CatalogClient final {
   /**
    * @brief Gets the catalog version asynchronously.
    *
+   * @note In case you call this API with `FetchOptions::CacheOnly` and a valid
+   * version in `CatalogVersionRequest::WithStartVersion()`, i.e. >= 0, then
+   * please make sure that the provided version is a existing catalog version as
+   * it will be written for later use to the cache as latest version in the
+   * following cases:
+   * - There is no latest version yet written to cache.
+   * - The latest version written to cache is less then the provided version.
+   *
    * @param request The `CatalogVersionRequest` instance that contains
    * a complete set of request parameters.
    * @param callback The `CatalogVersionCallback` object that is invoked if
@@ -131,6 +139,14 @@ class DATASERVICE_READ_API CatalogClient final {
 
   /**
    * @brief Gets the catalog version asynchronously.
+   *
+   * @note In case you call this API with `FetchOptions::CacheOnly` and a valid
+   * version in `CatalogVersionRequest::WithStartVersion()`, i.e. >= 0, then
+   * please make sure that the provided version is a existing catalog version as
+   * it will be written for later use to the cache as latest version in the
+   * following cases:
+   * - There is no latest version yet written to cache.
+   * - The latest version written to cache is less then the provided version.
    *
    * @param request The `CatalogVersionRequest` instance that contains
    * a complete set of request parameters.
