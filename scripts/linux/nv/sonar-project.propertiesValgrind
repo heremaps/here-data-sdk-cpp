@@ -10,5 +10,4 @@ sonar.cxx.file.suffixes=.cxx,.cpp,.cc,.hxx,.hpp,.hh,.h
 sonar.cxx.cppcheck.reportPaths=./reports/cppcheck/cppcheck.xml
 sonar.cxx.xunit.reportPaths=./reports/*report.xml
 sonar.cxx.valgrind.reportPaths=./reports/valgrind/*memcheck.xml
-sonar.branch.name=master
 sonar.scm.exclusions.disabled=true
