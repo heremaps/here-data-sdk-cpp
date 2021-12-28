@@ -47,7 +47,7 @@ class TokenProviderPrivate;
 /// An implementation of `TokenProvider`.
 /// @note This is a private implementation class for internal use only, and not
 /// bound to any API stability promises. Please do not use directly.
-class TokenProviderImpl {
+class AUTHENTICATION_API TokenProviderImpl {
  public:
   /**
    * @brief Creates the `TokenProviderImpl` instance.
