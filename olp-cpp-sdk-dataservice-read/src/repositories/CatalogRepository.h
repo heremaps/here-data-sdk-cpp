@@ -33,6 +33,7 @@ namespace read {
 
 class CatalogRequest;
 class CatalogVersionRequest;
+class CompatibleVersionsRequest;
 class VersionsRequest;
 
 namespace repository {
@@ -50,6 +51,10 @@ class CatalogRepository final {
 
   VersionsResponse GetVersionsList(const VersionsRequest& request,
                                    client::CancellationContext context);
+
+  CompatibleVersionsResponse GetCompatibleVersions(
+      const CompatibleVersionsRequest& request,
+      client::CancellationContext context);
 
  private:
   CatalogVersionResponse GetLatestVersionOnline(

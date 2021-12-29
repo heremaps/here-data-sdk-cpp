@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,14 @@
 #include <olp/core/client/OlpClient.h>
 
 // clang-format off
+#include "generated/parser/CompatibleVersionsParser.h"
 #include "generated/parser/LayerVersionsParser.h"
 #include "generated/parser/PartitionsParser.h"
 #include "generated/parser/VersionResponseParser.h"
 #include "generated/parser/VersionInfosParser.h"
 #include "JsonResultParser.h"
+#include "generated/serializer/CompatibleVersionDependencySerializer.h"
+#include "generated/serializer/JsonSerializer.h"
 // clang-format on
 
 namespace {
@@ -178,6 +181,37 @@ MetadataApi::VersionsResponse MetadataApi::ListVersions(
     return {{api_response.status, api_response.response.str()}};
   }
   return parser::parse_result<VersionsResponse>(api_response.response);
+}
+
+MetadataApi::CompatibleVersionsResponse MetadataApi::GetCompatibleVersions(
+    const client::OlpClient& client,
+    const CompatibleVersionsDependencies& dependencies, int32_t limit,
+    const client::CancellationContext& context) {
+  std::string metadata_uri = "/versions/compatibles";
+
+  std::multimap<std::string, std::string> header_params;
+  header_params.emplace("Accept", "application/json");
+
+  std::multimap<std::string, std::string> query_params;
+  query_params.emplace("limit", std::to_string(limit));
+
+  rapidjson::Value value;
+
+  const auto serialized_dependencies = serializer::serialize(dependencies);
+
+  const auto data = std::make_shared<std::vector<unsigned char>>(
+      serialized_dependencies.begin(), serialized_dependencies.end());
+
+  auto api_response =
+      client.CallApi(metadata_uri, "POST", query_params, header_params, {},
+                     data, "application/json", context);
+
+  if (api_response.status != http::HttpStatusCode::OK) {
+    return {{api_response.status, api_response.response.str()}};
+  }
+
+  return parser::parse_result<CompatibleVersionsResponse>(
+      api_response.response);
 }
 
 }  // namespace read

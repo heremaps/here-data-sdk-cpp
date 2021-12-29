@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@
 #include <olp/core/porting/deprecated.h>
 #include <olp/dataservice/read/CatalogRequest.h>
 #include <olp/dataservice/read/CatalogVersionRequest.h>
+#include <olp/dataservice/read/CompatibleVersionsRequest.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
@@ -187,6 +188,36 @@ class DATASERVICE_READ_API CatalogClient final {
    */
   client::CancellableFuture<VersionsResponse> ListVersions(
       VersionsRequest request);
+
+  /**
+   * @brief Gets the list of the current catalog versions that are compatible
+   * with the dependencies provided by the request.
+   *
+   * @note This request is online only.
+   *
+   * @param request The `CompatibleVersionsRequest` instance that contains a
+   * complete set of the request parameters.
+   *
+   * @return A token that can be used to cancel this request.
+   */
+  client::CancellationToken GetCompatibleVersions(
+      CompatibleVersionsRequest request, CompatibleVersionsCallback callback);
+
+  /**
+   * @brief Gets the list of the current catalog versions that are compatible
+   * with the dependencies provided by the request. 
+   *
+   * @note This request is online only.
+   *
+   * @param request The `CompatibleVersionsRequest` instance that contains a
+   * complete set of the request parameters.
+   *
+   * @return `CancellableFuture` that contains the `VersionsResponse`
+   * instance with the list of versions or an error. You can also
+   * use `CancellableFuture` to cancel this request.
+   */
+  client::CancellableFuture<CompatibleVersionsResponse> GetCompatibleVersions(
+      CompatibleVersionsRequest request);
 
  private:
   std::unique_ptr<CatalogClientImpl> impl_;

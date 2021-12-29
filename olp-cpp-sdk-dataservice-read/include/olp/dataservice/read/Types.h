@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@
 #include <olp/core/client/ApiResponse.h>
 
 #include <olp/dataservice/read/AggregatedDataResult.h>
+#include <olp/dataservice/read/CompatibleVersionsResult.h>
 #include <olp/dataservice/read/PrefetchPartitionsResult.h>
 #include <olp/dataservice/read/PrefetchStatus.h>
 #include <olp/dataservice/read/model/Catalog.h>
@@ -139,6 +140,12 @@ using VersionsResponseCallback = Callback<VersionsResult>;
 
 /// The list of tile keys.
 using TileKeys = std::vector<geo::TileKey>;
+
+/// An alias for the compatible versions response.
+using CompatibleVersionsResponse = Response<CompatibleVersionsResult>;
+/// The compatible versions request callback.
+using CompatibleVersionsCallback = Callback<CompatibleVersionsResult>;
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

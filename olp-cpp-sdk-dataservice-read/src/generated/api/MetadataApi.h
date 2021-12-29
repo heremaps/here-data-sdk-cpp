@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@
 #include <boost/optional.hpp>
 #include "ExtendedApiResponse.h"
 #include "generated/model/LayerVersions.h"
+#include "olp/dataservice/read/CompatibleVersionDependency.h"
+#include "olp/dataservice/read/CompatibleVersionsResult.h"
 #include "olp/dataservice/read/model/Partitions.h"
 #include "olp/dataservice/read/model/VersionInfos.h"
 #include "olp/dataservice/read/model/VersionResponse.h"
@@ -56,6 +58,11 @@ class MetadataApi {
   using PartitionsExtendedResponse =
       ExtendedApiResponse<model::Partitions, client::ApiError,
                           client::NetworkStatistics>;
+
+  using CompatibleVersionsDependencies =
+      std::vector<CompatibleVersionDependency>;
+  using CompatibleVersionsResponse =
+      client::ApiResponse<CompatibleVersionsResult, client::ApiError>;
 
   /**
    * @brief Retrieves the latest metadata version for each layer of a specified
@@ -127,6 +134,11 @@ class MetadataApi {
   static VersionsResponse ListVersions(
       const client::OlpClient& client, int64_t start_version,
       int64_t end_version, boost::optional<std::string> billing_tag,
+      const client::CancellationContext& context);
+
+  static CompatibleVersionsResponse GetCompatibleVersions(
+      const client::OlpClient& client,
+      const CompatibleVersionsDependencies& dependencies, int32_t limit,
       const client::CancellationContext& context);
 };
 
