@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,7 +151,7 @@ class DATASERVICE_READ_API CatalogClient final {
    * @param request The `CatalogVersionRequest` instance that contains
    * a complete set of request parameters.
    *
-   * @return CancellableFuture` that contains the `CatalogVersionResponse`
+   * @return `CancellableFuture` that contains the `CatalogVersionResponse`
    * instance with the catalog configuration or an error. You can also
    * use `CancellableFuture` to cancel this request.
    */
