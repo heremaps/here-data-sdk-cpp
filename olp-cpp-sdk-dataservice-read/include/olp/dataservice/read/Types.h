@@ -36,6 +36,7 @@
 #include <olp/dataservice/read/model/Partitions.h>
 #include <olp/dataservice/read/model/VersionInfos.h>
 #include <olp/dataservice/read/model/VersionResponse.h>
+#include <olp/dataservice/read/model/VersionsResponse.h>
 
 namespace olp {
 namespace dataservice {

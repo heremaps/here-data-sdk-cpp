@@ -27,6 +27,7 @@
 #include <olp/core/porting/deprecated.h>
 #include <olp/dataservice/read/CatalogRequest.h>
 #include <olp/dataservice/read/CatalogVersionRequest.h>
+#include <olp/dataservice/read/CompatibleVersionsRequest.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
