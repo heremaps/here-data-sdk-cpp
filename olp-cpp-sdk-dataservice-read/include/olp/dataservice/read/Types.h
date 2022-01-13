@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -138,8 +138,16 @@ using VersionsResponse = Response<VersionsResult>;
 /// The versions list of metadata callback type for the versioned client.
 using VersionsResponseCallback = Callback<VersionsResult>;
 
+/// An alias for the compatible versions response.
+using CompatibleVersionsResult = model::VersionsResponse;
+/// The compatible versions list response type for the versioned client.
+using CompatibleVersionsResponse = Response<CompatibleVersionsResult>;
+/// The compatible versions list response type for the versioned client.
+using CompatibleVersionsCallback = Callback<CompatibleVersionsResult>;
+
 /// The list of tile keys.
 using TileKeys = std::vector<geo::TileKey>;
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

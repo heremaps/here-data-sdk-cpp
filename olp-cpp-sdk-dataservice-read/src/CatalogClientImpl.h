@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/dataservice/read/CatalogRequest.h>
 #include <olp/dataservice/read/CatalogVersionRequest.h>
+#include <olp/dataservice/read/CompatibleVersionsRequest.h>
 #include <olp/dataservice/read/Types.h>
 #include <olp/dataservice/read/VersionsRequest.h>
 
@@ -68,6 +69,12 @@ class CatalogClientImpl final {
 
   client::CancellableFuture<VersionsResponse> ListVersions(
       VersionsRequest request);
+
+  client::CancellationToken GetCompatibleVersions(
+      CompatibleVersionsRequest request, CompatibleVersionsCallback callback);
+
+  client::CancellableFuture<CompatibleVersionsResponse> GetCompatibleVersions(
+      CompatibleVersionsRequest request);
 
  private:
   client::HRN catalog_;

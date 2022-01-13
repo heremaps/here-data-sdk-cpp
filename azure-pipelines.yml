@@ -29,14 +29,14 @@ jobs:
 
 - job: MacOS_build
   pool:
-    vmImage: 'macOS-10.14'
+    vmImage: 'macOS-10.15'
   steps:
   - bash: scripts/macos/psv/azure_macos_build_psv.sh
     displayName: 'MacOS Build'
 
 - job: iOS_build
   pool:
-    vmImage: 'macOS-10.14'
+    vmImage: 'macOS-10.15'
   steps:
   - bash: scripts/ios/azure_ios_build_psv.sh
     displayName: 'iOS Build'
@@ -55,7 +55,7 @@ jobs:
 
 - job: Android_Emulator
   pool:
-    vmImage: 'macOS-10.14'
+    vmImage: 'macOS-10.15'
   condition: eq(variables['Build.Reason'], 'Manual')
   variables:
     ANDROID_NDK_HOME: $(ANDROID_HOME)/ndk-bundle

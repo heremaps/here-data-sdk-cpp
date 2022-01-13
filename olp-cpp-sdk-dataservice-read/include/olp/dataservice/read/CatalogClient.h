@@ -189,6 +189,40 @@ class DATASERVICE_READ_API CatalogClient final {
   client::CancellableFuture<VersionsResponse> ListVersions(
       VersionsRequest request);
 
+  /**
+   * @brief Gets the list of the current catalog versions that are compatible
+   * with the dependencies provided by the request.
+   *
+   * @note This request is online only. It does not support
+   * multiple pages and returns only the first page.
+   *
+   * @param request The `CompatibleVersionsRequest` instance that contains a
+   * complete set of the request parameters.
+   * @param callback The `CompatibleVersionsCallback` object that is invoked if
+   * the compatible versions are available or an error occurred.
+   *
+   * @return A token that can be used to cancel this request.
+   */
+  client::CancellationToken GetCompatibleVersions(
+      CompatibleVersionsRequest request, CompatibleVersionsCallback callback);
+
+  /**
+   * @brief Gets the list of the current catalog versions that are compatible
+   * with the dependencies provided by the request.
+   *
+   * @note This request is online only. It does not support
+   * multiple pages and returns only the first page.
+   *
+   * @param request The `CompatibleVersionsRequest` instance that contains a
+   * complete set of the request parameters.
+   *
+   * @return `CancellableFuture` that contains the `VersionsResponse`
+   * instance with the list of versions or an error. You can also
+   * use `CancellableFuture` to cancel this request.
+   */
+  client::CancellableFuture<CompatibleVersionsResponse> GetCompatibleVersions(
+      CompatibleVersionsRequest request);
+
  private:
   std::unique_ptr<CatalogClientImpl> impl_;
 };
