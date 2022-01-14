@@ -17,6 +17,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
+# Due to some bug which is cmake cannot detect compiler while called
+# from cmake itself when project is compiled with XCode 12.4 we must
+# switch to old XCode as a workaround.
+sudo xcode-select -s /Applications/Xcode_11.7.app
 
 mkdir -p build && cd build
 cmake ../ -GXcode \

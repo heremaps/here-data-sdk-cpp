@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,17 @@ client::CancellableFuture<VersionsResponse> CatalogClient::ListVersions(
     VersionsRequest request) {
   return impl_->ListVersions(std::move(request));
 }
+
+client::CancellationToken CatalogClient::GetCompatibleVersions(
+    CompatibleVersionsRequest request, CompatibleVersionsCallback callback) {
+  return impl_->GetCompatibleVersions(std::move(request), std::move(callback));
+}
+
+client::CancellableFuture<CompatibleVersionsResponse>
+CatalogClient::GetCompatibleVersions(CompatibleVersionsRequest request) {
+  return impl_->GetCompatibleVersions(std::move(request));
+}
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

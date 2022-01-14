@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -147,6 +147,34 @@ client::CancellableFuture<VersionsResponse> CatalogClientImpl::ListVersions(
   return client::CancellableFuture<VersionsResponse>(std::move(cancel_token),
                                                      std::move(promise));
 }
+
+client::CancellationToken CatalogClientImpl::GetCompatibleVersions(
+    CompatibleVersionsRequest request, CompatibleVersionsCallback callback) {
+  auto catalog = catalog_;
+  auto settings = settings_;
+  auto lookup_client = lookup_client_;
+
+  auto get_dependency_task =
+      [=](client::CancellationContext context) -> CompatibleVersionsResponse {
+    repository::CatalogRepository repository(catalog, settings, lookup_client);
+    return repository.GetCompatibleVersions(request, std::move(context));
+  };
+
+  return task_sink_.AddTask(std::move(get_dependency_task), std::move(callback),
+                            thread::NORMAL);
+}
+
+client::CancellableFuture<CompatibleVersionsResponse>
+CatalogClientImpl::GetCompatibleVersions(CompatibleVersionsRequest request) {
+  auto promise = std::make_shared<std::promise<CompatibleVersionsResponse>>();
+  auto cancel_token = GetCompatibleVersions(
+      std::move(request), [promise](CompatibleVersionsResponse response) {
+        promise->set_value(std::move(response));
+      });
+  return client::CancellableFuture<CompatibleVersionsResponse>(
+      std::move(cancel_token), std::move(promise));
+}
+
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

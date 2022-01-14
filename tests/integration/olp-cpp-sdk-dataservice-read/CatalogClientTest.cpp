@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,12 +36,17 @@
 namespace {
 constexpr auto kStartVersion = 3;
 constexpr auto kEndVersion = 4;
+constexpr auto kCompatibleVersions =
+    "https://metadata.data.api.platform.here.com/metadata/v1/catalogs/"
+    "hereos-internal-test-v2/versions/compatibles?limit=1";
 constexpr auto kUrlVersionsList =
     R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/versions?endVersion=4&startVersion=3)";
 constexpr auto kUrlVersionsListStartMinus =
     R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/versions?endVersion=4&startVersion=-1)";
 constexpr auto kHttpVersionsListResponse =
     R"jsonString({"versions":[{"version":4,"timestamp":1547159598712,"partitionCounts":{"testlayer":5,"testlayer_res":1,"multilevel_testlayer":33, "hype-test-prefetch-2":7,"testlayer_gzip":1,"hype-test-prefetch":7},"dependencies":[ { "hrn":"hrn:here:data::olp-here-test:hereos-internal-test-v2","version":0,"direct":false},{"hrn":"hrn:here:data:::hereos-internal-test-v2","version":0,"direct":false }]}]})jsonString";
+constexpr auto kCompatibleVersionsResponse =
+    R"jsonString({"versions":[{"version":30,"sharedDependencies":[{"hrn":"test","version":15}]},{"version":29,"sharedDependencies":[]}]})jsonString";
 
 using testing::_;
 namespace read = olp::dataservice::read;
@@ -670,6 +675,134 @@ TEST_F(CatalogClientTest, GetVersionsListCallback) {
   ASSERT_EQ(
       6u,
       response.GetResult().GetVersions().front().GetPartitionCounts().size());
+}
+
+TEST_F(CatalogClientTest, GetCompatibleVersionsCallback) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  {
+    SCOPED_TRACE("Normal call");
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsPostRequest(kCompatibleVersions), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kCompatibleVersionsResponse));
+
+    auto catalog_client = read::CatalogClient(hrn, settings_);
+
+    auto catalog_version = read::model::CatalogVersion();
+    catalog_version.SetHrn("test");
+    catalog_version.SetVersion(15);
+
+    auto request =
+        read::CompatibleVersionsRequest().WithDependencies({catalog_version});
+
+    std::promise<read::CompatibleVersionsResponse> promise;
+    read::CompatibleVersionsCallback callback =
+        [&promise](read::CompatibleVersionsResponse response) {
+          promise.set_value(response);
+        };
+
+    auto cancel_token = catalog_client.GetCompatibleVersions(request, callback);
+
+    auto response = promise.get_future().get();
+
+    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_FALSE(response.GetResult().GetVersionResponseEntries().empty());
+
+    auto response_entry = response.GetResult().GetVersionResponseEntries()[0];
+
+    EXPECT_EQ(response_entry.GetVersion(), 30);
+    ASSERT_FALSE(response_entry.GetCatalogVersions().empty());
+    EXPECT_EQ(response_entry.GetCatalogVersions()[0].GetHrn(), "test");
+    EXPECT_EQ(response_entry.GetCatalogVersions()[0].GetVersion(), 15);
+  }
+  {
+    SCOPED_TRACE("Request failed");
+    EXPECT_CALL(*network_mock_,
+                Send(IsPostRequest(kCompatibleVersions), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::FORBIDDEN),
+                                     HTTP_RESPONSE_403));
+
+    auto catalog_client = read::CatalogClient(hrn, settings_);
+
+    auto catalog_version = read::model::CatalogVersion();
+    catalog_version.SetHrn("test");
+    catalog_version.SetVersion(15);
+
+    auto request =
+        read::CompatibleVersionsRequest().WithDependencies({catalog_version});
+
+    std::promise<read::CompatibleVersionsResponse> promise;
+    read::CompatibleVersionsCallback callback =
+        [&promise](read::CompatibleVersionsResponse response) {
+          promise.set_value(response);
+        };
+
+    auto cancel_token = catalog_client.GetCompatibleVersions(request, callback);
+
+    auto response = promise.get_future().get();
+
+    ASSERT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetHttpStatusCode(),
+              olp::http::HttpStatusCode::FORBIDDEN);
+  }
+  {
+    SCOPED_TRACE("Request cancel");
+    auto wait_for_cancel = std::make_shared<std::promise<void>>();
+    auto pause_for_cancel = std::make_shared<std::promise<void>>();
+
+    olp::http::RequestId request_id;
+    NetworkCallback send_mock;
+    CancelCallback cancel_mock;
+
+    std::tie(request_id, send_mock, cancel_mock) = GenerateNetworkMockActions(
+        wait_for_cancel, pause_for_cancel,
+        {http::HttpStatusCode::OK, HTTP_RESPONSE_LOOKUP});
+
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Invoke(std::move(send_mock)));
+
+    EXPECT_CALL(*network_mock_, Cancel(request_id))
+        .WillOnce(testing::Invoke(std::move(cancel_mock)));
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(kUrlVersionsList), _, _, _, _))
+        .Times(0);
+
+    auto catalog_client = read::CatalogClient(hrn, settings_);
+
+    auto catalog_version = read::model::CatalogVersion();
+    catalog_version.SetHrn("test");
+    catalog_version.SetVersion(15);
+
+    auto request =
+        read::CompatibleVersionsRequest().WithDependencies({catalog_version});
+
+    std::promise<read::CompatibleVersionsResponse> promise;
+    read::CompatibleVersionsCallback callback =
+        [&promise](read::CompatibleVersionsResponse response) {
+          promise.set_value(response);
+        };
+
+    auto cancel_token = catalog_client.GetCompatibleVersions(request, callback);
+
+    wait_for_cancel->get_future().get();
+    cancel_token.Cancel();
+    pause_for_cancel->set_value();
+    auto response = promise.get_future().get();
+
+    ASSERT_FALSE(response.IsSuccessful())
+        << ApiErrorToString(response.GetError());
+
+    ASSERT_EQ(static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR),
+              response.GetError().GetHttpStatusCode());
+    ASSERT_EQ(olp::client::ErrorCode::Cancelled,
+              response.GetError().GetErrorCode());
+  }
 }
 
 INSTANTIATE_TEST_SUITE_P(

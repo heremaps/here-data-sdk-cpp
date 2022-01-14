@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@
 #include "olp/dataservice/read/model/Partitions.h"
 #include "olp/dataservice/read/model/VersionInfos.h"
 #include "olp/dataservice/read/model/VersionResponse.h"
+#include "olp/dataservice/read/model/VersionsResponse.h"
 
 namespace olp {
 namespace client {
@@ -56,6 +57,11 @@ class MetadataApi {
   using PartitionsExtendedResponse =
       ExtendedApiResponse<model::Partitions, client::ApiError,
                           client::NetworkStatistics>;
+
+  using CatalogVersions = std::vector<model::CatalogVersion>;
+
+  using CompatibleVersionsResponse =
+      client::ApiResponse<model::VersionsResponse, client::ApiError>;
 
   /**
    * @brief Retrieves the latest metadata version for each layer of a specified
@@ -128,6 +134,10 @@ class MetadataApi {
       const client::OlpClient& client, int64_t start_version,
       int64_t end_version, boost::optional<std::string> billing_tag,
       const client::CancellationContext& context);
+
+  static CompatibleVersionsResponse GetCompatibleVersions(
+      const client::OlpClient& client, const CatalogVersions& dependencies,
+      int32_t limit, const client::CancellationContext& context);
 };
 
 }  // namespace read

@@ -31,6 +31,7 @@
 #include "generated/api/MetadataApi.h"
 #include "olp/dataservice/read/CatalogRequest.h"
 #include "olp/dataservice/read/CatalogVersionRequest.h"
+#include "olp/dataservice/read/CompatibleVersionsRequest.h"
 #include "olp/dataservice/read/VersionsRequest.h"
 
 namespace {
@@ -213,6 +214,22 @@ CatalogVersionResponse CatalogRepository::GetLatestVersionOnline(
 
   return MetadataApi::GetLatestCatalogVersion(metadata_client, -1, billing_tag,
                                               context);
+}
+
+CompatibleVersionsResponse CatalogRepository::GetCompatibleVersions(
+    const CompatibleVersionsRequest& request,
+    client::CancellationContext context) {
+  auto metadata_api =
+      lookup_client_.LookupApi("metadata", "v1", client::OnlineOnly, context);
+
+  if (!metadata_api.IsSuccessful()) {
+    return metadata_api.GetError();
+  }
+
+  const client::OlpClient& metadata_client = metadata_api.GetResult();
+
+  return MetadataApi::GetCompatibleVersions(
+      metadata_client, request.GetDependencies(), request.GetLimit(), context);
 }
 
 }  // namespace repository
