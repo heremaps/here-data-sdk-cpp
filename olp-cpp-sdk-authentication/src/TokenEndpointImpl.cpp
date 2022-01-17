@@ -19,6 +19,8 @@
 
 #include "TokenEndpointImpl.h"
 
+#include <thread>
+
 #include <olp/authentication/SignInResult.h>
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/http/NetworkConstants.h>

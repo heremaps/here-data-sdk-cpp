@@ -153,6 +153,7 @@ set(OLP_SDK_LOGGING_HEADERS
 
 set(OLP_SDK_THREAD_HEADERS
     ./include/olp/core/thread/Atomic.h
+    ./include/olp/core/thread/ExecutionContext.h
     ./include/olp/core/thread/SyncQueue.h
     ./include/olp/core/thread/SyncQueue.inl
     ./include/olp/core/thread/TaskScheduler.h
@@ -342,6 +343,7 @@ set(OLP_SDK_LOGGING_SOURCES
 )
 
 set(OLP_SDK_THREAD_SOURCES
+    ./src/thread/ExecutionContext.cpp
     ./src/thread/PriorityQueueExtended.h
     ./src/thread/ThreadPoolTaskScheduler.cpp
 )
