@@ -153,11 +153,14 @@ set(OLP_SDK_LOGGING_HEADERS
 
 set(OLP_SDK_THREAD_HEADERS
     ./include/olp/core/thread/Atomic.h
+    ./include/olp/core/thread/Continuation.h
+    ./include/olp/core/thread/Continuation.inl
     ./include/olp/core/thread/ExecutionContext.h
     ./include/olp/core/thread/SyncQueue.h
     ./include/olp/core/thread/SyncQueue.inl
     ./include/olp/core/thread/TaskScheduler.h
     ./include/olp/core/thread/ThreadPoolTaskScheduler.h
+    ./include/olp/core/thread/TypeHelpers.h
 )
 
 set(OLP_SDK_GEOCOORDINATES_HEADERS
@@ -343,6 +346,7 @@ set(OLP_SDK_LOGGING_SOURCES
 )
 
 set(OLP_SDK_THREAD_SOURCES
+    ./src/thread/Continuation.cpp
     ./src/thread/ExecutionContext.cpp
     ./src/thread/PriorityQueueExtended.h
     ./src/thread/ThreadPoolTaskScheduler.cpp

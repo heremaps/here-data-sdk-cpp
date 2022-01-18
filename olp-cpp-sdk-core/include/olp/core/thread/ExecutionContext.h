@@ -78,7 +78,7 @@ class CORE_API ExecutionContext final {
    *
    * @return The `CancellationContext` instance.
    */
-  client::CancellationContext GetContext() const;
+  const client::CancellationContext& GetContext() const;
 
  private:
   class ExecutionContextImpl;
