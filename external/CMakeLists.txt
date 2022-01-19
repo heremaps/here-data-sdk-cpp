@@ -57,6 +57,15 @@ set(OLP_SDK_CPP_BOOST_TAG "boost-1.72.0")
 set(OLP_SDK_CPP_LMDB_URL "https://github.com/LMDB/lmdb.git")
 set(OLP_SDK_CPP_LMDB_TAG "LMDB_0.9.29")
 
+set(OLP_SDK_CPP_ZLIB_URL "https://sdk.amazonaws.com/cpp/builds/zlib-1.2.11.tar.gz")
+set(OLP_SDK_CPP_ZLIB_HASH "SHA256=c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1")
+
+set(OLP_SDK_CPP_OPENSSL_URL "https://github.com/openssl/openssl.git")
+set(OLP_SDK_CPP_OPENSSL_TAG "OpenSSL_1_1_1g")
+
+set(OLP_SDK_CPP_CURL_URL "https://github.com/bagder/curl.git")
+set(OLP_SDK_CPP_CURL_TAG "curl-7_52_1")
+
 # Add external projects
 find_package(GTest QUIET)
 if(NOT TARGET GTest AND NOT GTest_FOUND)
@@ -93,4 +102,14 @@ if(NOT TARGET Boost AND NOT Boost_FOUND)
     set(BOOST_ROOT ${EXTERNAL_BOOST_ROOT} PARENT_SCOPE)
     set(Boost_INCLUDE_DIR ${EXTERNAL_BOOST_ROOT_INCLUDE} PARENT_SCOPE)
     set(Boost_LIBRARY_DIR ${EXTERNAL_BOOST_ROOT_LIB} PARENT_SCOPE)
+endif()
+
+if(OLP_SDK_ENABLE_ANDROID_CURL)
+    find_package(CURL 7.47.0 QUIET)
+    if(NOT TARGET CURL AND NOT CURL_FOUND)
+        add_subdirectory(curl)
+        set(CURL_DIR ${EXTERNAL_CURL_DIR} PARENT_SCOPE)
+        set(CURL_INCLUDE_DIR ${EXTERNAL_CURL_INCLUDE_DIR} PARENT_SCOPE)
+        set(CURL_LIBRARY ${EXTERNAL_BINARY_INSTALL_DIR}/lib/libcurl.so PARENT_SCOPE)
+    endif()
 endif()

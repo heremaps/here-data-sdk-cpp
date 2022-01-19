@@ -24,7 +24,7 @@ if (DEFINED OLP_SDK_HTTP_CLIENT_JAR)
     if (NOT EXISTS "${OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH}")
         message(FATAL_ERROR "Can't find OlpHttpClient.jar - the path ${OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH} is invalid!")
     endif()
-else()
+elseif(NOT OLP_SDK_ENABLE_ANDROID_CURL)
     message(FATAL_ERROR "The OLP_SDK_HTTP_CLIENT_JAR variable is not defined."
                         "Please, specify this variable with the path to the built OlpHttpClient.jar.")
 endif()
@@ -52,15 +52,17 @@ add_library(@OLP_SDK_EXAMPLE_TARGET_NAME@ SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/ReadExample.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/MainActivityNative.cpp)
 
-# Find and copy the OlpHttpClient.jar into the corresponding libs directory
-get_filename_component(OLP_SDK_HTTP_CLIENT_JAR_NAME ${OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH} NAME)
+if (NOT OLP_SDK_ENABLE_ANDROID_CURL)
+    # Find and copy the OlpHttpClient.jar into the corresponding libs directory
+    get_filename_component(OLP_SDK_HTTP_CLIENT_JAR_NAME ${OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH} NAME)
 
-add_custom_command(
-    TARGET @OLP_SDK_EXAMPLE_TARGET_NAME@ POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH}
-        ${CMAKE_CURRENT_SOURCE_DIR}/libs/${OLP_SDK_HTTP_CLIENT_JAR_NAME}
-)
+    add_custom_command(
+        TARGET @OLP_SDK_EXAMPLE_TARGET_NAME@ POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${OLP_SDK_HTTP_CLIENT_JAR_FULL_PATH}
+            ${CMAKE_CURRENT_SOURCE_DIR}/libs/${OLP_SDK_HTTP_CLIENT_JAR_NAME}
+    )
+endif()
 
 # In case when the OLP libraries are built as shared libraries,
 # it is required to copy those libraries into the example's apk archive,

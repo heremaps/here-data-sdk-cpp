@@ -36,7 +36,9 @@ android {
                         "-DBOOST_ROOT=@BOOST_ROOT@",
                         "-DBoost_INCLUDE_DIR=@BOOST_ROOT@",
                         "-DBoost_LIBRARY_DIR=@BOOST_ROOT@",
-                        "-DANDROID_PLATFORM=@ANDROID_PLATFORM@"
+                        "-DANDROID_PLATFORM=@ANDROID_PLATFORM@",
+                        // to know what network backend used
+                        "-DOLP_SDK_ENABLE_ANDROID_CURL=@OLP_SDK_ENABLE_ANDROID_CURL@"
 
                 cppFlags "-std=c++11"
                 targets "@OLP_SDK_EXAMPLE_TARGET_NAME@"

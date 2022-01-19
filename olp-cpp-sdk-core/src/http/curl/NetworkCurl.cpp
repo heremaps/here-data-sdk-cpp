@@ -54,13 +54,17 @@ namespace {
 
 const char* kLogTag = "CURL";
 
+#ifdef OLP_SDK_ENABLE_ANDROID_CURL
+const auto kCurlAndroidCaBundleFolder = "/system/etc/security/cacerts";
+#endif
+
 #ifdef OLP_SDK_NETWORK_HAS_OPENSSL
 
-const auto curl_ca_bundle_name = "ca-bundle.crt";
+const auto kCurlCaBundleName = "ca-bundle.crt";
 
-std::string DefaultCaBundlePath() { return curl_ca_bundle_name; }
+std::string DefaultCaBundlePath() { return kCurlCaBundleName; }
 
-std::string AlternativeCaBundlePath() { return curl_ca_bundle_name; }
+std::string AlternativeCaBundlePath() { return kCurlCaBundleName; }
 
 std::string CaBundlePath() {
   std::string bundle_path;
@@ -200,6 +204,20 @@ void GetTrafficData(CURL* handle, uint64_t& upload_bytes,
       length_upload > 0) {
     upload_bytes = length_upload;
   }
+}
+
+CURLcode SetCaBundlePaths(CURL* handle) {
+  OLP_SDK_CORE_UNUSED(handle);
+#ifdef OLP_SDK_ENABLE_ANDROID_CURL
+  return curl_easy_setopt(handle, CURLOPT_CAPATH, kCurlAndroidCaBundleFolder);
+#elif OLP_SDK_NETWORK_HAS_OPENSSL
+  const auto curl_ca_bundle = CaBundlePath();
+  if (!curl_ca_bundle.empty()) {
+    return curl_easy_setopt(handle, CURLOPT_CAINFO, curl_ca_bundle.c_str());
+  }
+#endif
+
+  return CURLE_OK;
 }
 
 int64_t GetElapsedTime(std::chrono::steady_clock::time_point start) {
@@ -542,21 +560,13 @@ ErrorCode NetworkCurl::SendImplementation(
     curl_easy_setopt(handle->handle, CURLOPT_HTTPHEADER, handle->chunk);
   }
 
-#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
-  std::string curl_ca_bundle = "";
-  if (curl_ca_bundle.empty()) {
-    curl_ca_bundle = CaBundlePath();
+  CURLcode error = SetCaBundlePaths(handle->handle);
+  if (CURLE_OK != error) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Send failed - set ca bundle path failed, url="
+                                   << request.GetUrl() << ", error=" << error
+                                   << ", id=" << id);
+    return ErrorCode::UNKNOWN_ERROR;
   }
-  if (!curl_ca_bundle.empty()) {
-    CURLcode error = curl_easy_setopt(handle->handle, CURLOPT_CAINFO,
-                                      curl_ca_bundle.c_str());
-    if (CURLE_OK != error) {
-      OLP_SDK_LOG_ERROR(kLogTag, "Send failed - curl_easy_setopt error="
-                                     << error << ", id=" << id);
-      return ErrorCode::UNKNOWN_ERROR;
-    }
-  }
-#endif
 
   curl_easy_setopt(handle->handle, CURLOPT_SSL_VERIFYPEER, 1L);
   curl_easy_setopt(handle->handle, CURLOPT_SSL_VERIFYHOST, 2L);

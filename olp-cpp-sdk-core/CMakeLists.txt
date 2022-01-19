@@ -39,18 +39,21 @@ include(cmake/CompileChecks.cmake)
 
 porting_do_checks()
 
-if(ANDROID OR IOS OR (WIN32 AND NOT MINGW))
+if(IOS OR (WIN32 AND NOT MINGW))
     set(NETWORK_NO_CURL ON)
-
-    if(ANDROID)
+elseif(ANDROID)
+    if(OLP_SDK_ENABLE_ANDROID_CURL)
+        set(NETWORK_NO_CURL OFF)
+        find_package(CURL 7.47.0 REQUIRED)
+    else()
         find_package(Java REQUIRED)
+        set(NETWORK_NO_CURL ON)
     endif()
 else()
     set(NETWORK_NO_CURL OFF)
 
-    find_package(CURL REQUIRED)
+    find_package(CURL 7.47.0 REQUIRED)
 endif()
-
 
 set(Network_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -295,7 +298,7 @@ if (ANDROID)
     set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_ANDROID)
 endif()
 
-if (UNIX AND NOT ANDROID)
+if (UNIX AND (NOT ANDROID OR OLP_SDK_ENABLE_ANDROID_CURL))
     set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_CURL_SOURCES})
 
     set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_CURL)
@@ -465,7 +468,7 @@ if(IOS)
     target_link_libraries(${PROJECT_NAME} PRIVATE ${OLP_SDK_CORE_FOUNDATION_FRAMEWORK}
                                                   ${OLP_SDK_SECURITY_FRAMEWORK}
                                                   ${OLP_SDK_CFNETWORK_FRAMEWORK})
-elseif(ANDROID)
+elseif(ANDROID AND NOT OLP_SDK_ENABLE_ANDROID_CURL)
     # Make sure that OlpHttpClient.jar is built before olp-cpp-sdk-core
     add_dependencies(${PROJECT_NAME} ${OLP_SDK_ANDROID_HTTP_CLIENT_JAR})
 endif()

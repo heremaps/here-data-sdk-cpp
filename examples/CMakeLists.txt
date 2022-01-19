@@ -34,7 +34,8 @@ elseif(ANDROID)
     include(./cmake/gen_android_example.cmake.in)
 
     set(OLP_SDK_EXAMPLE_PACKAGE_NAME "dataservice_example")
-    set(OLP_SDK_EXAMPLE_PACKAGE_JNI_NAME "dataservice_example")
+    # If JNI function contains underscore symbol, java will search for "_1" instead
+    set(OLP_SDK_EXAMPLE_PACKAGE_JNI_NAME "dataservice_1example")
     gen_android_example_application(${OLP_SDK_DATASERVICE_EXAMPLE_TARGET}
                                     ${OLP_SDK_EXAMPLE_PACKAGE_NAME}
                                     ${OLP_SDK_EXAMPLE_PACKAGE_JNI_NAME}

@@ -28,6 +28,10 @@ if(CURL_FOUND AND NOT NETWORK_NO_CURL)
     endif(APPLE)
     include_directories(${CURL_INCLUDE_DIRS})
 
+    if(OLP_SDK_ENABLE_ANDROID_CURL)
+        add_definitions(-DOLP_SDK_ENABLE_ANDROID_CURL)
+    endif()
+
     find_package(OpenSSL)
     if(OPENSSL_FOUND)
         add_definitions(-DOLP_SDK_NETWORK_HAS_OPENSSL)

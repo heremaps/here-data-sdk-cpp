@@ -1,0 +1,10 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/OpenSSLTargets.cmake")
+check_required_components(OpenSSL)
+
+set(OPENSSL_FOUND TRUE)
+set(OPENSSL_INCLUDE_DIR ${CMAKE_INSTALL_PREFIX}/include)
+set(OPENSSL_LIBRARIES ssl crypto)
+set(OPENSSL_CRYPTO_LIBRARY crypto)
+set(OPENSSL_SSL_LIBRARY ssl)
