@@ -20,6 +20,6 @@
 
 [[ -d "build" ]] && rm -rf build
 mkdir build && cd build
-cmake .. -G "Visual Studio 15 2017 Win64" \
+cmake .. -G "Visual Studio 16 2019" -A x64 \
         -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 cmake --build . --config $BUILD_TYPE
