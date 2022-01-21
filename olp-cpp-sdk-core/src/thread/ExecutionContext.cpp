@@ -44,7 +44,7 @@ class ExecutionContext::ExecutionContextImpl {
     failed_callback_ = std::move(callback);
   }
 
-  client::CancellationContext GetContext() const { return context_; }
+  const client::CancellationContext& GetContext() const { return context_; }
 
  private:
   client::CancellationContext context_;
@@ -71,7 +71,7 @@ void ExecutionContext::SetFailedCallback(FailedCallback callback) {
   impl_->SetFailedCallback(std::move(callback));
 }
 
-client::CancellationContext ExecutionContext::GetContext() const {
+const client::CancellationContext& ExecutionContext::GetContext() const {
   return impl_->GetContext();
 }
 
