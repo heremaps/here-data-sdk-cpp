@@ -36,86 +36,89 @@ class TaskScheduler;
 
 namespace internal {
 
-/// An internal implementation of `Continuation`.
-/// It provides mechanisms to create a chain of tasks, start, cancel,
-/// and finalize an execution.
-///
-/// @note This is a private implementation class for internal use only, and not
-/// bound to any API stability promises. Please do not use directly.
+/**
+ * @brief Provides mechanisms to create a chain of tasks and start, cancel,
+ * and finalize an execution.
+ *
+ * @note It is a private implementation class for internal use only and not
+ * bound to any API stability promises. Do not use it directly.
+ */
 class CORE_API ContinuationImpl final {
  public:
-  /// An alias of a function which returns an error as a callback.
+  /// An alias for the function that returns an error as a callback.
   using FailedCallback = std::function<void(client::ApiError)>;
-  /// Type of return value of Continuation Task.
+  /// The return value type of the `Continuation` task.
   using OutResultType = std::unique_ptr<UntypedSmartPointer>;
-
-  /// Type of Continuation Type.
+  /// The type of `ContinuationType`.
   using TaskType = std::function<OutResultType(void*)>;
-  /// Default callback type, uses void* as a parameter which is later converted
-  /// to the specific type, callback doesn't have a return type.
+  /// The generic callback type.
   using CallbackType = std::function<void(void*)>;
-  /// An internal type of tasks in Continuation.
+  /// An internal type of tasks in `Continuation`.
   using AsyncTaskType = std::function<void(void*, CallbackType)>;
-  /// An alias for a processing tasks finalization type.
+  /// An alias for the processing tasks finalization type.
   using FinalCallbackType = std::function<void(void*, bool)>;
-  /// An alias of a pair of Task Continuation types.
+  /// An alias for a pair of task continuation chain types.
   using ContinuationTask = std::pair<AsyncTaskType, TaskType>;
 
-  /// A default constructor of `ContinuationImpl`.
+  /// The default constructor of `ContinuationImpl`.
   ContinuationImpl() = default;
 
   /**
-   * @brief A contructor for a continuation using the given parameters.
+   * @brief Creates the `ContinuationImpl` instance.
    *
    * @param task_scheduler The `TaskScheduler` instance.
    * @param context The `ExecutionContext` instance.
-   * @param task The `ContinuationTask` instance.
+   * @param task The `ContinuationTask` instance. It represents
+   * a task that you want to add to the continuation chain.
    */
   ContinuationImpl(std::shared_ptr<TaskScheduler> task_scheduler,
                    ExecutionContext context, ContinuationTask task);
 
   /**
-   * @brief Adds an asynchronous task (one taking a callback) as the next
-   * task of the `ContinuationImpl`.
+   * @brief Adds the next asynchronous task
+   * to the `ContinuationImpl` instance.
    *
-   * @param task A task for adding to the continuation chain.
+   * @param task The `ContinuationTask` instance. It represents
+   * a task that you want to add to the continuation chain.
    *
    * @return The `ContinuationImpl` instance.
    */
   ContinuationImpl Then(ContinuationTask task);
 
   /**
-   * @brief Starts the execution of a task continuation chain.
+   * @brief Starts the execution of the task continuation chain.
    *
-   * @param callback Handles the finalization of a task chain.
+   * @param callback Handles the finalization of the task chain.
    */
   void Run(FinalCallbackType callback);
 
   /**
-   * @brief Provides the execution context object.
+   * @brief Gets the `ExecutionContext` object.
    *
    * @return The `ExecutionContext` instance.
    */
   const ExecutionContext& GetExecutionContext() const;
 
   /**
-   * @brief Provides cancellation context object.
+   * @brief Gets the `CancellationContext` object.
    *
    * @return The `CancellationContext` instance.
    */
   const client::CancellationContext& GetContext() const;
 
   /**
-   * @brief Provides a status whether CancellationContext is cancelled.
+   * @brief Checks whether the `CancellationContext` instance is cancelled.
    *
-   * @return True if Continuation is cancelled; false otherwise.
+   * @return True if the `CancellationContext` instance is cancelled; false
+   * otherwise.
    */
   bool Cancelled() const;
 
   /**
-   * @brief Sets a callback on calling SetError.
+   * @brief Sets a callback on calling `SetError`.
    *
-   * @param callback Handles an execution finalization of a continuation chain.
+   * @param callback Handles the execution finalization of the continuation
+   * chain.
    */
   void SetFailedCallback(FailedCallback callback);
 
@@ -129,21 +132,23 @@ class CORE_API ContinuationImpl final {
   std::deque<ContinuationTask> tasks_;
   ExecutionContext execution_context_;
 
-  /// a variable shows whether it is allowed to do the changes to the task
-  /// chain, used to prevent using methods of `Continuation` after it was run.
+  /**
+   * @brief Checks whether it is allowed to do the changes to the task chain.
+   *
+   * Use it to skip the methods of the `Continuation` object.
+   */
   bool change_allowed{true};
 };
 
 }  // namespace internal
 
-/// A Template for Continuation of generic type.
+/// A generic template for `Continuation`.
 template <typename ResultType>
 class CORE_API Continuation final {
-  /// Response type alias of template class type.
+  /// The response type alias of the template class type.
   using Response = client::ApiResponse<ResultType, client::ApiError>;
-  /// An alias for finalization callback.
+  /// An alias for the finalization callback.
   using FinallyCallbackType = std::function<void(Response)>;
-
   /// An alias for `ContinuationImplType::ContinuationImpl`.
   using ContinuationImplType = internal::ContinuationImpl;
   /// An alias for `ContinuationImplType::OutResultType`.
@@ -152,41 +157,43 @@ class CORE_API Continuation final {
   using TaskType = ContinuationImplType::TaskType;
   /// An alias for `ContinuationImplType::CallbackType`.
   using CallbackType = ContinuationImplType::CallbackType;
-  /// An alias for a Continuation chain first task.
+  /// An alias for the continuation chain first task.
   using ContinuationTaskType =
       std::function<void(ExecutionContext, std::function<void(ResultType)>)>;
 
  public:
+  /// The default constructor of `Continuation<ResultType>`.
+  Continuation() = default;
+
   /**
-   * @brief A contructor for a continuation using the given parameters.
+   * @brief Creates the `Continuation` instance.
    *
    * @param task_scheduler The `TaskScheduler` instance.
    * @param context The `ExecutionContext` instance.
-   * @param task Continuation task's callback, constains thr execution context
-   * and returns a value for the next task.
+   * @param task The continuation task's callback. It contains the execution
+   * context and returns a value for the next task.
    */
   Continuation(std::shared_ptr<thread::TaskScheduler> scheduler,
                ExecutionContext context, ContinuationTaskType task);
 
   /**
-   * @brief A contructor for a continuation using the given parameters.
+   * @brief Creates the `Continuation` instance.
    *
    * @param continuation The `ContinuationImpl` instance.
    */
   Continuation(ContinuationImplType continuation);
 
   /**
-   * @brief Adds an asynchronous task (one taking a callback) as the next
-   * step of the `Continuation`.
+   * @brief Adds the next asynchronous task
+   * to the `ContinuationImpl` instance.
    *
-   * @param task A task for adding to the continuation chain.
+   * @param task The `ContinuationTask` instance. It represents
+   * a task that you want to add to the continuation chain.
    */
   template <typename Callable>
   Continuation<internal::DeducedType<Callable>> Then(Callable task);
 
-  /**
-   * @brief Starts an execution of a task continuation chain.
-   */
+  /// Starts the execution of the task continuation chain.
   void Run();
 
   /**
@@ -197,10 +204,11 @@ class CORE_API Continuation final {
   client::CancellationToken CancelToken();
 
   /**
-   * @brief Adds an asynchronous task (one taking a callback) as the next
-   * step of the  Continuation.
+   * @brief Adds the next asynchronous task
+   * to the `ContinuationImpl` instance.
    *
-   * @param execution_func A task for adding to the continuation chain.
+   * @param execution_func A task that you want to add to the continuation
+   * chain.
    */
   template <typename NewType>
   Continuation<internal::RemoveRefAndConst<NewType>> Then(
@@ -209,11 +217,11 @@ class CORE_API Continuation final {
           execution_func);
 
   /**
-   * @brief Handles the finalization of Continuation, sets a callback
-   * to the existing Continuation instance.
+   * @brief Handles the finalization of the `Continuation` instance
+   * and sets a callback for it.
    *
-   * @param finally_callback Callback that handles both
-   * successful and not successful results.
+   * @param finally_callback The callback that handles successful and
+   * unsuccessful results.
    *
    * @return The `Continuation` instance.
    */
@@ -224,19 +232,23 @@ class CORE_API Continuation final {
   ContinuationImplType impl_;
 };
 
-/// A template for Continuation of void type. It has the same
-/// interface as the generic version.
+/**
+ * @brief A template for `Continuation` of the void type.
+ *
+ * It has the same interface as the generic version.
+ */
 template <>
 class CORE_API Continuation<void> final {
  public:
-  /// Deleted `Continuation` constructor as an instance should not be created.
+  /// Do not create the deleted `Continuation` constructor as an instance.
   Continuation() = delete;
 
   /**
-   * @brief Adds an asynchronous task (one taking a callback) as the next
-   * step of the  Continuation.
+   * @brief Adds the next asynchronous task
+   * to the `ContinuationImpl` instance.
    *
-   * @param task A task for adding to the continuation chain.
+   * @param task The `ContinuationTask` instance. It represents
+   * a task that you want to add to the continuation chain.
    *
    * @return The `Continuation` instance.
    */
@@ -257,11 +269,11 @@ class CORE_API Continuation<void> final {
   friend class Continuation;
 
   /**
-   * @brief Creates the ContinuationImplType task based on parameters.
+   * @brief Creates the `ContinuationImplType` instance.
    *
    * @param context The `ExecutionContext` instance.
-   * @param task Continuation task callback which constains an execution context
-   * and returns a value for the next task.
+   * @param task The continuation task's callback. It contains the execution
+   * context and returns a value for the next task.
    */
   template <typename NewType>
   static ContinuationImplType::ContinuationTask ToAsyncTask(

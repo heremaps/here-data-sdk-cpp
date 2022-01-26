@@ -76,6 +76,9 @@ class Processor {
     auto func = std::move(current_task.first);
     current_task.first = nullptr;
     func(process->LastOutput(), std::move(callback));
+    if (process->public_execution_context_.Cancelled()) {
+      return false;
+    }
 
     return true;
   }
@@ -156,7 +159,6 @@ class Processor {
     }
   };
 
-  std::shared_ptr<TaskScheduler> task_scheduler_;
   std::shared_ptr<ProcessorInternal> processor_;
 };
 

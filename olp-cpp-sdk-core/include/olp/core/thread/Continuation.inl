@@ -34,6 +34,9 @@ void Continuation<ResultType>::Run() {
     return;
   }
 
+  impl_.SetFailedCallback(
+      [this](client::ApiError error) { finally_callback_(std::move(error)); });
+
   if (impl_.Cancelled()) {
     finally_callback_(client::ApiError::Cancelled());
     impl_.Clear();
@@ -56,8 +59,6 @@ template <typename ResultType>
 Continuation<ResultType>& Continuation<ResultType>::Finally(
     FinallyCallbackType finally_callback) {
   finally_callback_ = std::move(finally_callback);
-  impl_.SetFailedCallback(
-      [this](client::ApiError error) { finally_callback_(std::move(error)); });
   return *this;
 }
 

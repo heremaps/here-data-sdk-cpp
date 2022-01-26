@@ -158,6 +158,8 @@ set(OLP_SDK_THREAD_HEADERS
     ./include/olp/core/thread/ExecutionContext.h
     ./include/olp/core/thread/SyncQueue.h
     ./include/olp/core/thread/SyncQueue.inl
+    ./include/olp/core/thread/TaskContinuation.h
+    ./include/olp/core/thread/TaskContinuation.inl
     ./include/olp/core/thread/TaskScheduler.h
     ./include/olp/core/thread/ThreadPoolTaskScheduler.h
     ./include/olp/core/thread/TypeHelpers.h
