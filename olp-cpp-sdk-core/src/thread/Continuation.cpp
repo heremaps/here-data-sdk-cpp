@@ -114,7 +114,7 @@ class Processor {
 
   // creates a task for execution by TaskContinuation
   Task CreateFollowingTask(const std::shared_ptr<ProcessorInternal>& context) {
-    return [this, context] { ProcessNextTask(context); };
+    return [=] { ProcessNextTask(context); };
   }
 
   // starts the first task in a chain
@@ -147,10 +147,6 @@ class Processor {
 
     // checks whether the Continuation is cancelled
     bool IsCancelled() const { return public_execution_context_.Cancelled(); }
-
-    const ExecutionContext& GetExecutionContext() {
-      return public_execution_context_;
-    }
 
     // An input argument used by the current task in the queue, it's the result
     // of the previous task
@@ -191,10 +187,6 @@ void ContinuationImpl::Run(FinalCallbackType callback) {
 
 const ExecutionContext& ContinuationImpl::GetExecutionContext() const {
   return execution_context_;
-}
-
-const client::CancellationContext& ContinuationImpl::GetContext() const {
-  return execution_context_.GetContext();
 }
 
 bool ContinuationImpl::Cancelled() const {

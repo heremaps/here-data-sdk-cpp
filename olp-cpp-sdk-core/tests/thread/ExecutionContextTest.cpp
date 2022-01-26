@@ -41,11 +41,11 @@ TEST(ExecutionContextTest, ExecuteOrCancelled) {
     bool executed = false;
     bool cancelled = false;
     execution_context.ExecuteOrCancelled(
-        [&executed]() {
+        [&]() {
           executed = true;
           return olp::client::CancellationToken();
         },
-        [&cancelled]() { cancelled = true; });
+        [&]() { cancelled = true; });
 
     EXPECT_TRUE(executed);
     EXPECT_FALSE(cancelled);
@@ -62,7 +62,7 @@ TEST(ExecutionContextTest, ExecuteOrCancelled) {
           executed = true;
           return olp::client::CancellationToken();
         },
-        [&cancelled]() { cancelled = true; });
+        [&]() { cancelled = true; });
 
     EXPECT_FALSE(executed);
     EXPECT_TRUE(cancelled);

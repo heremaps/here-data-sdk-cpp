@@ -100,13 +100,6 @@ class CORE_API ContinuationImpl final {
   const ExecutionContext& GetExecutionContext() const;
 
   /**
-   * @brief Gets the `CancellationContext` object.
-   *
-   * @return The `CancellationContext` instance.
-   */
-  const client::CancellationContext& GetContext() const;
-
-  /**
    * @brief Checks whether the `CancellationContext` instance is cancelled.
    *
    * @return True if the `CancellationContext` instance is cancelled; false
