@@ -35,7 +35,64 @@
 #include "olp/dataservice/read/VersionsRequest.h"
 
 namespace {
+constexpr auto kDefaultStartVersion = 0;
 constexpr auto kLogTag = "CatalogRepository";
+
+// The function retrieves the maximum version among cached/online/user-provided
+// versions.
+// Update the cache, if the retrieved version is greater than the cached one.
+olp::dataservice::read::CatalogVersionResponse RetrieveLatestVersion(
+    const olp::client::HRN& catalog,
+    const olp::dataservice::read::CatalogVersionRequest& request,
+    olp::dataservice::read::repository::CatalogCacheRepository& repository,
+    olp::dataservice::read::CatalogVersionResponse&& version_response) {
+  auto cached_version = repository.GetVersion();
+  auto fetch_option = request.GetFetchOption();
+
+  // Using `GetStartVersion` to set up a new latest version for CacheOnly
+  // requests in case of absence of the previous latest version or it's less
+  // than the new user set version.
+  if (fetch_option == olp::dataservice::read::FetchOptions::CacheOnly) {
+    const auto start_version = request.GetStartVersion();
+    if (start_version >= kDefaultStartVersion &&
+        (!cached_version || start_version > cached_version->GetVersion())) {
+      olp::dataservice::read::model::VersionResponse new_response;
+      new_response.SetVersion(start_version);
+      version_response = std::move(new_response);
+    }
+  }
+
+  if (version_response) {
+    const auto new_version = version_response.GetResult().GetVersion();
+
+    // Write or update a version in the cache, updating happens only when the
+    // new version is greater than cached.
+    if (!cached_version || cached_version->GetVersion() < new_version) {
+      repository.PutVersion(version_response.GetResult());
+      if (fetch_option == olp::dataservice::read::FetchOptions::CacheOnly) {
+        OLP_SDK_LOG_DEBUG_F(
+            kLogTag, "Latest user set version, hrn='%s', version=%" PRId64,
+            catalog.ToCatalogHRNString().c_str(), new_version);
+      } else {
+        OLP_SDK_LOG_DEBUG_F(kLogTag,
+                            "Latest online version, hrn='%s', version=%" PRId64,
+                            catalog.ToCatalogHRNString().c_str(), new_version);
+      }
+    }
+
+    return std::move(version_response);
+  }
+
+  if (cached_version) {
+    OLP_SDK_LOG_DEBUG_F(
+        kLogTag, "Latest cached version, hrn='%s', version=%" PRId64,
+        catalog.ToCatalogHRNString().c_str(), cached_version->GetVersion());
+    version_response = std::move(*cached_version);
+  }
+
+  return std::move(version_response);
+}
+
 }  // namespace
 
 namespace olp {
@@ -56,8 +113,8 @@ CatalogResponse CatalogRepository::GetCatalog(
   const auto fetch_options = request.GetFetchOption();
   const auto catalog_str = catalog_.ToCatalogHRNString();
 
-  repository::CatalogCacheRepository repository(
-      catalog_, settings_.cache, settings_.default_cache_expiration);
+  CatalogCacheRepository repository(catalog_, settings_.cache,
+                                    settings_.default_cache_expiration);
 
   if (fetch_options != OnlineOnly && fetch_options != CacheWithUpdate) {
     auto cached = repository.Get();
@@ -80,7 +137,7 @@ CatalogResponse CatalogRepository::GetCatalog(
       "config", "v1", static_cast<client::FetchOptions>(fetch_options),
       context);
 
-  if (!config_api.IsSuccessful()) {
+  if (!config_api) {
     return config_api.GetError();
   }
 
@@ -88,10 +145,11 @@ CatalogResponse CatalogRepository::GetCatalog(
   auto catalog_response = ConfigApi::GetCatalog(
       config_client, catalog_str, request.GetBillingTag(), context);
 
-  if (catalog_response.IsSuccessful() && fetch_options != OnlineOnly) {
+  if (catalog_response && fetch_options != OnlineOnly) {
     repository.Put(catalog_response.GetResult());
   }
-  if (!catalog_response.IsSuccessful()) {
+
+  if (!catalog_response) {
     const auto& error = catalog_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
       OLP_SDK_LOG_WARNING_F(kLogTag,
@@ -107,12 +165,12 @@ CatalogResponse CatalogRepository::GetCatalog(
 
 CatalogVersionResponse CatalogRepository::GetLatestVersion(
     const CatalogVersionRequest& request, client::CancellationContext context) {
-  repository::CatalogCacheRepository repository(
-      catalog_, settings_.cache, settings_.default_cache_expiration);
+  CatalogCacheRepository repository(catalog_, settings_.cache,
+                                    settings_.default_cache_expiration);
 
   const auto fetch_option = request.GetFetchOption();
-  // in case get version online was never called and version was not found in
-  // cache
+  // In case `GetVersionOnline` was never called and version was not found in
+  // the cache
   CatalogVersionResponse version_response = {
       {client::ErrorCode::NotFound, "Failed to find version."}};
 
@@ -124,7 +182,7 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
       return version_response;
     }
 
-    if (!version_response.IsSuccessful()) {
+    if (!version_response) {
       const auto& error = version_response.GetError();
       if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
         OLP_SDK_LOG_WARNING_F(
@@ -143,8 +201,6 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
   // requests in case of absence of previous latest version or it less than the
   // new user set version
   if (fetch_option == CacheOnly) {
-    constexpr auto kDefaultStartVersion = 0;
-
     auto user_set_version = request.GetStartVersion();
     if (user_set_version >= kDefaultStartVersion) {
       if (!cached_version || user_set_version > cached_version->GetVersion()) {
@@ -155,11 +211,11 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
     }
   }
 
-  if (version_response.IsSuccessful()) {
+  if (version_response) {
     const auto new_version = version_response.GetResult().GetVersion();
     // Write or update the version in cache, updating happens only when the new
     // version is greater than cached.
-    if (!cached_version || (*cached_version).GetVersion() < new_version) {
+    if (!cached_version || cached_version->GetVersion() < new_version) {
       repository.PutVersion(version_response.GetResult());
       if (fetch_option == CacheOnly) {
         OLP_SDK_LOG_DEBUG_F(
@@ -171,17 +227,61 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
                             catalog_.ToCatalogHRNString().c_str(), new_version);
       }
     }
+
     return version_response;
   }
 
   if (cached_version) {
     OLP_SDK_LOG_DEBUG_F(
         kLogTag, "Latest cached version, hrn='%s', version=%" PRId64,
-        catalog_.ToCatalogHRNString().c_str(), (*cached_version).GetVersion());
-    version_response = *std::move(cached_version);
+        catalog_.ToCatalogHRNString().c_str(), cached_version->GetVersion());
+    version_response = std::move(*cached_version);
   }
 
   return version_response;
+}
+
+client::CancellationToken CatalogRepository::GetLatestVersion(
+    const CatalogVersionRequest& request, CatalogVersionCallback callback) {
+  CatalogCacheRepository repository(catalog_, settings_.cache,
+                                    settings_.default_cache_expiration);
+
+  const auto fetch_option = request.GetFetchOption();
+
+  if (fetch_option == CacheOnly) {
+    // Initialize response to an error. It will be overwritten in case a valid
+    // version is found in the cache or user request.
+    CatalogVersionResponse version_response{
+        {client::ErrorCode::NotFound, "Failed to find a catalog version."}};
+
+    callback(RetrieveLatestVersion(catalog_, request, repository,
+                                   std::move(version_response)));
+    return client::CancellationToken();
+  }
+
+  return GetLatestVersionOnline(
+      request.GetBillingTag(), [=](CatalogVersionResponse response) mutable {
+        if (fetch_option == OnlineOnly) {
+          callback(std::move(response));
+          return;
+        }
+
+        if (!response) {
+          const auto& error = response.GetError();
+          if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
+            OLP_SDK_LOG_WARNING_F(
+                kLogTag,
+                "Latest version request ended with 403 HTTP code, hrn='%s'",
+                catalog_.ToCatalogHRNString().c_str());
+            repository.Clear();
+            callback(std::move(response));
+            return;
+          }
+        }
+
+        callback(RetrieveLatestVersion(catalog_, request, repository,
+                                       std::move(response)));
+      });
 }
 
 VersionsResponse CatalogRepository::GetVersionsList(
@@ -189,7 +289,7 @@ VersionsResponse CatalogRepository::GetVersionsList(
   auto metadata_api =
       lookup_client_.LookupApi("metadata", "v1", client::OnlineOnly, context);
 
-  if (!metadata_api.IsSuccessful()) {
+  if (!metadata_api) {
     return metadata_api.GetError();
   }
 
@@ -206,7 +306,7 @@ CatalogVersionResponse CatalogRepository::GetLatestVersionOnline(
   auto metadata_api = lookup_client_.LookupApi(
       "metadata", "v1", client::OnlineIfNotFound, context);
 
-  if (!metadata_api.IsSuccessful()) {
+  if (!metadata_api) {
     return metadata_api.GetError();
   }
 
@@ -216,13 +316,34 @@ CatalogVersionResponse CatalogRepository::GetLatestVersionOnline(
                                               context);
 }
 
+client::CancellationToken CatalogRepository::GetLatestVersionOnline(
+    const boost::optional<std::string>& billing_tag,
+    CatalogVersionCallback callback) {
+  return lookup_client_.LookupApi(
+      "metadata", "v1", client::OnlineIfNotFound,
+      [=](client::ApiLookupClient::LookupApiResponse response) {
+        if (!response) {
+          callback(response.GetError());
+          return client::CancellationToken();
+        }
+
+        const auto& metadata_client = response.GetResult();
+
+        return MetadataApi::GetLatestCatalogVersion(
+            metadata_client, -1, billing_tag,
+            [=](CatalogVersionResponse catalog_version_response) {
+              callback(std::move(catalog_version_response));
+            });
+      });
+}
+
 CompatibleVersionsResponse CatalogRepository::GetCompatibleVersions(
     const CompatibleVersionsRequest& request,
     client::CancellationContext context) {
   auto metadata_api =
       lookup_client_.LookupApi("metadata", "v1", client::OnlineOnly, context);
 
-  if (!metadata_api.IsSuccessful()) {
+  if (!metadata_api) {
     return metadata_api.GetError();
   }
 
