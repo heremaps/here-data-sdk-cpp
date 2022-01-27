@@ -33,37 +33,45 @@ namespace utils {
  * @brief Encodes a binary stream into a Base64 text.
  *
  * @param bytes The data to be encoded.
+ * @param url If set to true, the "=" padding will be omitted. The default value
+ * is false.
  *
  * @return The Base64 encoded string.
  */
-CORE_API std::string Base64Encode(const std::vector<std::uint8_t>& bytes);
+CORE_API std::string Base64Encode(const std::vector<uint8_t>& bytes,
+                                  bool url = false);
 
 /**
  * @brief Encodes a string into a Base64 text.
  *
  * @param bytes The data to be encoded.
+ * @param url If set to true, the "=" padding will be omitted. The default value
+ * is false.
  *
  * @return The Base64 encoded string.
  */
-CORE_API std::string Base64Encode(const std::string& bytes);
+CORE_API std::string Base64Encode(const std::string& bytes, bool url = false);
 
 /**
  * @brief Encodes a binary stream into a Base64 text.
  *
  * @param bytes The data to be encoded.
  * @param size The length of the byte array.
+ * @param url If set to true, the "=" padding will be omitted. The default value
+ * is false.
  *
  * @return The Base64 encoded string.
  */
-CORE_API std::string Base64Encode(const void* bytes, size_t size);
+CORE_API std::string Base64Encode(const void* bytes, size_t size,
+                                  bool url = false);
 
 /**
  * @brief Decodes a Base64 string into a binary stream.
  *
  * @param[in] string The Base64 string to be decoded.
  * @param[out] bytes The vector containing the decoded bytes.
- * @param[in] write_null_bytes True if the decoded NULL bytes should be written to
- * the output; false otherwise. The default value is true.
+ * @param[in] write_null_bytes True if the decoded NULL bytes should be written
+ * to the output; false otherwise. The default value is true.
  *
  * @return True if the decoding was successful; false otherwise.
  */
