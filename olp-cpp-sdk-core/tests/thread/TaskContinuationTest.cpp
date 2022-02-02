@@ -24,210 +24,406 @@
 #include <gtest/gtest.h>
 
 #include <olp/core/client/HttpResponse.h>
-#include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/core/http/NetworkUtils.h>
 #include <olp/core/thread/TaskContinuation.h>
+#include <olp/core/thread/ThreadPoolTaskScheduler.h>
 
-const std::string BAD_REQUEST_MESSAGE = "Bad Request";
+namespace {
+constexpr auto kMaxWaitMs = std::chrono::milliseconds(100);
+constexpr auto kTimeoutMs = std::chrono::milliseconds(50);
+
+template <typename Response>
+using ResponseType = olp::client::ApiResponse<Response, olp::client::ApiError>;
 
 class TaskContinuationFixture : public ::testing::Test {
  public:
   void SetUp() override {
-    scheduler =
-        olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
+    scheduler = std::make_shared<olp::thread::ThreadPoolTaskScheduler>();
   }
 
  protected:
-  std::unique_ptr<olp::thread::TaskScheduler> scheduler;
+  std::shared_ptr<olp::thread::TaskScheduler> scheduler;
 };
 
 TEST_F(TaskContinuationFixture, MultipleSequentialThen) {
-  std::promise<void> promise;
+  std::promise<ResponseType<int>> promise;
   auto future = promise.get_future();
 
-  olp::client::ApiResponse<int, olp::client::ApiError> result;
-
-  auto cont =
+  int counter = 0;
+  auto continuation =
       olp::thread::TaskContinuation(std::move(scheduler))
-          .Then([](olp::thread::ExecutionContext,
-                   std::function<void(int)> next) { next(1); })
-          .Then([](olp::thread::ExecutionContext, int value,
-                   std::function<void(int)> next) {
-            EXPECT_EQ(value, 1);
-            next(2);
+          .Then([&](olp::thread::ExecutionContext,
+                    std::function<void(int)> next) { next(++counter); })
+          .Then([&](olp::thread::ExecutionContext, int value,
+                    std::function<void(int)> next) {
+            ASSERT_EQ(value, counter);
+            next(counter);
           })
-          .Then([](olp::thread::ExecutionContext, int value,
-                   std::function<void(int)> next) {
-            EXPECT_EQ(value, 2);
-            next(3);
+          .Then([&](olp::thread::ExecutionContext, int value,
+                    std::function<void(int)> next) {
+            ASSERT_EQ(value, counter);
+            next(++counter);
           })
-          .Then([](olp::thread::ExecutionContext, int,
-                   std::function<void(int)> next) { next(3); })
-          .Finally([&promise, &result](
-                       olp::client::ApiResponse<int, olp::client::ApiError>
-                           response) {
-            result = response.MoveResult();
-            promise.set_value();
+          .Then([&](olp::thread::ExecutionContext, int,
+                    std::function<void(int)> next) { next(++counter); })
+          .Finally([&](ResponseType<int> response) {
+            promise.set_value(std::move(response));
           });
 
-  cont.Run();
+  continuation.Run();
 
-  future.get();
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
 
-  EXPECT_TRUE(result.IsSuccessful());
-  EXPECT_EQ(result.GetResult(), 3);
+  EXPECT_TRUE(result);
+  ASSERT_EQ(result.GetResult(), counter);
 }
 
 TEST_F(TaskContinuationFixture, FinallyNotSet) {
-  auto cont = olp::thread::TaskContinuation(std::move(scheduler))
-                  .Then([](olp::thread::ExecutionContext,
-                           std::function<void(int)>) { FAIL(); });
+  auto continuation =
+      olp::thread::TaskContinuation(std::move(scheduler))
+          .Then([](olp::thread::ExecutionContext, std::function<void(int)>) {
+            FAIL() << "`Then` method should not be called if the `Finally`"
+                      "callback isn't set";
+          });
 
-  cont.Run();
+  continuation.Run();
+  // Wait some time to enshure no callbacks are called during the async `Run()`
+  // call. Otherwise it is possible the callbacks will be called after current
+  // test finishes, which may lead to crashes and ambiguity which test caused an
+  // issue.
+  std::this_thread::sleep_for(kTimeoutMs);
 }
 
 TEST_F(TaskContinuationFixture, CancelBeforeRun) {
-  std::promise<void> promise;
+  std::promise<ResponseType<int>> promise;
   auto future = promise.get_future();
 
-  olp::client::ApiResponse<olp::client::HttpResponse, olp::client::ApiError>
-      result;
+  auto continuation = olp::thread::TaskContinuation(std::move(scheduler))
+                          .Then([](olp::thread::ExecutionContext,
+                                   std::function<void(int)> next) { next(1); })
+                          .Finally([&](ResponseType<int> response) {
+                            promise.set_value(std::move(response));
+                          });
 
-  auto cont =
-      olp::thread::TaskContinuation(std::move(scheduler))
-          .Then([](olp::thread::ExecutionContext,
-                   std::function<void(int)> next) { next(1); })
-          .Finally([&promise, &result](
-                       olp::client::ApiResponse<int, olp::client::ApiError>
-                           response) {
-            result = response.GetError();
-            promise.set_value();
-          });
+  continuation.CancelToken().Cancel();
 
-  cont.CancelToken().Cancel();
+  continuation.Run();
 
-  cont.Run();
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
 
-  EXPECT_EQ(future.wait_for(std::chrono::milliseconds(1000)),
-            std::future_status::ready);
-
-  future.get();
-
-  EXPECT_FALSE(result.IsSuccessful());
-  EXPECT_EQ(result.GetError().GetHttpStatusCode(),
-            static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR));
+  EXPECT_FALSE(result);
+  ASSERT_EQ(result.GetError().GetErrorCode(),
+            olp::client::ErrorCode::Cancelled);
 }
 
 TEST_F(TaskContinuationFixture, CancelAfterRun) {
-  std::promise<void> promise;
+  std::promise<ResponseType<olp::client::HttpResponse>> promise;
   auto future = promise.get_future();
 
-  olp::client::ApiResponse<olp::client::HttpResponse, olp::client::ApiError>
-      result;
-
-  auto cont =
+  auto continuation =
       olp::thread::TaskContinuation(std::move(scheduler))
           .Then([](olp::thread::ExecutionContext,
                    std::function<void(int)> next) { next(1); })
           .Then([](olp::thread::ExecutionContext, int,
                    std::function<void(olp::client::HttpResponse)> next) {
-            next(olp::client::HttpResponse(200, "OK"));
+            next(olp::client::HttpResponse(
+                olp::http::HttpStatusCode::OK,
+                olp::http::HttpErrorToString(olp::http::HttpStatusCode::OK)));
           })
-          .Finally([&promise,
-                    &result](olp::client::ApiResponse<olp::client::HttpResponse,
-                                                      olp::client::ApiError>
-                                 response) {
-            result = response.GetResult();
-            promise.set_value();
+          .Finally([&](ResponseType<olp::client::HttpResponse> response) {
+            promise.set_value(std::move(response));
           });
 
-  cont.Run();
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(50));  // simulate some delay
+  continuation.Run();
 
-  cont.CancelToken().Cancel();
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+  continuation.CancelToken().Cancel();
 
-  EXPECT_EQ(future.wait_for(std::chrono::milliseconds(1000)),
-            std::future_status::ready);
-
-  future.get();
-
-  EXPECT_TRUE(result.IsSuccessful());
-  EXPECT_EQ(result.GetError().GetHttpStatusCode(),
+  EXPECT_TRUE(result);
+  ASSERT_EQ(result.GetError().GetHttpStatusCode(),
             static_cast<int>(olp::http::ErrorCode::UNKNOWN_ERROR));
 }
 
 TEST_F(TaskContinuationFixture, CallExecute) {
-  std::promise<void> promise;
+  std::promise<ResponseType<olp::client::HttpResponse>> promise;
   auto future = promise.get_future();
 
-  olp::client::ApiResponse<olp::client::HttpResponse, olp::client::ApiError>
-      result;
-
-  auto cont =
+  auto continuation =
       olp::thread::TaskContinuation(std::move(scheduler))
           .Then([](olp::thread::ExecutionContext,
                    std::function<void(int)> next) { next(1); })
           .Then([](olp::thread::ExecutionContext context, int,
                    std::function<void(olp::client::HttpResponse)> next) {
-            context.ExecuteOrCancelled([next]() {
-              next(olp::client::HttpResponse(200, "OK"));
+            context.ExecuteOrCancelled([=]() {
+              next(olp::client::HttpResponse(
+                  olp::http::HttpStatusCode::OK,
+                  olp::http::HttpErrorToString(olp::http::HttpStatusCode::OK)));
               return olp::client::CancellationToken();
             });
           })
-          .Finally([&promise,
-                    &result](olp::client::ApiResponse<olp::client::HttpResponse,
-                                                      olp::client::ApiError>
-                                 response) {
-            result = response.GetResult();
-            promise.set_value();
+          .Finally([&](ResponseType<olp::client::HttpResponse> response) {
+            promise.set_value(std::move(response));
           });
 
-  cont.Run();
+  continuation.Run();
 
-  EXPECT_EQ(future.wait_for(std::chrono::milliseconds(1000)),
-            std::future_status::ready);
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
 
-  future.get();
-
-  EXPECT_TRUE(result.IsSuccessful());
+  EXPECT_TRUE(result);
+  ASSERT_EQ(result.GetResult().GetStatus(), olp::http::HttpStatusCode::OK);
 }
 
-TEST_F(TaskContinuationFixture, CallCancel) {
-  std::promise<void> promise;
+TEST_F(TaskContinuationFixture, CallCancel1) {
+  std::promise<ResponseType<olp::client::HttpResponse>> promise;
   auto future = promise.get_future();
 
-  olp::client::ApiResponse<olp::client::HttpResponse, olp::client::ApiError>
-      result;
+  std::promise<void> cancel_promise;
+  auto cancel_future = cancel_promise.get_future();
 
-  auto cont =
+  auto continuation =
       olp::thread::TaskContinuation(std::move(scheduler))
           .Then([](olp::thread::ExecutionContext,
                    std::function<void(int)> next) { next(1); })
-          .Then([](olp::thread::ExecutionContext context, int,
-                   std::function<void(olp::client::HttpResponse)>) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+          .Then([&](olp::thread::ExecutionContext context, int,
+                    std::function<void(olp::client::HttpResponse)>) {
+            ASSERT_EQ(cancel_future.wait_for(kMaxWaitMs),
+                      std::future_status::ready);
             context.ExecuteOrCancelled(
                 []() { return olp::client::CancellationToken(); },
                 []() { return olp::client::CancellationToken(); });
           })
-          .Finally([&promise,
-                    &result](olp::client::ApiResponse<olp::client::HttpResponse,
-                                                      olp::client::ApiError>
-                                 response) {
-            result = response.GetResult();
-            promise.set_value();
+          .Finally([&](ResponseType<olp::client::HttpResponse> response) {
+            promise.set_value(std::move(response));
           });
 
-  cont.Run();
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(50));  // simulate some delay
+  continuation.Run();
 
-  cont.CancelToken().Cancel();
+  continuation.CancelToken().Cancel();
+  cancel_promise.set_value();
 
-  EXPECT_EQ(future.wait_for(std::chrono::milliseconds(1000)),
-            std::future_status::ready);
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
 
-  future.get();
-
-  EXPECT_TRUE(result.IsSuccessful());
+  EXPECT_FALSE(result);
+  ASSERT_EQ(result.GetError().GetErrorCode(),
+            olp::client::ErrorCode::Cancelled);
 }
+
+TEST_F(TaskContinuationFixture, MultipleSequentialThenAsync) {
+  std::promise<ResponseType<int>> promise;
+  auto future = promise.get_future();
+
+  int counter = 0;
+  auto continuation =
+      olp::thread::TaskContinuation(std::move(scheduler))
+          .Then([&](olp::thread::ExecutionContext,
+                    std::function<void(int)> next) {
+            std::thread([=, &counter]() { next(++counter); }).detach();
+          })
+          .Then([&](olp::thread::ExecutionContext, int value,
+                    std::function<void(int)> next) {
+            ASSERT_EQ(value, counter);
+            next(++counter);
+          })
+          .Then([&](olp::thread::ExecutionContext, int value,
+                    std::function<void(int)> next) {
+            ASSERT_EQ(value, counter);
+            std::thread([=, &counter]() {
+              std::thread([=, &counter]() { next(++counter); }).detach();
+            }).detach();
+          })
+          .Then([&](olp::thread::ExecutionContext, int value,
+                    std::function<void(int)> next) {
+            ASSERT_EQ(value, counter);
+            next(++counter);
+          })
+          .Finally([&](ResponseType<int> response) {
+            promise.set_value(std::move(response));
+          });
+
+  continuation.Run();
+
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
+  EXPECT_TRUE(result);
+  ASSERT_EQ(result.GetResult(), counter);
+}
+
+TEST_F(TaskContinuationFixture, CallExecuteAsync) {
+  std::promise<ResponseType<olp::client::HttpResponse>> promise;
+  auto future = promise.get_future();
+
+  auto continuation =
+      olp::thread::TaskContinuation(std::move(scheduler))
+          .Then(
+              [](olp::thread::ExecutionContext, std::function<void(int)> next) {
+                std::thread([=]() { next(1); }).detach();
+              })
+          .Then([](olp::thread::ExecutionContext context, int,
+                   std::function<void(olp::client::HttpResponse)> next) {
+            context.ExecuteOrCancelled([next]() {
+              std::thread([=]() {
+                next(olp::client::HttpResponse(
+                    olp::http::HttpStatusCode::CREATED,
+                    olp::http::HttpErrorToString(
+                        olp::http::HttpStatusCode::CREATED)));
+              }).detach();
+              return olp::client::CancellationToken();
+            });
+          })
+          .Finally([&](ResponseType<olp::client::HttpResponse> response) {
+            promise.set_value(std::move(response));
+          });
+
+  continuation.Run();
+
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
+  EXPECT_TRUE(result);
+  ASSERT_EQ(result.GetResult().GetStatus(), olp::http::HttpStatusCode::CREATED);
+}
+
+TEST_F(TaskContinuationFixture, CheckNoDeadlockSingleThread) {
+  std::promise<ResponseType<int>> promise;
+  auto future = promise.get_future();
+
+  int counter = 0;
+  auto continuation =
+      olp::thread::TaskContinuation(scheduler)
+          .Then([&counter](olp::thread::ExecutionContext,
+                           std::function<void(int)> next) { next(++counter); })
+          .Then([this, &counter](olp::thread::ExecutionContext, int value,
+                                 std::function<void(int)> next) {
+            ASSERT_EQ(value, counter);
+            scheduler->ScheduleTask([=, &counter]() { next(++counter); });
+          })
+          .Then([this, &counter](olp::thread::ExecutionContext, int value,
+                                 std::function<void(int)> next) {
+            ASSERT_EQ(value, counter);
+            scheduler->ScheduleTask([=, &counter]() { next(++counter); });
+          })
+          .Then([&](olp::thread::ExecutionContext, int,
+                    std::function<void(int)> next) { next(++counter); })
+          .Finally([&](ResponseType<int> response) {
+            promise.set_value(std::move(response));
+          });
+
+  continuation.Run();
+
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
+  EXPECT_TRUE(result);
+  ASSERT_EQ(result.GetResult(), counter);
+}
+
+TEST_F(TaskContinuationFixture, CheckNoDeadlockMultipleThreads) {
+  scheduler = std::make_shared<olp::thread::ThreadPoolTaskScheduler>(2);
+
+  std::promise<ResponseType<int>> promise;
+  auto future = promise.get_future();
+
+  int counter = 0;
+  auto continuation =
+      olp::thread::TaskContinuation(scheduler)
+          .Then([&](olp::thread::ExecutionContext,
+                    std::function<void(int)> next) { next(++counter); })
+          .Then([this, &counter](olp::thread::ExecutionContext, int value,
+                                 std::function<void(int)> next) {
+            ASSERT_EQ(value, counter);
+            scheduler->ScheduleTask([=, &counter]() { next(++counter); });
+          })
+          .Then([this, &counter](olp::thread::ExecutionContext, int value,
+                                 std::function<void(int)> next) {
+            ASSERT_EQ(value, counter);
+            scheduler->ScheduleTask([=, &counter]() { next(++counter); });
+          })
+          .Then([&](olp::thread::ExecutionContext, int,
+                    std::function<void(int)> next) { next(++counter); })
+          .Finally([&](ResponseType<int> response) {
+            promise.set_value(std::move(response));
+          });
+
+  continuation.Run();
+
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
+  EXPECT_TRUE(result);
+  ASSERT_EQ(result.GetResult(), counter);
+}
+
+TEST_F(TaskContinuationFixture, FailedAsync) {
+  std::promise<ResponseType<int>> promise;
+  auto future = promise.get_future();
+
+  std::promise<void> cancel_promise;
+  auto cancel_future = cancel_promise.get_future();
+
+  auto continuation =
+      olp::thread::TaskContinuation(std::move(scheduler))
+          .Then([&](olp::thread::ExecutionContext context,
+                    std::function<void(int)>) {
+            std::thread([context, &cancel_future]() mutable {
+              ASSERT_EQ(cancel_future.wait_for(kMaxWaitMs),
+                        std::future_status::ready);
+              context.SetError(olp::client::ApiError::NetworkConnection());
+            }).detach();
+          })
+          .Finally([&](ResponseType<int> response) {
+            promise.set_value(std::move(response));
+          });
+
+  continuation.Run();
+  continuation.CancelToken().Cancel();
+  cancel_promise.set_value();
+
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
+  EXPECT_FALSE(result);
+  EXPECT_EQ(result.GetError().GetErrorCode(),
+            olp::client::ErrorCode::Cancelled);
+}
+
+TEST_F(TaskContinuationFixture, CancelAsync) {
+  std::promise<ResponseType<int>> promise;
+  auto future = promise.get_future();
+
+  std::promise<void> cancel_promise;
+  auto cancel_future = cancel_promise.get_future();
+
+  auto continuation =
+      olp::thread::TaskContinuation(std::move(scheduler))
+          .Then([&](olp::thread::ExecutionContext,
+                    std::function<void(int)> next) {
+            ASSERT_EQ(cancel_future.wait_for(kMaxWaitMs),
+                      std::future_status::ready);
+            next(1);
+          })
+          .Then(
+              [](olp::thread::ExecutionContext, int, std::function<void(int)>) {
+                FAIL() << "The second `Then` method should not be called";
+              })
+          .Finally([&](ResponseType<int> response) {
+            promise.set_value(std::move(response));
+          });
+
+  continuation.Run();
+  continuation.CancelToken().Cancel();
+  cancel_promise.set_value();
+
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
+  EXPECT_FALSE(result);
+  ASSERT_EQ(result.GetError().GetErrorCode(),
+            olp::client::ErrorCode::Cancelled);
+}
+}  // namespace

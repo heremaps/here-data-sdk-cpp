@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+#include <chrono>
 #include <future>
 
 #include <gtest/gtest.h>
@@ -26,8 +27,12 @@
 #include <olp/core/thread/ExecutionContext.h>
 
 namespace {
+constexpr auto kMaxWaitMs = std::chrono::milliseconds(100);
+constexpr auto kTimeoutMs = std::chrono::milliseconds(50);
+
 template <typename ResultType>
-using Response = olp::client::ApiResponse<ResultType, olp::client::ApiError>;
+using ResponseType =
+    olp::client::ApiResponse<ResultType, olp::client::ApiError>;
 
 class ContinuationTest : public testing::Test {
  public:
@@ -53,145 +58,191 @@ class ContinuationTest : public testing::Test {
 };
 
 TEST_F(ContinuationTest, MultipleThen) {
-  std::promise<int> promise;
+  std::promise<ResponseType<int>> promise;
   auto future = promise.get_future();
 
-  auto continuation = Create([](olp::thread::ExecutionContext,
-                                std::function<void(int)> next) { next(1); })
-                          .Then([](olp::thread::ExecutionContext, int,
-                                   std::function<void(int)> next) { next(2); })
-                          .Finally([&promise](Response<int> response) {
-                            promise.set_value(response.GetResult());
-                          });
+  int counter = 0;
+  auto continuation =
+      Create([&](olp::thread::ExecutionContext, std::function<void(int)> next) {
+        next(++counter);
+      })
+          .Then([&](olp::thread::ExecutionContext, int,
+                    std::function<void(int)> next) { next(++counter); })
+          .Finally([&](ResponseType<int> response) {
+            promise.set_value(std::move(response));
+          });
   continuation.Run();
 
-  EXPECT_EQ(future.get(), 2);
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
+  EXPECT_TRUE(result);
+  EXPECT_EQ(result.GetResult(), counter);
 }
 
 TEST_F(ContinuationTest, CancelBeforeRun) {
-  std::promise<olp::client::ApiError> promise;
+  std::promise<ResponseType<int>> promise;
   auto future = promise.get_future();
 
   auto continuation = Create([](olp::thread::ExecutionContext,
                                 std::function<void(int)> next) { next(3); })
                           .Then([](olp::thread::ExecutionContext, int,
                                    std::function<void(int)> next) { next(3); })
-                          .Finally([&promise](Response<int> response) {
-                            promise.set_value(response.GetError());
+                          .Finally([&](ResponseType<int> response) {
+                            promise.set_value(std::move(response));
                           });
 
   continuation.CancelToken().Cancel();
   continuation.Run();
 
-  EXPECT_EQ(future.get().GetErrorCode(), olp::client::ErrorCode::Cancelled);
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
+  EXPECT_FALSE(result);
+  EXPECT_EQ(result.GetError().GetErrorCode(),
+            olp::client::ErrorCode::Cancelled);
 }
 
 TEST_F(ContinuationTest, CancelAfterRun) {
-  std::promise<olp::client::ApiError> promise;
+  std::promise<ResponseType<int>> promise;
   auto future = promise.get_future();
 
   auto continuation = Create([](olp::thread::ExecutionContext,
                                 std::function<void(int)> next) { next(3); })
                           .Then([](olp::thread::ExecutionContext, int,
                                    std::function<void(int)> next) { next(3); })
-                          .Finally([&promise](Response<int> response) {
-                            promise.set_value(response.GetError());
+                          .Finally([&](ResponseType<int> response) {
+                            promise.set_value(std::move(response));
                           });
 
   continuation.Run();
+
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
   continuation.CancelToken().Cancel();
 
-  EXPECT_EQ(future.get().GetErrorCode(), olp::client::ErrorCode::Cancelled);
+  EXPECT_TRUE(result);
 }
 
 TEST_F(ContinuationTest, CancelExecution) {
-  std::promise<void> promise;
+  std::promise<ResponseType<int>> promise;
   auto future = promise.get_future();
 
-  olp::client::ApiResponse<olp::client::HttpResponse, olp::client::ApiError>
-      result;
+  std::promise<void> cancel_promise;
+  auto cancel_future = cancel_promise.get_future();
 
-  auto cont =
-      Create([](olp::thread::ExecutionContext, std::function<void(int)> next) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  auto continuation =
+      Create([&](olp::thread::ExecutionContext, std::function<void(int)> next) {
+        ASSERT_EQ(cancel_future.wait_for(kMaxWaitMs),
+                  std::future_status::ready);
         next(1);
-      })
-          .Finally([&promise, &result](
-                       olp::client::ApiResponse<int, olp::client::ApiError>
-                           response) {
-            result = response.GetError();
-            promise.set_value();
-          });
+      }).Finally([&](ResponseType<int> response) {
+        promise.set_value(std::move(response));
+      });
 
-  cont.Run();
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(50));  // simulate some delay
+  continuation.Run();
 
-  cont.CancelToken().Cancel();
+  continuation.CancelToken().Cancel();
+  cancel_promise.set_value();
 
-  EXPECT_EQ(future.wait_for(std::chrono::milliseconds(1000)),
-            std::future_status::ready);
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
 
-  future.get();
-
-  EXPECT_FALSE(result.IsSuccessful());
+  EXPECT_FALSE(result);
   EXPECT_EQ(result.GetError().GetHttpStatusCode(),
             static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR));
 }
 
 TEST_F(ContinuationTest, FinallyNotSet) {
-  auto cont =
-      Create([](olp::thread::ExecutionContext, std::function<void(int)>) {});
+  auto continuation =
+      Create([](olp::thread::ExecutionContext, std::function<void(int)>) {
+        FAIL() << "`Then` method should not be called if the `Finally`"
+                  "callback isn't set";
+      });
 
-  cont.Run();
+  continuation.Run();
+  // Wait some time to enshure no callbacks are called during the async `Run()`
+  // call. Otherwise it is possible the callbacks will be called after current
+  // test finishes, which may lead to crashes and ambiguity which test caused an
+  // issue.
+  std::this_thread::sleep_for(kTimeoutMs);
 }
 
 TEST_F(ContinuationTest, CancelWithFinallyNotSet) {
-  auto cont =
-      Create([](olp::thread::ExecutionContext, std::function<void(int)>) {});
+  auto continuation =
+      Create([](olp::thread::ExecutionContext, std::function<void(int)>) {
+        FAIL() << "`Then` method should not be called if the `Finally`"
+                  "callback isn't set";
+      });
 
-  cont.CancelToken().Cancel();
-  cont.Run();
+  continuation.CancelToken().Cancel();
+  continuation.Run();
+  // Wait some time to enshure no callbacks are called during the async `Run()`
+  // call. Otherwise it is possible the callbacks will be called after current
+  // test finishes, which may lead to crashes and ambiguity which test caused an
+  // issue.
+  std::this_thread::sleep_for(kTimeoutMs);
 }
 
 TEST_F(ContinuationTest, Failed) {
-  std::promise<olp::client::ApiError> api_error_promise;
-  auto future = api_error_promise.get_future();
+  std::promise<ResponseType<int>> promise;
+  auto future = promise.get_future();
 
-  auto cont = Create([](olp::thread::ExecutionContext context,
-                        std::function<void(int)>) {
-                context.SetError(olp::client::ApiError::NetworkConnection());
-              }).Finally([&api_error_promise](Response<int> response) {
-    api_error_promise.set_value(response.GetError());
-  });
+  auto continuation =
+      Create([](olp::thread::ExecutionContext context,
+                std::function<void(int)>) {
+        context.SetError(olp::client::ApiError::NetworkConnection());
+      }).Finally([&](ResponseType<int> response) {
+        promise.set_value(std::move(response));
+      });
 
-  cont.Run();
-  auto result = future.get();
+  continuation.Run();
 
-  EXPECT_EQ(result.GetErrorCode(), olp::client::ErrorCode::NetworkConnection);
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
+  EXPECT_FALSE(result);
+  ASSERT_EQ(result.GetError().GetErrorCode(),
+            olp::client::ErrorCode::NetworkConnection);
 }
 
 TEST_F(ContinuationTest, NoCrashAfterCallingMethodsAfterRun) {
-  std::promise<olp::client::ApiError> api_error_promise;
-  auto future = api_error_promise.get_future();
+  std::promise<ResponseType<int>> promise;
+  auto future = promise.get_future();
 
-  auto cont = Create([](olp::thread::ExecutionContext context,
-                        std::function<void(int)>) {
-                context.SetError(olp::client::ApiError::NetworkConnection());
-              }).Finally([&api_error_promise](Response<int> response) {
-    api_error_promise.set_value(response.GetError());
-  });
+  auto continuation =
+      Create([](olp::thread::ExecutionContext context,
+                std::function<void(int)>) {
+        context.SetError(olp::client::ApiError::NetworkConnection());
+      }).Finally([&](ResponseType<int> response) {
+        promise.set_value(std::move(response));
+      });
 
-  cont.Run();
-  auto result = future.get();
+  continuation.Run();
 
-  EXPECT_EQ(result.GetErrorCode(), olp::client::ErrorCode::NetworkConnection);
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
 
-  cont.Then([](olp::thread::ExecutionContext, int, std::function<void(int)>) {
-        FAIL();
+  EXPECT_FALSE(result);
+  ASSERT_EQ(result.GetError().GetErrorCode(),
+            olp::client::ErrorCode::NetworkConnection);
+
+  continuation
+      .Then([](olp::thread::ExecutionContext, int, std::function<void(int)>) {
+        FAIL() << "`Then` method should not be called after the continuation "
+                  "is already run";
       })
-      .Finally([](Response<int>) { FAIL(); });
-  cont.Run();
+      .Finally([](ResponseType<int>) {
+        FAIL() << "`Finally` method should not be called after the "
+                  "continuation is already run";
+      });
+  continuation.Run();
+  // Wait some time to enshure no callbacks are called during the async `Run()`
+  // call. Otherwise it is possible the callbacks will be called after current
+  // test finishes, which may lead to crashes and ambiguity which test caused an
+  // issue.
+  std::this_thread::sleep_for(kTimeoutMs);
 }
 
 }  // namespace

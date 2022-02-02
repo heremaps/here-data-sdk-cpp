@@ -29,29 +29,48 @@ class TaskScheduler;
 
 template <typename ResultType>
 void Continuation<ResultType>::Run() {
+  // Run should not start an execution if the `Finally` method is not called
+  // for the task continuation.
   if (!finally_callback_) {
     impl_.Clear();
     return;
   }
 
-  impl_.SetFailedCallback(
-      [this](client::ApiError error) { finally_callback_(std::move(error)); });
-
+  // In case of the continuation is cancelled before calling the `Run` method,
+  // return the `Cancelled` error.
   if (impl_.Cancelled()) {
-    finally_callback_(client::ApiError::Cancelled());
+    const auto finally_callback = std::move(finally_callback_);
+    if (finally_callback) {
+      finally_callback(client::ApiError::Cancelled());
+    }
+
     impl_.Clear();
-    finally_callback_ = nullptr;
     return;
   }
 
-  impl_.Run([this](void* input, bool cancelled) {
-    if (cancelled) {
-      finally_callback_(client::ApiError::Cancelled());
-    } else {
-      auto value = std::move(*static_cast<ResultType*>(input));
-      finally_callback_(std::move(value));
+  // Use std::move to set the `finally_callback_` member to nullptr.
+  // It's needed to check if the execution is done, and prevent calling
+  // the `Cancel` method of the `Continuation` object.
+  // The `SetError` method of the `ExecutionContext` should not execute a
+  // callback as well.
+  impl_.SetFailedCallback([=](client::ApiError error) {
+    const auto finally_callback = std::move(finally_callback_);
+    if (finally_callback) {
+      finally_callback(std::move(error));
     }
-    finally_callback_ = nullptr;
+  });
+
+  impl_.Run([=](void* input, bool cancelled) {
+    impl_.Clear();
+
+    const auto finally_callback = std::move(finally_callback_);
+    if (finally_callback) {
+      if (cancelled) {
+        finally_callback(client::ApiError::Cancelled());
+      } else {
+        finally_callback(std::move(*static_cast<ResultType*>(input)));
+      }
+    }
   });
 }
 
@@ -104,21 +123,19 @@ Continuation<ResultType>::Then(std::function<void(ExecutionContext, ResultType,
                                                   std::function<void(NewType)>)>
                                    task) {
   using NewResultType = internal::RemoveRefAndConst<NewType>;
-  auto context = impl_.GetExecutionContext();
+  const auto context = impl_.GetExecutionContext();
 
-  return impl_.Then({[=](void* input, CallbackType callback) {
-                       auto in = *static_cast<ResultType*>(input);
-                       task(std::move(context), std::move(in),
-                            [callback, context](NewResultType arg) {
-                              callback(static_cast<void*>(&arg));
-                            });
-                     },
-                     [](void* input) {
-                       auto in = *static_cast<NewResultType*>(input);
-                       auto result =
-                           std::make_unique<NewResultType>(std::move(in));
-                       return internal::MakeUntypedUnique(std::move(result));
-                     }});
+  return impl_.Then(
+      {[=](void* input, CallbackType callback) {
+         auto in = *static_cast<ResultType*>(input);
+         task(std::move(context), std::move(in),
+              [=](NewResultType arg) { callback(static_cast<void*>(&arg)); });
+       },
+       [](void* input) {
+         auto in = *static_cast<NewResultType*>(input);
+         auto result = std::make_unique<NewResultType>(std::move(in));
+         return internal::MakeUntypedUnique(std::move(result));
+       }});
 }
 
 template <typename ResultType>
@@ -127,9 +144,9 @@ client::CancellationToken Continuation<ResultType>::CancelToken() {
     return client::CancellationToken();
   }
 
-  auto context = impl_.GetContext();
+  auto context = impl_.GetExecutionContext();
   return client::CancellationToken(
-      [context]() mutable { context.CancelOperation(); });
+      [=]() mutable { context.CancelOperation(); });
 }
 
 template <typename ResultType>
