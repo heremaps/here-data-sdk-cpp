@@ -31,8 +31,13 @@ if(CURL_FOUND AND NOT NETWORK_NO_CURL)
     find_package(OpenSSL)
     if(OPENSSL_FOUND)
         add_definitions(-DOLP_SDK_NETWORK_HAS_OPENSSL)
-        include_directories(${OPENSSL_INCLUDE_DIR})
-        set(OLP_SDK_NETWORK_CURL_LIBRARIES ${OLP_SDK_NETWORK_CURL_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY})
+
+        option(OLP_SDK_USE_LIBCRYPTO "Enables the libcrypto dependency" ON)
+
+        if(OLP_SDK_USE_LIBCRYPTO)
+            include_directories(${OPENSSL_INCLUDE_DIR})
+            set(OLP_SDK_NETWORK_CURL_LIBRARIES ${OLP_SDK_NETWORK_CURL_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY})
+        endif()
     endif()
 
     option(OLP_SDK_ENABLE_CURL_VERBOSE "Enable support for CURL_VERBOSE environment variable to set libcurl to verbose mode" OFF)
