@@ -1,3 +1,37 @@
+## v1.14.0 (15/11/2021)
+
+**Common**
+* **Work In Progress** Added the LMDB library as a dependency. The library is currently not used and turned off by default in CMake.
+* Added proper handling of the `SSLException` error to the Android implementation of `olp::http::Network`. Now, the error is mapped to `olp::http::ErrorCode::IO_ERROR` and subsequently handled as a retriable error.
+* Added proper handling of the `NSURLErrorCannotConnectToHost` error to the iOS implementation of `olp::http::Network`. Now, the error is mapped to `olp::http::ErrorCode::IO_ERROR` and subsequently handled as a retryable error.
+* Added the `olp::cache::KeyGenerator` class. Use this class to access, insert, or remove cache entries without using the Data SDK client.
+* Removed the retry code from the Android implementation of `olp::http::Network`. The `olp::client::OlpClient` class handles all retries.
+* Changed logging from `stdout` to `stderr` for the POSIX environment.
+* Moved the commonly used internal `ExecuteOrSchedule` method to `TaskScheduler.h`.
+* **Work-in-progress**: Added the `olp::thread::ExecutionContext`, `olp::thread::Continuation`, and `olp::thread::TaskContinuation` classes. They are designed to support the task continuation feature, which enables the SDK APIs to use the task scheduler more efficiently and avoid blocking the executor by pending network requests.
+* Extend the `olp::utils::Base64Encode` API to suport the encoding of URLs.
+* Fixed various compiler warnings.
+* Added a new CMake option: `OLP_SDK_USE_LIBCRYPTO`. The flag disables the `libcrypto` dependency.
+
+**olp-cpp-sdk-authentication**
+* Added `olp::core::RetrySettings` to `olp::authentication::AuthenticationSettings`. Now, you can configure `olp::authentication::AuthenticationClient` to use the provided retry settings for all online requests.
+* Added a new operator to `olp::authentication::TokenProvider`. It accepts `olp::client::CancelationContext` as input and returns `olp::authentication::TokenResponse`. Now, authentication requests can be cancelled, and clients can forward proper error messages during authentication to the caller.
+* Added a new `token_provider` parameter to `olp::client::AuthenticationSettings`. The new token provider accepts `olp::client::CancelationContext` and returns the `olp::client::OauthTokenResponse` response. Now, the `olp::client::OlpClient::CallApi` calls can be cancelled during authentication.
+* Deprecated the `olp::authentication::TokenProvider::operator()()` method together with the `olp::authentication::AuthenticationSettings::provider` member. They will be removed by 10.2022.
+* Deprecated the `olp::authentication::TokenResult::GetHttpStatus` and `olp::authentication::TokenResult::GetErrorResponse` methods. They will be removed by 10.2022.
+* Fixed the falsely returned cancellation error code that occurred when a request timed out. It happened on all `olp::authentication::AuthenticationClient` APIs. Now, the correct error is returned.
+* Moved the deprecated `olp::authentication::AutoRefreshingToken`, `olp::authentication::TokenEndpoint`, and `olp::authentication::TokenRequest` classes from the public includes to the source. They are no longer available.
+* Added the `endpoint_url` variable and a new constructor to `olp::authentication::AuthenticationCredentials`.
+* Switched the `SignUpHereUser` and `SignOut` APIs in the `olp::authentication::AuthenticationClient` functionality to `TaskContext`.
+
+**olp-cpp-sdk-dataservice-read**
+* Changed the `olp::dataservice-read::CatalogClient::GetLatestVersion` API. Now, if you use the `CacheOnly` fetch option and specify the cached and start versions, the latest version is resolved. The resolved version is stored in the cache. For the `OnlineIfNotFound` fetch option, the online version is always requested and updated in the cache if needed.
+* Changed the default `olp::dataservice::read::CatalogVersionRequest::start_version_` from `0` to `-1` as 0 is a valid catalog version while -1 is not.
+* Added the `olp::dataservice::read::CatalogClient::GetCompatibleVersions` API. Use it to query the available catalog versions that are compatible with the dependencies provided by `olp::dataservice::read::CompatibleVersionsRequest`.
+
+**olp-cpp-sdk-dataservice-write**
+* Improved Doxygen documentation in various places.
+
 ## v1.13.0 (27/09/2021)
 
 **Common**
