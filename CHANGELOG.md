@@ -1,4 +1,4 @@
-## v1.14.0 (15/11/2021)
+## v1.14.0 (08/02/2022)
 
 **Common**
 * **Work In Progress** Added the LMDB library as a dependency. The library is currently not used and turned off by default in CMake.
