@@ -1,8 +1,9 @@
 var searchData=
 [
-  ['unsupportedindexvalue_0',['UnsupportedIndexValue',['../classolp_1_1dataservice_1_1write_1_1model_1_1_unsupported_index_value.html',1,'olp::dataservice::write::model']]],
-  ['updateindexrequest_1',['UpdateIndexRequest',['../classolp_1_1dataservice_1_1write_1_1model_1_1_update_index_request.html',1,'olp::dataservice::write::model']]],
-  ['url_2',['Url',['../classolp_1_1utils_1_1_url.html',1,'olp::utils']]],
-  ['useraccountinforesponse_3',['UserAccountInfoResponse',['../classolp_1_1authentication_1_1model_1_1_user_account_info_response.html',1,'olp::authentication::model']]],
-  ['userproperties_4',['UserProperties',['../structolp_1_1authentication_1_1_authentication_client_1_1_user_properties.html',1,'olp::authentication::AuthenticationClient']]]
+  ['unsupportedindexvalue_1451',['UnsupportedIndexValue',['../classolp_1_1dataservice_1_1write_1_1model_1_1UnsupportedIndexValue.html',1,'olp::dataservice::write::model']]],
+  ['untypedsmartpointer_1452',['UntypedSmartPointer',['../structolp_1_1thread_1_1internal_1_1UntypedSmartPointer.html',1,'olp::thread::internal']]],
+  ['updateindexrequest_1453',['UpdateIndexRequest',['../classolp_1_1dataservice_1_1write_1_1model_1_1UpdateIndexRequest.html',1,'olp::dataservice::write::model']]],
+  ['url_1454',['Url',['../classolp_1_1utils_1_1Url.html',1,'olp::utils']]],
+  ['useraccountinforesponse_1455',['UserAccountInfoResponse',['../classolp_1_1authentication_1_1model_1_1UserAccountInfoResponse.html',1,'olp::authentication::model']]],
+  ['userproperties_1456',['UserProperties',['../structolp_1_1authentication_1_1AuthenticationClient_1_1UserProperties.html',1,'olp::authentication::AuthenticationClient']]]
 ];
