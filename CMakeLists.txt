@@ -44,6 +44,7 @@ option(OLP_SDK_MSVC_PARALLEL_BUILD_ENABLE "Enable parallel build on MSVC" ON)
 option(OLP_SDK_DISABLE_DEBUG_LOGGING "Disable debug and trace level logging" OFF)
 option(OLP_SDK_ENABLE_DEFAULT_CACHE "Enable default cache implementation based on LevelDB" ON)
 option(OLP_SDK_ENABLE_DEFAULT_CACHE_LMDB "Enable default cache implementation based on LMDB" OFF)
+option(OLP_SDK_ENABLE_ANDROID_CURL "Enable curl based network layer for Android" OFF)
 
 # C++ standard version. Minimum supported version is 11.
 set(CMAKE_CXX_STANDARD 11)
@@ -76,6 +77,7 @@ if (OLP_SDK_BUILD_EXTERNAL_DEPS)
     set(EXTERNAL_BINARY_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/install)
     add_subdirectory(external)
     list(APPEND CMAKE_PREFIX_PATH ${EXTERNAL_BINARY_INSTALL_DIR})
+    list(APPEND CMAKE_FIND_ROOT_PATH "${EXTERNAL_BINARY_INSTALL_DIR}/")
 endif()
 
 # Add the sdks

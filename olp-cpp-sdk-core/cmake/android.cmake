@@ -14,7 +14,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
-if(NOT ANDROID)
+if(NOT ANDROID OR OLP_SDK_ENABLE_ANDROID_CURL)
     set(NETWORK_ANDROID_LIBRARIES)
     return()
 endif()
