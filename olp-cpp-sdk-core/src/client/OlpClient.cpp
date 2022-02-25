@@ -529,8 +529,12 @@ CancellationToken OlpClient::OlpClientImpl::CallApi(
   const auto optional_error =
       AddBearer(query_params.empty(), *network_request, context);
   if (optional_error) {
-    callback(
-        {optional_error->GetHttpStatusCode(), optional_error->GetMessage()});
+    auto status = optional_error->GetHttpStatusCode();
+    if (status == static_cast<int>(http::ErrorCode::UNKNOWN_ERROR)) {
+      status = static_cast<int>(optional_error->GetErrorCode());
+    }
+
+    callback({status, optional_error->GetMessage()});
     return CancellationToken();
   }
 
@@ -654,7 +658,12 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
   const auto optional_error =
       AddBearer(query_params.empty(), network_request, context);
   if (optional_error) {
-    return {optional_error->GetHttpStatusCode(), optional_error->GetMessage()};
+    auto status = optional_error->GetHttpStatusCode();
+    if (status == static_cast<int>(http::ErrorCode::UNKNOWN_ERROR)) {
+      status = static_cast<int>(optional_error->GetErrorCode());
+    }
+
+    return {status, optional_error->GetMessage()};
   }
 
   auto response =
