@@ -20,6 +20,7 @@
 #include "DataRepository.h"
 
 #include <algorithm>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -55,7 +56,10 @@ DataRepository::DataRepository(client::HRN catalog,
     : catalog_(std::move(catalog)),
       settings_(std::move(settings)),
       lookup_client_(std::move(client)),
-      storage_(std::move(storage)) {}
+      storage_(std::move(storage)),
+      partition_repository_(catalog_, "", settings_, lookup_client_),
+      data_repository_(catalog_, settings_.cache,
+                       settings_.default_cache_expiration) {}
 
 DataResponse DataRepository::GetVersionedTile(
     const std::string& layer_id, const TileRequest& request, int64_t version,
@@ -80,6 +84,37 @@ DataResponse DataRepository::GetVersionedTile(
                                 .WithFetchOption(request.GetFetchOption());
 
   return GetBlobData(layer_id, kBlobService, data_request, std::move(context));
+}
+
+client::CancellationToken DataRepository::GetVersionedTile(
+    const std::string& layer_id, const TileRequest& request, int64_t version,
+    std::function<void(DataResponse)> callback) {
+  //  PartitionsRepository repository(catalog_, layer_id, settings_,
+  //  lookup_client_,
+  //                                  storage_);
+  client::CancellationContext context;
+  partition_repository_.set_layer_id(layer_id);
+  auto response = partition_repository_.GetTile(request, version, context);
+
+  if (!response.IsSuccessful()) {
+    OLP_SDK_LOG_WARNING_F(
+        kLogTag,
+        "GetVersionedDataTile partition request failed, hrn='%s', key='%s'",
+        catalog_.ToCatalogHRNString().c_str(),
+        request.CreateKey(layer_id).c_str());
+    callback(response.GetError());
+    return client::CancellationToken();
+  }
+
+  // Get the data using a data handle for requested tile
+  const auto& partition = response.GetResult();
+  const auto data_request = DataRequest()
+                                .WithDataHandle(partition.GetDataHandle())
+                                .WithFetchOption(request.GetFetchOption());
+
+  callback(
+      GetBlobData(layer_id, kBlobService, data_request, std::move(context)));
+  return client::CancellationToken();
 }
 
 BlobApi::DataResponse DataRepository::GetVersionedData(
@@ -122,6 +157,76 @@ BlobApi::DataResponse DataRepository::GetVersionedData(
   return repository::DataRepository::GetBlobData(
       layer_id, kBlobService, blob_request, std::move(context),
       fail_on_cache_error);
+}
+
+///////////////
+client::CancellationToken DataRepository::GetVersionedData(
+    const std::string& layer_id, const DataRequest& request, int64_t version,
+    client::CancellationContext context, bool fail_on_cache_error,
+    std::function<void(BlobApi::DataResponse)> callback) {
+  //  versioned_data_callback_ = std::move(callback);
+  //    partition_repository_.set_layer_id(layer_id);
+  if (request.GetDataHandle() && request.GetPartitionId()) {
+    callback(client::ApiError{client::ErrorCode::PreconditionFailed,
+                              "Both data handle and partition id specified"});
+    return client::CancellationToken();
+  }
+
+  if (request.GetDataHandle()) {
+    auto blob_request = request;
+    // finally get the data using a data handle
+    return repository::DataRepository::GetBlobData(
+        layer_id, kBlobService, blob_request, std::move(context),
+        fail_on_cache_error, [=](BlobApi::DataResponse data_response) {
+          callback(std::move(data_response));
+        });
+  }
+
+  // get data handle for a partition to be queried
+  //  PartitionsRepository repository(catalog_, layer_id, settings_,
+  //  lookup_client_,
+  //                                  storage_);
+  partition_repository_.set_layer_id(layer_id);
+  return partition_repository_.GetPartitionById(
+      request, version, [=](read::PartitionsResponse partitions_response) {
+        if (!partitions_response.IsSuccessful()) {
+          callback(partitions_response.GetError());
+          return client::CancellationToken();
+        }
+
+        const auto& partitions =
+            partitions_response.GetResult().GetPartitions();
+        if (partitions.empty()) {
+          OLP_SDK_LOG_INFO_F(
+              kLogTag,
+              "GetVersionedData partition %s not found, hrn='%s', key='%s'",
+              request.GetPartitionId() ? request.GetPartitionId().get().c_str()
+                                       : "<none>",
+              catalog_.ToCatalogHRNString().c_str(),
+              request.CreateKey(layer_id, version).c_str());
+
+          callback(client::ApiError{client::ErrorCode::NotFound,
+                                    "Partition not found"});
+          return client::CancellationToken();
+        }
+
+        auto blob_request = request;
+        blob_request.WithDataHandle(partitions.front().GetDataHandle());
+        // finally get the data using a data handle
+        //        callback(repository::DataRepository::GetBlobData(
+        //            layer_id, kBlobService, blob_request, std::move(context),
+        //            fail_on_cache_error));
+        //        return client::CancellationToken();
+        //        std::cout << "GetBlob Then 2: " << std::this_thread::get_id()
+        //        << std::endl;
+        return repository::DataRepository::GetBlobData(
+            layer_id, kBlobService, blob_request, std::move(context),
+            fail_on_cache_error, [=](BlobApi::DataResponse data_response) {
+              //            std::cout << "GetBlob Then 2 finished: " <<
+              //            std::this_thread::get_id() << std::endl;
+              callback(std::move(data_response));
+            });
+      });
 }
 
 BlobApi::DataResponse DataRepository::GetBlobData(
@@ -225,6 +330,167 @@ BlobApi::DataResponse DataRepository::GetBlobData(
   }
 
   return storage_response;
+}
+
+//////////////
+client::CancellationToken DataRepository::GetBlobData(
+    const std::string& layer, const std::string& service,
+    const DataRequest& request, client::CancellationContext context,
+    bool fail_on_cache_error,
+    std::function<void(BlobApi::DataResponse)> callback) {
+  auto fetch_option = request.GetFetchOption();
+  auto data_handle = request.GetDataHandle();
+
+  if (!data_handle) {
+    callback(client::ApiError{client::ErrorCode::PreconditionFailed,
+                              "Data handle is missing"});
+    return client::CancellationToken();
+  }
+
+  auto llayer = layer;
+
+  NamedMutex mutex(storage_, catalog_.ToString() + layer + *data_handle);
+  std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);
+
+  // If we are not planning to go online or access the cache, do not lock.
+  if (fetch_option != CacheOnly && fetch_option != OnlineOnly) {
+    lock.lock();
+  }
+
+  if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
+    auto cached_data = data_repository_.Get(layer, data_handle.value());
+    if (cached_data) {
+      OLP_SDK_LOG_DEBUG_F(
+          kLogTag, "GetBlobData found in cache, hrn='%s', key='%s'",
+          catalog_.ToCatalogHRNString().c_str(), data_handle->c_str());
+      callback(cached_data.value());
+      return client::CancellationToken();
+    } else if (fetch_option == CacheOnly) {
+      OLP_SDK_LOG_INFO_F(
+          kLogTag, "GetBlobData not found in cache, hrn='%s', key='%s'",
+          catalog_.ToCatalogHRNString().c_str(), data_handle->c_str());
+      callback(client::ApiError{client::ErrorCode::NotFound,
+                                "CacheOnly: resource not found in cache"});
+    }
+  }
+
+  // Check if other threads have faced an error.
+  const auto optional_error = mutex.GetError();
+  if (optional_error) {
+    OLP_SDK_LOG_DEBUG_F(kLogTag,
+                        "Found error in NamedMutex, aborting, hrn='%s', "
+                        "key='%s', error='%s'",
+                        catalog_.ToCatalogHRNString().c_str(),
+                        data_handle->c_str(),
+                        optional_error->GetMessage().c_str());
+    callback(*optional_error);
+    return client::CancellationToken();
+  }
+
+  return lookup_client_.LookupApi(
+      service, "v1", static_cast<client::FetchOptions>(fetch_option),
+      [&, callback, llayer, data_handle](
+          client::ApiLookupClient::LookupApiResponse storage_api_lookup) {
+        if (!storage_api_lookup.IsSuccessful()) {
+          // Store an error to share it with other threads.
+          mutex.SetError(storage_api_lookup.GetError());
+
+          callback(storage_api_lookup.GetError());
+          return client::CancellationToken();
+        }
+
+        if (service == kBlobService) {
+          return BlobApi::GetBlob(
+              storage_api_lookup.GetResult(), layer, data_handle.value(),
+              request.GetBillingTag(), boost::none,
+              [&, callback, llayer, data_handle,
+               fetch_option](BlobApi::DataResponse storage_response) {
+                if (storage_response.IsSuccessful() &&
+                    fetch_option != OnlineOnly) {
+                  auto storage = storage_response.GetResult();
+                  callback(storage_response);
+                  return client::CancellationToken();
+                  //                  callback(client::ApiError{
+                  //                      client::ErrorCode::PreconditionFailed,
+                  //                      "Both data handle and partition id
+                  //                      specified1"});
+                  const auto put_result = data_repository_.Put(
+                      storage, llayer, data_handle.value());
+                  //                  return client::CancellationToken();
+                  if (!put_result.IsSuccessful() && fail_on_cache_error) {
+                    OLP_SDK_LOG_ERROR_F(
+                        kLogTag,
+                        "Failed to write data to cache, hrn='%s', "
+                        "layer='%s', data_handle='%s'",
+                        catalog_.ToCatalogHRNString().c_str(), llayer.c_str(),
+                        data_handle->c_str());
+                    callback(put_result.GetError());
+                    return client::CancellationToken();
+                  }
+                }
+
+                if (!storage_response.IsSuccessful()) {
+                  const auto& error = storage_response.GetError();
+                  if (error.GetHttpStatusCode() ==
+                      http::HttpStatusCode::FORBIDDEN) {
+                    OLP_SDK_LOG_WARNING_F(kLogTag,
+                                          "GetBlobData 403 received, remove "
+                                          "from cache, hrn='%s', key='%s'",
+                                          catalog_.ToCatalogHRNString().c_str(),
+                                          data_handle->c_str());
+                    data_repository_.Clear(layer, data_handle.value());
+                  }
+
+                  // Store an error to share it with other threads.
+                  mutex.SetError(storage_response.GetError());
+                }
+
+                //                callback(storage_response);
+                return client::CancellationToken();
+              });
+        } else {
+          return VolatileBlobApi::GetVolatileBlob(
+              storage_api_lookup.GetResult(), layer, data_handle.value(),
+              request.GetBillingTag(),
+              [&](BlobApi::DataResponse storage_response) {
+                if (storage_response.IsSuccessful() &&
+                    fetch_option != OnlineOnly) {
+                  const auto put_result =
+                      data_repository_.Put(storage_response.GetResult(), llayer,
+                                           data_handle.value());
+                  if (!put_result.IsSuccessful() && fail_on_cache_error) {
+                    OLP_SDK_LOG_ERROR_F(
+                        kLogTag,
+                        "Failed to write data to cache, hrn='%s', "
+                        "layer='%s', data_handle='%s'",
+                        catalog_.ToCatalogHRNString().c_str(), llayer.c_str(),
+                        data_handle->c_str());
+                    callback(put_result.GetError());
+                    return client::CancellationToken();
+                  }
+                }
+
+                if (!storage_response.IsSuccessful()) {
+                  const auto& error = storage_response.GetError();
+                  if (error.GetHttpStatusCode() ==
+                      http::HttpStatusCode::FORBIDDEN) {
+                    OLP_SDK_LOG_WARNING_F(kLogTag,
+                                          "GetBlobData 403 received, remove "
+                                          "from cache, hrn='%s', key='%s'",
+                                          catalog_.ToCatalogHRNString().c_str(),
+                                          data_handle->c_str());
+                    data_repository_.Clear(layer, data_handle.value());
+                  }
+
+                  // Store an error to share it with other threads.
+                  mutex.SetError(storage_response.GetError());
+                }
+
+                callback(storage_response);
+                return client::CancellationToken();
+              });
+        }
+      });
 }
 
 BlobApi::DataResponse DataRepository::GetVolatileData(

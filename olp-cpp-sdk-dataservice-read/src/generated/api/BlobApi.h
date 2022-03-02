@@ -70,6 +70,12 @@ class BlobApi {
                               boost::optional<std::string> billing_tag,
                               boost::optional<std::string> range,
                               const client::CancellationContext& context);
+
+  static client::CancellationToken GetBlob(
+      const client::OlpClient& client, const std::string& layer_id,
+      const std::string& data_handle, boost::optional<std::string> billing_tag,
+      boost::optional<std::string> range,
+      std::function<void(DataResponse)> callback);
 };
 
 }  // namespace read

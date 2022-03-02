@@ -20,6 +20,7 @@
 #include <olp/core/thread/Continuation.h>
 
 #include <atomic>
+#include <iostream>
 #include <memory>
 #include <thread>
 #include <utility>
@@ -60,6 +61,8 @@ class Processor {
     }
 
     auto callback = [=](void* arg) mutable {
+      //        std::cout << "Continuation ProcessAsyncTask Callback1: " <<
+      //        std::this_thread::get_id() << std::endl;
       // limit lifetime of the context shared_ptr to the function scope, for
       // extra safety in case user's async function stores callback somewhere
       // for forever.
@@ -72,6 +75,10 @@ class Processor {
         ProcessNextTask(context);
       }
     };
+
+    if (processor_ && processor_->final_callback_ == nullptr) {
+      return false;
+    }
 
     auto func = std::move(current_task.first);
     current_task.first = nullptr;
@@ -114,7 +121,7 @@ class Processor {
 
   // creates a task for execution by TaskContinuation
   Task CreateFollowingTask(const std::shared_ptr<ProcessorInternal>& context) {
-    return [=] { ProcessNextTask(context); };
+    return [this, context] { ProcessNextTask(context); };
   }
 
   // starts the first task in a chain
@@ -191,6 +198,12 @@ const ExecutionContext& ContinuationImpl::GetExecutionContext() const {
 
 bool ContinuationImpl::Cancelled() const {
   return execution_context_.Cancelled();
+}
+
+void ContinuationImpl::Cancel() {
+  //    execution_context_.CancelOperation();
+  execution_context_.SetError(client::ApiError::Cancelled());
+  //  Clear();
 }
 
 void ContinuationImpl::SetFailedCallback(FailedCallback callback) {

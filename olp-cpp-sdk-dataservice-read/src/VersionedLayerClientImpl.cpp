@@ -33,6 +33,7 @@
 #include <olp/core/client/TaskContext.h>
 #include <olp/core/context/Context.h>
 #include <olp/core/logging/Log.h>
+#include <olp/core/thread/TaskContinuation.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/read/CatalogVersionRequest.h>
 #include "Common.h"
@@ -68,10 +69,15 @@ VersionedLayerClientImpl::VersionedLayerClientImpl(
       catalog_version_(catalog_version ? catalog_version.get()
                                        : kInvalidVersion),
       lookup_client_(catalog_, settings_),
-      task_sink_(settings_.task_scheduler) {
+      task_sink_(settings_.task_scheduler),
+      data_repository_(catalog_, settings_, lookup_client_, mutex_storage_) {
   if (!settings_.cache) {
     settings_.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
   }
+}
+
+VersionedLayerClientImpl::~VersionedLayerClientImpl() {
+  data_responses_.CancelAll();
 }
 
 bool VersionedLayerClientImpl::CancelPendingRequests() {
@@ -124,31 +130,75 @@ VersionedLayerClientImpl::GetPartitions(PartitionsRequest partitions_request) {
 
 client::CancellationToken VersionedLayerClientImpl::GetData(
     DataRequest request, DataResponseCallback callback) {
-  auto data_task =
-      [=](client::CancellationContext context) mutable -> DataResponse {
-    if (request.GetFetchOption() == CacheWithUpdate) {
-      return {{client::ErrorCode::InvalidArgument,
-               "CacheWithUpdate option can not be used for versioned "
-               "layer"}};
-    }
+  auto continuation = data_responses_.AddToQueue(
+      olp::thread::TaskContinuation(settings_.task_scheduler)
+          .Then(
+              [=](olp::thread::ExecutionContext context,
+                  std::function<void(client::ApiResponse<model::VersionResponse,
+                                                         client::ApiError>)>
+                      response) {
+                if (request.GetFetchOption() == CacheWithUpdate) {
+                  context.SetError(
+                      {client::ErrorCode::InvalidArgument,
+                       "CacheWithUpdate option can not be used for versioned "
+                       "layer"});
+                  return;
+                }
 
-    int64_t version = -1;
-    if (!request.GetDataHandle()) {
-      auto version_response = GetVersion(request.GetBillingTag(),
-                                         request.GetFetchOption(), context);
-      if (!version_response.IsSuccessful()) {
-        return version_response.GetError();
-      }
-      version = version_response.GetResult().GetVersion();
-    }
+                int64_t version = -1;
+                if (!request.GetDataHandle()) {
+                  context.ExecuteOrCancelled(
+                      [=]() {
+                        return GetVersion(
+                            request.GetBillingTag(), request.GetFetchOption(),
+                            [=](read::CatalogVersionResponse version_response) {
+                              if (!version_response.IsSuccessful()) {
+                                response(version_response.GetError());
+                                return;
+                              }
 
-    repository::DataRepository repository(catalog_, settings_, lookup_client_,
-                                          mutex_storage_);
-    return repository.GetVersionedData(layer_id_, request, version, context);
-  };
+                              response(version_response);
+                            });
+                      },
+                      [=]() {
+                        response(client::ApiError::Cancelled());
+                        return client::CancellationToken();
+                      });
+                  return;
+                }
 
-  return task_sink_.AddTask(std::move(data_task), std::move(callback),
-                            request.GetPriority());
+                model::VersionResponse version_res;
+                version_res.SetVersion(version);
+                response(version_res);
+              })
+          .Then(
+              [=](olp::thread::ExecutionContext context,
+                  client::ApiResponse<model::VersionResponse, client::ApiError>
+                      version,
+                  DataResponseCallback response) {
+                auto layer_id = layer_id_;
+
+                context.ExecuteOrCancelled(
+                    [=]() {
+                      return data_repository_.GetVersionedData(
+                          layer_id, request, version.GetResult().GetVersion(),
+                          context.GetContext(), false,
+                          [=](BlobApi::DataResponse data_response) {
+                            response(data_response);
+                          });
+                    },
+                    [=]() {
+                      response(client::ApiError::Cancelled());
+                      return client::CancellationToken();
+                    });
+              })
+          .Finally([=](Response<DataResponse> result) {
+            callback(result.GetResult());
+          }));
+
+  continuation->Run();
+
+  return continuation->CancelToken();
 }
 
 client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
@@ -306,12 +356,12 @@ VersionedLayerClientImpl::PrefetchPartitions(
     PrefetchPartitionsRequest request,
     PrefetchPartitionsStatusCallback status_callback) {
   auto promise = std::make_shared<std::promise<PrefetchPartitionsResponse>>();
-  auto cancel_token =
-      PrefetchPartitions(std::move(request),
-                         [promise](PrefetchPartitionsResponse response) {
-                           promise->set_value(std::move(response));
-                         },
-                         std::move(status_callback));
+  auto cancel_token = PrefetchPartitions(
+      std::move(request),
+      [promise](PrefetchPartitionsResponse response) {
+        promise->set_value(std::move(response));
+      },
+      std::move(status_callback));
   return client::CancellableFuture<PrefetchPartitionsResponse>(cancel_token,
                                                                promise);
 }
@@ -491,11 +541,12 @@ client::CancellableFuture<PrefetchTilesResponse>
 VersionedLayerClientImpl::PrefetchTiles(
     PrefetchTilesRequest request, PrefetchStatusCallback status_callback) {
   auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
-  auto cancel_token = PrefetchTiles(std::move(request),
-                                    [promise](PrefetchTilesResponse response) {
-                                      promise->set_value(std::move(response));
-                                    },
-                                    std::move(status_callback));
+  auto cancel_token = PrefetchTiles(
+      std::move(request),
+      [promise](PrefetchTilesResponse response) {
+        promise->set_value(std::move(response));
+      },
+      std::move(status_callback));
   return client::CancellableFuture<PrefetchTilesResponse>(cancel_token,
                                                           promise);
 }
@@ -531,33 +582,47 @@ CatalogVersionResponse VersionedLayerClientImpl::GetVersion(
   return response;
 }
 
+client::CancellationToken VersionedLayerClientImpl::GetVersion(
+    boost::optional<std::string> billing_tag, const FetchOptions& fetch_options,
+    CatalogVersionCallback callback) {
+  auto version = catalog_version_.load();
+  if (version != kInvalidVersion) {
+    model::VersionResponse response;
+    response.SetVersion(version);
+    callback(response);
+    return client::CancellationToken();
+  }
+
+  CatalogVersionRequest request;
+  request.WithBillingTag(std::move(billing_tag));
+  request.WithFetchOption(fetch_options);
+
+  //  std::cout << "GetVersion:" << std::this_thread::get_id() << std::endl;
+  repository::CatalogRepository repository(catalog_, settings_, lookup_client_);
+  return repository.GetLatestVersion(
+      request, [&, callback](read::CatalogVersionResponse response) {
+        //      std::cout << "GetVersion response:" <<
+        //      std::this_thread::get_id() << std::endl;
+        if (!response.IsSuccessful()) {
+          callback(response);
+          return;
+        }
+
+        if (!catalog_version_.compare_exchange_weak(
+                version, response.GetResult().GetVersion())) {
+          model::VersionResponse version_response;
+          version_response.SetVersion(version);
+          callback(version_response);
+          return;
+        }
+
+        callback(response);
+      });
+}
+
 client::CancellationToken VersionedLayerClientImpl::GetData(
     TileRequest request, DataResponseCallback callback) {
-  auto data_task = [=](client::CancellationContext context) -> DataResponse {
-    if (request.GetFetchOption() == CacheWithUpdate) {
-      return {{client::ErrorCode::InvalidArgument,
-               "CacheWithUpdate option can not be used for versioned layer"}};
-    }
-
-    if (!request.GetTileKey().IsValid()) {
-      return {{client::ErrorCode::InvalidArgument, "Tile key is invalid"}};
-    }
-
-    auto version_response =
-        GetVersion(request.GetBillingTag(), request.GetFetchOption(), context);
-    if (!version_response.IsSuccessful()) {
-      return version_response.GetError();
-    }
-
-    repository::DataRepository repository(catalog_, settings_, lookup_client_,
-                                          mutex_storage_);
-    return repository.GetVersionedTile(
-        layer_id_, request, version_response.GetResult().GetVersion(),
-        std::move(context));
-  };
-
-  return task_sink_.AddTask(std::move(data_task), std::move(callback),
-                            request.GetPriority());
+  return client::CancellationToken();
 }
 
 client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(

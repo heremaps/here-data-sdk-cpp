@@ -57,6 +57,8 @@ class PartitionsRepository {
                        client::ApiLookupClient client,
                        NamedMutexStorage storage = NamedMutexStorage());
 
+  void set_layer_id(const std::string& lid) { layer_id_ = lid; }
+
   PartitionsResponse GetVersionedPartitions(
       const read::PartitionsRequest& request, std::int64_t version,
       client::CancellationContext context);
@@ -72,6 +74,11 @@ class PartitionsRepository {
   PartitionsResponse GetPartitionById(const DataRequest& request,
                                       boost::optional<int64_t> version,
                                       client::CancellationContext context);
+
+  client::CancellationToken GetPartitionById(
+      const DataRequest& request,
+      /*PartitionsCacheRepository &cache, */ boost::optional<int64_t> version,
+      std::function<void(PartitionsResponse)> callback);
 
   static model::Partition PartitionFromSubQuad(const model::SubQuad& sub_quad,
                                                const std::string& partition);
@@ -103,7 +110,7 @@ class PartitionsRepository {
       bool fail_on_cache_error = false);
 
   const client::HRN catalog_;
-  const std::string layer_id_;
+  std::string layer_id_;
   client::OlpClientSettings settings_;
   client::ApiLookupClient lookup_client_;
   PartitionsCacheRepository cache_;

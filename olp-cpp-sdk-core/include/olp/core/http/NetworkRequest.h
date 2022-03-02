@@ -38,13 +38,13 @@ class CORE_API NetworkRequest final {
 
   /// The HTTP method, as specified at https://tools.ietf.org/html/rfc2616.
   enum class HttpVerb {
-    GET = 0,     ///< The GET method (RFC2616, section-9.3).
-    POST = 1,    ///< The POST method (RFC2616, section-9.5).
-    HEAD = 2,    ///< The HEAD method (RFC2616 section-9.4).
-    PUT = 3,     ///< The PUT method (RFC2616 section-9.6).
-    DEL = 4,     ///< The DELETE method (RFC2616 section-9.7).
-    PATCH = 5,   ///< The PATCH method (RFC2068 section-19.6.1.1).
-    OPTIONS = 6, ///< The OPTIONS method (RFC2616 section-9.2).
+    GET = 0,      ///< The GET method (RFC2616, section-9.3).
+    POST = 1,     ///< The POST method (RFC2616, section-9.5).
+    HEAD = 2,     ///< The HEAD method (RFC2616 section-9.4).
+    PUT = 3,      ///< The PUT method (RFC2616 section-9.6).
+    DEL = 4,      ///< The DELETE method (RFC2616 section-9.7).
+    PATCH = 5,    ///< The PATCH method (RFC2068 section-19.6.1.1).
+    OPTIONS = 6,  ///< The OPTIONS method (RFC2616 section-9.2).
   };
 
   /**
@@ -53,6 +53,7 @@ class CORE_API NetworkRequest final {
    * @param[in] url The URL of the HTTP request.
    */
   explicit NetworkRequest(std::string url);
+  NetworkRequest() = default;
 
   /**
    * @brief Gets all HTTP headers.

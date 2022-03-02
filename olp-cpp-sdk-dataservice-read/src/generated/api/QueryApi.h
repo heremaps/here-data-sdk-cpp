@@ -80,6 +80,14 @@ class QueryApi {
       boost::optional<std::string> billing_tag,
       client::CancellationContext context);
 
+  static client::CancellationToken GetPartitionsbyId(
+      const client::OlpClient& client, const std::string& layer_id,
+      const std::vector<std::string>& partitions,
+      boost::optional<int64_t> version,
+      const std::vector<std::string>& additional_fields,
+      boost::optional<std::string> billing_tag,
+      std::function<void(PartitionsExtendedResponse)> callback);
+
   /**
    * @brief Gets index metadata
    * Gets metadata synchronously for the requested index. Only available for

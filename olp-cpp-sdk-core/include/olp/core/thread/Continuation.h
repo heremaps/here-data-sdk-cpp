@@ -107,6 +107,8 @@ class CORE_API ContinuationImpl final {
    */
   bool Cancelled() const;
 
+  void Cancel();
+
   /**
    * @brief Sets a callback on calling `SetError`.
    *
@@ -219,6 +221,8 @@ class CORE_API Continuation final {
    * @return The `Continuation` instance.
    */
   Continuation& Finally(FinallyCallbackType finally_callback);
+
+  void Cancel() { impl_.Cancel(); }
 
  private:
   FinallyCallbackType finally_callback_;

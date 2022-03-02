@@ -18,10 +18,10 @@
  */
 
 #include <chrono>
-#include <memory>
-#include <thread>
 #include <fstream>
+#include <memory>
 #include <regex>
+#include <thread>
 
 #include <gtest/gtest.h>
 #include <olp/core/client/HRN.h>
@@ -36,7 +36,7 @@ using TestFunction = std::function<void(uint8_t thread_id)>;
 struct TestConfiguration : public TestBaseConfiguration {
   std::string configuration_name;
   std::uint16_t requests_per_second = 3;
-  std::uint8_t calling_thread_count = 5;
+  std::uint8_t calling_thread_count = 3;
   std::chrono::seconds runtime = std::chrono::minutes(5);
   float cancelation_chance = 0.f;
   bool collect_stats = false;
@@ -84,8 +84,8 @@ uint64_t GetWrittenBytes() {
 }
 
 constexpr auto kLogTag = "MemoryTest";
-const olp::client::HRN kCatalog("hrn:here:data::olp-here-test:testhrn");
-const std::string kVersionedLayerId("versioned_test_layer");
+const olp::client::HRN kCatalog("hrn:here:data::olp-here:ocm");
+const std::string kVersionedLayerId("rendering");
 
 class MemoryTest : public MemoryTestBase<TestConfiguration> {
  public:
@@ -197,7 +197,7 @@ void MemoryTest::RandomlyCancel(olp::client::CancellationToken token) {
  */
 TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
   // Enable only errors to have a short output.
-  olp::logging::Log::setLevel(olp::logging::Level::Warning);
+  olp::logging::Log::setLevel(olp::logging::Level::Trace);
 
   const auto& parameter = GetParam();
 
@@ -216,6 +216,7 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
       auto request = olp::dataservice::read::DataRequest().WithPartitionId(
           std::to_string(partition_id));
       total_requests_.fetch_add(1);
+
       auto token = service_client.GetData(
           request, [&](olp::dataservice::read::DataResponse response) {
             if (response.IsSuccessful()) {
@@ -239,11 +240,11 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
  */
 TestConfiguration LongRunningTest() {
   TestConfiguration configuration;
-  SetErrorFlags(configuration);
+  //  SetErrorFlags(configuration);
   SetDiskCacheConfiguration(configuration);
-  configuration.configuration_name = "15m_test";
-  configuration.runtime = std::chrono::minutes(15);
-  configuration.cancelation_chance = 0.25f;
+  configuration.configuration_name = "60s_test";
+  configuration.runtime = std::chrono::seconds(60);
+  configuration.cancelation_chance = 0.0f;
   configuration.collect_stats = true;
   return configuration;
 }
@@ -271,8 +272,8 @@ TestConfiguration ShortRunningTestWithMutableCache() {
 
 std::vector<TestConfiguration> Configurations() {
   std::vector<TestConfiguration> configurations;
-  configurations.emplace_back(ShortRunningTestWithMemoryCache());
-  configurations.emplace_back(ShortRunningTestWithMutableCache());
+  //  configurations.emplace_back(ShortRunningTestWithMemoryCache());
+  //  configurations.emplace_back(ShortRunningTestWithMutableCache());
   configurations.emplace_back(LongRunningTest());
   return configurations;
 }

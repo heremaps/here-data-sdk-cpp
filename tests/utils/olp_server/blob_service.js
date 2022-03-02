@@ -23,7 +23,7 @@ function generateGetBlobApiResponse(request) {
     
     // Generate a blob 400-500 Kb
     var response = ""
-    var length = (Math.floor(Math.random() * 100) + 400) * 1024
+    var length = 100*1024//(Math.floor(Math.random() * 1) + 400) * 1024
     var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     var charactersLength = characters.length;
     for ( var i = 0; i < length; i++ ) {

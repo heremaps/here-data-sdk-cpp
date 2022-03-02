@@ -60,6 +60,11 @@ class VolatileBlobApi {
       const client::OlpClient& client, const std::string& layer_id,
       const std::string& data_handle, boost::optional<std::string> billing_tag,
       const client::CancellationContext& context);
+
+  static client::CancellationToken GetVolatileBlob(
+      const client::OlpClient& client, const std::string& layer_id,
+      const std::string& data_handle, boost::optional<std::string> billing_tag,
+      std::function<void(DataResponse)> callback);
 };
 
 }  // namespace read

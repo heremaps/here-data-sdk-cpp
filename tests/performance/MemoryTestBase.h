@@ -20,6 +20,7 @@
 #pragma once
 
 #include <gtest/gtest.h>
+#include <olp/authentication/TokenProvider.h>
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/OlpClientSettings.h>
@@ -30,6 +31,8 @@
 
 using KeyValueCachePtr = std::shared_ptr<olp::cache::KeyValueCache>;
 using CacheFactory = std::function<KeyValueCachePtr()>;
+
+constexpr auto kDsp = "https://direct.data.api.platform.here.com/direct/v1";
 
 struct TestBaseConfiguration {
   std::uint8_t task_scheduler_capacity{5};
@@ -68,15 +71,19 @@ class MemoryTestBase : public ::testing::TestWithParam<Param> {
     network->WithTimeouts(parameter.with_network_timeouts);
 
     olp::client::AuthenticationSettings auth_settings;
-    auth_settings.token_provider = [](olp::client::CancellationContext&) {
-      return olp::client::OauthToken("invalid", -1);
-    };
+    olp::authentication::Settings setts(
+        *olp::authentication::AuthenticationCredentials::ReadFromFile());
 
     olp::client::OlpClientSettings client_settings;
+    setts.network_request_handler = network;
+    auth_settings.token_provider =
+        olp::authentication::TokenProviderDefault(setts);
     client_settings.authentication_settings = auth_settings;
     client_settings.task_scheduler = task_scheduler;
-    client_settings.network_request_handler = std::move(network);
-    client_settings.proxy_settings = GetLocalhostProxySettings();
+    client_settings.network_request_handler = network;
+    client_settings.api_lookup_settings.catalog_endpoint_provider =
+        [](const olp::client::HRN&) { return kDsp; };
+    //    client_settings.proxy_settings = GetLocalhostProxySettings();
     client_settings.cache =
         parameter.cache_factory ? parameter.cache_factory() : nullptr;
     client_settings.retry_settings.timeout = 1;

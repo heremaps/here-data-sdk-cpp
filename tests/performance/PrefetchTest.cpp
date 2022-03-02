@@ -191,8 +191,8 @@ TestConfiguration ShortRunningTestWithMutableCache() {
 
 std::vector<TestConfiguration> Configurations() {
   std::vector<TestConfiguration> configurations;
-  configurations.emplace_back(ShortRunningTestWithMemoryCache());
-  configurations.emplace_back(ShortRunningTestWithMutableCache());
+  //  configurations.emplace_back(ShortRunningTestWithMemoryCache());
+  //  configurations.emplace_back(ShortRunningTestWithMutableCache());
   return configurations;
 }
 

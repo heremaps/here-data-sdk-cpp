@@ -36,6 +36,9 @@ namespace http {
 /// An HTTP client abstraction.
 class CORE_API Network {
  public:
+  virtual bool IsStarted() const { return true; }
+  virtual bool Ready() const { return true; }
+
   /// The callback that is called when the request is processed or canceled.
   using Callback = std::function<void(NetworkResponse response)>;
 

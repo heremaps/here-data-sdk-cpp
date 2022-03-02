@@ -29,6 +29,8 @@
 
 #include "NamedMutex.h"
 #include "generated/api/BlobApi.h"
+#include "repositories/DataCacheRepository.h"
+#include "repositories/PartitionsRepository.h"
 
 namespace olp {
 namespace dataservice {
@@ -46,11 +48,20 @@ class DataRepository final {
                                 const TileRequest& request, int64_t version,
                                 client::CancellationContext context);
 
+  client::CancellationToken GetVersionedTile(
+      const std::string& layer_id, const TileRequest& request, int64_t version,
+      std::function<void(DataResponse)> callback);
+
   BlobApi::DataResponse GetVersionedData(const std::string& layer_id,
                                          const DataRequest& request,
                                          int64_t version,
                                          client::CancellationContext context,
                                          bool fail_on_cache_error = false);
+
+  client::CancellationToken GetVersionedData(
+      const std::string& layer_id, const DataRequest& request, int64_t version,
+      client::CancellationContext context, bool fail_on_cache_error,
+      std::function<void(BlobApi::DataResponse)> callback);
 
   BlobApi::DataResponse GetVolatileData(const std::string& layer_id,
                                         const DataRequest& request,
@@ -63,11 +74,21 @@ class DataRepository final {
                                     client::CancellationContext context,
                                     bool fail_on_cache_error = false);
 
+  client::CancellationToken GetBlobData(
+      const std::string& layer, const std::string& service,
+      const DataRequest& request, client::CancellationContext context,
+      bool fail_on_cache_error,
+      std::function<void(BlobApi::DataResponse)> callback);
+
  private:
   client::HRN catalog_;
   client::OlpClientSettings settings_;
   client::ApiLookupClient lookup_client_;
   NamedMutexStorage storage_;
+
+  //  std::function<void(BlobApi::DataResponse)> versioned_data_callback_;
+  repository::PartitionsRepository partition_repository_;
+  repository::DataCacheRepository data_repository_;
 };
 
 }  // namespace repository

@@ -61,6 +61,39 @@ BlobApi::DataResponse BlobApi::GetBlob(
   api_response.GetResponse(*result);
   return {result, api_response.GetNetworkStatistics()};
 }
+
+client::CancellationToken BlobApi::GetBlob(
+    const client::OlpClient& client, const std::string& layer_id,
+    const std::string& data_handle, boost::optional<std::string> billing_tag,
+    boost::optional<std::string> range,
+    std::function<void(DataResponse)> callback) {
+  std::multimap<std::string, std::string> header_params;
+  header_params.emplace("Accept", "application/json");
+  if (range) {
+    header_params.emplace("Range", *range);
+  }
+
+  std::multimap<std::string, std::string> query_params;
+  if (billing_tag) {
+    query_params.emplace("billingTag", *billing_tag);
+  }
+
+  std::string metadata_uri = "/layers/" + layer_id + "/data/" + data_handle;
+  return client.CallApi(
+      metadata_uri, "GET", query_params, header_params, {}, nullptr, "",
+      [=](client::HttpResponse api_response) {
+        if (api_response.status != http::HttpStatusCode::OK) {
+          callback({client::ApiError{api_response.status,
+                                     api_response.response.str()},
+                    api_response.GetNetworkStatistics()});
+          return;
+        }
+
+        auto result = std::make_shared<std::vector<unsigned char>>();
+        api_response.GetResponse(*result);
+        callback({result, api_response.GetNetworkStatistics()});
+      });
+}
 }  // namespace read
 }  // namespace dataservice
 }  // namespace olp

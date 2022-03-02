@@ -339,6 +339,91 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
 
   return query_response;
 }
+/////////
+client::CancellationToken PartitionsRepository::GetPartitionById(
+    const DataRequest& request,
+    /*PartitionsCacheRepository& cache,*/ boost::optional<int64_t> version,
+    std::function<void(PartitionsResponse)> callback) {
+  const auto& partition_id = request.GetPartitionId();
+  if (!partition_id) {
+    callback(client::ApiError{client::ErrorCode::PreconditionFailed,
+                              "Partition Id is missing"});
+    return client::CancellationToken();
+  }
+
+  auto fetch_option = request.GetFetchOption();
+
+  const auto request_key =
+      catalog_.ToString() + request.CreateKey(layer_id_, version);
+
+  NamedMutex mutex(storage_, request_key);
+  std::unique_lock<repository::NamedMutex> lock(mutex, std::defer_lock);
+
+  // If we are not planning to go online or access the cache, do not lock.
+  if (fetch_option != CacheOnly && fetch_option != OnlineOnly) {
+    lock.lock();
+  }
+
+  const auto key = request.CreateKey(layer_id_, version);
+
+  const std::vector<std::string> partitions{partition_id.value()};
+
+  if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
+    auto cached_partitions = cache_.Get(partitions, version);
+    if (cached_partitions.GetPartitions().size() == partitions.size()) {
+      OLP_SDK_LOG_DEBUG_F(kLogTag,
+                          "GetPartitionById found in cache, hrn='%s', key='%s'",
+                          catalog_.ToCatalogHRNString().c_str(), key.c_str());
+      callback(cached_partitions);
+      return client::CancellationToken();
+    } else if (fetch_option == CacheOnly) {
+      OLP_SDK_LOG_INFO_F(
+          kLogTag, "GetPartitionById not found in cache, hrn='%s', key='%s'",
+          catalog_.ToCatalogHRNString().c_str(), key.c_str());
+      callback(client::ApiError{client::ErrorCode::NotFound,
+                                "CacheOnly: resource not found in cache"});
+      return client::CancellationToken();
+    }
+  }
+
+  return lookup_client_.LookupApi(
+      "query", "v1", static_cast<client::FetchOptions>(fetch_option),
+      [= /*, &cache*/](client::ApiLookupClient::LookupApiResponse query_api) {
+        if (!query_api.IsSuccessful()) {
+          callback(query_api.GetError());
+          return client::CancellationToken();
+        }
+
+        const client::OlpClient& client = query_api.GetResult();
+
+        return QueryApi::GetPartitionsbyId(
+            client, layer_id_, partitions, version, {}, request.GetBillingTag(),
+            [= /*, &cache*/](
+                read::QueryApi::PartitionsExtendedResponse query_response) {
+              if (query_response.IsSuccessful() && fetch_option != OnlineOnly) {
+                OLP_SDK_LOG_DEBUG_F(
+                    kLogTag,
+                    "GetPartitionById put to cache, hrn='%s', key='%s'",
+                    catalog_.ToCatalogHRNString().c_str(), key.c_str());
+                cache_.Put(query_response.GetResult(), version, boost::none);
+              } else if (!query_response.IsSuccessful()) {
+                const auto& error = query_response.GetError();
+                if (error.GetHttpStatusCode() ==
+                    http::HttpStatusCode::FORBIDDEN) {
+                  OLP_SDK_LOG_WARNING_F(
+                      kLogTag,
+                      "GetPartitionById 403 received, remove from cache, "
+                      "hrn='%s', key='%s'",
+                      catalog_.ToCatalogHRNString().c_str(), key.c_str());
+                  // Delete partitions only but not the layer
+                  cache_.ClearPartitions(partitions, version);
+                }
+              }
+
+              callback(query_response);
+            });
+      });
+}
 
 model::Partition PartitionsRepository::PartitionFromSubQuad(
     const model::SubQuad& sub_quad, const std::string& partition) {
@@ -479,6 +564,12 @@ PartitionResponse PartitionsRepository::GetTile(
 
   return FindPartition(quad_tree_response.GetResult(), request, false);
 }
+
+// client::CancellationToken PartitionsRepository::GetTile(
+//    const TileRequest& request, boost::optional<int64_t> version,
+//    std::function<void(PartitionResponse)> callback) {
+//  return client::CancellationToken();
+//}
 
 }  // namespace repository
 }  // namespace read

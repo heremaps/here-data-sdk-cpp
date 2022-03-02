@@ -43,7 +43,8 @@ class CORE_API TaskContinuation final {
    *
    * @param scheduler The `TaskScheduler` instance.
    */
-  explicit TaskContinuation(std::shared_ptr<thread::TaskScheduler> scheduler);
+  inline explicit TaskContinuation(
+      std::shared_ptr<thread::TaskScheduler> scheduler);
 
   /**
    * @brief Initializes the `Continuation` object.

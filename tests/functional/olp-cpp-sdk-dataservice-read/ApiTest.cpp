@@ -296,7 +296,7 @@ TEST_F(ApiTest, DISABLED_GetVolatileBlob) {
   auto start_time = std::chrono::high_resolution_clock::now();
   auto data_response = olp::dataservice::read::VolatileBlobApi::GetVolatileBlob(
       volatile_blob_client, "testlayer", "d5d73b64-7365-41c3-8faf-aa6ad5bab135",
-      boost::none, {});
+      boost::none, olp::client::CancellationContext());
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;

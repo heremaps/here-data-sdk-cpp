@@ -29,13 +29,13 @@
  */
 class Http2HttpNetworkWrapper : public olp::http::Network {
  public:
-  Http2HttpNetworkWrapper() : network_{olp::http::CreateDefaultNetwork(32)} {}
+  Http2HttpNetworkWrapper() : network_{olp::http::CreateDefaultNetwork(1024)} {}
 
   olp::http::SendOutcome Send(olp::http::NetworkRequest request,
                               Payload payload, Callback callback,
                               HeaderCallback header_callback = nullptr,
                               DataCallback data_callback = nullptr) override {
-    ReplaceHttps2Http(request);
+    //    ReplaceHttps2Http(request);
     InsertDebugHeaders(request);
 
     return network_->Send(std::move(request), std::move(payload),

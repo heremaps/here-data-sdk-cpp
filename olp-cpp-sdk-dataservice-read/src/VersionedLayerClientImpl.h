@@ -19,7 +19,10 @@
 
 #pragma once
 
+#include <iostream>
+#include <list>
 #include <memory>
+#include <set>
 
 #include <olp/core/client/ApiLookupClient.h>
 #include <olp/core/client/CancellationContext.h>
@@ -27,6 +30,7 @@
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/PendingRequests.h>
+#include <olp/core/thread/Continuation.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/PrefetchPartitionsRequest.h>
@@ -36,6 +40,8 @@
 #include <olp/dataservice/read/Types.h>
 #include <boost/optional.hpp>
 #include "TaskSink.h"
+#include "repositories/CatalogRepository.h"
+#include "repositories/DataRepository.h"
 #include "repositories/NamedMutex.h"
 
 namespace olp {
@@ -49,13 +55,38 @@ class PartitionsRepository;
 class PrefetchTilesRepository;
 }  // namespace repository
 
+template <typename T>
+struct Tracker {
+  void CancelAll() {
+    std::lock_guard<std::mutex> lg(mutex);
+    for (auto it = tracks.begin(); it != tracks.end(); ++it) {
+      auto continuation = (*it);
+      continuation->Cancel();
+    }
+
+    tracks.clear();
+  }
+
+  std::shared_ptr<thread::Continuation<T>> AddToQueue(
+      thread::Continuation<T> continuation) {
+    std::lock_guard<std::mutex> lock(mutex);
+    auto track =
+        std::make_shared<thread::Continuation<T>>(std::move(continuation));
+    tracks.insert(track);
+    return track;
+  }
+
+  std::mutex mutex;
+  std::set<std::shared_ptr<thread::Continuation<T>>> tracks;
+};
+
 class VersionedLayerClientImpl {
  public:
   VersionedLayerClientImpl(client::HRN catalog, std::string layer_id,
                            boost::optional<int64_t> catalog_version,
                            client::OlpClientSettings settings);
 
-  virtual ~VersionedLayerClientImpl() = default;
+  virtual ~VersionedLayerClientImpl();
 
   virtual bool CancelPendingRequests();
 
@@ -119,6 +150,14 @@ class VersionedLayerClientImpl {
                                     const FetchOptions& fetch_options,
                                     const client::CancellationContext& context);
 
+  client::CancellationToken GetVersion(boost::optional<std::string> billing_tag,
+                                       const FetchOptions& fetch_options,
+                                       CatalogVersionCallback callback);
+
+  Tracker<DataResponse> data_responses_;
+
+  CatalogVersionCallback catalog_version_callback_;
+
   client::HRN catalog_;
   std::string layer_id_;
   client::OlpClientSettings settings_;
@@ -126,6 +165,8 @@ class VersionedLayerClientImpl {
   client::ApiLookupClient lookup_client_;
   repository::NamedMutexStorage mutex_storage_;
   TaskSink task_sink_;
+
+  repository::DataRepository data_repository_;
 };
 
 }  // namespace read

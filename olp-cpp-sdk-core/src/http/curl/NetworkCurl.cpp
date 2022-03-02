@@ -396,7 +396,7 @@ bool NetworkCurl::IsStarted() const { return state_ == WorkerState::STARTED; }
 
 bool NetworkCurl::Initialized() const { return IsStarted(); }
 
-bool NetworkCurl::Ready() {
+bool NetworkCurl::Ready() const {
   if (!IsStarted()) {
     return false;
   }
@@ -418,6 +418,7 @@ SendOutcome NetworkCurl::Send(NetworkRequest request,
                               Network::Callback callback,
                               Network::HeaderCallback header_callback,
                               Network::DataCallback data_callback) {
+  //    << thread_.get_id() << std::endl;
   if (!Initialized()) {
     if (!Initialize()) {
       OLP_SDK_LOG_ERROR(kLogTag, "Send failed - network is uninitialized, url="
@@ -483,6 +484,7 @@ ErrorCode NetworkCurl::SendImplementation(
     sstrm << header.first;
     sstrm << ": ";
     sstrm << header.second;
+
     handle->chunk = curl_slist_append(handle->chunk, sstrm.str().c_str());
   }
 
@@ -656,6 +658,7 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
                       "GetHandle failed - network is offline, id=" << id);
     return nullptr;
   }
+
   std::lock_guard<std::mutex> lock(event_mutex_);
   for (auto& handle : handles_) {
     if (!handle.in_use) {

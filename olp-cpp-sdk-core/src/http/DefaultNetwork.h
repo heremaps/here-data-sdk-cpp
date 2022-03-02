@@ -20,7 +20,10 @@
 #pragma once
 
 #include <atomic>
+#include <condition_variable>
 #include <mutex>
+#include <queue>
+#include <thread>
 #include <unordered_map>
 
 #include <olp/core/CoreApi.h>
@@ -81,6 +84,24 @@ class DefaultNetwork final : public Network {
   std::string user_agent_;
 
   std::shared_ptr<Network> network_;
+
+  struct NetRequest {
+    NetRequest() = default;
+    NetworkRequest request;
+    Payload payload;
+    //      Callback callback;
+    HeaderCallback header_callback;
+    DataCallback data_callback;
+    std::function<void(NetworkResponse)> user_callback;
+  };
+
+  std::mutex mutex;
+  std::queue<NetRequest> queue_;
+
+  std::atomic_bool stopped{false};
+  std::thread default_network_thread_;
+  std::condition_variable cv;
+  std::atomic_int counter{0};
 };
 
 }  // namespace http

@@ -37,7 +37,6 @@
 #include <olp/core/http/Network.h>
 #include <olp/core/http/NetworkRequest.h>
 
-
 namespace olp {
 namespace http {
 
@@ -184,7 +183,7 @@ class NetworkCurl : public olp::http::Network,
    * @return @c true if curl network has free network connections,
    * @c false otherwise.
    */
-  bool Ready();
+  bool Ready() const;
 
   /**
    * @brief Return count of pending network requests.
@@ -281,7 +280,7 @@ class NetworkCurl : public olp::http::Network,
   std::condition_variable event_condition_;
 
   /// Synchronization mutex used during event processing.
-  std::mutex event_mutex_;
+  mutable std::mutex event_mutex_;
 
   /// Synchronization mutex prevents parallel initialization of network.
   std::mutex init_mutex_;

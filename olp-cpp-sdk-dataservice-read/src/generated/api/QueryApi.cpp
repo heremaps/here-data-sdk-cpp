@@ -112,6 +112,63 @@ QueryApi::PartitionsExtendedResponse QueryApi::GetPartitionsbyId(
           http_response.GetNetworkStatistics()};
 }
 
+client::CancellationToken QueryApi::GetPartitionsbyId(
+    const client::OlpClient& client, const std::string& layer_id,
+    const std::vector<std::string>& partitions,
+    boost::optional<int64_t> version,
+    const std::vector<std::string>& additional_fields,
+    boost::optional<std::string> billing_tag,
+    std::function<void(PartitionsExtendedResponse)> callback) {
+  std::multimap<std::string, std::string> header_params;
+  header_params.insert(std::make_pair("Accept", "application/json"));
+
+  std::multimap<std::string, std::string> query_params;
+  for (const auto& partition : partitions) {
+    query_params.emplace("partition", partition);
+  }
+  if (!additional_fields.empty()) {
+    query_params.insert(std::make_pair(
+        "additionalFields", ConcatStringArray(additional_fields, ",")));
+  }
+  if (billing_tag) {
+    query_params.insert(std::make_pair("billingTag", *billing_tag));
+  }
+  if (version) {
+    query_params.insert(std::make_pair("version", std::to_string(*version)));
+  }
+
+  std::string metadata_uri = "/layers/" + layer_id + "/partitions";
+
+  return client.CallApi(
+      metadata_uri, "GET", std::move(query_params), std::move(header_params),
+      {}, nullptr, std::string{}, [=](client::HttpResponse http_response) {
+        OLP_SDK_LOG_TRACE_F(kLogTag,
+                            "GetPartitionsbyId, layer_id=%s, status=%d",
+                            layer_id.c_str(), http_response.status);
+
+        if (http_response.status != olp::http::HttpStatusCode::OK) {
+          callback({client::ApiError{http_response.status,
+                                     http_response.response.str()},
+                    http_response.GetNetworkStatistics()});
+          return;
+        }
+        using PartitionsResponse =
+            client::ApiResponse<model::Partitions, client::ApiError>;
+
+        auto partitions_response =
+            parser::parse_result<PartitionsResponse>(http_response.response);
+
+        if (!partitions_response.IsSuccessful()) {
+          callback({{partitions_response.GetError()},
+                    http_response.GetNetworkStatistics()});
+          return;
+        }
+
+        callback({partitions_response.MoveResult(),
+                  http_response.GetNetworkStatistics()});
+      });
+}
+
 olp::client::HttpResponse QueryApi::QuadTreeIndex(
     const client::OlpClient& client, const std::string& layer_id,
     const std::string& quad_key, boost::optional<int64_t> version,
