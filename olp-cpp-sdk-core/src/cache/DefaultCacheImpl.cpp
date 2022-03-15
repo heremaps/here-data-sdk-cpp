@@ -65,7 +65,7 @@ time_t GetRemainingExpiryTime(const std::string& key,
   auto expiry = olp::cache::KeyValueCache::kDefaultExpiry;
   auto expiry_value = disk_cache.Get(expiry_key);
   if (expiry_value) {
-    expiry = std::stol(*expiry_value);
+    expiry = std::stoll(*expiry_value);
     expiry -= olp::cache::InMemoryCache::DefaultTimeProvider()();
   }
 
@@ -484,10 +484,10 @@ bool DefaultCacheImpl::AddKeyLru(std::string key, const leveldb::Slice& value) {
 
     if (expiration_key) {
       // value.data() could point to a value without null character at the
-      // end, this could cause exception in std::stol. This is fixed by
+      // end, this could cause exception in std::stoll. This is fixed by
       // constructing a string, (We rely on small string optimization here).
       std::string timestamp(value.data(), value.size());
-      props.expiry = std::stol(timestamp.c_str());
+      props.expiry = std::stoll(timestamp.c_str());
     } else {
       props.size = value.size();
     }
