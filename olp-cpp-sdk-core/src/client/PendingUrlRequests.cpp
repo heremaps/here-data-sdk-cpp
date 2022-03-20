@@ -19,6 +19,9 @@
 
 #include "PendingUrlRequests.h"
 
+#include <sstream>
+#include <thread>
+
 #include "olp/core/logging/Log.h"
 
 namespace {
@@ -30,6 +33,15 @@ olp::client::HttpResponse GetCancelledResponse() {
 }
 
 std::string ToString(bool value) { return value ? "true" : "false"; }
+
+std::string GetCurrentThreadId() {
+  const auto current_thread_id = std::this_thread::get_id();
+
+  std::ostringstream out_string_stream;
+  out_string_stream << current_thread_id;
+
+  return out_string_stream.str();
+}
 }  // namespace
 
 namespace olp {
@@ -186,8 +198,9 @@ bool PendingUrlRequests::CancelAll() {
   // is taking care of the Network callback.
   std::lock_guard<std::mutex> lock(mutex_);
 
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "CancelAll, pending_requests=%zu",
-                      pending_requests_.size());
+  OLP_SDK_LOG_DEBUG_F(kLogTag,
+                      "CancelAll, pending_requests=%zu, current_thread_id=%s",
+                      pending_requests_.size(), GetCurrentThreadId().c_str());
 
   for (auto& request : pending_requests_) {
     request.second->CancelOperation();
@@ -205,10 +218,11 @@ bool PendingUrlRequests::CancelAllAndWait() const {
     // will not work
     std::lock_guard<std::mutex> lock(mutex_);
 
-    OLP_SDK_LOG_DEBUG_F(
-        kLogTag,
-        "CancelAllAndWait, pending_requests=%zu, cancelled_requests=%zu",
-        pending_requests_.size(), cancelled_requests_.size());
+    OLP_SDK_LOG_DEBUG_F(kLogTag,
+                        "CancelAllAndWait, pending_requests=%zu, "
+                        "cancelled_requests=%zu, current_thread_id=%s",
+                        pending_requests_.size(), cancelled_requests_.size(),
+                        GetCurrentThreadId().c_str());
 
     if (pending_requests_.empty() && cancelled_requests_.empty()) {
       return true;
