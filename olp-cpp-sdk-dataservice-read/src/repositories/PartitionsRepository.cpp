@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -316,9 +316,9 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
 
   const client::OlpClient& client = query_api.GetResult();
 
-  PartitionsResponse query_response =
-      QueryApi::GetPartitionsbyId(client, layer_id_, partitions, version, {},
-                                  request.GetBillingTag(), context);
+  PartitionsResponse query_response = QueryApi::GetPartitionsbyId(
+      client, layer_id_, partitions, version, request.GetAdditionalFields(),
+      request.GetBillingTag(), context);
 
   if (query_response.IsSuccessful() && fetch_option != OnlineOnly) {
     OLP_SDK_LOG_DEBUG_F(kLogTag,

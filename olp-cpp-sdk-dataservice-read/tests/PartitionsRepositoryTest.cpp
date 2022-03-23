@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -790,69 +790,141 @@ TEST_F(PartitionsRepositoryTest, GetVolatilePartitions) {
 }
 
 TEST_F(PartitionsRepositoryTest, AdditionalFields) {
-  std::shared_ptr<cache::KeyValueCache> default_cache =
-      olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+  {
+    SCOPED_TRACE("GetVersionedPartitions");
 
-  auto mock_network = std::make_shared<NetworkMock>();
-  const auto catalog = HRN::FromString(kCatalog);
+    std::shared_ptr<cache::KeyValueCache> default_cache =
+        olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
 
-  EXPECT_CALL(*mock_network,
-              Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kOlpSdkHttpResponseLookupQuery));
+    auto mock_network = std::make_shared<NetworkMock>();
+    const auto catalog = HRN::FromString(kCatalog);
 
-  EXPECT_CALL(*mock_network,
-              Send(IsGetRequest(kOlpSdkUrlPartitionByIdWithAdditionalParams), _,
-                   _, _, _))
-      .WillOnce(ReturnHttpResponse(
-          olp::http::NetworkResponse().WithStatus(
-              olp::http::HttpStatusCode::OK),
-          kOlpSdkHttpResponsePartitionByIdWithAdditionalFields));
+    EXPECT_CALL(*mock_network,
+                Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kOlpSdkHttpResponseLookupQuery));
 
-  OlpClientSettings settings;
-  settings.cache = default_cache;
-  settings.network_request_handler = mock_network;
+    EXPECT_CALL(*mock_network,
+                Send(IsGetRequest(kOlpSdkUrlPartitionByIdWithAdditionalParams),
+                     _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(
+                olp::http::HttpStatusCode::OK),
+            kOlpSdkHttpResponsePartitionByIdWithAdditionalFields));
 
-  olp::client::ApiLookupClient lookup_client(catalog, settings);
-  repository::PartitionsRepository repository(catalog, kVersionedLayerId,
-                                              settings, lookup_client);
-  client::CancellationContext context;
-  read::PartitionsRequest request;
+    OlpClientSettings settings;
+    settings.cache = default_cache;
+    settings.network_request_handler = mock_network;
 
-  request.WithPartitionIds({kPartitionId});
-  request.WithAdditionalFields({read::PartitionsRequest::kChecksum,
-                                read::PartitionsRequest::kCompressedDataSize,
-                                read::PartitionsRequest::kCrc,
-                                read::PartitionsRequest::kDataSize});
+    olp::client::ApiLookupClient lookup_client(catalog, settings);
+    repository::PartitionsRepository repository(catalog, kVersionedLayerId,
+                                                settings, lookup_client);
+    client::CancellationContext context;
+    read::PartitionsRequest request;
 
-  auto response = repository.GetVersionedPartitions(request, kVersion, context);
+    request.WithPartitionIds({kPartitionId});
+    request.WithAdditionalFields({read::PartitionsRequest::kChecksum,
+                                  read::PartitionsRequest::kCompressedDataSize,
+                                  read::PartitionsRequest::kCrc,
+                                  read::PartitionsRequest::kDataSize});
 
-  ASSERT_TRUE(response.IsSuccessful());
-  auto result = response.GetResult();
-  auto partitions = result.GetPartitions();
-  ASSERT_EQ(partitions.size(), 1);
-  EXPECT_EQ(partitions[0].GetDataSize().value_or(0), 10);
-  EXPECT_EQ(partitions[0].GetCompressedDataSize().value_or(0), 15);
-  EXPECT_EQ(partitions[0].GetChecksum().value_or(""), "xxx");
-  EXPECT_EQ(partitions[0].GetCrc().value_or(""), "yyy");
+    auto response =
+        repository.GetVersionedPartitions(request, kVersion, context);
 
-  request.WithFetchOption(read::CacheOnly);
+    ASSERT_TRUE(response.IsSuccessful());
+    auto result = response.GetResult();
+    auto partitions = result.GetPartitions();
+    ASSERT_EQ(partitions.size(), 1);
+    EXPECT_EQ(partitions[0].GetDataSize().value_or(0), 10);
+    EXPECT_EQ(partitions[0].GetCompressedDataSize().value_or(0), 15);
+    EXPECT_EQ(partitions[0].GetChecksum().value_or(""), "xxx");
+    EXPECT_EQ(partitions[0].GetCrc().value_or(""), "yyy");
 
-  auto response_2 =
-      repository.GetVersionedPartitions(request, kVersion, context);
+    request.WithFetchOption(read::CacheOnly);
 
-  ASSERT_TRUE(response_2.IsSuccessful());
+    auto response_2 =
+        repository.GetVersionedPartitions(request, kVersion, context);
 
-  auto cached_result = response_2.GetResult();
-  auto cached_partitions = cached_result.GetPartitions();
-  ASSERT_EQ(cached_partitions.size(), 1);
+    ASSERT_TRUE(response_2.IsSuccessful());
 
-  EXPECT_EQ(partitions[0].GetDataSize(), cached_partitions[0].GetDataSize());
-  EXPECT_EQ(partitions[0].GetCompressedDataSize(),
-            cached_partitions[0].GetCompressedDataSize());
-  EXPECT_EQ(partitions[0].GetChecksum(), cached_partitions[0].GetChecksum());
-  EXPECT_EQ(partitions[0].GetCrc(), cached_partitions[0].GetCrc());
+    auto cached_result = response_2.GetResult();
+    auto cached_partitions = cached_result.GetPartitions();
+    ASSERT_EQ(cached_partitions.size(), 1);
+
+    EXPECT_EQ(partitions[0].GetDataSize(), cached_partitions[0].GetDataSize());
+    EXPECT_EQ(partitions[0].GetCompressedDataSize(),
+              cached_partitions[0].GetCompressedDataSize());
+    EXPECT_EQ(partitions[0].GetChecksum(), cached_partitions[0].GetChecksum());
+    EXPECT_EQ(partitions[0].GetCrc(), cached_partitions[0].GetCrc());
+  }
+
+  {
+    SCOPED_TRACE("GetPartitionsById");
+
+    std::shared_ptr<cache::KeyValueCache> default_cache =
+        olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+
+    auto mock_network = std::make_shared<NetworkMock>();
+    const auto catalog = HRN::FromString(kCatalog);
+
+    EXPECT_CALL(*mock_network,
+                Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kOlpSdkHttpResponseLookupQuery));
+
+    EXPECT_CALL(*mock_network,
+                Send(IsGetRequest(kOlpSdkUrlPartitionByIdWithAdditionalParams),
+                     _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(
+                olp::http::HttpStatusCode::OK),
+            kOlpSdkHttpResponsePartitionByIdWithAdditionalFields));
+
+    OlpClientSettings settings;
+    settings.cache = default_cache;
+    settings.network_request_handler = mock_network;
+
+    olp::client::ApiLookupClient lookup_client(catalog, settings);
+    repository::PartitionsRepository repository(catalog, kVersionedLayerId,
+                                                settings, lookup_client);
+    client::CancellationContext context;
+    read::DataRequest request;
+
+    request.WithPartitionId(kPartitionId);
+    request.WithAdditionalFields(
+        {read::DataRequest::kChecksum, read::DataRequest::kCompressedDataSize,
+         read::DataRequest::kCrc, read::DataRequest::kDataSize});
+
+    auto response = repository.GetPartitionById(request, kVersion, context);
+
+    ASSERT_TRUE(response);
+
+    auto result = response.MoveResult();
+    auto partitions = result.GetPartitions();
+    ASSERT_EQ(partitions.size(), 1);
+    EXPECT_EQ(partitions[0].GetDataSize().value_or(0), 10);
+    EXPECT_EQ(partitions[0].GetCompressedDataSize().value_or(0), 15);
+    EXPECT_EQ(partitions[0].GetChecksum().value_or(""), "xxx");
+    EXPECT_EQ(partitions[0].GetCrc().value_or(""), "yyy");
+
+    request.WithFetchOption(read::CacheOnly);
+
+    auto response_2 = repository.GetPartitionById(request, kVersion, context);
+
+    ASSERT_TRUE(response_2);
+
+    auto cached_result = response_2.MoveResult();
+    auto cached_partitions = cached_result.GetPartitions();
+    ASSERT_EQ(cached_partitions.size(), 1u);
+
+    EXPECT_EQ(partitions[0].GetDataSize(), cached_partitions[0].GetDataSize());
+    EXPECT_EQ(partitions[0].GetCompressedDataSize(),
+              cached_partitions[0].GetCompressedDataSize());
+    EXPECT_EQ(partitions[0].GetChecksum(), cached_partitions[0].GetChecksum());
+    EXPECT_EQ(partitions[0].GetCrc(), cached_partitions[0].GetCrc());
+  }
 }
 
 TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {

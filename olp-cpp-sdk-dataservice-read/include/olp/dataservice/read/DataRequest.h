@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include <sstream>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
@@ -42,6 +43,21 @@ namespace read {
  */
 class DATASERVICE_READ_API DataRequest final {
  public:
+  /// Additional field to request partition data size, see GetData
+  static constexpr const char* kDataSize = "dataSize";
+
+  /// Additional field to request partition checksum, see GetData
+  static constexpr const char* kChecksum = "checksum";
+
+  /// Additional field to request partition compressed data size, see GetData
+  static constexpr const char* kCompressedDataSize = "compressedDataSize";
+
+  /// Additional field to request partition crc, see GetData
+  static constexpr const char* kCrc = "crc";
+
+  /// An alias for the set of additional fields.
+  using AdditionalFields = std::vector<std::string>;
+
   /**
    * @brief Gets the ID of the requested partition.
    *
@@ -129,6 +145,34 @@ class DATASERVICE_READ_API DataRequest final {
   inline DataRequest& WithDataHandle(std::string&& data_handle) {
     data_handle_ = std::move(data_handle);
     return *this;
+  }
+
+  /**
+   * @brief Sets the list of additional fields.
+   *
+   * When specified, the result metadata will include the additional information
+   * requested. The supported fields are:
+   *  - dataSize
+   *  - checksum
+   *  - compressedDataSize
+   *  - crc
+   *
+   * @param additional_fields The list of additional fields.
+   *
+   * @return A reference to the updated `DataRequest` instance.
+   */
+  inline DataRequest& WithAdditionalFields(AdditionalFields additional_fields) {
+    additional_fields_ = std::move(additional_fields);
+    return *this;
+  }
+
+  /**
+   * @brief Gets the list of additional fields.
+   *
+   * @return The set of additional fields.
+   */
+  inline const AdditionalFields& GetAdditionalFields() const {
+    return additional_fields_;
   }
 
   /**
@@ -250,8 +294,8 @@ class DATASERVICE_READ_API DataRequest final {
 
  private:
   boost::optional<std::string> partition_id_;
-  boost::optional<int64_t> catalog_version_;
   boost::optional<std::string> data_handle_;
+  AdditionalFields additional_fields_;
   boost::optional<std::string> billing_tag_;
   FetchOptions fetch_option_{OnlineIfNotFound};
   uint32_t priority_{thread::NORMAL};
