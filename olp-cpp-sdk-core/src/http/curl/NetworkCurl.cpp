@@ -279,7 +279,7 @@ bool NetworkCurl::Initialize() {
     return false;
   }
   // Set read and write pipes non blocking
-  for (size_t i = 0; i < 2u; ++i) {
+  for (size_t i = 0u; i < 2u; ++i) {
     int flags = fcntl(pipe_[i], F_GETFL);
     if (flags == -1) {
       flags = 0;
@@ -338,7 +338,7 @@ void NetworkCurl::Deinitialize() {
     event_condition_.notify_all();
 #if defined(OLP_SDK_NETWORK_HAS_PIPE) || defined(OLP_SDK_NETWORK_HAS_PIPE2)
     char tmp = 1;
-    if (write(pipe_[1u], &tmp, 1u) < 0u) {
+    if (write(pipe_[1], &tmp, 1) < 0) {
       OLP_SDK_LOG_INFO(kLogTag, __PRETTY_FUNCTION__
                                     << ". Failed to write pipe. Error "
                                     << errno);
@@ -378,8 +378,8 @@ void NetworkCurl::Teardown() {
     curl_ = nullptr;
 
 #if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
-    close(pipe_[0u]);
-    close(pipe_[1u]);
+    close(pipe_[0]);
+    close(pipe_[1]);
 #endif
   }
 
@@ -638,7 +638,7 @@ void NetworkCurl::AddEvent(EventInfo::Type type, RequestHandle* handle) {
   // Notify also trough the pipe so that we can unlock curl_multi_wait() if
   // the network thread is currently blocked there.
   char tmp = 1;
-  if (write(pipe_[1u], &tmp, 1u) < 0u) {
+  if (write(pipe_[1], &tmp, 1) < 0) {
     OLP_SDK_LOG_WARNING(kLogTag, "AddEvent - failed for id="
                                      << handle->id << ", err=" << errno);
   }
@@ -683,7 +683,7 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
       handle.payload = std::move(payload);
       handle.body = std::move(body);
       handle.send_time = std::chrono::steady_clock::now();
-      handle.error_text[0u] = 0;
+      handle.error_text[0] = 0;
       handle.skip_content = false;
 
       return &handle;
@@ -1055,7 +1055,7 @@ void NetworkCurl::Run() {
       if (mc == CURLM_OK && numfds != 0 && waitfd[0].revents != 0) {
         // Empty pipe data to make sure we are clear for the next wait
         char tmp;
-        while (read(waitfd[0u].fd, &tmp, 1u) > 0u) {
+        while (read(waitfd[0].fd, &tmp, 1) > 0) {
         }
       }
 #else

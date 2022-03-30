@@ -469,9 +469,16 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
                      network_settings.GetTransferTimeout() * 1000);
 
   const auto& proxy = network_settings.GetProxySettings();
+  const auto proxy_type = proxy.GetType();
 
-  if (proxy.GetType() != NetworkProxySettings::Type::NONE) {
+  if (proxy_type != NetworkProxySettings::Type::NONE) {
     const std::wstring proxy_string = ProxyString(proxy);
+
+    if (proxy_type == NetworkProxySettings::Type::HTTPS) {
+      OLP_SDK_LOG_ERROR(kLogTag, "Unsupported proxy type, proxy_type="
+                                     << proxy_string.c_str());
+      return SendOutcome(ErrorCode::UNKNOWN_ERROR);
+    }
 
     WINHTTP_PROXY_INFO proxy_info;
     proxy_info.dwAccessType = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
