@@ -37,6 +37,7 @@ class CORE_API NetworkProxySettings final {
   enum class Type {
     NONE,             ///< Don't use the proxy.
     HTTP,             ///< HTTP proxy as in https://www.ietf.org/rfc/rfc2068.txt
+    HTTPS,            ///< HTTPS proxy as in https://www.ietf.org/rfc/rfc2818.txt
     SOCKS4,           ///< SOCKS4 proxy.
     SOCKS4A,          ///< SOCKS4a proxy. Proxy resolves the URL hostname.
     SOCKS5,           ///< SOCKS5 proxy.

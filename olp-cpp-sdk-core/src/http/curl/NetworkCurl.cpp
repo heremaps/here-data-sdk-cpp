@@ -114,6 +114,8 @@ curl_proxytype ToCurlProxyType(olp::http::NetworkProxySettings::Type type) {
   switch (type) {
     case ProxyType::HTTP:
       return CURLPROXY_HTTP;
+    case ProxyType::HTTPS:
+      return CURLPROXY_HTTPS;
     case ProxyType::SOCKS4:
       return CURLPROXY_SOCKS4;
     case ProxyType::SOCKS5:
@@ -231,7 +233,7 @@ int64_t GetElapsedTime(std::chrono::steady_clock::time_point start) {
 NetworkCurl::NetworkCurl(size_t max_requests_count)
     : handles_(max_requests_count),
       static_handle_count_(
-          std::max(static_cast<size_t>(1u), max_requests_count / 4)) {
+          std::max(static_cast<size_t>(1u), max_requests_count / 4u)) {
   OLP_SDK_LOG_TRACE(kLogTag, "Created NetworkCurl with address="
                                  << this
                                  << ", handles_count=" << max_requests_count);
@@ -277,7 +279,7 @@ bool NetworkCurl::Initialize() {
     return false;
   }
   // Set read and write pipes non blocking
-  for (size_t i = 0; i < 2; ++i) {
+  for (size_t i = 0; i < 2u; ++i) {
     int flags = fcntl(pipe_[i], F_GETFL);
     if (flags == -1) {
       flags = 0;
@@ -336,7 +338,7 @@ void NetworkCurl::Deinitialize() {
     event_condition_.notify_all();
 #if defined(OLP_SDK_NETWORK_HAS_PIPE) || defined(OLP_SDK_NETWORK_HAS_PIPE2)
     char tmp = 1;
-    if (write(pipe_[1], &tmp, 1) < 0) {
+    if (write(pipe_[1u], &tmp, 1u) < 0u) {
       OLP_SDK_LOG_INFO(kLogTag, __PRETTY_FUNCTION__
                                     << ". Failed to write pipe. Error "
                                     << errno);
@@ -376,8 +378,8 @@ void NetworkCurl::Teardown() {
     curl_ = nullptr;
 
 #if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
-    close(pipe_[0]);
-    close(pipe_[1]);
+    close(pipe_[0u]);
+    close(pipe_[1u]);
 #endif
   }
 
@@ -441,7 +443,7 @@ SendOutcome NetworkCurl::Send(NetworkRequest request,
     }
   }
 
-  auto error_status = SendImplementation(
+  const auto error_status = SendImplementation(
       request, request_id, payload, std::move(header_callback),
       std::move(data_callback), std::move(callback));
 
@@ -532,7 +534,7 @@ ErrorCode NetworkCurl::SendImplementation(
                        &handle->body->front());
     } else {
       // Some services (eg. Google) require the field size even if zero
-      curl_easy_setopt(handle->handle, CURLOPT_POSTFIELDSIZE, 0);
+      curl_easy_setopt(handle->handle, CURLOPT_POSTFIELDSIZE, 0L);
     }
   }
 
@@ -585,9 +587,9 @@ ErrorCode NetworkCurl::SendImplementation(
   curl_easy_setopt(handle->handle, CURLOPT_HEADERFUNCTION,
                    &NetworkCurl::HeaderFunction);
   curl_easy_setopt(handle->handle, CURLOPT_HEADERDATA, handle);
-  curl_easy_setopt(handle->handle, CURLOPT_FAILONERROR, 0);
+  curl_easy_setopt(handle->handle, CURLOPT_FAILONERROR, 0L);
   if (stderr_ == nullptr) {
-    curl_easy_setopt(handle->handle, CURLOPT_STDERR, 0);
+    curl_easy_setopt(handle->handle, CURLOPT_STDERR, 0L);
   }
   curl_easy_setopt(handle->handle, CURLOPT_ERRORBUFFER, handle->error_text);
 
@@ -636,7 +638,7 @@ void NetworkCurl::AddEvent(EventInfo::Type type, RequestHandle* handle) {
   // Notify also trough the pipe so that we can unlock curl_multi_wait() if
   // the network thread is currently blocked there.
   char tmp = 1;
-  if (write(pipe_[1], &tmp, 1) < 0) {
+  if (write(pipe_[1u], &tmp, 1u) < 0u) {
     OLP_SDK_LOG_WARNING(kLogTag, "AddEvent - failed for id="
                                      << handle->id << ", err=" << errno);
   }
@@ -666,22 +668,22 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
                             "GetHandle - curl_easy_init failed, id=" << id);
           return nullptr;
         }
-        curl_easy_setopt(handle.handle, CURLOPT_NOSIGNAL, 1);
+        curl_easy_setopt(handle.handle, CURLOPT_NOSIGNAL, 1L);
       }
       handle.in_use = true;
       handle.callback = callback;
       handle.header_callback = header_callback;
       handle.data_callback = data_callback;
       handle.id = id;
-      handle.count = 0;
-      handle.offset = 0;
+      handle.count = 0u;
+      handle.offset = 0u;
       handle.chunk = nullptr;
       handle.cancelled = false;
-      handle.transfer_timeout = 30;
+      handle.transfer_timeout = 30u;
       handle.payload = std::move(payload);
       handle.body = std::move(body);
       handle.send_time = std::chrono::steady_clock::now();
-      handle.error_text[0] = 0;
+      handle.error_text[0u] = 0;
       handle.skip_content = false;
 
       return &handle;
@@ -723,11 +725,11 @@ size_t NetworkCurl::RxFunction(void* ptr, size_t size, size_t nmemb,
   if (!that) {
     return len;
   }
-  long status = 0;
+  long status = 0L;
   curl_easy_getinfo(handle->handle, CURLINFO_RESPONSE_CODE, &status);
   if (handle->skip_content && status != http::HttpStatusCode::OK &&
       status != http::HttpStatusCode::PARTIAL_CONTENT &&
-      status != http::HttpStatusCode::CREATED && status != 0) {
+      status != http::HttpStatusCode::CREATED && status != 0L) {
     return len;
   }
 
@@ -756,7 +758,7 @@ size_t NetworkCurl::RxFunction(void* ptr, size_t size, size_t nmemb,
 
   // In case we have curl verbose and stderr enabled log the error content
   if (that->stderr_) {
-    long http_status = 0;
+    long http_status = 0L;
     curl_easy_getinfo(handle->handle, CURLINFO_RESPONSE_CODE, &http_status);
     if (http_status >= http::HttpStatusCode::BAD_REQUEST) {
       // Log the error content to help troubleshooting
@@ -780,9 +782,10 @@ size_t NetworkCurl::HeaderFunction(char* ptr, size_t size, size_t nitems,
     return len;
   }
   size_t count = len;
-  while ((count > 1) && ((ptr[count - 1] == '\n') || (ptr[count - 1] == '\r')))
+  while ((count > 1u) &&
+         ((ptr[count - 1u] == '\n') || (ptr[count - 1u] == '\r')))
     count--;
-  if (count == 0) {
+  if (count == 0u) {
     return len;
   }
   std::string str(ptr, count);
@@ -790,10 +793,10 @@ size_t NetworkCurl::HeaderFunction(char* ptr, size_t size, size_t nitems,
   if (pos == std::string::npos) {
     return len;
   }
-  std::string key = str.substr(0, pos);
+  std::string key = str.substr(0u, pos);
   std::string value;
-  if (pos + 2 < str.size()) {
-    value = str.substr(pos + 2);
+  if (pos + 2u < str.size()) {
+    value = str.substr(pos + 2u);
   }
 
   if (handle->header_callback) {
@@ -818,8 +821,8 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
       return;
     }
 
-    uint64_t upload_bytes = 0;
-    uint64_t download_bytes = 0;
+    uint64_t upload_bytes = 0u;
+    uint64_t download_bytes = 0u;
     GetTrafficData(rhandle.handle, upload_bytes, download_bytes);
 
     auto response = NetworkResponse()
@@ -840,11 +843,11 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
     std::string error("Success");
     int status;
     if ((result == CURLE_OK) || (result == CURLE_HTTP_RETURNED_ERROR)) {
-      long http_status = 0;
+      long http_status = 0L;
       curl_easy_getinfo(rhandle.handle, CURLINFO_RESPONSE_CODE, &http_status);
       status = static_cast<int>(http_status);
 
-      if ((rhandle.offset == 0) &&
+      if ((rhandle.offset == 0u) &&
           (status == HttpStatusCode::PARTIAL_CONTENT)) {
         status = HttpStatusCode::OK;
       }
@@ -856,8 +859,8 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
 
       error = HttpErrorToString(status);
     } else {
-      rhandle.error_text[CURL_ERROR_SIZE - 1] = '\0';
-      if (std::strlen(rhandle.error_text) > 0) {
+      rhandle.error_text[CURL_ERROR_SIZE - 1u] = '\0';
+      if (std::strlen(rhandle.error_text) > 0u) {
         error = rhandle.error_text;
       } else {
         error = curl_easy_strerror(result);
@@ -887,7 +890,7 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
 }
 
 int NetworkCurl::GetHandleIndex(CURL* handle) {
-  for (size_t index = 0; index < handles_.size(); index++) {
+  for (size_t index = 0u; index < handles_.size(); index++) {
     if (handles_[index].in_use && (handles_[index].handle == handle)) {
       return static_cast<int>(index);
     }
@@ -980,8 +983,8 @@ void NetworkCurl::Run() {
       while (IsStarted() &&
              (msg = curl_multi_info_read(curl_, &msgs_in_queue))) {
         CURL* handle = msg->easy_handle;
-        uint64_t upload_bytes = 0;
-        uint64_t download_bytes = 0;
+        uint64_t upload_bytes = 0u;
+        uint64_t download_bytes = 0u;
         GetTrafficData(handle, upload_bytes, download_bytes);
 
         if (msg->msg == CURLMSG_DONE) {
@@ -1052,7 +1055,7 @@ void NetworkCurl::Run() {
       if (mc == CURLM_OK && numfds != 0 && waitfd[0].revents != 0) {
         // Empty pipe data to make sure we are clear for the next wait
         char tmp;
-        while (read(waitfd[0].fd, &tmp, 1) > 0) {
+        while (read(waitfd[0u].fd, &tmp, 1u) > 0u) {
         }
       }
 #else
