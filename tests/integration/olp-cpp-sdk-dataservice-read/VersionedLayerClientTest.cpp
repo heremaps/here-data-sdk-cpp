@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/porting/warning_disable.h>
 #include <olp/core/utils/Dir.h>
+#include <olp/core/utils/Url.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include <olp/dataservice/read/model/Partitions.h>
 
@@ -93,8 +94,15 @@ constexpr char kHttpResponseBlobData_5904591[] =
 constexpr char kHttpQueryTreeIndex_23064[] =
     R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/23064/depths/4)";
 
+const auto kHttpQueryTreeIndexWithAdditionalFields_23064 =
+    std::string(kHttpQueryTreeIndex_23064) +
+    "?additionalFields=" + olp::utils::Url::Encode("checksum,crc,dataSize");
+
 constexpr char kHttpSubQuads_23064[] =
     R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
+
+constexpr char kHttpSubQuadsWithAdditionalFields_23064[] =
+    R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1","checksum":"xxx","dataSize":10,"crc":"aaa"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1","checksum":"yyy","dataSize":20,"crc":"bbb"}],"parentQuads": []})jsonString";
 
 constexpr char kUrlBlobData_1476147[] =
     R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/95c5c703-e00e-4c38-841e-e419367474f1)";
@@ -4502,6 +4510,160 @@ TEST_F(DataserviceReadVersionedLayerClientTest, OverlappingQuads) {
 
   // remove cache folder
   olp::utils::Dir::remove(cache_path);
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, QuadTreeIndex) {
+  auto client = std::make_shared<read::VersionedLayerClient>(
+      kCatalog, kTestLayer, 4, settings_);
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _));
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(kHttpQueryTreeIndexWithAdditionalFields_23064),
+                   _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kHttpSubQuadsWithAdditionalFields_23064));
+
+  std::promise<PartitionsResponse> promise;
+  auto request =
+      read::TileRequest().WithTileKey(geo::TileKey::FromHereTile("5904591"));
+  auto cancellation_context =
+      client->QuadTreeIndex(request, [&](PartitionsResponse response) {
+        promise.set_value(std::move(response));
+      });
+
+  const auto response = promise.get_future().get();
+  ASSERT_TRUE(response);
+
+  const auto& partitions = response.GetResult().GetPartitions();
+  ASSERT_EQ(partitions.size(), 1u);
+
+  const auto& partition = partitions.front();
+  ASSERT_TRUE(partition.GetChecksum());
+  EXPECT_EQ(*partition.GetChecksum(), "yyy");
+  ASSERT_TRUE(partition.GetCrc());
+  EXPECT_EQ(*partition.GetCrc(), "bbb");
+  ASSERT_TRUE(partition.GetDataSize());
+  EXPECT_EQ(*partition.GetDataSize(), 20);
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, QuadTreeIndexFallback) {
+  auto client = std::make_shared<read::VersionedLayerClient>(
+      kCatalog, kTestLayer, 4, settings_);
+  {
+    SCOPED_TRACE("Load the data without additional fields to the cache");
+
+    EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _));
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsGetRequest(kHttpQueryTreeIndexWithAdditionalFields_23064), _, _,
+             _, _))
+        .Times(2)
+        .WillRepeatedly(ReturnHttpResponse(
+            GetResponse(http::HttpStatusCode::OK), kHttpSubQuads_23064));
+
+    std::promise<PartitionsResponse> promise;
+    auto request =
+        read::TileRequest().WithTileKey(geo::TileKey::FromHereTile("5904591"));
+    auto cancellation_context =
+        client->QuadTreeIndex(request, [&](PartitionsResponse response) {
+          promise.set_value(std::move(response));
+        });
+
+    auto response = promise.get_future().get();
+    ASSERT_TRUE(response);
+
+    const auto& partitions = response.GetResult().GetPartitions();
+    ASSERT_EQ(partitions.size(), 1u);
+
+    const auto& partition = partitions.front();
+    EXPECT_FALSE(partition.GetChecksum());
+    EXPECT_FALSE(partition.GetCrc());
+    EXPECT_FALSE(partition.GetDataSize());
+  }
+  {
+    SCOPED_TRACE("Load the data with CacheOnly fetch option");
+
+    std::promise<PartitionsResponse> promise;
+    auto request = read::TileRequest()
+                       .WithTileKey(geo::TileKey::FromHereTile("5904591"))
+                       .WithFetchOption(FetchOptions::CacheOnly);
+    auto cancellation_context =
+        client->QuadTreeIndex(request, [&](PartitionsResponse response) {
+          promise.set_value(std::move(response));
+        });
+
+    auto response = promise.get_future().get();
+    ASSERT_TRUE(response);
+
+    const auto& partitions = response.GetResult().GetPartitions();
+    ASSERT_EQ(partitions.size(), 1u);
+
+    const auto& partition = partitions.front();
+    EXPECT_FALSE(partition.GetChecksum());
+    EXPECT_FALSE(partition.GetCrc());
+    EXPECT_FALSE(partition.GetDataSize());
+  }
+  {
+    SCOPED_TRACE("Load the data when it is cached without additional fields");
+
+    EXPECT_CALL(
+        *network_mock_,
+        Send(IsGetRequest(kHttpQueryTreeIndexWithAdditionalFields_23064), _, _,
+             _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     kHttpSubQuadsWithAdditionalFields_23064));
+
+    std::promise<PartitionsResponse> promise;
+    auto request =
+        read::TileRequest().WithTileKey(geo::TileKey::FromHereTile("5904591"));
+    auto cancellation_context =
+        client->QuadTreeIndex(request, [&](PartitionsResponse response) {
+          promise.set_value(std::move(response));
+        });
+
+    auto response = promise.get_future().get();
+    ASSERT_TRUE(response);
+
+    const auto& partitions = response.GetResult().GetPartitions();
+    ASSERT_EQ(partitions.size(), 1u);
+
+    const auto& partition = partitions.front();
+    ASSERT_TRUE(partition.GetChecksum());
+    EXPECT_EQ(*partition.GetChecksum(), "yyy");
+    ASSERT_TRUE(partition.GetCrc());
+    EXPECT_EQ(*partition.GetCrc(), "bbb");
+    ASSERT_TRUE(partition.GetDataSize());
+    EXPECT_EQ(*partition.GetDataSize(), 20);
+  }
+  {
+    SCOPED_TRACE("Load the data with CacheOnly fetch option again");
+
+    std::promise<PartitionsResponse> promise;
+    auto request = read::TileRequest()
+                       .WithTileKey(geo::TileKey::FromHereTile("5904591"))
+                       .WithFetchOption(FetchOptions::CacheOnly);
+    auto cancellation_context =
+        client->QuadTreeIndex(request, [&](PartitionsResponse response) {
+          promise.set_value(std::move(response));
+        });
+
+    auto future = promise.get_future();
+    ASSERT_EQ(future.wait_for(kWaitTimeout), std::future_status::ready);
+
+    const auto response = future.get();
+    ASSERT_TRUE(response);
+
+    const auto& partitions = response.GetResult().GetPartitions();
+    ASSERT_EQ(partitions.size(), 1u);
+
+    const auto& partition = partitions.front();
+    ASSERT_TRUE(partition.GetChecksum());
+    EXPECT_EQ(*partition.GetChecksum(), "yyy");
+    ASSERT_TRUE(partition.GetCrc());
+    EXPECT_EQ(*partition.GetCrc(), "bbb");
+    ASSERT_TRUE(partition.GetDataSize());
+    EXPECT_EQ(*partition.GetDataSize(), 20);
+  }
 }
 
 }  // namespace

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include <olp/core/client/ApiLookupClient.h>
 #include <olp/core/client/CancellationContext.h>
@@ -75,6 +76,9 @@ class VersionedLayerClientImpl {
 
   virtual client::CancellableFuture<PartitionsResponse> GetPartitions(
       PartitionsRequest partitions_request);
+
+  virtual client::CancellationToken QuadTreeIndex(
+      TileRequest tile_request, PartitionsResponseCallback callback);
 
   virtual client::CancellationToken PrefetchTiles(
       PrefetchTilesRequest request, PrefetchTilesResponseCallback callback,

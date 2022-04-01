@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -149,6 +149,49 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
 
   return task_sink_.AddTask(std::move(data_task), std::move(callback),
                             request.GetPriority());
+}
+
+client::CancellationToken VersionedLayerClientImpl::QuadTreeIndex(
+    TileRequest tile_request, PartitionsResponseCallback callback) {
+  auto data_task =
+      [=](client::CancellationContext context) mutable -> PartitionsResponse {
+    if (!tile_request.GetTileKey().IsValid()) {
+      return {{client::ErrorCode::InvalidArgument, "Tile key is invalid"}};
+    }
+
+    const auto& fetch_option = tile_request.GetFetchOption();
+    if (fetch_option == CacheWithUpdate) {
+      return {{client::ErrorCode::InvalidArgument,
+               "CacheWithUpdate option can not be used for versioned layer"}};
+    }
+
+    auto version_response =
+        GetVersion(tile_request.GetBillingTag(), fetch_option, context);
+    if (!version_response) {
+      return version_response.GetError();
+    }
+
+    const auto version = version_response.GetResult().GetVersion();
+
+    repository::PartitionsRepository repository(catalog_, layer_id_, settings_,
+                                                lookup_client_, mutex_storage_);
+
+    std::vector<std::string> additional_fields = {PartitionsRequest::kChecksum,
+                                                  PartitionsRequest::kCrc,
+                                                  PartitionsRequest::kDataSize};
+    auto partition_response = repository.GetTile(tile_request, version, context,
+                                                 std::move(additional_fields));
+    if (!partition_response) {
+      return partition_response.GetError();
+    }
+
+    model::Partitions result;
+    result.GetMutablePartitions().emplace_back(partition_response.MoveResult());
+    return result;
+  };
+
+  return task_sink_.AddTask(std::move(data_task), std::move(callback),
+                            tile_request.GetPriority());
 }
 
 client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
