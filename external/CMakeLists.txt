@@ -105,7 +105,7 @@ if(NOT TARGET Boost AND NOT Boost_FOUND)
 endif()
 
 if(OLP_SDK_ENABLE_ANDROID_CURL)
-    find_package(CURL 7.47.0 QUIET)
+    find_package(CURL 7.52.0 QUIET)
     if(NOT TARGET CURL AND NOT CURL_FOUND)
         add_subdirectory(curl)
         set(CURL_DIR ${EXTERNAL_CURL_DIR} PARENT_SCOPE)

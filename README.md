@@ -77,23 +77,21 @@ The table below lists the dependencies of the Data SDK.
 
 | Library              | Minimum version |
 | :------------------- | :-------------- |
+| libcurl              | 7.52.0          |
 | OpenSSL              | 1.1.1           |
 | Boost (headers only) | 1.69.0          |
 | LevelDB              | 1.21            |
 | Snappy               | 1.1.7           |
 | RapidJSON            | latest          |
 
-<h6 id="additional-linux-dependencies"></h6>
-
-### Additional Linux dependencies
-
-To build the Data SDK on Linux, additionally to the dependencies listed in the previous section, you also need to have <a href="https://curl.haxx.se/download.html" target="_blank">libcurl</a> 7.47.0 or later.
-
 To install the dependencies on Linux, run the following command:
 
 ```bash
 sudo apt-get update && sudo apt-get --yes install git g++ make cmake libssl-dev libcurl4-openssl-dev libboost-all-dev
 ```
+
+> #### Note
+> Please note that on some Linux distribution, the default libcurl version can be lower than the required v7.52.0. In that case, you need to install the required libcurl version from a different PPA.
 
 ## Install the SDK
 
