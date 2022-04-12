@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,30 +22,26 @@
 #include <algorithm>
 #include <cstring>
 
-#include <errno.h>
 #include <fcntl.h>
-#include <sys/stat.h>
 #include <unistd.h>
+#include <cerrno>
 
 #if defined(HAVE_SIGNAL_H)
 #include <signal.h>
 #endif
 
-#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
-#include <openssl/crypto.h>
-#endif
-#ifdef NETWORK_USE_TIMEPROVIDER
+#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
 #include <openssl/ssl.h>
+#include <openssl/x509_vfy.h>
+#include <sys/stat.h>
+#include <cstdio>
+#elif OLP_SDK_NETWORK_HAS_OPENSSL
+#include "olp/core/utils/Dir.h"
 #endif
 
-#ifdef NETWORK_USE_TIMEPROVIDER
-#include "timeprovider/TimeProvider.h"
-#endif
 #include "olp/core/http/HttpStatusCode.h"
 #include "olp/core/http/NetworkUtils.h"
 #include "olp/core/logging/Log.h"
-#include "olp/core/porting/platform.h"
-#include "olp/core/utils/Dir.h"
 
 namespace olp {
 namespace http {
@@ -56,10 +52,56 @@ const char* kLogTag = "CURL";
 
 #ifdef OLP_SDK_ENABLE_ANDROID_CURL
 const auto kCurlAndroidCaBundleFolder = "/system/etc/security/cacerts";
+
+#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
+const char* kLookupMethodName = "DataSDKMd5Lookup";
+
+int Md5LookupCtrl(X509_LOOKUP* ctx, int, const char*, long, char**) {
+  const auto* cert_path = kCurlAndroidCaBundleFolder;
+  X509_LOOKUP_set_method_data(ctx, const_cast<char*>(cert_path));
+  return 1;
+}
+
+int Md5LookupGetBySubject(X509_LOOKUP* ctx, X509_LOOKUP_TYPE type,
+                          X509_NAME* name, X509_OBJECT* ret) {
+  if (type != X509_LU_X509) {
+    OLP_SDK_LOG_ERROR_F(kLogTag, "Unsupported lookup type, type=%d", type);
+    return 0;
+  }
+
+  const char* base_path =
+      static_cast<const char*>(X509_LOOKUP_get_method_data(ctx));
+  const auto name_hash = X509_NAME_hash_old(name);
+
+  char buf[256];
+  for (auto idx = 0;; ++idx) {
+    snprintf(buf, sizeof(buf), "%s/%08lx.%d", base_path, name_hash, idx);
+
+    struct stat st {};
+    if (stat(buf, &st) < 0) {
+      // There is no such certificate
+      break;
+    }
+
+    // `X509_load_cert_file` returns number of loaded objects
+    const auto load_cert_ret = X509_load_cert_file(ctx, buf, X509_FILETYPE_PEM);
+    if (load_cert_ret == 0) {
+      OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to load certificate file, buf=%s",
+                          buf);
+      return 0;
+    }
+  }
+
+  // Update return result
+  auto* x509_data = X509_new();
+  X509_set_subject_name(x509_data, name);
+  X509_OBJECT_set1_X509(ret, x509_data);
+
+  return 1;
+}
 #endif
 
-#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
-
+#elif OLP_SDK_NETWORK_HAS_OPENSSL
 const auto kCurlCaBundleName = "ca-bundle.crt";
 
 std::string DefaultCaBundlePath() { return kCurlCaBundleName; }
@@ -155,26 +197,6 @@ int ConvertErrorCode(CURLcode curl_code) {
   }
 }
 
-#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
-#ifdef NETWORK_USE_TIMEPROVIDER
-static curl_code SslctxFunction(CURL* curl, void* sslctx, void*) {
-  // get the current time in seconds since epoch
-  std::uint64_t time = static_cast<std::uint64_t>(
-      TimeProvider::getClock()->timeSinceEpochMs() / 1000);
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-  X509_STORE* store = SSL_CTX_get_cert_store(static_cast<SSL_CTX*>(sslctx));
-  X509_VERIFY_PARAM_set_time(store->param, time_t(time));
-#else
-  X509_VERIFY_PARAM* param = X509_VERIFY_PARAM_new();
-  X509_VERIFY_PARAM_set_time(param, time_t(time));
-  SSL_CTX_set1_param(static_cast<SSL_CTX*>(sslctx), param);
-  X509_VERIFY_PARAM_free(param);
-#endif
-  return CURLE_OK;
-}
-#endif
-#endif
-
 /**
  * @brief CURL get upload/download data.
  * @param[in] handle CURL easy handle.
@@ -210,7 +232,11 @@ void GetTrafficData(CURL* handle, uint64_t& upload_bytes,
 
 CURLcode SetCaBundlePaths(CURL* handle) {
   OLP_SDK_CORE_UNUSED(handle);
+
 #ifdef OLP_SDK_ENABLE_ANDROID_CURL
+  // FIXME: We could disable this lookup as it won't work on most devices
+  //  (probably all of them) since OpenSSL still will be trying to find
+  //  certificate with SHA1 lookup
   return curl_easy_setopt(handle, CURLOPT_CAPATH, kCurlAndroidCaBundleFolder);
 #elif OLP_SDK_NETWORK_HAS_OPENSSL
   const auto curl_ca_bundle = CaBundlePath();
@@ -227,7 +253,6 @@ int64_t GetElapsedTime(std::chrono::steady_clock::time_point start) {
              std::chrono::steady_clock::now() - start)
       .count();
 }
-
 }  // anonymous namespace
 
 NetworkCurl::NetworkCurl(size_t max_requests_count)
@@ -300,12 +325,23 @@ bool NetworkCurl::Initialize() {
     return false;
   }
 
+#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
+  md5_lookup_method_ = X509_LOOKUP_meth_new(kLookupMethodName);
+
+  X509_LOOKUP_meth_set_ctrl(md5_lookup_method_, Md5LookupCtrl);
+  X509_LOOKUP_meth_set_get_by_subject(md5_lookup_method_,
+                                      Md5LookupGetBySubject);
+#endif
+
   // handles setup
   std::shared_ptr<NetworkCurl> that = shared_from_this();
   for (auto& handle : handles_) {
     handle.handle = nullptr;
     handle.in_use = false;
     handle.self = that;
+#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
+    handle.md5_lookup_method = md5_lookup_method_;
+#endif
   }
 
   std::unique_lock<std::mutex> lock(event_mutex_);
@@ -320,6 +356,11 @@ bool NetworkCurl::Initialize() {
 
 void NetworkCurl::Deinitialize() {
   std::lock_guard<std::mutex> init_lock(init_mutex_);
+
+#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
+  X509_LOOKUP_meth_free(md5_lookup_method_);
+#endif
+
   // Stop worker thread
   if (!IsStarted()) {
     OLP_SDK_LOG_DEBUG(kLogTag, "Already deinitialized, this=" << this);
@@ -467,8 +508,9 @@ ErrorCode NetworkCurl::SendImplementation(
 
   const auto& config = request.GetSettings();
 
-  RequestHandle* handle = GetHandle(id, callback, header_callback,
-                                    data_callback, payload, request.GetBody());
+  RequestHandle* handle =
+      GetHandle(id, std::move(callback), std::move(header_callback),
+                std::move(data_callback), payload, request.GetBody());
   if (!handle) {
     return ErrorCode::NETWORK_OVERLOAD_ERROR;
   }
@@ -572,8 +614,11 @@ ErrorCode NetworkCurl::SendImplementation(
 
   curl_easy_setopt(handle->handle, CURLOPT_SSL_VERIFYPEER, 1L);
   curl_easy_setopt(handle->handle, CURLOPT_SSL_VERIFYHOST, 2L);
-#ifdef NETWORK_USE_TIMEPROVIDER
-  curl_easy_setopt(handle->handle, CURLOPT_SSL_CTX_FUNCTION, SslctxFunction);
+
+#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
+  curl_easy_setopt(handle->handle, CURLOPT_SSL_CTX_FUNCTION,
+                   &NetworkCurl::AddMd5LookupMethod);
+  curl_easy_setopt(handle->handle, CURLOPT_SSL_CTX_DATA, handle);
 #endif
 
   curl_easy_setopt(handle->handle, CURLOPT_FOLLOWLOCATION, 1L);
@@ -671,9 +716,9 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
         curl_easy_setopt(handle.handle, CURLOPT_NOSIGNAL, 1L);
       }
       handle.in_use = true;
-      handle.callback = callback;
-      handle.header_callback = header_callback;
-      handle.data_callback = data_callback;
+      handle.callback = std::move(callback);
+      handle.header_callback = std::move(header_callback);
+      handle.data_callback = std::move(data_callback);
       handle.id = id;
       handle.count = 0u;
       handle.offset = 0u;
@@ -1104,6 +1149,28 @@ void NetworkCurl::Run() {
   }
   OLP_SDK_LOG_DEBUG(kLogTag, "Thread exit, this=" << this);
 }
+
+#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
+CURLcode NetworkCurl::AddMd5LookupMethod(CURL*, SSL_CTX* ssl_ctx,
+                                         RequestHandle* handle) {
+  auto self = handle->self.lock();
+  if (!self) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Unable to lock cURL handle");
+    return CURLE_ABORTED_BY_CALLBACK;
+  }
+
+  auto* cert_store = SSL_CTX_get_cert_store(ssl_ctx);
+  auto* lookup = X509_STORE_add_lookup(cert_store, handle->md5_lookup_method);
+  if (lookup) {
+    X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_PEM);
+  } else {
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to add lookup method");
+    return CURLE_ABORTED_BY_CALLBACK;
+  }
+
+  return CURLE_OK;
+}
+#endif
 
 }  // namespace http
 }  // namespace olp
