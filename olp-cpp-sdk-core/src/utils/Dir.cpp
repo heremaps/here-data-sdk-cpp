@@ -514,7 +514,7 @@ bool Dir::IsReadOnly(const std::string& path) {
   CloseHandle(handle);
   return false;
 #else
-  return access(path.c_str(), W_OK) != 0;
+  return !(access(path.c_str(), W_OK) == 0 || errno == ENOENT);
 #endif
 }
 
