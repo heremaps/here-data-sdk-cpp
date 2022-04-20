@@ -204,11 +204,11 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
 
     EXPECT_CALL(*cache_mock, Get(_))
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key));
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
           return nullptr;
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
           return nullptr;
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
@@ -216,12 +216,12 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
           return nullptr;
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
           return nullptr;
         })
         .WillOnce(
             [&tile_key, &quad_cache_key, &buffer](const std::string& key) {
-              EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
+              EXPECT_EQ(key, quad_cache_key(tile_key));
               return buffer;
             });
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
@@ -230,20 +230,11 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
         .WillRepeatedly([&](const std::string&) { return true; });
     ASSERT_TRUE(client.RemoveFromCache(tile_key));
   }
-
   {
     SCOPED_TRACE("Remove not existing tile from cache");
     EXPECT_CALL(*cache_mock, Get(_))
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key));
-          return nullptr;
-        })
-        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
-          return nullptr;
-        })
-        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-2)));
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
           return nullptr;
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
@@ -251,7 +242,15 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
           return nullptr;
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-2)));
+          return nullptr;
+        })
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
+          return nullptr;
+        })
+        .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
+          EXPECT_EQ(key, quad_cache_key(tile_key));
           return nullptr;
         });
     ASSERT_TRUE(client.RemoveFromCache(tile_key));
@@ -260,11 +259,11 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
     SCOPED_TRACE("Data cache failure");
     EXPECT_CALL(*cache_mock, Get(_))
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key));
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
           return nullptr;
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
           return nullptr;
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
@@ -272,12 +271,12 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
           return nullptr;
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
           return nullptr;
         })
         .WillOnce(
             [&tile_key, &quad_cache_key, &buffer](const std::string& key) {
-              EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
+              EXPECT_EQ(key, quad_cache_key(tile_key));
               return buffer;
             });
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
@@ -288,11 +287,11 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
     SCOPED_TRACE("Successful remove tile and quad tree from cache");
     EXPECT_CALL(*cache_mock, Get(_))
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key));
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
           return nullptr;
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
           return nullptr;
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
@@ -300,12 +299,12 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
           return nullptr;
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
           return nullptr;
         })
         .WillOnce(
             [&tile_key, &quad_cache_key, &buffer](const std::string& key) {
-              EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
+              EXPECT_EQ(key, quad_cache_key(tile_key));
               return buffer;
             });
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
@@ -319,11 +318,11 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
     SCOPED_TRACE("Successful remove tile but removing quad tree fails");
     EXPECT_CALL(*cache_mock, Get(_))
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key));
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
           return nullptr;
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
           return nullptr;
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
@@ -331,12 +330,12 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
           return nullptr;
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
-          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
+          EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
           return nullptr;
         })
         .WillOnce(
             [&tile_key, &quad_cache_key, &buffer](const std::string& key) {
-              EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
+              EXPECT_EQ(key, quad_cache_key(tile_key));
               return buffer;
             });
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
@@ -1207,12 +1206,12 @@ TEST(VersionedLayerClientTest, CacheErrorsDuringPrefetch) {
 
     std::promise<read::PrefetchTilesResponse> promise;
 
-    auto token =
-        client.PrefetchTiles(request,
-                             [&promise](read::PrefetchTilesResponse response) {
-                               promise.set_value(std::move(response));
-                             },
-                             nullptr);
+    auto token = client.PrefetchTiles(
+        request,
+        [&promise](read::PrefetchTilesResponse response) {
+          promise.set_value(std::move(response));
+        },
+        nullptr);
 
     auto future = promise.get_future();
     ASSERT_NE(future.wait_for(std::chrono::seconds(kTimeout)),

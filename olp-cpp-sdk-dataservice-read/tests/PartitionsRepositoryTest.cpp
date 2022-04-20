@@ -241,8 +241,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
   {
     SCOPED_TRACE("Fetch from cache [CacheOnly] negative");
 
-    EXPECT_CALL(*cache, Get(cache_key, _))
-        .WillOnce(Return(boost::any()));
+    EXPECT_CALL(*cache, Get(cache_key, _)).WillOnce(Return(boost::any()));
 
     client::CancellationContext context;
     auto response = repository.GetPartitionById(
@@ -372,8 +371,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
         "Network error 403 clears cache and is propagated to the user");
     setup_online_only_mocks();
     setup_positive_metadata_mocks();
-    EXPECT_CALL(*cache, Get(cache_key, _))
-        .WillOnce(Return(boost::any()));
+    EXPECT_CALL(*cache, Get(cache_key, _)).WillOnce(Return(boost::any()));
 
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlPartitionById), _, _, _, _))
@@ -1232,13 +1230,13 @@ TEST_F(PartitionsRepositoryTest, GetTile) {
       [&](const boost::optional<std::string>& root_data = boost::none) {
         testing::InSequence sequence;
 
-        for (auto i = 0; i < depth; ++i) {
+        for (int32_t i = depth; i > 0; --i) {
           EXPECT_CALL(*mock_cache,
                       Get(quad_cache_key(tile_key.ChangedLevelBy(-i))))
               .WillOnce(Return(nullptr));
         }
 
-        EXPECT_CALL(*mock_cache, Get(quad_cache_key(root)))
+        EXPECT_CALL(*mock_cache, Get(quad_cache_key(tile_key)))
             .WillOnce(testing::WithoutArgs(
                 [=]() -> cache::KeyValueCache::ValueTypePtr {
                   if (!root_data) {
