@@ -54,7 +54,10 @@ CatalogResponse CatalogRepository::GetCatalog(
     const CatalogRequest& request, client::CancellationContext context) {
   const auto request_key = request.CreateKey();
   const auto fetch_options = request.GetFetchOption();
-  const auto catalog_str = catalog_.ToCatalogHRNString();
+  const auto catalog_str =
+      settings_.api_lookup_settings.catalog_endpoint_provider
+          ? std::string()
+          : catalog_.ToCatalogHRNString();
 
   repository::CatalogCacheRepository repository(
       catalog_, settings_.cache, settings_.default_cache_expiration);

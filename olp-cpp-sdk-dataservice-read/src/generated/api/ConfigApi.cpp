@@ -43,7 +43,8 @@ ConfigApi::CatalogResponse ConfigApi::GetCatalog(
   if (billing_tag) {
     query_params.insert(std::make_pair("billingTag", *billing_tag));
   }
-  std::string catalog_uri = "/catalogs/" + catalog_hrn;
+  auto catalog_uri =
+      catalog_hrn.empty() ? std::string() : "/catalogs/" + catalog_hrn;
 
   client::HttpResponse response = client.CallApi(
       std::move(catalog_uri), "GET", std::move(query_params),
