@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@ constexpr auto kPartitionKey = "partition";
 constexpr auto kAdditionalMetadataKey = "additionalMetadata";
 constexpr auto kChecksumKey = "checksum";
 constexpr auto kDataSizeKey = "dataSize";
-constexpr auto kCompressedDataSize = "compressedDataSize";
-
+constexpr auto kCompressedDataSizeKey = "compressedDataSize";
+constexpr auto kCrcKey = "crc";
 constexpr auto kLogTag = "QuadTreeIndex";
 
 olp::dataservice::read::QuadTreeIndex::IndexData ParseCommonIndexData(
@@ -59,13 +59,17 @@ olp::dataservice::read::QuadTreeIndex::IndexData ParseCommonIndexData(
     data.checksum = obj[kChecksumKey].GetString();
   }
 
+  if (obj.HasMember(kCrcKey) && obj[kCrcKey].IsString()) {
+    data.crc = obj[kCrcKey].GetString();
+  }
+
   if (obj.HasMember(kDataSizeKey) && obj[kDataSizeKey].IsInt64()) {
     data.data_size = obj[kDataSizeKey].GetInt64();
   }
 
-  if (obj.HasMember(kCompressedDataSize) &&
-      obj[kCompressedDataSize].IsInt64()) {
-    data.compressed_data_size = obj[kCompressedDataSize].GetInt64();
+  if (obj.HasMember(kCompressedDataSizeKey) &&
+      obj[kCompressedDataSizeKey].IsInt64()) {
+    data.compressed_data_size = obj[kCompressedDataSizeKey].GetInt64();
   }
 
   if (obj.HasMember(kVersionKey) && obj[kVersionKey].IsUint64()) {
@@ -81,6 +85,7 @@ bool WriteIndexData(const QuadTreeIndex::IndexData& data,
   success &= writer.Write(data.compressed_data_size);
   success &= writer.Write(data.data_handle);
   success &= writer.Write(data.checksum);
+  success &= writer.Write(data.crc);
   success &= writer.Write(data.additional_metadata);
   return success;
 }
@@ -164,6 +169,7 @@ bool QuadTreeIndex::ReadIndexData(QuadTreeIndex::IndexData& data,
   success &= reader.Read(data.compressed_data_size);
   success &= reader.Read(data.data_handle);
   success &= reader.Read(data.checksum);
+  success &= reader.Read(data.crc);
   success &= reader.Read(data.additional_metadata);
   return success;
 }
@@ -187,14 +193,16 @@ void QuadTreeIndex::CreateBlob(olp::geo::TileKey root, int depth,
   for (const IndexData& data : subs) {
     additional_data_size +=
         data.data_handle.size() + 1 + data.checksum.size() + 1 +
-        data.additional_metadata.size() + 1 + sizeof(IndexData::data_size) +
-        sizeof(IndexData::compressed_data_size) + sizeof(IndexData::version);
+        data.crc.size() + 1 + data.additional_metadata.size() + 1 +
+        sizeof(IndexData::data_size) + sizeof(IndexData::compressed_data_size) +
+        sizeof(IndexData::version);
   }
   for (const IndexData& data : parents) {
     additional_data_size +=
         data.data_handle.size() + 1 + data.checksum.size() + 1 +
-        data.additional_metadata.size() + 1 + sizeof(IndexData::data_size) +
-        sizeof(IndexData::compressed_data_size) + sizeof(IndexData::version);
+        data.crc.size() + 1 + data.additional_metadata.size() + 1 +
+        sizeof(IndexData::data_size) + sizeof(IndexData::compressed_data_size) +
+        sizeof(IndexData::version);
   }
 
   // calculate and allocate size

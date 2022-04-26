@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,9 @@
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/core/http/Network.h>
 #include <olp/core/utils/Dir.h>
+#include <olp/core/utils/Url.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include "ApiDefaultResponses.h"
 #include "KeyValueCacheTestable.h"
@@ -47,9 +49,10 @@
 
 namespace {
 namespace read = olp::dataservice::read;
-namespace model = olp::dataservice::read::model;
+namespace model = read::model;
 using mockserver::ApiDefaultResponses;
 using mockserver::ReadDefaultResponses;
+using olp::client::ErrorCode;
 using ::testing::_;
 using ::testing::Mock;
 
@@ -99,7 +102,7 @@ TEST(VersionedLayerClientTest, GetData) {
     const auto& response = future.get();
     ASSERT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::PreconditionFailed);
+              ErrorCode::PreconditionFailed);
   }
   Mock::VerifyAndClearExpectations(network_mock.get());
 }
@@ -109,7 +112,7 @@ TEST(VersionedLayerClientTest, RemoveFromCachePartition) {
   std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
   settings.cache = cache_mock;
 
-  // successfull mock cache calls
+  // Successful mock cache calls
   auto found_cache_response = [](const std::string& /*key*/,
                                  const olp::cache::Decoder& /*encoder*/) {
     auto partition = model::Partition();
@@ -133,7 +136,7 @@ TEST(VersionedLayerClientTest, RemoveFromCachePartition) {
 
   read::VersionedLayerClient client(kHrn, kLayerId, kCatalogVersion, settings);
   {
-    SCOPED_TRACE("Successfull remove partition from cache");
+    SCOPED_TRACE("Successful remove partition from cache");
 
     EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
@@ -197,7 +200,7 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
 
   read::VersionedLayerClient client(kHrn, kLayerId, kCatalogVersion, settings);
   {
-    SCOPED_TRACE("Successfull remove tile from cache");
+    SCOPED_TRACE("Successful remove tile from cache");
 
     EXPECT_CALL(*cache_mock, Get(_))
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
@@ -282,7 +285,7 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
     ASSERT_FALSE(client.RemoveFromCache(tile_key));
   }
   {
-    SCOPED_TRACE("Successfull remove tile and quad tree from cache");
+    SCOPED_TRACE("Successful remove tile and quad tree from cache");
     EXPECT_CALL(*cache_mock, Get(_))
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key));
@@ -313,7 +316,7 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
     ASSERT_TRUE(client.RemoveFromCache(tile_key));
   }
   {
-    SCOPED_TRACE("Successfull remove tile but removing quad tree fails");
+    SCOPED_TRACE("Successful remove tile but removing quad tree fails");
     EXPECT_CALL(*cache_mock, Get(_))
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key));
@@ -345,12 +348,12 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
   }
 }
 
-TEST(VersionedLayerClientTest, ProtectThanReleasePartition) {
+TEST(VersionedLayerClientTest, ProtectThenReleasePartition) {
   olp::client::OlpClientSettings settings;
   std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
   settings.cache = cache_mock;
 
-  // successfull mock cache calls
+  // Successful mock cache calls
   auto found_cache_response = [](const std::string& /*key*/,
                                  const olp::cache::Decoder& /*encoder*/) {
     auto partition = model::Partition();
@@ -375,7 +378,7 @@ TEST(VersionedLayerClientTest, ProtectThanReleasePartition) {
 
   read::VersionedLayerClient client(kHrn, kLayerId, kCatalogVersion, settings);
   {
-    SCOPED_TRACE("Successfull protect partition");
+    SCOPED_TRACE("Successful protect partition");
 
     EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, Protect(_)).WillOnce(partition_keys);
@@ -383,7 +386,7 @@ TEST(VersionedLayerClientTest, ProtectThanReleasePartition) {
   }
 
   {
-    SCOPED_TRACE("Successfull release partition");
+    SCOPED_TRACE("Successful release partition");
 
     EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, Release(_)).WillOnce(partition_keys);
@@ -445,7 +448,7 @@ TEST(VersionedLayerClientTest, ProtectThanReleasePartition) {
   }
 }
 
-TEST(VersionedLayerClientTest, ProtectThanRelease) {
+TEST(VersionedLayerClientTest, ProtectThenRelease) {
   std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
   olp::cache::CacheSettings cache_settings;
   cache_settings.disk_path_mutable =
@@ -467,7 +470,7 @@ TEST(VersionedLayerClientTest, ProtectThanRelease) {
   auto quad_path = generator.VersionedQuadTree("92259", version, 4);
   ASSERT_FALSE(quad_path.empty());
   auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
-  auto responce_quad = ReadDefaultResponses::GenerateQuadTreeResponse(
+  auto response_quad = ReadDefaultResponses::GenerateQuadTreeResponse(
       tile_key.ChangedLevelBy(-4), 4, {9, 10, 11, 12});
   auto tile_path =
       generator.DataBlob(ReadDefaultResponses::GenerateDataHandle(kHereTile));
@@ -499,7 +502,7 @@ TEST(VersionedLayerClientTest, ProtectThanRelease) {
     EXPECT_CALL(*network_mock, Send(IsGetRequest(quad_path), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
-                                     responce_quad));
+                                     response_quad));
     EXPECT_CALL(*network_mock, Send(IsGetRequest(tile_path), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
@@ -601,7 +604,7 @@ TEST(VersionedLayerClientTest, ProtectThanRelease) {
     EXPECT_CALL(*network_mock, Send(IsGetRequest(quad_path), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
-                                     responce_quad));
+                                     response_quad));
     EXPECT_CALL(*network_mock, Send(IsGetRequest(tile_path), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
@@ -723,15 +726,13 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsSplitted) {
     }
 
     const auto request =
-        olp::dataservice::read::PrefetchPartitionsRequest().WithPartitionIds(
-            partitions);
+        read::PrefetchPartitionsRequest().WithPartitionIds(partitions);
 
-    std::promise<olp::dataservice::read::PrefetchPartitionsResponse> promise;
+    std::promise<read::PrefetchPartitionsResponse> promise;
     auto future = promise.get_future();
     auto token = client.PrefetchPartitions(
         request,
-        [&promise](
-            olp::dataservice::read::PrefetchPartitionsResponse response) {
+        [&promise](read::PrefetchPartitionsResponse response) {
           promise.set_value(std::move(response));
         },
         nullptr);
@@ -751,8 +752,7 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsSplitted) {
   {
     SCOPED_TRACE("Prefetch cached partitions");
     const auto request =
-        olp::dataservice::read::PrefetchPartitionsRequest().WithPartitionIds(
-            partitions);
+        read::PrefetchPartitionsRequest().WithPartitionIds(partitions);
     auto future = client.PrefetchPartitions(request, nullptr).GetFuture();
     ASSERT_NE(future.wait_for(std::chrono::seconds(kTimeout)),
               std::future_status::timeout);
@@ -790,8 +790,7 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsSomeFail) {
   auto partitions_response =
       ReadDefaultResponses::GeneratePartitionsResponse(partitions_count);
   const auto request =
-      olp::dataservice::read::PrefetchPartitionsRequest().WithPartitionIds(
-          partitions);
+      read::PrefetchPartitionsRequest().WithPartitionIds(partitions);
   read::VersionedLayerClientImpl client(kHrn, kLayerId, boost::none, settings);
   auto partitions_path = generator.PartitionsQuery(partitions, version);
   ASSERT_FALSE(partitions_path.empty());
@@ -835,16 +834,15 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsSomeFail) {
               "data"));
     }
 
-    olp::dataservice::read::PrefetchPartitionsStatus statistic;
-    std::promise<olp::dataservice::read::PrefetchPartitionsResponse> promise;
+    read::PrefetchPartitionsStatus statistic;
+    std::promise<read::PrefetchPartitionsResponse> promise;
     auto future = promise.get_future();
     auto token = client.PrefetchPartitions(
         request,
-        [&promise](
-            olp::dataservice::read::PrefetchPartitionsResponse response) {
+        [&promise](read::PrefetchPartitionsResponse response) {
           promise.set_value(std::move(response));
         },
-        [&](olp::dataservice::read::PrefetchPartitionsStatus status) {
+        [&](read::PrefetchPartitionsStatus status) {
           statistic = std::move(status);
         });
     ASSERT_NE(future.wait_for(std::chrono::seconds(kTimeout)),
@@ -884,12 +882,11 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsSomeFail) {
                                  "data"));
     }
 
-    std::promise<olp::dataservice::read::PrefetchPartitionsResponse> promise;
+    std::promise<read::PrefetchPartitionsResponse> promise;
     auto future = promise.get_future();
     auto token = client.PrefetchPartitions(
         request,
-        [&promise](
-            olp::dataservice::read::PrefetchPartitionsResponse response) {
+        [&promise](read::PrefetchPartitionsResponse response) {
           promise.set_value(std::move(response));
         },
         nullptr);
@@ -898,8 +895,7 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsSomeFail) {
 
     auto response = future.get();
     ASSERT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::Unknown);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Unknown);
     ASSERT_EQ("No partitions were prefetched.",
               response.GetError().GetMessage());
   }
@@ -924,20 +920,18 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsFail) {
   PlatformUrlsGenerator generator(apis, kLayerId);
 
   const auto request =
-      olp::dataservice::read::PrefetchPartitionsRequest().WithPartitionIds(
-          partitions);
+      read::PrefetchPartitionsRequest().WithPartitionIds(partitions);
   read::VersionedLayerClientImpl client(kHrn, kLayerId, boost::none, settings);
   auto partitions_path = generator.PartitionsQuery(partitions, version);
   ASSERT_FALSE(partitions_path.empty());
   {
     SCOPED_TRACE("Prefetch partitions, empty request");
 
-    std::promise<olp::dataservice::read::PrefetchPartitionsResponse> promise;
+    std::promise<read::PrefetchPartitionsResponse> promise;
     auto future = promise.get_future();
     auto token = client.PrefetchPartitions(
-        olp::dataservice::read::PrefetchPartitionsRequest(),
-        [&promise](
-            olp::dataservice::read::PrefetchPartitionsResponse response) {
+        read::PrefetchPartitionsRequest(),
+        [&promise](read::PrefetchPartitionsResponse response) {
           promise.set_value(std::move(response));
         },
         nullptr);
@@ -946,8 +940,7 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsFail) {
 
     auto response = future.get();
     ASSERT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::InvalidArgument);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::InvalidArgument);
   }
   {
     SCOPED_TRACE("Get version fails");
@@ -966,12 +959,11 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsFail) {
             olp::serializer::serialize(
                 ReadDefaultResponses::GenerateVersionResponse(version))));
 
-    std::promise<olp::dataservice::read::PrefetchPartitionsResponse> promise;
+    std::promise<read::PrefetchPartitionsResponse> promise;
     auto future = promise.get_future();
     auto token = client.PrefetchPartitions(
         request,
-        [&promise](
-            olp::dataservice::read::PrefetchPartitionsResponse response) {
+        [&promise](read::PrefetchPartitionsResponse response) {
           promise.set_value(std::move(response));
         },
         nullptr);
@@ -980,8 +972,7 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsFail) {
 
     auto response = future.get();
     ASSERT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::BadRequest);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::BadRequest);
   }
   {
     SCOPED_TRACE("Get data handles fails");
@@ -1003,12 +994,11 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsFail) {
                 olp::http::HttpStatusCode::BAD_REQUEST),
             olp::serializer::serialize(partitions_response)));
 
-    std::promise<olp::dataservice::read::PrefetchPartitionsResponse> promise;
+    std::promise<read::PrefetchPartitionsResponse> promise;
     auto future = promise.get_future();
     auto token = client.PrefetchPartitions(
         request,
-        [&promise](
-            olp::dataservice::read::PrefetchPartitionsResponse response) {
+        [&promise](read::PrefetchPartitionsResponse response) {
           promise.set_value(std::move(response));
         },
         nullptr);
@@ -1018,8 +1008,7 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsFail) {
     auto response = future.get();
     ASSERT_FALSE(response.IsSuccessful())
         << response.GetError().GetMessage().c_str();
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::BadRequest);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::BadRequest);
   }
   {
     SCOPED_TRACE("Invalid json");
@@ -1029,12 +1018,11 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsFail) {
                                          olp::http::HttpStatusCode::OK),
                                      "invalid json"));
 
-    std::promise<olp::dataservice::read::PrefetchPartitionsResponse> promise;
+    std::promise<read::PrefetchPartitionsResponse> promise;
     auto future = promise.get_future();
     auto token = client.PrefetchPartitions(
         request,
-        [&promise](
-            olp::dataservice::read::PrefetchPartitionsResponse response) {
+        [&promise](read::PrefetchPartitionsResponse response) {
           promise.set_value(std::move(response));
         },
         nullptr);
@@ -1043,8 +1031,7 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsFail) {
 
     auto response = future.get();
     ASSERT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::Unknown);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Unknown);
     ASSERT_EQ("Fail parsing response.", response.GetError().GetMessage());
   }
   {
@@ -1064,12 +1051,11 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsFail) {
                 olp::http::HttpStatusCode::OK),
             olp::serializer::serialize(partitions_response)));
 
-    std::promise<olp::dataservice::read::PrefetchPartitionsResponse> promise;
+    std::promise<read::PrefetchPartitionsResponse> promise;
     auto future = promise.get_future();
     auto token = client.PrefetchPartitions(
         request,
-        [&promise](
-            olp::dataservice::read::PrefetchPartitionsResponse response) {
+        [&promise](read::PrefetchPartitionsResponse response) {
           promise.set_value(std::move(response));
         },
         nullptr);
@@ -1078,8 +1064,7 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsFail) {
 
     auto response = future.get();
     ASSERT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::Unknown);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Unknown);
     ASSERT_EQ("No partitions were prefetched.",
               response.GetError().GetMessage());
   }
@@ -1099,8 +1084,7 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsCancel) {
     partitions.emplace_back(std::to_string(i));
   }
   const auto request =
-      olp::dataservice::read::PrefetchPartitionsRequest().WithPartitionIds(
-          partitions);
+      read::PrefetchPartitionsRequest().WithPartitionIds(partitions);
   read::VersionedLayerClientImpl client(kHrn, kLayerId, boost::none, settings);
   {
     SCOPED_TRACE("Cancel request");
@@ -1120,8 +1104,7 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsCancel) {
     auto data_response = future.get();
 
     EXPECT_FALSE(data_response.IsSuccessful());
-    EXPECT_EQ(data_response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::Cancelled);
+    EXPECT_EQ(data_response.GetError().GetErrorCode(), ErrorCode::Cancelled);
   }
   Mock::VerifyAndClearExpectations(network_mock.get());
 }
@@ -1192,8 +1175,7 @@ TEST(VersionedLayerClientTest, CacheErrorsDuringPrefetch) {
 
     auto response = future.get();
     ASSERT_FALSE(response.IsSuccessful());
-    ASSERT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::CacheIO);
+    ASSERT_EQ(response.GetError().GetErrorCode(), ErrorCode::CacheIO);
 
     Mock::VerifyAndClearExpectations(network_mock.get());
   }
@@ -1238,10 +1220,133 @@ TEST(VersionedLayerClientTest, CacheErrorsDuringPrefetch) {
 
     auto response = future.get();
     ASSERT_FALSE(response.IsSuccessful());
-    ASSERT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::CacheIO);
+    ASSERT_EQ(response.GetError().GetErrorCode(), ErrorCode::CacheIO);
 
     Mock::VerifyAndClearExpectations(network_mock.get());
+  }
+}
+
+TEST(VersionedLayerClientTest, QuadTreeIndex) {
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  olp::cache::CacheSettings cache_settings;
+  cache_settings.disk_path_mutable =
+      olp::utils::Dir::TempDirectory() + "/unittest";
+  auto cache =
+      std::make_shared<olp::cache::DefaultCache>(std::move(cache_settings));
+  cache->Open();
+  cache->Clear();
+  olp::client::OlpClientSettings settings;
+  settings.cache = cache;
+  settings.default_cache_expiration = std::chrono::seconds(2);
+  settings.network_request_handler = network_mock;
+
+  auto depth = 4;
+  auto apis = ApiDefaultResponses::GenerateResourceApisResponse(kCatalog);
+  auto api_response = ResponseGenerator::ResourceApis(apis);
+  PlatformUrlsGenerator generator(apis, kLayerId);
+
+  const auto version_path = generator.LatestVersion();
+  ASSERT_FALSE(version_path.empty());
+
+  auto quad_path = generator.VersionedQuadTree("92259", kCatalogVersion, depth);
+  ASSERT_FALSE(quad_path.empty());
+  quad_path +=
+      "?additionalFields=" + olp::utils::Url::Encode("checksum,crc,dataSize");
+
+  const auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
+  auto client = std::make_shared<read::VersionedLayerClientImpl>(
+      kHrn, kLayerId, boost::none, settings);
+
+  {
+    SCOPED_TRACE("Invalid tile key");
+
+    std::promise<read::PartitionsResponse> promise;
+    client->QuadTreeIndex(read::TileRequest{},
+                          [&](read::PartitionsResponse response) {
+                            promise.set_value(std::move(response));
+                          });
+
+    auto future = promise.get_future();
+    EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    ASSERT_FALSE(response);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::InvalidArgument);
+  }
+  {
+    SCOPED_TRACE("Invalid fetch option");
+
+    std::promise<read::PartitionsResponse> promise;
+    client->QuadTreeIndex(
+        read::TileRequest().WithTileKey(tile_key).WithFetchOption(
+            read::CacheWithUpdate),
+        [&](read::PartitionsResponse response) {
+          promise.set_value(std::move(response));
+        });
+
+    auto future = promise.get_future();
+    EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    ASSERT_FALSE(response);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::InvalidArgument);
+  }
+  {
+    SCOPED_TRACE("Get version fails");
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     api_response));
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(version_path), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(
+                olp::http::HttpStatusCode::BAD_REQUEST),
+            olp::serializer::serialize(
+                ReadDefaultResponses::GenerateVersionResponse(
+                    kCatalogVersion))));
+
+    std::promise<read::PartitionsResponse> promise;
+    client->QuadTreeIndex(read::TileRequest().WithTileKey(tile_key),
+                          [&](read::PartitionsResponse response) {
+                            promise.set_value(std::move(response));
+                          });
+
+    auto future = promise.get_future();
+    EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    ASSERT_FALSE(response);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::BadRequest);
+  }
+  {
+    SCOPED_TRACE("Get quad tree fails");
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(version_path), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(
+                olp::http::HttpStatusCode::OK),
+            olp::serializer::serialize(
+                ReadDefaultResponses::GenerateVersionResponse(
+                    kCatalogVersion))));
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(quad_path), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::NOT_FOUND),
+                                     ""));
+
+    std::promise<read::PartitionsResponse> promise;
+    client->QuadTreeIndex(read::TileRequest().WithTileKey(tile_key),
+                          [&](read::PartitionsResponse response) {
+                            promise.set_value(std::move(response));
+                          });
+
+    auto future = promise.get_future();
+    EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    ASSERT_FALSE(response);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::NotFound);
   }
 }
 }  // namespace
