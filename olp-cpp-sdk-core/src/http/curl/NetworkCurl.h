@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,13 +30,24 @@
 
 #include <curl/curl.h>
 
+#ifdef OLP_SDK_ENABLE_ANDROID_CURL
 #ifdef OLP_SDK_NETWORK_HAS_OPENSSL
-#include <openssl/crypto.h>
+#include <openssl/ossl_typ.h>
+
+#ifdef OPENSSL_NO_MD5
+#error cURL enabled network implementation for Android requires MD5 from OpenSSL
+#endif
+
+// Android uses MD5 to encode certificates name, but OpenSSL uses SHA1 for
+// certificates lookup -> so OpenSSL won't be able to get appropriate
+// certificate as it won't be able to locate one. We need to add our custom
+// lookup method that uses MD5. Old SHA1 lookup will be left as is.
+#define OLP_SDK_USE_MD5_CERT_LOOKUP
+#endif
 #endif
 
 #include <olp/core/http/Network.h>
 #include <olp/core/http/NetworkRequest.h>
-
 
 namespace olp {
 namespace http {
@@ -113,6 +124,9 @@ class NetworkCurl : public olp::http::Network,
     bool cancelled{};
     bool skip_content{};
     char error_text[CURL_ERROR_SIZE]{};
+#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
+    X509_LOOKUP_METHOD* md5_lookup_method{nullptr};
+#endif
   };
 
   /**
@@ -271,6 +285,19 @@ class NetworkCurl : public olp::http::Network,
    */
   inline bool IsStarted() const;
 
+#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
+  /**
+   * @brief Adds new lookup method for certificates search routine.
+   *
+   * @param[in] curl cURL instance.
+   * @param[in] ssl_ctx OpenSSL context.
+   * @param[in] handle Related RequestHandle.
+   * @return An error code for the operation.
+   */
+  static CURLcode AddMd5LookupMethod(CURL* curl, SSL_CTX* ssl_ctx,
+                                     RequestHandle* handle);
+#endif
+
   /// Contexts for every network request.
   std::vector<RequestHandle> handles_;
 
@@ -324,6 +351,11 @@ class NetworkCurl : public olp::http::Network,
   /// Mutexes that are used by OpenSSL to synchronize during concurrent
   /// network transfer.
   std::unique_ptr<std::mutex[]> ssl_mutexes_{};
+#endif
+
+#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
+  /// Additional lookup method.
+  X509_LOOKUP_METHOD* md5_lookup_method_{nullptr};
 #endif
 
   /// Stores value if `curl_global_init()` was successful on construction.
