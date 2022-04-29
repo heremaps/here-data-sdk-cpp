@@ -85,8 +85,8 @@ bool WriteIndexData(const QuadTreeIndex::IndexData& data,
   success &= writer.Write(data.compressed_data_size);
   success &= writer.Write(data.data_handle);
   success &= writer.Write(data.checksum);
-  success &= writer.Write(data.crc);
   success &= writer.Write(data.additional_metadata);
+  success &= writer.Write(data.crc);
   return success;
 }
 }  // namespace
@@ -169,8 +169,8 @@ bool QuadTreeIndex::ReadIndexData(QuadTreeIndex::IndexData& data,
   success &= reader.Read(data.compressed_data_size);
   success &= reader.Read(data.data_handle);
   success &= reader.Read(data.checksum);
-  success &= reader.Read(data.crc);
   success &= reader.Read(data.additional_metadata);
+  success &= reader.Read(data.crc);
   return success;
 }
 
