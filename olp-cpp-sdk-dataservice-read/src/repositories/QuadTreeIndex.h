@@ -128,7 +128,7 @@ class QuadTreeIndex {
     return reinterpret_cast<const uint8_t*>(data_) + size_;
   }
 
-  bool ReadIndexData(IndexData& data, uint32_t offset) const;
+  bool ReadIndexData(IndexData& data, uint32_t offset, uint32_t limit) const;
 
   DataHeader* data_ = nullptr;
   cache::KeyValueCache::ValueTypePtr raw_data_ = nullptr;

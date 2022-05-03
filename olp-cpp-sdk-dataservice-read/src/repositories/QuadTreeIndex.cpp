@@ -85,8 +85,8 @@ bool WriteIndexData(const QuadTreeIndex::IndexData& data,
   success &= writer.Write(data.compressed_data_size);
   success &= writer.Write(data.data_handle);
   success &= writer.Write(data.checksum);
-  success &= writer.Write(data.crc);
   success &= writer.Write(data.additional_metadata);
+  success &= writer.Write(data.crc);
   return success;
 }
 }  // namespace
@@ -160,7 +160,7 @@ QuadTreeIndex::QuadTreeIndex(const olp::geo::TileKey& root, int depth,
 }
 
 bool QuadTreeIndex::ReadIndexData(QuadTreeIndex::IndexData& data,
-                                  uint32_t offset) const {
+                                  uint32_t offset, uint32_t limit) const {
   BlobDataReader reader(*raw_data_);
   reader.SetOffset(offset);
 
@@ -169,8 +169,13 @@ bool QuadTreeIndex::ReadIndexData(QuadTreeIndex::IndexData& data,
   success &= reader.Read(data.compressed_data_size);
   success &= reader.Read(data.data_handle);
   success &= reader.Read(data.checksum);
-  success &= reader.Read(data.crc);
   success &= reader.Read(data.additional_metadata);
+  // The CRC field was added after the initial QuadTreeIndex implementation, and
+  // to maintain the backwards compatibility we must check that we do not read
+  // the crc from the next index block.
+  if (reader.GetOffset() < limit) {
+    success &= reader.Read(data.crc);
+  }
   return success;
 }
 
@@ -275,7 +280,24 @@ boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::Find(
     if (entry == end || entry->sub_quadkey != sub) {
       return aggregated ? FindNearestParent(tile_key) : boost::none;
     }
-    if (!ReadIndexData(data, entry->tag_offset)) {
+    const auto offset = entry->tag_offset;
+
+    // The limit is the offset for the next entry, or the beginning of the
+    // parents entries. (in case there are no parents use the size of the index
+    // block.)
+    const auto limit = [&]() {
+      auto next = entry + 1;
+      if (next == end) {
+        if (data_->parent_count == 0) {
+          return static_cast<uint32_t>(raw_data_->size());
+        } else {
+          return ParentEntryBegin()->tag_offset;
+        }
+      }
+      return next->tag_offset;
+    }();
+
+    if (!ReadIndexData(data, offset, limit)) {
       return boost::none;
     }
     data.tile_key = tile_key;
@@ -289,7 +311,15 @@ boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::Find(
     if (entry == end || entry->key != key) {
       return aggregated ? FindNearestParent(tile_key) : boost::none;
     }
-    if (!ReadIndexData(data, entry->tag_offset)) {
+    const auto offset = entry->tag_offset;
+
+    // The limit is the offset for the next entry, or the end of the index data.
+    const auto limit = [&]() {
+      auto next = entry + 1;
+      return (next == end) ? raw_data_->size() : next->tag_offset;
+    }();
+
+    if (!ReadIndexData(data, offset, limit)) {
       return boost::none;
     }
     data.tile_key = tile_key;
@@ -302,29 +332,38 @@ boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::FindNearestParent(
       olp::geo::TileKey::FromQuadKey64(data_->root_tilekey);
 
   if (tile_key.Level() >= root_tile_key.Level()) {
+    auto parents_begin = ParentEntryBegin();
+    uint32_t limit = parents_begin == ParentEntryEnd()
+                         ? static_cast<uint32_t>(raw_data_->size())
+                         : parents_begin->tag_offset;
+
     for (auto it = SubEntryEnd(); it-- != SubEntryBegin();) {
       auto key = root_tile_key.AddedSubkey64(it->sub_quadkey);
       if (tile_key.IsChildOf(key)) {
         IndexData data;
         data.tile_key = key;
-        if (!ReadIndexData(data, it->tag_offset)) {
+        if (!ReadIndexData(data, it->tag_offset, limit)) {
           return boost::none;
         }
         return data;
       }
+      limit = it->tag_offset;
     }
   }
+
+  uint32_t limit = static_cast<uint32_t>(raw_data_->size());
 
   for (auto it = ParentEntryEnd(); it-- != ParentEntryBegin();) {
     auto key = geo::TileKey::FromQuadKey64(it->key);
     if (tile_key.IsChildOf(key)) {
       IndexData data;
       data.tile_key = key;
-      if (!ReadIndexData(data, it->tag_offset)) {
+      if (!ReadIndexData(data, it->tag_offset, limit)) {
         return boost::none;
       }
       return data;
     }
+    limit = it->tag_offset;
   }
   return boost::none;
 }
@@ -335,22 +374,28 @@ std::vector<QuadTreeIndex::IndexData> QuadTreeIndex::GetIndexData() const {
     return result;
   }
   result.reserve(data_->parent_count + data_->subkey_count);
+
+  uint32_t limit = static_cast<uint32_t>(raw_data_->size());
+
   for (auto it = ParentEntryEnd(); it-- != ParentEntryBegin();) {
     QuadTreeIndex::IndexData data;
     data.tile_key = geo::TileKey::FromQuadKey64(it->key);
-    if (ReadIndexData(data, it->tag_offset)) {
+    if (ReadIndexData(data, it->tag_offset, limit)) {
       result.emplace_back(std::move(data));
     }
+    limit = it->tag_offset;
   }
+
   for (auto it = SubEntryEnd(); it-- != SubEntryBegin();) {
     QuadTreeIndex::IndexData data;
     const olp::geo::TileKey& root_tile_key =
         olp::geo::TileKey::FromQuadKey64(data_->root_tilekey);
     auto subtile = root_tile_key.AddedSubkey64(std::uint64_t(it->sub_quadkey));
     data.tile_key = subtile;
-    if (ReadIndexData(data, it->tag_offset)) {
+    if (ReadIndexData(data, it->tag_offset, limit)) {
       result.emplace_back(std::move(data));
     }
+    limit = it->tag_offset;
   }
   return result;
 }
