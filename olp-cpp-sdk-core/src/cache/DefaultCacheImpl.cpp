@@ -434,8 +434,8 @@ bool DefaultCacheImpl::Contains(const std::string& key) const {
     return false;
   }
 
-  if (memory_cache_ && memory_cache_->Contains(key)) {
-    return true;
+  if (protected_cache_ && protected_cache_->Contains(key)) {
+    return GetRemainingExpiryTime(key, *protected_cache_) > 0;
   }
 
   // if lru exist check if key is there
@@ -443,25 +443,27 @@ bool DefaultCacheImpl::Contains(const std::string& key) const {
     auto it = mutable_cache_lru_->FindNoPromote(key);
     if (it != mutable_cache_lru_->end()) {
       ValueProperties props = it->value();
+      if (!IsExpiryValid(props.expiry)) {
+        return true;
+      }
+
       props.expiry -= olp::cache::InMemoryCache::DefaultTimeProvider()();
-      return (props.expiry > 0);
+      return props.expiry > 0;
       // if lru exist, but key not found, this case possible only for protected
       // keys
+
     } else if (protected_keys_.IsProtected(key)) {
       return mutable_cache_ && mutable_cache_->Contains(key);
     }
 
     // check in mutable cache only if lru does not exist
   } else if (mutable_cache_ && mutable_cache_->Contains(key)) {
-    return (GetRemainingExpiryTime(key, *mutable_cache_) > 0) ||
+    return GetRemainingExpiryTime(key, *mutable_cache_) > 0 ||
            protected_keys_.IsProtected(key);
   }
 
-  if (protected_cache_ && protected_cache_->Contains(key)) {
-    return (GetRemainingExpiryTime(key, *protected_cache_) > 0);
-  }
-
-  return false;
+  return !protected_cache_ && !mutable_cache_ && memory_cache_ &&
+         memory_cache_->Contains(key);
 }
 
 bool DefaultCacheImpl::AddKeyLru(std::string key, const leveldb::Slice& value) {

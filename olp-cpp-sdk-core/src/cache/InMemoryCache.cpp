@@ -25,6 +25,10 @@ namespace {
 inline bool HasExpiry(time_t expiry_seconds) {
   return (expiry_seconds != InMemoryCache::kExpiryMax);
 }
+bool IsPrefix(const std::string& key, const std::string& prefix) {
+  return (key.size() >= prefix.size()) &&
+         (memcmp(key.data(), prefix.data(), prefix.size()) == 0);
+}
 }  // namespace
 
 InMemoryCache::InMemoryCache(size_t max_size, ModelCacheCostFunc cache_cost,
@@ -98,7 +102,7 @@ void InMemoryCache::RemoveKeysWithPrefix(const std::string& key_prefix,
   std::lock_guard<std::mutex> lock{mutex_};
 
   for (auto it = item_tuples_.begin(); it != item_tuples_.end();) {
-    if (it->key().substr(0, key_prefix.length()) == key_prefix) {
+    if (IsPrefix(it.key(), key_prefix)) {
       // Check if this key is not protected, and if it is do not remove
       if (filter && filter(it->key())) {
         ++it;
