@@ -48,6 +48,7 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./geo/tiling/TileKeyTest.cpp
     ./geo/tiling/TileKeyUtilsTest.cpp
 
+    ./logging/BufferAppenderTest.cpp
     ./logging/ConfigurationTest.cpp
     ./logging/DisabledLoggingTest.cpp
     ./logging/FileAppenderTest.cpp

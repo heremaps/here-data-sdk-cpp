@@ -141,6 +141,8 @@ set(OLP_SDK_UTILS_HEADERS
 
 set(OLP_SDK_LOGGING_HEADERS
     ./include/olp/core/logging/Appender.h
+    ./include/olp/core/logging/BufferAppender.h
+    ./include/olp/core/logging/CircularBuffer.h
     ./include/olp/core/logging/Configuration.h
     ./include/olp/core/logging/ConsoleAppender.h
     ./include/olp/core/logging/DebugAppender.h
@@ -337,6 +339,7 @@ set(OLP_SDK_UTILS_SOURCES
 )
 
 set(OLP_SDK_LOGGING_SOURCES
+    ./src/logging/BufferAppender.cpp
     ./src/logging/Configuration.cpp
     ./src/logging/ConsoleAppender.cpp
     ./src/logging/DebugAppender.cpp
