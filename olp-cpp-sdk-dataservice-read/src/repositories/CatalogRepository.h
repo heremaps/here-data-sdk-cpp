@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,9 @@ class CatalogRepository final {
   CatalogVersionResponse GetLatestVersion(const CatalogVersionRequest& request,
                                           client::CancellationContext context);
 
+  client::CancellationToken GetLatestVersion(
+      const CatalogVersionRequest& request, CatalogVersionCallback callback);
+
   VersionsResponse GetVersionsList(const VersionsRequest& request,
                                    client::CancellationContext context);
 
@@ -60,6 +63,10 @@ class CatalogRepository final {
   CatalogVersionResponse GetLatestVersionOnline(
       const boost::optional<std::string>& billing_tag,
       client::CancellationContext context);
+
+  client::CancellationToken GetLatestVersionOnline(
+      const boost::optional<std::string>& billing_tag,
+      CatalogVersionCallback callback);
 
   client::HRN catalog_;
   client::OlpClientSettings settings_;

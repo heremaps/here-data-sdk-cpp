@@ -124,7 +124,7 @@ MetadataApi::PartitionsExtendedResponse MetadataApi::GetPartitions(
   auto partitions_response =
       parser::parse_result<PartitionsResponse>(http_response.response);
 
-  if (!partitions_response.IsSuccessful()) {
+  if (!partitions_response) {
     return {{partitions_response.GetError()},
             http_response.GetNetworkStatistics()};
   }
@@ -134,14 +134,14 @@ MetadataApi::PartitionsExtendedResponse MetadataApi::GetPartitions(
 }
 
 MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
-    const client::OlpClient& client, std::int64_t startVersion,
+    const client::OlpClient& client, std::int64_t start_version,
     boost::optional<std::string> billing_tag,
     const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;
   header_params.emplace("Accept", "application/json");
 
   std::multimap<std::string, std::string> query_params;
-  query_params.emplace("startVersion", std::to_string(startVersion));
+  query_params.emplace("startVersion", std::to_string(start_version));
   if (billing_tag) {
     query_params.emplace("billingTag", *billing_tag);
   }
@@ -156,6 +156,34 @@ MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
   }
 
   return parser::parse_result<CatalogVersionResponse>(api_response.response);
+}
+
+client::CancellationToken MetadataApi::GetLatestCatalogVersion(
+    const client::OlpClient& client, int64_t start_version,
+    boost::optional<std::string> billing_tag, CatalogVersionCallback callback) {
+  std::multimap<std::string, std::string> header_params;
+  header_params.emplace("Accept", "application/json");
+
+  std::multimap<std::string, std::string> query_params;
+  query_params.emplace("startVersion", std::to_string(start_version));
+  if (billing_tag) {
+    query_params.emplace("billingTag", *billing_tag);
+  }
+
+  std::string metadata_uri = "/versions/latest";
+
+  return client.CallApi(
+      metadata_uri, "GET", query_params, header_params, {}, nullptr, "",
+      [callback](client::HttpResponse api_response) {
+        if (api_response.status != http::HttpStatusCode::OK) {
+          callback(client::ApiError(api_response.status,
+                                    api_response.response.str()));
+          return;
+        }
+
+        callback(parser::parse_result<CatalogVersionResponse>(
+            api_response.response));
+      });
 }
 
 MetadataApi::VersionsResponse MetadataApi::ListVersions(

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,13 @@
 
 #include "repositories/CatalogRepository.h"
 
-#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/CacheMock.h>
 #include <mocks/NetworkMock.h>
 #include <olp/core/client/OlpClientFactory.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/core/thread/TaskContinuation.h>
 #include "ApiClientLookup.h"
 #include "olp/dataservice/read/CatalogRequest.h"
 #include "olp/dataservice/read/CatalogVersionRequest.h"
@@ -36,6 +38,8 @@ constexpr auto kResponseLookupMetadata =
     R"jsonString([{"api":"metadata","version":"v1","baseURL":"https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString";
 constexpr auto kLatestCatalogVersion =
     R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/versions/latest?startVersion=-1)";
+constexpr auto kLatestCatalogVersionWithBillingTag =
+    R"(https://metadata.data.api.platform.here.com/metadata/v1/catalogs/hereos-internal-test-v2/versions/latest?billingTag=OlpCppSdkTest&startVersion=-1)";
 constexpr auto kResponseLatestCatalogVersion =
     R"jsonString({"version":4})jsonString";
 constexpr auto kUrlConfig =
@@ -59,10 +63,12 @@ constexpr auto kHttpResponse =
 namespace {
 
 namespace read = olp::dataservice::read;
+namespace client = olp::client;
+namespace http = olp::http;
 namespace model = olp::dataservice::read::model;
 namespace repository = olp::dataservice::read::repository;
-using olp::client::ApiLookupClient;
-using ::testing::_;
+using client::ApiLookupClient;
+using testing::_;
 
 const std::string kCatalog =
     "hrn:here:data::olp-here-test:hereos-internal-test-v2";
@@ -80,7 +86,8 @@ const std::string kLookupUrl =
     kCatalog + "/apis/" + kMetadataServiceName + "/" + kServiceVersion;
 const std::string kVersionInfosCacheKey = kCatalog + "::3::4::versionInfos";
 
-const auto kHrn = olp::client::HRN::FromString(kCatalog);
+const auto kHrn = client::HRN::FromString(kCatalog);
+constexpr auto kMaxWaitMs = std::chrono::milliseconds(150);
 
 class CatalogRepositoryTest : public ::testing::Test {
  protected:
@@ -91,8 +98,7 @@ class CatalogRepositoryTest : public ::testing::Test {
     settings_.network_request_handler = network_;
     settings_.cache = cache_;
 
-    lookup_client_ =
-        std::make_shared<olp::client::ApiLookupClient>(kHrn, settings_);
+    lookup_client_ = std::make_shared<client::ApiLookupClient>(kHrn, settings_);
   }
 
   void TearDown() override {
@@ -105,126 +111,245 @@ class CatalogRepositoryTest : public ::testing::Test {
 
   std::shared_ptr<CacheMock> cache_;
   std::shared_ptr<NetworkMock> network_;
-  olp::client::OlpClientSettings settings_;
-  std::shared_ptr<olp::client::ApiLookupClient> lookup_client_;
+  client::OlpClientSettings settings_;
+  std::shared_ptr<client::ApiLookupClient> lookup_client_;
 };
 
 TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyFound) {
-  olp::client::CancellationContext context;
+  client::CancellationContext context;
 
-  auto request = read::CatalogVersionRequest();
-
-  request.WithFetchOption(read::CacheOnly);
+  const auto request =
+      read::CatalogVersionRequest().WithFetchOption(read::CacheOnly);
 
   model::VersionResponse cached_version;
   cached_version.SetVersion(10);
 
   EXPECT_CALL(*cache_, Get(kLatestVersionCacheKey, _))
-      .Times(1)
       .WillOnce(testing::Return(cached_version));
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
-  auto response = repository.GetLatestVersion(request, context);
+  const auto response = repository.GetLatestVersion(request, context);
 
-  ASSERT_TRUE(response.IsSuccessful());
+  ASSERT_TRUE(response);
   EXPECT_EQ(10, response.GetResult().GetVersion());
 }
 
 TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyNotFound) {
-  olp::client::CancellationContext context;
+  client::CancellationContext context;
 
-  auto request = read::CatalogVersionRequest();
+  const auto request =
+      read::CatalogVersionRequest().WithFetchOption(read::CacheOnly);
 
-  request.WithFetchOption(read::CacheOnly);
-
-  EXPECT_CALL(*cache_, Get(_, _))
-      .Times(1)
-      .WillOnce(testing::Return(boost::any{}));
+  EXPECT_CALL(*cache_, Get(_, _)).WillOnce(testing::Return(boost::any{}));
 
   ON_CALL(*network_, Send(_, _, _, _, _))
-      .WillByDefault([](olp::http::NetworkRequest, olp::http::Network::Payload,
-                        olp::http::Network::Callback,
-                        olp::http::Network::HeaderCallback,
-                        olp::http::Network::DataCallback) {
+      .WillByDefault(testing::WithoutArgs([]() {
         ADD_FAILURE() << "Should not be called with CacheOnly";
-        return olp::http::SendOutcome(olp::http::ErrorCode::UNKNOWN_ERROR);
-      });
+        return http::SendOutcome(http::ErrorCode::UNKNOWN_ERROR);
+      }));
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
-  auto response = repository.GetLatestVersion(request, context);
+  const auto response = repository.GetLatestVersion(request, context);
 
-  EXPECT_FALSE(response.IsSuccessful());
-  EXPECT_EQ(response.GetError().GetErrorCode(),
-            olp::client::ErrorCode::NotFound);
+  EXPECT_FALSE(response);
+  EXPECT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::NotFound);
+}
+
+TEST_F(CatalogRepositoryTest, AsyncGetLatestVersionCacheOnlyNotFound) {
+  client::CancellationContext context;
+
+  const auto request =
+      read::CatalogVersionRequest().WithFetchOption(read::CacheOnly);
+
+  EXPECT_CALL(*cache_, Get(_, _)).WillOnce(testing::Return(boost::any{}));
+
+  ON_CALL(*network_, Send(_, _, _, _, _))
+      .WillByDefault(testing::WithoutArgs([]() {
+        ADD_FAILURE() << "Should not be called with CacheOnly";
+        return http::SendOutcome(http::ErrorCode::UNKNOWN_ERROR);
+      }));
+
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
+
+  std::promise<read::CatalogVersionResponse> promise;
+  auto future = promise.get_future();
+  repository.GetLatestVersion(request,
+                              [&](read::CatalogVersionResponse response) {
+                                promise.set_value(std::move(response));
+                              });
+
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
+  EXPECT_FALSE(result);
+  EXPECT_EQ(result.GetError().GetErrorCode(), client::ErrorCode::NotFound);
 }
 
 TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyRequestWithMinVersion) {
-  olp::client::CancellationContext context;
+  client::CancellationContext context;
 
-  auto request = read::CatalogVersionRequest();
-  request.WithFetchOption(olp::dataservice::read::CacheOnly)
-      .WithStartVersion(kStartVersion);
+  const auto request = read::CatalogVersionRequest()
+                           .WithFetchOption(olp::dataservice::read::CacheOnly)
+                           .WithStartVersion(kStartVersion);
 
-  EXPECT_CALL(*cache_, Get(_, _))
-      .Times(1)
-      .WillOnce(testing::Return(boost::any{}));
+  EXPECT_CALL(*cache_, Get(_, _)).WillOnce(testing::Return(boost::any{}));
 
   EXPECT_CALL(*cache_, Put(_, _, _, _)).Times(1);
 
   ON_CALL(*network_, Send(_, _, _, _, _))
-      .WillByDefault([](olp::http::NetworkRequest, olp::http::Network::Payload,
-                        olp::http::Network::Callback,
-                        olp::http::Network::HeaderCallback,
-                        olp::http::Network::DataCallback) {
+      .WillByDefault(testing::WithoutArgs([]() {
         ADD_FAILURE() << "Should not be called with CacheOnly";
-        return olp::http::SendOutcome(olp::http::ErrorCode::UNKNOWN_ERROR);
-      });
+        return http::SendOutcome(http::ErrorCode::UNKNOWN_ERROR);
+      }));
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
-  auto response = repository.GetLatestVersion(request, context);
+  const auto response = repository.GetLatestVersion(request, context);
 
-  EXPECT_TRUE(response.IsSuccessful());
+  EXPECT_TRUE(response);
   EXPECT_EQ(response.GetResult().GetVersion(), kStartVersion);
 }
 
-TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyNotFound) {
-  olp::client::CancellationContext context;
+TEST_F(CatalogRepositoryTest,
+       AsyncGetLatestVersionCacheOnlyRequestWithMinVersion) {
+  const auto request = read::CatalogVersionRequest()
+                           .WithFetchOption(olp::dataservice::read::CacheOnly)
+                           .WithStartVersion(kStartVersion);
 
-  auto request = read::CatalogVersionRequest();
+  EXPECT_CALL(*cache_, Get(_, _)).WillOnce(testing::Return(boost::any{}));
 
-  request.WithFetchOption(read::OnlineOnly);
+  EXPECT_CALL(*cache_, Put(_, _, _, _)).Times(1);
 
-  ON_CALL(*cache_, Get(_, _))
-      .WillByDefault([](const std::string&, const olp::cache::Decoder&) {
-        ADD_FAILURE() << "Cache should not be used in OnlineOnly request";
-        return boost::any{};
-      });
-
-  EXPECT_CALL(*cache_, Get(testing::Eq(kMetadataCacheKey), _))
-      .WillOnce(testing::Return(boost::any()));
-
-  EXPECT_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
-      .Times(1)
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::NOT_FOUND),
-                                   ""));
+  ON_CALL(*network_, Send(_, _, _, _, _))
+      .WillByDefault(testing::WithoutArgs([]() {
+        ADD_FAILURE() << "Should not be called with CacheOnly";
+        return http::SendOutcome(http::ErrorCode::UNKNOWN_ERROR);
+      }));
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
-  auto response = repository.GetLatestVersion(request, context);
 
-  EXPECT_FALSE(response.IsSuccessful());
+  std::promise<read::CatalogVersionResponse> promise;
+  auto future = promise.get_future();
+
+  const auto response = repository.GetLatestVersion(
+      request, [&](read::CatalogVersionResponse response) {
+        promise.set_value(std::move(response));
+      });
+
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
+  EXPECT_TRUE(result);
+  EXPECT_EQ(result.GetResult().GetVersion(), kStartVersion);
 }
 
-TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyFound) {
-  olp::client::CancellationContext context;
+TEST_F(CatalogRepositoryTest, AsyncGetLatestVersionCacheOnly) {
+  const auto request = read::CatalogVersionRequest()
+                           .WithFetchOption(olp::dataservice::read::CacheOnly)
+                           .WithStartVersion(-1);
 
-  auto request = read::CatalogVersionRequest();
+  auto cached_version = read::model::VersionResponse();
+  cached_version.SetVersion(1);
+  EXPECT_CALL(*cache_, Get(kLatestVersionCacheKey, _))
+      .WillOnce(testing::Return(cached_version));
 
-  request.WithFetchOption(read::OnlineOnly);
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
+
+  std::promise<read::CatalogVersionResponse> promise;
+  auto future = promise.get_future();
+  repository.GetLatestVersion(request,
+                              [&](read::CatalogVersionResponse response) {
+                                promise.set_value(std::move(response));
+                              });
+
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
+  EXPECT_TRUE(result);
+  EXPECT_EQ(result.GetResult().GetVersion(), cached_version.GetVersion());
+}
+
+TEST_F(CatalogRepositoryTest, AsyncGetLatestVersionOnlineOnlyNotFound) {
+  auto request =
+      read::CatalogVersionRequest().WithFetchOption(read::OnlineOnly);
+
+  ON_CALL(*cache_, Get(_, _)).WillByDefault(testing::WithoutArgs([]() {
+    ADD_FAILURE() << "Cache should not be used in OnlineOnly request";
+    return boost::any{};
+  }));
+
+  EXPECT_CALL(*cache_, Get(testing::Eq(kMetadataCacheKey), _))
+      .WillOnce(testing::Return(boost::any()));
+
+  EXPECT_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(
+          http::NetworkResponse().WithStatus(http::HttpStatusCode::NOT_FOUND),
+          ""));
+
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
+
+  std::promise<read::CatalogVersionResponse> promise;
+  auto future = promise.get_future();
+  const auto response = repository.GetLatestVersion(
+      request, [&](read::CatalogVersionResponse response) {
+        promise.set_value(std::move(response));
+      });
+
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
+  EXPECT_FALSE(result);
+  EXPECT_EQ(result.GetError().GetErrorCode(), client::ErrorCode::NotFound);
+}
+
+TEST_F(CatalogRepositoryTest, AsyncGetLatestVersionOnlineOnlyForbidden) {
+  const auto request =
+      read::CatalogVersionRequest().WithFetchOption(read::OnlineIfNotFound);
+
+  ON_CALL(*cache_, Get(_, _)).WillByDefault(testing::WithoutArgs([]() {
+    ADD_FAILURE() << "Cache should not be used in OnlineOnly request";
+    return boost::any{};
+  }));
+
+  EXPECT_CALL(*cache_, RemoveKeysWithPrefix(_));
+
+  EXPECT_CALL(*cache_, Get(testing::Eq(kMetadataCacheKey), _))
+      .WillOnce(testing::Return(boost::any()));
+
+  EXPECT_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(
+          http::NetworkResponse().WithStatus(http::HttpStatusCode::FORBIDDEN),
+          ""));
+
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
+
+  std::promise<read::CatalogVersionResponse> promise;
+  auto future = promise.get_future();
+  const auto response = repository.GetLatestVersion(
+      request, [&](read::CatalogVersionResponse response) {
+        promise.set_value(std::move(response));
+      });
+
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
+  EXPECT_FALSE(result);
+  EXPECT_EQ(result.GetError().GetHttpStatusCode(),
+            http::HttpStatusCode::FORBIDDEN);
+}
+
+TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyFound2) {
+  client::CancellationContext context;
+
+  auto request =
+      read::CatalogVersionRequest().WithFetchOption(read::OnlineOnly);
 
   ON_CALL(*cache_, Get(_, _))
       .WillByDefault([](const std::string&, const olp::cache::Decoder&) {
@@ -236,156 +361,209 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyFound) {
       .WillOnce(testing::Return(boost::any()));
 
   EXPECT_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kResponseLookupMetadata));
+      .WillOnce(ReturnHttpResponse(
+          http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+          kResponseLookupMetadata));
 
   EXPECT_CALL(*cache_, Put(testing::Eq(kMetadataCacheKey), _, _, _)).Times(1);
 
   EXPECT_CALL(*network_, Send(IsGetRequest(kLatestCatalogVersion), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::OK),
-                                   kResponseLatestCatalogVersion));
+      .WillOnce(ReturnHttpResponse(
+          http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+          kResponseLatestCatalogVersion));
 
   EXPECT_CALL(*cache_, Put(testing::Eq(kLatestVersionCacheKey), _, _, _))
       .Times(0);
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
-  auto response = repository.GetLatestVersion(request, context);
+  const auto response = repository.GetLatestVersion(request, context);
 
-  ASSERT_TRUE(response.IsSuccessful());
+  ASSERT_TRUE(response);
   ASSERT_EQ(4, response.GetResult().GetVersion());
 }
 
+TEST_F(CatalogRepositoryTest, AsyncGetLatestVersionOnlineOnlyFound) {
+  const auto request = read::CatalogVersionRequest()
+                           .WithFetchOption(read::OnlineOnly)
+                           .WithBillingTag("OlpCppSdkTest");
+
+  ON_CALL(*cache_, Get(_, _))
+      .WillByDefault([](const std::string&, const olp::cache::Decoder&) {
+        ADD_FAILURE() << "Cache should not be used in OnlineOnly request";
+        return boost::any{};
+      });
+
+  EXPECT_CALL(*cache_, Get(testing::Eq(kMetadataCacheKey), _))
+      .WillOnce(testing::Return(boost::any()));
+
+  EXPECT_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(
+          http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+          kResponseLookupMetadata));
+
+  EXPECT_CALL(*cache_, Put(testing::Eq(kMetadataCacheKey), _, _, _)).Times(1);
+
+  EXPECT_CALL(*network_, Send(IsGetRequest(kLatestCatalogVersionWithBillingTag),
+                              _, _, _, _))
+      .WillOnce(ReturnHttpResponse(
+          http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+          kResponseLatestCatalogVersion));
+
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
+
+  std::promise<read::CatalogVersionResponse> promise;
+  auto future = promise.get_future();
+  repository.GetLatestVersion(request,
+                              [&](read::CatalogVersionResponse response) {
+                                promise.set_value(std::move(response));
+                              });
+
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
+  EXPECT_TRUE(result);
+  ASSERT_EQ(result.GetResult().GetVersion(), 4);
+}
+
 TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled1) {
-  olp::client::CancellationContext context;
+  client::CancellationContext context;
 
-  auto request = read::CatalogVersionRequest();
-
-  std::promise<bool> cancelled;
+  const auto request = read::CatalogVersionRequest();
 
   ON_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
-      .WillByDefault([&context](olp::http::NetworkRequest,
-                                olp::http::Network::Payload,
-                                olp::http::Network::Callback,
-                                olp::http::Network::HeaderCallback,
-                                olp::http::Network::DataCallback) {
+      .WillByDefault(testing::WithoutArgs([&]() {
         std::thread([&context]() { context.CancelOperation(); }).detach();
 
         constexpr auto unused_request_id = 5;
-        return olp::http::SendOutcome(unused_request_id);
-      });
+        return http::SendOutcome(unused_request_id);
+      }));
 
   ON_CALL(*network_, Send(IsGetRequest(kLatestCatalogVersion), _, _, _, _))
-      .WillByDefault([](olp::http::NetworkRequest, olp::http::Network::Payload,
-                        olp::http::Network::Callback,
-                        olp::http::Network::HeaderCallback,
-                        olp::http::Network::DataCallback) {
+      .WillByDefault(testing::WithoutArgs([]() {
         ADD_FAILURE()
             << "Should not be called. Previous request was cancelled.";
         constexpr auto unused_request_id = 5;
-        return olp::http::SendOutcome(unused_request_id);
-      });
+        return http::SendOutcome(unused_request_id);
+      }));
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
-  auto response = repository.GetLatestVersion(request, context);
+  const auto response = repository.GetLatestVersion(request, context);
 
-  ASSERT_FALSE(response.IsSuccessful());
-  EXPECT_EQ(olp::client::ErrorCode::Cancelled,
-            response.GetError().GetErrorCode());
+  ASSERT_FALSE(response);
+  EXPECT_EQ(client::ErrorCode::Cancelled, response.GetError().GetErrorCode());
 }
 
 TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyUserCancelled2) {
-  olp::client::CancellationContext context;
+  client::CancellationContext context;
 
-  auto request = read::CatalogVersionRequest();
+  const auto request = read::CatalogVersionRequest();
 
   ON_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
-      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                            olp::http::HttpStatusCode::OK),
-                                        kResponseLookupMetadata));
+      .WillByDefault(ReturnHttpResponse(
+          http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+          kResponseLookupMetadata));
 
   ON_CALL(*network_, Send(IsGetRequest(kLatestCatalogVersion), _, _, _, _))
-      .WillByDefault([&](olp::http::NetworkRequest, olp::http::Network::Payload,
-                         olp::http::Network::Callback,
-                         olp::http::Network::HeaderCallback,
-                         olp::http::Network::DataCallback) {
+      .WillByDefault(testing::WithoutArgs([&]() {
         std::thread([&]() { context.CancelOperation(); }).detach();
 
         constexpr auto unused_request_id = 10;
-        return olp::http::SendOutcome(unused_request_id);
-      });
+        return http::SendOutcome(unused_request_id);
+      }));
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
-  auto response = repository.GetLatestVersion(request, context);
+  const auto response = repository.GetLatestVersion(request, context);
 
-  ASSERT_FALSE(response.IsSuccessful());
-  EXPECT_EQ(olp::client::ErrorCode::Cancelled,
-            response.GetError().GetErrorCode());
+  ASSERT_FALSE(response);
+  EXPECT_EQ(client::ErrorCode::Cancelled, response.GetError().GetErrorCode());
+}
+
+TEST_F(CatalogRepositoryTest, AsyncGetLatestVersionOnlineOnlyUserCancelled2) {
+  const auto request = read::CatalogVersionRequest();
+
+  ON_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(
+          http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+          kResponseLookupMetadata));
+
+  ON_CALL(*network_, Send(IsGetRequest(kLatestCatalogVersion), _, _, _, _))
+      .WillByDefault(testing::WithoutArgs([]() {
+        return http::SendOutcome(http::ErrorCode::CANCELLED_ERROR);
+      }));
+
+  ApiLookupClient lookup_client(kHrn, settings_);
+  repository::CatalogRepository repository(kHrn, settings_, lookup_client);
+
+  std::promise<read::CatalogVersionResponse> promise;
+  auto future = promise.get_future();
+  repository.GetLatestVersion(request,
+                              [&](read::CatalogVersionResponse response) {
+                                promise.set_value(std::move(response));
+                              });
+
+  ASSERT_EQ(future.wait_for(kMaxWaitMs), std::future_status::ready);
+  const auto result = future.get();
+
+  EXPECT_FALSE(result);
+  EXPECT_EQ(result.GetError().GetErrorCode(), client::ErrorCode::Cancelled);
 }
 
 TEST_F(CatalogRepositoryTest, GetLatestVersionCancelledBeforeExecution) {
   settings_.retry_settings.timeout = 0;
-  olp::client::CancellationContext context;
+  client::CancellationContext context;
 
-  auto request = read::CatalogVersionRequest();
+  const auto request = read::CatalogVersionRequest();
 
   ON_CALL(*network_, Send(_, _, _, _, _))
-      .WillByDefault([&](olp::http::NetworkRequest, olp::http::Network::Payload,
-                         olp::http::Network::Callback,
-                         olp::http::Network::HeaderCallback,
-                         olp::http::Network::DataCallback) {
+      .WillByDefault(testing::WithoutArgs([]() {
         ADD_FAILURE() << "Should not be called on cancelled operation";
         constexpr auto unused_request_id = 10;
-        return olp::http::SendOutcome(unused_request_id);
-      });
+        return http::SendOutcome(unused_request_id);
+      }));
 
   context.CancelOperation();
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
-  auto response = repository.GetLatestVersion(request, context);
+  const auto response = repository.GetLatestVersion(request, context);
 
-  ASSERT_FALSE(response.IsSuccessful());
-  EXPECT_EQ(olp::client::ErrorCode::Cancelled,
-            response.GetError().GetErrorCode());
+  ASSERT_FALSE(response);
+  EXPECT_EQ(client::ErrorCode::Cancelled, response.GetError().GetErrorCode());
 }
 
 TEST_F(CatalogRepositoryTest, GetLatestVersionTimeouted) {
-  olp::client::CancellationContext context;
+  client::CancellationContext context;
 
-  auto request = read::CatalogVersionRequest();
+  const auto request = read::CatalogVersionRequest();
 
   ON_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
-      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                            olp::http::HttpStatusCode::OK),
-                                        kResponseLookupMetadata));
+      .WillByDefault(ReturnHttpResponse(
+          http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+          kResponseLookupMetadata));
 
   ON_CALL(*network_, Send(IsGetRequest(kLatestCatalogVersion), _, _, _, _))
-      .WillByDefault([&](olp::http::NetworkRequest, olp::http::Network::Payload,
-                         olp::http::Network::Callback,
-                         olp::http::Network::HeaderCallback,
-                         olp::http::Network::DataCallback) {
+      .WillByDefault(testing::WithoutArgs([]() {
         constexpr auto unused_request_id = 10;
-        return olp::http::SendOutcome(unused_request_id);
-      });
+        return http::SendOutcome(unused_request_id);
+      }));
 
   settings_.retry_settings.timeout = 0;
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
-  auto response = repository.GetLatestVersion(request, context);
+  const auto response = repository.GetLatestVersion(request, context);
 
-  ASSERT_FALSE(response.IsSuccessful());
-  EXPECT_EQ(olp::client::ErrorCode::RequestTimeout,
+  ASSERT_FALSE(response);
+  EXPECT_EQ(client::ErrorCode::RequestTimeout,
             response.GetError().GetErrorCode());
 }
 
 TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyFound) {
-  olp::client::CancellationContext context;
+  client::CancellationContext context;
 
   auto request = read::CatalogRequest();
   request.WithFetchOption(read::OnlineOnly);
@@ -401,24 +579,24 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyFound) {
   EXPECT_CALL(*cache_, Put(testing::Eq(kConfigCacheKey), _, _, _)).Times(0);
 
   ON_CALL(*network_, Send(IsGetRequest(kUrlLookupConfig), _, _, _, _))
-      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                            olp::http::HttpStatusCode::OK),
-                                        kResponseLookupConfig));
+      .WillByDefault(ReturnHttpResponse(
+          http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+          kResponseLookupConfig));
 
   ON_CALL(*network_, Send(IsGetRequest(kUrlConfig), _, _, _, _))
-      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                            olp::http::HttpStatusCode::OK),
-                                        kResponseConfig));
+      .WillByDefault(ReturnHttpResponse(
+          http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+          kResponseConfig));
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetCatalog(request, context);
 
-  ASSERT_TRUE(response.IsSuccessful());
+  ASSERT_TRUE(response);
 }
 
 TEST_F(CatalogRepositoryTest, GetCatalogCacheOnlyFound) {
-  olp::client::CancellationContext context;
+  client::CancellationContext context;
 
   auto request = read::CatalogRequest();
 
@@ -428,46 +606,39 @@ TEST_F(CatalogRepositoryTest, GetCatalogCacheOnlyFound) {
   cached_version.SetHrn(kCatalog);
 
   EXPECT_CALL(*cache_, Get(kCatalogCacheKey, _))
-      .Times(1)
       .WillOnce(testing::Return(cached_version));
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetCatalog(request, context);
 
-  ASSERT_TRUE(response.IsSuccessful());
+  ASSERT_TRUE(response);
   EXPECT_EQ(kCatalog, response.GetResult().GetHrn());
 }
 
 TEST_F(CatalogRepositoryTest, GetCatalogCacheOnlyNotFound) {
-  olp::client::CancellationContext context;
+  client::CancellationContext context;
 
-  auto request = read::CatalogVersionRequest();
+  const auto request =
+      read::CatalogVersionRequest().WithFetchOption(read::CacheOnly);
 
-  request.WithFetchOption(read::CacheOnly);
-
-  EXPECT_CALL(*cache_, Get(_, _))
-      .Times(1)
-      .WillOnce(testing::Return(boost::any{}));
+  EXPECT_CALL(*cache_, Get(_, _)).WillOnce(testing::Return(boost::any{}));
 
   ON_CALL(*network_, Send(_, _, _, _, _))
-      .WillByDefault([](olp::http::NetworkRequest, olp::http::Network::Payload,
-                        olp::http::Network::Callback,
-                        olp::http::Network::HeaderCallback,
-                        olp::http::Network::DataCallback) {
+      .WillByDefault(testing::WithoutArgs([]() {
         ADD_FAILURE() << "Should not be called with CacheOnly";
-        return olp::http::SendOutcome(olp::http::ErrorCode::UNKNOWN_ERROR);
-      });
+        return http::SendOutcome(http::ErrorCode::UNKNOWN_ERROR);
+      }));
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
-  auto response = repository.GetLatestVersion(request, context);
+  const auto response = repository.GetLatestVersion(request, context);
 
-  EXPECT_FALSE(response.IsSuccessful());
+  EXPECT_FALSE(response);
 }
 
 TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyNotFound) {
-  olp::client::CancellationContext context;
+  client::CancellationContext context;
 
   auto request = read::CatalogRequest();
 
@@ -480,33 +651,29 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyNotFound) {
       });
 
   EXPECT_CALL(*network_, Send(IsGetRequest(kUrlLookupConfig), _, _, _, _))
-      .Times(1)
-      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                       olp::http::HttpStatusCode::NOT_FOUND),
-                                   ""));
+      .WillOnce(ReturnHttpResponse(
+          http::NetworkResponse().WithStatus(http::HttpStatusCode::NOT_FOUND),
+          ""));
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetCatalog(request, context);
 
-  EXPECT_FALSE(response.IsSuccessful());
+  EXPECT_FALSE(response);
 }
 
 TEST_F(CatalogRepositoryTest, GetCatalogCancelledBeforeExecution) {
   settings_.retry_settings.timeout = 0;
-  olp::client::CancellationContext context;
+  client::CancellationContext context;
 
   auto request = read::CatalogRequest();
 
   ON_CALL(*network_, Send(_, _, _, _, _))
-      .WillByDefault([&](olp::http::NetworkRequest, olp::http::Network::Payload,
-                         olp::http::Network::Callback,
-                         olp::http::Network::HeaderCallback,
-                         olp::http::Network::DataCallback) {
+      .WillByDefault(testing::WithoutArgs([]() {
         ADD_FAILURE() << "Should not be called on cancelled operation";
         constexpr auto unused_request_id = 10;
-        return olp::http::SendOutcome(unused_request_id);
-      });
+        return http::SendOutcome(unused_request_id);
+      }));
 
   context.CancelOperation();
 
@@ -514,106 +681,89 @@ TEST_F(CatalogRepositoryTest, GetCatalogCancelledBeforeExecution) {
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetCatalog(request, context);
 
-  ASSERT_FALSE(response.IsSuccessful());
-  EXPECT_EQ(olp::client::ErrorCode::Cancelled,
-            response.GetError().GetErrorCode());
+  ASSERT_FALSE(response);
+  EXPECT_EQ(client::ErrorCode::Cancelled, response.GetError().GetErrorCode());
 }
 
 TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyUserCancelled1) {
-  olp::client::CancellationContext context;
+  client::CancellationContext context;
 
   auto request = read::CatalogRequest();
 
-  std::promise<bool> cancelled;
-
   ON_CALL(*network_, Send(IsGetRequest(kUrlLookupConfig), _, _, _, _))
-      .WillByDefault([&context](olp::http::NetworkRequest,
-                                olp::http::Network::Payload,
-                                olp::http::Network::Callback,
-                                olp::http::Network::HeaderCallback,
-                                olp::http::Network::DataCallback) {
+      .WillByDefault(testing::WithoutArgs([&]() {
         std::thread([&context]() { context.CancelOperation(); }).detach();
 
         constexpr auto unused_request_id = 5;
-        return olp::http::SendOutcome(unused_request_id);
-      });
+        return http::SendOutcome(unused_request_id);
+      }));
 
   ON_CALL(*network_, Send(IsGetRequest(kUrlConfig), _, _, _, _))
-      .WillByDefault([](olp::http::NetworkRequest, olp::http::Network::Payload,
-                        olp::http::Network::Callback,
-                        olp::http::Network::HeaderCallback,
-                        olp::http::Network::DataCallback) {
+      .WillByDefault(testing::WithoutArgs([]() {
         ADD_FAILURE()
             << "Should not be called. Previous request was cancelled.";
         constexpr auto unused_request_id = 5;
-        return olp::http::SendOutcome(unused_request_id);
-      });
+        return http::SendOutcome(unused_request_id);
+      }));
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetCatalog(request, context);
 
-  ASSERT_FALSE(response.IsSuccessful());
-  EXPECT_EQ(olp::client::ErrorCode::Cancelled,
-            response.GetError().GetErrorCode());
+  ASSERT_FALSE(response);
+  EXPECT_EQ(client::ErrorCode::Cancelled, response.GetError().GetErrorCode());
 }
 
 TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyUserCancelled2) {
-  olp::client::CancellationContext context;
+  client::CancellationContext context;
 
   auto request = read::CatalogRequest();
 
   ON_CALL(*network_, Send(IsGetRequest(kUrlLookupConfig), _, _, _, _))
-      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                            olp::http::HttpStatusCode::OK),
-                                        kResponseLookupConfig));
+      .WillByDefault(ReturnHttpResponse(
+          http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+          kResponseLookupConfig));
 
   ON_CALL(*network_, Send(IsGetRequest(kUrlConfig), _, _, _, _))
-      .WillByDefault([&](olp::http::NetworkRequest, olp::http::Network::Payload,
-                         olp::http::Network::Callback,
-                         olp::http::Network::HeaderCallback,
-                         olp::http::Network::DataCallback) {
+      .WillByDefault(testing::WithoutArgs([&]() {
         std::thread([&]() { context.CancelOperation(); }).detach();
 
         constexpr auto unused_request_id = 10;
-        return olp::http::SendOutcome(unused_request_id);
-      });
+        return http::SendOutcome(unused_request_id);
+      }));
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetCatalog(request, context);
 
-  ASSERT_FALSE(response.IsSuccessful());
-  EXPECT_EQ(olp::client::ErrorCode::Cancelled,
-            response.GetError().GetErrorCode());
+  ASSERT_FALSE(response);
+  EXPECT_EQ(client::ErrorCode::Cancelled, response.GetError().GetErrorCode());
 }
 
 TEST_F(CatalogRepositoryTest, GetCatalogTimeout) {
-  olp::client::CancellationContext context;
+  client::CancellationContext context;
 
   auto request = read::CatalogRequest();
 
   ON_CALL(*network_, Send(IsGetRequest(kUrlLookupConfig), _, _, _, _))
-      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                            olp::http::HttpStatusCode::OK),
-                                        kResponseLookupConfig));
+      .WillByDefault(ReturnHttpResponse(
+          http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+          kResponseLookupConfig));
 
   ON_CALL(*network_, Send(IsGetRequest(kUrlConfig), _, _, _, _))
-      .WillByDefault([&](olp::http::NetworkRequest, olp::http::Network::Payload,
-                         olp::http::Network::Callback,
-                         olp::http::Network::HeaderCallback,
-                         olp::http::Network::DataCallback) {
+      .WillByDefault(testing::WithoutArgs([]() {
         constexpr auto unused_request_id = 10;
-        return olp::http::SendOutcome(unused_request_id);
-      });
+        return http::SendOutcome(unused_request_id);
+      }));
+
   settings_.retry_settings.timeout = 0;
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
   auto response = repository.GetCatalog(request, context);
 
-  ASSERT_FALSE(response.IsSuccessful());
-  EXPECT_EQ(olp::client::ErrorCode::RequestTimeout,
+  ASSERT_FALSE(response);
+  EXPECT_EQ(client::ErrorCode::RequestTimeout,
             response.GetError().GetErrorCode());
 }
 
@@ -621,28 +771,26 @@ TEST_F(CatalogRepositoryTest, GetVersionsList) {
   {
     SCOPED_TRACE("Get versions list");
 
-    olp::client::CancellationContext context;
+    client::CancellationContext context;
     auto request = read::VersionsRequest()
                        .WithStartVersion(kStartVersion)
                        .WithEndVersion(kEndVersion);
 
     ON_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               kResponseLookupMetadata));
+        .WillByDefault(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kResponseLookupMetadata));
 
     ON_CALL(*network_, Send(IsGetRequest(kUrlVersionsList), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               kHttpResponse));
+        .WillByDefault(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kHttpResponse));
 
     ApiLookupClient lookup_client(kHrn, settings_);
     repository::CatalogRepository repository(kHrn, settings_, lookup_client);
     auto response = repository.GetVersionsList(request, context);
 
-    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_TRUE(response);
     auto result = response.GetResult();
 
     ASSERT_EQ(1u, result.GetVersions().size());
@@ -653,28 +801,26 @@ TEST_F(CatalogRepositoryTest, GetVersionsList) {
   {
     SCOPED_TRACE("Get versions list start version -1");
 
-    olp::client::CancellationContext context;
+    client::CancellationContext context;
     auto request = read::VersionsRequest().WithStartVersion(-1).WithEndVersion(
         kEndVersion);
 
     ON_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               kResponseLookupMetadata));
+        .WillByDefault(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kResponseLookupMetadata));
 
     ON_CALL(*network_,
             Send(IsGetRequest(kUrlVersionsListStartMinus), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               kHttpResponse));
+        .WillByDefault(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kHttpResponse));
 
     ApiLookupClient lookup_client(kHrn, settings_);
     repository::CatalogRepository repository(kHrn, settings_, lookup_client);
     auto response = repository.GetVersionsList(request, context);
 
-    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_TRUE(response);
     auto result = response.GetResult();
 
     ASSERT_EQ(1u, result.GetVersions().size());
@@ -685,29 +831,27 @@ TEST_F(CatalogRepositoryTest, GetVersionsList) {
   {
     SCOPED_TRACE("Get versions list response forbiden");
 
-    olp::client::CancellationContext context;
+    client::CancellationContext context;
     auto request = read::VersionsRequest()
                        .WithStartVersion(kStartVersion)
                        .WithEndVersion(kEndVersion);
 
     ON_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               kResponseLookupMetadata));
+        .WillByDefault(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::OK),
+            kResponseLookupMetadata));
 
     ON_CALL(*network_, Send(IsGetRequest(kUrlVersionsList), _, _, _, _))
-        .WillByDefault(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::FORBIDDEN),
-                               "Forbidden"));
+        .WillByDefault(ReturnHttpResponse(
+            http::NetworkResponse().WithStatus(http::HttpStatusCode::FORBIDDEN),
+            "Forbidden"));
 
     ApiLookupClient lookup_client(kHrn, settings_);
     repository::CatalogRepository repository(kHrn, settings_, lookup_client);
     auto response = repository.GetVersionsList(request, context);
 
-    ASSERT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(olp::client::ErrorCode::AccessDenied,
+    ASSERT_FALSE(response);
+    EXPECT_EQ(client::ErrorCode::AccessDenied,
               response.GetError().GetErrorCode());
   }
 }

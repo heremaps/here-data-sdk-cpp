@@ -27,6 +27,7 @@
 #include <boost/optional.hpp>
 #include "ExtendedApiResponse.h"
 #include "generated/model/LayerVersions.h"
+#include "olp/dataservice/read/Types.h"
 #include "olp/dataservice/read/model/Partitions.h"
 #include "olp/dataservice/read/model/VersionInfos.h"
 #include "olp/dataservice/read/model/VersionResponse.h"
@@ -129,6 +130,26 @@ class MetadataApi {
       const client::OlpClient& client, int64_t start_version,
       boost::optional<std::string> billing_tag,
       const client::CancellationContext& context);
+
+  /**
+   * @brief Retrieves the latest metadata version for the catalog.
+   *
+   * @param client Instance of OlpClient used to make REST request.
+   * @param start_version The catalog version returned from a prior request.
+   * Save the version from each request so it can used in the startVersion
+   * parameter of subsequent requests. If the version from a prior request is
+   * not avaliable, set the parameter to -1.
+   * @param billing_tag An optional free-form tag which is used for grouping
+   * billing records together. If supplied, it must be between 4 - 16
+   * characters, contain only alpha/numeric ASCII characters  [A-Za-z0-9].
+   * @param callback The callback which returns a result of the operation.
+   *
+   * @return The `CancellationToken` instance.
+   */
+  static client::CancellationToken GetLatestCatalogVersion(
+      const client::OlpClient& client, int64_t start_version,
+      boost::optional<std::string> billing_tag,
+      read::CatalogVersionCallback callback);
 
   static VersionsResponse ListVersions(
       const client::OlpClient& client, int64_t start_version,
