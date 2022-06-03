@@ -24,8 +24,8 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/dataservice/read/ExtendedApiResponse.h>
 #include <boost/optional.hpp>
-#include "ExtendedApiResponse.h"
 #include "generated/model/LayerVersions.h"
 #include "olp/dataservice/read/model/Partitions.h"
 #include "olp/dataservice/read/model/VersionInfos.h"

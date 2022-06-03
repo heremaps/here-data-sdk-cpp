@@ -108,6 +108,11 @@ NetworkCallback ReturnHttpResponse(
     std::chrono::nanoseconds delay = std::chrono::milliseconds(50),
     olp::http::RequestId request_id = 5);
 
-inline olp::http::NetworkResponse GetResponse(int status) {
-  return olp::http::NetworkResponse().WithStatus(status);
+inline olp::http::NetworkResponse GetResponse(int status,
+                                              int bytes_downloaded = 0,
+                                              int bytes_uploaded = 0) {
+  return olp::http::NetworkResponse()
+      .WithStatus(status)
+      .WithBytesDownloaded(bytes_downloaded)
+      .WithBytesUploaded(bytes_uploaded);
 }

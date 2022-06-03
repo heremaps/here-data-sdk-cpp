@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@
 #include "generated/serializer/PartitionsSerializer.h"
 #include "generated/serializer/JsonSerializer.h"
 #include "ReadDefaultResponses.h"
-#include "ExtendedApiResponse.h"
+#include <olp/dataservice/read/ExtendedApiResponse.h>
 // clang-format on
 
 namespace dr = olp::dataservice::read;

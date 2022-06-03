@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,13 +29,12 @@
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/geo/tiling/TileKey.h>
+#include <olp/dataservice/read/ExtendedApiResponse.h>
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/model/Partitions.h>
 #include "NamedMutex.h"
 #include "PartitionsCacheRepository.h"
 #include "generated/model/Index.h"
-
-#include "ExtendedApiResponse.h"
 
 namespace olp {
 namespace dataservice {

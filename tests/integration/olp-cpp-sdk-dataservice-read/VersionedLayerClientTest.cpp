@@ -3456,13 +3456,14 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
                                      HTTP_RESPONSE_LOOKUP));
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                     HTTP_RESPONSE_QUADKEYS_92259));
+        .WillOnce(
+            ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK, 1024, 123),
+                               HTTP_RESPONSE_QUADKEYS_92259));
     EXPECT_CALL(
         *network_mock_,
         Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                     "some_data"));
+        .WillOnce(ReturnHttpResponse(
+            GetResponse(http::HttpStatusCode::OK, 10240000, 123), "some_data"));
 
     auto client = read::VersionedLayerClient(kCatalog, kTestLayer, kTestVersion,
                                              settings_);
@@ -3478,6 +3479,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
     ASSERT_TRUE(result.GetData());
     ASSERT_EQ(result.GetTile(), tile_key);
+
+    const auto& network_stats = response.GetPayload();
+    EXPECT_EQ(network_stats.GetBytesDownloaded(), 10241024);
+    EXPECT_EQ(network_stats.GetBytesUploaded(), 246);
+
     testing::Mock::VerifyAndClearExpectations(network_mock_.get());
   }
 
@@ -3547,8 +3553,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
                                      HTTP_RESPONSE_LOOKUP));
     EXPECT_CALL(*network_mock_,
                 Send(IsGetRequest(URL_QUADKEYS_AGGREGATE_92259), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                     HTTP_RESPONSE_NO_QUADS));
+        .WillOnce(
+            ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK, 1024, 100),
+                               HTTP_RESPONSE_NO_QUADS));
 
     auto client = read::VersionedLayerClient(kCatalog, kTestLayer, kTestVersion,
                                              settings_);
@@ -3563,6 +3570,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
 
     ASSERT_FALSE(response.IsSuccessful());
     ASSERT_EQ(error.GetErrorCode(), client::ErrorCode::NotFound);
+
+    const auto& network_stats = response.GetPayload();
+    EXPECT_EQ(network_stats.GetBytesDownloaded(), 1024);
+    EXPECT_EQ(network_stats.GetBytesUploaded(), 100);
+
     testing::Mock::VerifyAndClearExpectations(network_mock_.get());
   }
 }
@@ -4520,8 +4532,9 @@ TEST_F(DataserviceReadVersionedLayerClientTest, QuadTreeIndex) {
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(kHttpQueryTreeIndexWithAdditionalFields_23064),
                    _, _, _, _))
-      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                   kHttpSubQuadsWithAdditionalFields_23064));
+      .WillOnce(
+          ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK, 1024, 100),
+                             kHttpSubQuadsWithAdditionalFields_23064));
 
   std::promise<PartitionsResponse> promise;
   auto request =
@@ -4533,6 +4546,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, QuadTreeIndex) {
 
   const auto response = promise.get_future().get();
   ASSERT_TRUE(response);
+
+  const auto& network_stats = response.GetPayload();
+  EXPECT_EQ(network_stats.GetBytesUploaded(), 100);
+  EXPECT_EQ(network_stats.GetBytesDownloaded(), 1024);
 
   const auto& partitions = response.GetResult().GetPartitions();
   ASSERT_EQ(partitions.size(), 1u);

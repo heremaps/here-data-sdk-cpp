@@ -70,6 +70,13 @@ class NetworkStatistics {
     return *this;
   }
 
+  /// An overloaded addition operator for accumulating statistics.
+  NetworkStatistics operator+(const NetworkStatistics& other) const {
+    NetworkStatistics statistics(*this);
+    statistics += other;
+    return statistics;
+  }
+
  private:
   uint64_t bytes_uploaded_{0};
   uint64_t bytes_downloaded_{0};

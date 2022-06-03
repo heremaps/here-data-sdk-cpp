@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@
 
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/logging/Log.h>
+#include <olp/dataservice/read/ExtendedApiResponse.h>
 #include <olp/dataservice/read/Types.h>
 #include "Common.h"
-#include "ExtendedApiResponse.h"
 #include "QueryMetadataJob.h"
 #include "TaskSink.h"
 

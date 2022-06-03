@@ -27,7 +27,7 @@
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
-#include "ExtendedApiResponse.h"
+#include <olp/dataservice/read/ExtendedApiResponse.h>
 #include "QuadTreeIndex.h"
 #include "generated/api/QueryApi.h"
 #include "generated/model/Index.h"
@@ -47,8 +47,12 @@ class TileRequest;
 namespace repository {
 
 /// The partition metadata response type.
-using PartitionResponse = Response<model::Partition>;
-using QuadTreeIndexResponse = Response<QuadTreeIndex>;
+using PartitionResponse =
+    ExtendedApiResponse<model::Partition, client::ApiError,
+                        client::NetworkStatistics>;
+using QuadTreeIndexResponse =
+    ExtendedApiResponse<QuadTreeIndex, client::ApiError,
+                        client::NetworkStatistics>;
 
 class PartitionsRepository {
  public:

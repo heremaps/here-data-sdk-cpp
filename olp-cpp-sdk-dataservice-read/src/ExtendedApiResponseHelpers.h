@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,8 @@
 
 #pragma once
 
-#include "ExtendedApiResponse.h"
-
 #include <olp/core/client/HttpResponse.h>
+#include <olp/dataservice/read/ExtendedApiResponse.h>
 
 namespace olp {
 namespace dataservice {

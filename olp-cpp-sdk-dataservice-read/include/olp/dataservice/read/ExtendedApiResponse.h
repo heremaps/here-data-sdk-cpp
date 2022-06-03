@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include <olp/core/client/ApiResponse.h>
 
 namespace olp {
@@ -31,12 +33,16 @@ class ExtendedApiResponse : public client::ApiResponse<Result, Error> {
   ExtendedApiResponse() = default;
 
   // Implicit constructor by desing, same as in ApiResponse
-  ExtendedApiResponse(Result result)
+  ExtendedApiResponse(Result result)  // NOLINT
       : client::ApiResponse<Result, Error>(std::move(result)), payload_{} {}
 
   // Implicit constructor by desing, same as in ApiResponse
-  ExtendedApiResponse(const Error& error)
+  ExtendedApiResponse(const Error& error)  // NOLINT
       : client::ApiResponse<Result, Error>(error), payload_{} {}
+
+  ExtendedApiResponse(
+      const client::ApiResponse<Result, Error>& other)  // NOLINT
+      : client::ApiResponse<Result, Error>(other), payload_{} {}
 
   ExtendedApiResponse(Result result, Payload payload)
       : client::ApiResponse<Result, Error>(std::move(result)),

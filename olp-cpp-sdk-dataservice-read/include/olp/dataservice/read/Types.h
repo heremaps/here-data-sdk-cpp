@@ -26,8 +26,10 @@
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiNoResult.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/HttpResponse.h>
 
 #include <olp/dataservice/read/AggregatedDataResult.h>
+#include <olp/dataservice/read/ExtendedApiResponse.h>
 #include <olp/dataservice/read/PrefetchPartitionsResult.h>
 #include <olp/dataservice/read/PrefetchStatus.h>
 #include <olp/dataservice/read/model/Catalog.h>
@@ -48,9 +50,18 @@ class PrefetchTileResult;
 template <typename ResultType>
 using Response = client::ApiResponse<ResultType, client::ApiError>;
 
+/// The union response type that contains the network statistics for the API.
+template <typename ResultType>
+using ExtendedResponse = ExtendedApiResponse<ResultType, client::ApiError,
+                                             client::NetworkStatistics>;
+
 /// The callback template type.
 template <typename ResultType>
 using Callback = std::function<void(Response<ResultType>)>;
+
+/// The callback template type for the extended response.
+template <typename ResultType>
+using ExtendedCallback = std::function<void(ExtendedResponse<ResultType>)>;
 
 /// An alias for the catalog configuration.
 using CatalogResult = model::Catalog;
@@ -69,9 +80,9 @@ using CatalogVersionCallback = Callback<CatalogVersionResult>;
 /// An alias for the partition metadata result.
 using PartitionsResult = model::Partitions;
 /// The partition metadata response type.
-using PartitionsResponse = Response<PartitionsResult>;
+using PartitionsResponse = ExtendedResponse<PartitionsResult>;
 /// The callback type of the partition metadata response.
-using PartitionsResponseCallback = Callback<PartitionsResult>;
+using PartitionsResponseCallback = ExtendedCallback<PartitionsResult>;
 
 /// The `Data` alias type.
 using DataResult = model::Data;
@@ -81,9 +92,9 @@ using DataResponse = Response<DataResult>;
 using DataResponseCallback = Callback<DataResult>;
 
 /// The aggregated data response alias.
-using AggregatedDataResponse = Response<AggregatedDataResult>;
+using AggregatedDataResponse = ExtendedResponse<AggregatedDataResult>;
 /// The callback type of the aggregated data response.
-using AggregatedDataResponseCallback = Callback<AggregatedDataResult>;
+using AggregatedDataResponseCallback = ExtendedCallback<AggregatedDataResult>;
 
 /// An alias for the prefetch tiles result.
 using PrefetchTilesResult = std::vector<std::shared_ptr<PrefetchTileResult>>;

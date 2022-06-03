@@ -67,6 +67,37 @@ class CORE_API ApiError {
     return ApiError(ErrorCode::PreconditionFailed, description);
   }
 
+  /**
+   * @brief Creates the `ApiError` instance with the not found error code and
+   * description.
+   * @param description The optional description.
+   * @return The `ApiError` instance.
+   */
+  static ApiError NotFound(const char* description = "Resource not found") {
+    return ApiError(ErrorCode::NotFound, description);
+  }
+
+  /**
+   * @brief Creates the `ApiError` instance with the unknown error code and
+   * description.
+   * @param description The optional description.
+   * @return The `ApiError` instance.
+   */
+  static ApiError Unknown(const char* description = "Unknown") {
+    return ApiError(ErrorCode::Unknown, description);
+  }
+
+  /**
+   * @brief Creates the `ApiError` instance with the unknown error code and
+   * description.
+   * @param description The optional description.
+   * @return The `ApiError` instance.
+   */
+  static ApiError InvalidArgument(
+      const char* description = "Invalid argument") {
+    return ApiError(ErrorCode::InvalidArgument, description);
+  }
+
   ApiError() = default;
 
   /**

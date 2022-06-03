@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/HttpResponse.h>
+#include <olp/dataservice/read/ExtendedApiResponse.h>
 #include <boost/optional.hpp>
-#include "ExtendedApiResponse.h"
 #include "generated/model/Index.h"
 #include "olp/dataservice/read/model/Partitions.h"
 

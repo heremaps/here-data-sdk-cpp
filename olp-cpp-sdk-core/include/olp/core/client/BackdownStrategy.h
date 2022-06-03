@@ -105,7 +105,7 @@ struct CORE_API EqualJitterBackdownStrategy {
     constexpr size_t max_retry_count = 30u;
     retry_count = std::min<size_t>(retry_count, max_retry_count);
     const int64_t exponential_wait_time =
-        initial_backdown_period.count() * (1 << retry_count);
+        initial_backdown_period.count() * (1ll << retry_count);
     static thread_local std::mt19937 kGenerator(std::random_device{}());
     const auto temp = std::min<int64_t>(cap_.count(), exponential_wait_time);
     std::uniform_int_distribution<int64_t> dist(0, temp / 2);

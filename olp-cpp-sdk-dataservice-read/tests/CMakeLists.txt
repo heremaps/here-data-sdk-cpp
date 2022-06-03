@@ -22,6 +22,7 @@ set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     CatalogRepositoryTest.cpp
     DataCacheRepositoryTest.cpp
     DataRepositoryTest.cpp
+    ExtendedApiResponseTest.cpp
     JsonResultParserTest.cpp
     MetadataApiTest.cpp
     ParserTest.cpp

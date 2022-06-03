@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 HERE Europe B.V.
+ * Copyright (C) 2021-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@
 #include <olp/dataservice/read/Types.h>
 #include "Common.h"
 #include "DownloadItemsJob.h"
-#include "ExtendedApiResponse.h"
 #include "ExtendedApiResponseHelpers.h"
 #include "QueryPartitionsJob.h"
 #include "TaskSink.h"
