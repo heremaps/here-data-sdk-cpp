@@ -84,6 +84,16 @@ class DownloadItemsJob {
     if (response.IsSuccessful()) {
       requests_succeeded_++;
     } else {
+      if (response.GetError().GetErrorCode() ==
+              olp::client::ErrorCode::Cancelled &&
+          user_callback_) {
+        auto user_callback = std::move(user_callback_);
+        if (user_callback) {
+          user_callback({{client::ErrorCode::Cancelled, "Cancelled"}});
+        }
+        return;
+      }
+
       requests_failed_++;
     }
 
