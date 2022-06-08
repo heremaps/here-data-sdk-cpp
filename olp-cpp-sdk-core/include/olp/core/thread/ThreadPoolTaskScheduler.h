@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,6 +81,18 @@ class CORE_API ThreadPoolTaskScheduler final : public TaskScheduler {
   void EnqueueTask(TaskScheduler::CallFuncType&& func,
                    uint32_t priority) override;
 
+  /**
+   * @brief Overrides the base class method to enqueue cancellation tasks and
+   * execute them on the next free thread from the thread pool.
+   *
+   * @note Tasks added with this method has Priority::NORMAL priority.
+   *
+   * @param func The rvalue reference of the task that should be enqueued.
+   * Move this task into your queue. No internal references are
+   * kept. Once this method is called, you own the task.
+   */
+  void EnqueueCancelTask(TaskScheduler::CallFuncType&& func) override;
+
  private:
   class QueueImpl;
 
@@ -88,6 +100,8 @@ class CORE_API ThreadPoolTaskScheduler final : public TaskScheduler {
   std::vector<std::thread> thread_pool_;
   /// SyncQueue used to manage tasks.
   std::unique_ptr<QueueImpl> queue_;
+  /// SyncQueue used to manage cancel tasks.
+  std::unique_ptr<QueueImpl> cancel_queue_;
 };
 
 }  // namespace thread
