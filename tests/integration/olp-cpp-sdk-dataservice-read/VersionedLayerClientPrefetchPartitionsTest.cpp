@@ -216,6 +216,62 @@ TEST_F(VersionedLayerClientPrefetchPartitionsTest, PrefetchPartitionsFails) {
   }
 }
 
+TEST_F(VersionedLayerClientPrefetchPartitionsTest, PrefetchPartitionCancelled) {
+  auto partitions_count = 1;
+  auto client =
+      read::VersionedLayerClient(kCatalogHrn, kLayer, boost::none, settings_);
+  auto partitions = GeneratePartitionIds(partitions_count);
+  auto partitions_response =
+      ReadDefaultResponses::GeneratePartitionsResponse(partitions_count);
+  const auto request =
+      read::PrefetchPartitionsRequest().WithPartitionIds(partitions);
+  {
+    SCOPED_TRACE("Get version fails");
+
+    ExpectVersionRequest(
+        http::NetworkResponse().WithStatus(HttpStatusCode::BAD_REQUEST));
+
+    auto future = client.PrefetchPartitions(request).GetFuture();
+    ASSERT_NE(future.wait_for(std::chrono::seconds(kTimeout)),
+              std::future_status::timeout);
+
+    auto response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+  }
+  {
+    SCOPED_TRACE("Query partition fails");
+    ExpectVersionRequest();
+    ExpectQueryPartitionsRequest(
+        partitions, partitions_response,
+        http::NetworkResponse().WithStatus(HttpStatusCode::BAD_REQUEST));
+
+    auto future = client.PrefetchPartitions(request).GetFuture();
+    ASSERT_NE(future.wait_for(std::chrono::seconds(kTimeout)),
+              std::future_status::timeout);
+
+    auto response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+  }
+  {
+    SCOPED_TRACE("Get data cancelled");
+    ExpectQueryPartitionsRequest(partitions, partitions_response);
+
+    ExpectBlobRequest(
+        partitions_response.GetPartitions().begin()->GetDataHandle(), "data",
+        http::NetworkResponse().WithStatus(
+            static_cast<int>(http::ErrorCode::CANCELLED_ERROR)));
+
+    auto test_request = client.PrefetchPartitions(request);
+    auto future = test_request.GetFuture();
+    ASSERT_NE(future.wait_for(std::chrono::seconds(kTimeout)),
+              std::future_status::timeout);
+
+    auto response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    ASSERT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::Cancelled);
+  }
+}
+
 TEST_F(VersionedLayerClientPrefetchPartitionsTest, PrefetchBatchFails) {
   // Should result in two metadata query
   constexpr auto partitions_count = 200u;
