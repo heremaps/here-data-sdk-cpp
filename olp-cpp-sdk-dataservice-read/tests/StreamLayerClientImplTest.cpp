@@ -483,7 +483,7 @@ TEST_F(StreamLayerClientImplTest, UnsubscribeCancellableFuture) {
   Mock::VerifyAndClearExpectations(network_mock_.get());
 }
 
-TEST_F(StreamLayerClientImplTest, UnsubscribeCancel) {
+TEST_F(StreamLayerClientImplTest, DISABLED_UnsubscribeCancel) {
   settings_.task_scheduler =
       client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
 
@@ -912,7 +912,7 @@ TEST_F(StreamLayerClientImplTest, PollCancellableFuture) {
   Mock::VerifyAndClearExpectations(network_mock_.get());
 }
 
-TEST_F(StreamLayerClientImplTest, PollCancel) {
+TEST_F(StreamLayerClientImplTest, DISABLED_PollCancel) {
   settings_.task_scheduler =
       client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
 
