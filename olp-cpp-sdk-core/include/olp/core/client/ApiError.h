@@ -39,32 +39,50 @@ class CORE_API ApiError {
   /**
    * @brief Creates the `ApiError` instance with the cancelled error code and
    * description.
-   * @param description The optional description.
+   *
+   * @param message The optional description.
+   *
    * @return The `ApiError` instance.
    */
-  static ApiError Cancelled(const char* description = "Cancelled") {
-    return ApiError(ErrorCode::Cancelled, description);
+  static ApiError Cancelled(const char* message = "Cancelled") {
+    return {ErrorCode::Cancelled, message};
   }
 
   /**
    * @brief Creates the `ApiError` instance with the network connection error
    * code and description.
-   * @param description The optional description.
+   *
+   * @param message The optional description.
+   *
    * @return The `ApiError` instance.
    */
-  static ApiError NetworkConnection(const char* description = "Offline") {
-    return ApiError(ErrorCode::NetworkConnection, description);
+  static ApiError NetworkConnection(const char* message = "Offline") {
+    return {ErrorCode::NetworkConnection, message};
   }
 
   /**
    * @brief Creates the `ApiError` instance with the precondition failed error
    * code and description.
-   * @param description The optional description.
+   *
+   * @param message The optional description.
+   *
    * @return The `ApiError` instance.
    */
   static ApiError PreconditionFailed(
-      const char* description = "Precondition failed") {
-    return ApiError(ErrorCode::PreconditionFailed, description);
+      const char* message = "Precondition failed") {
+    return {ErrorCode::PreconditionFailed, message};
+  }
+
+  /**
+   * @brief Creates the `ApiError` instance with the invalid argument error code
+   * and description.
+   *
+   * @param message The optional description.
+   *
+   * @return The `ApiError` instance.
+   */
+  static ApiError InvalidArgument(const char* message = "Invalid argument") {
+    return {ErrorCode::InvalidArgument, message};
   }
 
   ApiError() = default;
