@@ -89,7 +89,7 @@ class DownloadItemsJob {
           user_callback_) {
         auto user_callback = std::move(user_callback_);
         if (user_callback) {
-          user_callback({{client::ErrorCode::Cancelled, "Cancelled"}});
+          user_callback(client::ApiError::Cancelled());
         }
         return;
       }
@@ -105,7 +105,7 @@ class DownloadItemsJob {
           GetAccumulatedBytes(accumulated_statistics_)});
     }
 
-    if (!--download_task_count_) {
+    if (!--download_task_count_ && user_callback_) {
       OLP_SDK_LOG_DEBUG_F("DownloadItemsJob",
                           "Download complete, succeeded=%zu, failed=%zu",
                           requests_succeeded_, requests_failed_);
