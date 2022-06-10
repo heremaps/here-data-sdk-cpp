@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,6 +108,11 @@ NetworkCallback ReturnHttpResponse(
     std::chrono::nanoseconds delay = std::chrono::milliseconds(50),
     olp::http::RequestId request_id = 5);
 
-inline olp::http::NetworkResponse GetResponse(int status) {
-  return olp::http::NetworkResponse().WithStatus(status);
+inline olp::http::NetworkResponse GetResponse(int status,
+                                              int bytes_downloaded = 0,
+                                              int bytes_uploaded = 0) {
+  return olp::http::NetworkResponse()
+      .WithStatus(status)
+      .WithBytesDownloaded(bytes_downloaded)
+      .WithBytesUploaded(bytes_uploaded);
 }

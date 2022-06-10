@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,8 +94,9 @@ QueryApi::PartitionsExtendedResponse QueryApi::GetPartitionsbyId(
                       layer_id.c_str(), http_response.status);
 
   if (http_response.status != olp::http::HttpStatusCode::OK) {
-    return {{http_response.status, http_response.response.str()},
-            http_response.GetNetworkStatistics()};
+    return PartitionsExtendedResponse(
+        client::ApiError(http_response.status, http_response.response.str()),
+        http_response.GetNetworkStatistics());
   }
   using PartitionsResponse =
       client::ApiResponse<model::Partitions, client::ApiError>;
@@ -104,12 +105,12 @@ QueryApi::PartitionsExtendedResponse QueryApi::GetPartitionsbyId(
       parser::parse_result<PartitionsResponse>(http_response.response);
 
   if (!partitions_response.IsSuccessful()) {
-    return {{partitions_response.GetError()},
-            http_response.GetNetworkStatistics()};
+    return PartitionsExtendedResponse(partitions_response.GetError(),
+                                      http_response.GetNetworkStatistics());
   }
 
-  return {partitions_response.MoveResult(),
-          http_response.GetNetworkStatistics()};
+  return PartitionsExtendedResponse(partitions_response.MoveResult(),
+                                    http_response.GetNetworkStatistics());
 }
 
 olp::client::HttpResponse QueryApi::QuadTreeIndex(

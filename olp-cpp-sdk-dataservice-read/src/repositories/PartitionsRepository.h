@@ -47,8 +47,8 @@ class TileRequest;
 namespace repository {
 
 /// The partition metadata response type.
-using PartitionResponse = Response<model::Partition>;
-using QuadTreeIndexResponse = Response<QuadTreeIndex>;
+using PartitionResponse = Response<model::Partition, client::NetworkStatistics>;
+using QuadTreeIndexResponse = Response<QuadTreeIndex, client::NetworkStatistics>;
 
 class PartitionsRepository {
  public:

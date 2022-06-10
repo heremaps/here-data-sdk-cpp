@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@
 namespace olp {
 namespace dataservice {
 namespace read {
-namespace client = olp::client;
 
 VolatileBlobApi::DataResponse VolatileBlobApi::GetVolatileBlob(
     const client::OlpClient& client, const std::string& layer_id,
@@ -49,13 +48,14 @@ VolatileBlobApi::DataResponse VolatileBlobApi::GetVolatileBlob(
                      form_params, nullptr, "", context);
 
   if (api_response.status != http::HttpStatusCode::OK) {
-    return {{api_response.status, api_response.response.str()},
-            api_response.GetNetworkStatistics()};
+    return DataResponse(
+        client::ApiError(api_response.status, api_response.response.str()),
+        api_response.GetNetworkStatistics());
   }
 
   auto result = std::make_shared<std::vector<unsigned char>>();
   api_response.GetResponse(*result);
-  return {result, api_response.GetNetworkStatistics()};
+  return DataResponse(result, api_response.GetNetworkStatistics());
 }
 }  // namespace read
 }  // namespace dataservice
