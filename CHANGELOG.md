@@ -1,3 +1,26 @@
+## v1.15.0 (13/06/2022)
+
+**Common**
+* Added a new CMake option: `OLP_SDK_ENABLE_ANDROID_CURL`. The flag enables network layer implementation based on cURL for Android.
+* Added custom certificates lookup method based on MD5 for Android cURL network layer to bypass the discrepancy between OpenSSL 1.1.1 expecting SHA1 while certificates are beeing encoded using MD5.
+* Added HTTPS proxy support for the cURL network implementation.
+* Increased required minimal version for cURL from 7.47.0 to 7.52.0 due to the HTTPS proxy support.
+* Fixed the falsely returned errors from `olp::client::OlpClient::CallApi`. The `olp::client::OlpClient::CallApi` now propagates the correct errors from the `olp::authentication::TokenProvider`.
+* Replaced usage of `std::stol` with `std::stoll` for LRU expiration time evaluation.
+* The `olp::utils::Dir::IsReadOnly` now checks whether the target directory is present and returns `false` in case it is missing.
+* Changed the initial permissions on the newly created directories with `olp::utils::Dir::Create` from 0777 to 0774.
+* Added various performance optimizations for `olp::cache::DefaultCache` to speed up `olp::cache::DefaultCache::Contains`.
+* Improved various log messages.
+
+**olp-cpp-sdk-dataservice-read**
+* Added the `olp::dataservice::read::VersionedLayerClient::QuadTreeIndex` API. Use this API to query the partitions for the specified tiles provided by `olp::dataservice::read::TileRequest`.
+* The `olp::dataservice::read::PartitionsCacheRepository::FindQuadTree` now reads the data from the cache starting from the lowest level first, which improves performance as the quadtrees are usually loaded 4 levels lower then the requested tile.
+* The `olp::dataservice::read::CatalogClient::GetCatalog` now forms correct URL when custom `olp::client::CatalogEndpointProvider` is used.
+* Fixed the broken chain of cancellation contexts inside `olp::dataservice::read::VersionedLayerClient::PrefetchTiles` method. The ongoing prefetch request can now be cancelled much faster, which avoids waiting for the ongoing sub-tasks to finish until the entire operation is cancelled.
+
+**olp-cpp-sdk-authentication**
+* Added optional `device_id` field to the `olp::authentication::AuthenticationClient::SignInProperties`. This field can be used for the OAuth rate limiting per device  supported by the HERE OAuth service.
+
 ## v1.14.0 (08/02/2022)
 
 **Common**
