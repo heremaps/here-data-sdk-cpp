@@ -112,15 +112,15 @@ class QueryMetadataJob {
       }
     }
 
-    if (canceled_) {
-      download_job_->OnPrefetchCompleted(
-          {{client::ErrorCode::Cancelled, "Cancelled"}});
-      return;
-    }
-
     if (!--query_count_) {
       if (CheckIfFail()) {
         download_job_->OnPrefetchCompleted(query_errors_.front());
+        return;
+      }
+
+      if (canceled_) {
+        download_job_->OnPrefetchCompleted(
+            {{client::ErrorCode::Cancelled, "Cancelled"}});
         return;
       }
 
