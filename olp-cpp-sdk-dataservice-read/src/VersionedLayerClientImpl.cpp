@@ -87,8 +87,7 @@ client::CancellationToken VersionedLayerClientImpl::GetPartitions(
              client::CancellationContext context) -> PartitionsResponse {
     const auto fetch_option = partitions_request.GetFetchOption();
     if (fetch_option == CacheWithUpdate) {
-      return client::ApiError(
-          client::ErrorCode::InvalidArgument,
+      return client::ApiError::InvalidArgument(
           "CacheWithUpdate option can not be used for versioned layer");
     }
 
@@ -127,9 +126,8 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
   auto data_task =
       [=](client::CancellationContext context) mutable -> DataResponse {
     if (request.GetFetchOption() == CacheWithUpdate) {
-      return {{client::ErrorCode::InvalidArgument,
-               "CacheWithUpdate option can not be used for versioned "
-               "layer"}};
+      return client::ApiError::InvalidArgument(
+          "CacheWithUpdate option can not be used for versioned layer");
     }
 
     int64_t version = -1;
@@ -156,13 +154,13 @@ client::CancellationToken VersionedLayerClientImpl::QuadTreeIndex(
   auto data_task =
       [=](client::CancellationContext context) mutable -> PartitionsResponse {
     if (!tile_request.GetTileKey().IsValid()) {
-      return {{client::ErrorCode::InvalidArgument, "Tile key is invalid"}};
+      return client::ApiError::InvalidArgument("Tile key is invalid");
     }
 
     const auto& fetch_option = tile_request.GetFetchOption();
     if (fetch_option == CacheWithUpdate) {
-      return {{client::ErrorCode::InvalidArgument,
-               "CacheWithUpdate option can not be used for versioned layer"}};
+      return client::ApiError::InvalidArgument(
+          "CacheWithUpdate option can not be used for versioned layer");
     }
 
     auto version_response =
@@ -182,12 +180,14 @@ client::CancellationToken VersionedLayerClientImpl::QuadTreeIndex(
     auto partition_response = repository.GetTile(tile_request, version, context,
                                                  std::move(additional_fields));
     if (!partition_response) {
-      return partition_response.GetError();
+      return PartitionsResponse(partition_response.GetError(),
+                                partition_response.GetPayload());
     }
 
     model::Partitions result;
     result.GetMutablePartitions().emplace_back(partition_response.MoveResult());
-    return result;
+    return PartitionsResponse(std::move(result),
+                              partition_response.GetPayload());
   };
 
   return task_sink_.AddTask(std::move(data_task), std::move(callback),
@@ -237,7 +237,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
       OLP_SDK_LOG_WARNING_F(
           kLogTag, "PrefetchPartitions: invalid request, catalog=%s, key=%s",
           catalog_.ToCatalogHRNString().c_str(), key.c_str());
-      callback(ApiError(ErrorCode::InvalidArgument, "Empty partitions list"));
+      callback(ApiError::InvalidArgument("Empty partitions list"));
       return;
     }
 
@@ -588,12 +588,12 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
     TileRequest request, DataResponseCallback callback) {
   auto data_task = [=](client::CancellationContext context) -> DataResponse {
     if (request.GetFetchOption() == CacheWithUpdate) {
-      return {{client::ErrorCode::InvalidArgument,
-               "CacheWithUpdate option can not be used for versioned layer"}};
+      return client::ApiError::InvalidArgument(
+          "CacheWithUpdate option can not be used for versioned layer");
     }
 
     if (!request.GetTileKey().IsValid()) {
-      return {{client::ErrorCode::InvalidArgument, "Tile key is invalid"}};
+      return client::ApiError::InvalidArgument("Tile key is invalid");
     }
 
     auto version_response =
@@ -741,13 +741,12 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     const auto billing_tag = request.GetBillingTag();
 
     if (fetch_option == CacheWithUpdate) {
-      return {{client::ErrorCode::InvalidArgument,
-               "CacheWithUpdate option can not be used for versioned "
-               "layer"}};
+      return client::ApiError::InvalidArgument(
+          "CacheWithUpdate option can not be used for versioned layer");
     }
 
     if (!request.GetTileKey().IsValid()) {
-      return {{client::ErrorCode::InvalidArgument, "Tile key is invalid"}};
+      return client::ApiError::InvalidArgument("Tile key is invalid");
     }
 
     auto version_response = GetVersion(billing_tag, fetch_option, context);
@@ -759,9 +758,10 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     repository::PartitionsRepository repository(catalog_, layer_id_, settings_,
                                                 lookup_client_, mutex_storage_);
     auto partition_response =
-        repository.GetAggregatedTile(std::move(request), version, context);
+        repository.GetAggregatedTile(request, version, context);
     if (!partition_response.IsSuccessful()) {
-      return partition_response.GetError();
+      return AggregatedDataResponse(partition_response.GetError(),
+                                    partition_response.GetPayload());
     }
 
     const auto& fetch_partition = partition_response.GetResult();
@@ -778,20 +778,25 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     auto data_response = data_repository.GetVersionedData(
         layer_id_, data_request, version, context);
 
-    if (!data_response.IsSuccessful()) {
+    const auto aggregated_network_statistics =
+        partition_response.GetPayload() + data_response.GetPayload();
+
+    if (!data_response) {
       OLP_SDK_LOG_WARNING_F(
           kLogTag,
           "GetAggregatedData: failed to load data, key=%s, data_handle=%s",
           fetch_tile_key.ToHereTile().c_str(),
           fetch_partition.GetDataHandle().c_str());
-      return data_response.GetError();
+      return AggregatedDataResponse(data_response.GetError(),
+                                    aggregated_network_statistics);
     }
 
     AggregatedDataResult result;
     result.SetTile(fetch_tile_key);
     result.SetData(data_response.MoveResult());
 
-    return std::move(result);
+    return AggregatedDataResponse(std::move(result),
+                                  aggregated_network_statistics);
   };
 
   return task_sink_.AddTask(std::move(data_task), std::move(callback),

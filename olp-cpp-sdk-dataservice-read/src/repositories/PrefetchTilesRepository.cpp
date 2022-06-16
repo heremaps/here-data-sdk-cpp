@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -419,8 +419,9 @@ PrefetchTilesRepository::DownloadVersionedQuadTree(
     OLP_SDK_LOG_WARNING_F(kLogTag,
                           "GetSubQuads failed(%s, %" PRId64 ", %" PRId32 ")",
                           tile_key.c_str(), version, depth);
-    return {{quad_tree.status, quad_tree.response.str()},
-            quad_tree.GetNetworkStatistics()};
+    return QuadTreeResponse(
+        client::ApiError(quad_tree.status, quad_tree.response.str()),
+        quad_tree.GetNetworkStatistics());
   }
 
   QuadTreeIndex tree(tile, depth, quad_tree.response);
@@ -432,8 +433,9 @@ PrefetchTilesRepository::DownloadVersionedQuadTree(
                           "', depth='%" PRId32 "'",
                           catalog_.ToString().c_str(), layer_id_.c_str(),
                           tile_key.c_str(), version, depth);
-    return {{client::ErrorCode::Unknown, "Failed to parse quad tree response"},
-            quad_tree.GetNetworkStatistics()};
+    return QuadTreeResponse(
+        client::ApiError::Unknown("Failed to parse quad tree response"),
+        quad_tree.GetNetworkStatistics());
   }
 
   // add to cache
@@ -442,7 +444,7 @@ PrefetchTilesRepository::DownloadVersionedQuadTree(
     return {put_result.GetError(), quad_tree.GetNetworkStatistics()};
   }
 
-  return {std::move(tree), quad_tree.GetNetworkStatistics()};
+  return QuadTreeResponse(std::move(tree), quad_tree.GetNetworkStatistics());
 }
 
 }  // namespace repository

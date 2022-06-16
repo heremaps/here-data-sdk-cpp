@@ -114,8 +114,9 @@ MetadataApi::PartitionsExtendedResponse MetadataApi::GetPartitions(
                                       header_params, {}, nullptr, "", context);
 
   if (http_response.status != olp::http::HttpStatusCode::OK) {
-    return {{http_response.status, http_response.response.str()},
-            http_response.GetNetworkStatistics()};
+    return PartitionsExtendedResponse(
+        client::ApiError(http_response.status, http_response.response.str()),
+        http_response.GetNetworkStatistics());
   }
 
   using PartitionsResponse =
@@ -125,12 +126,12 @@ MetadataApi::PartitionsExtendedResponse MetadataApi::GetPartitions(
       parser::parse_result<PartitionsResponse>(http_response.response);
 
   if (!partitions_response.IsSuccessful()) {
-    return {{partitions_response.GetError()},
-            http_response.GetNetworkStatistics()};
+    return PartitionsExtendedResponse(partitions_response.GetError(),
+                                      http_response.GetNetworkStatistics());
   }
 
-  return {partitions_response.MoveResult(),
-          http_response.GetNetworkStatistics()};
+  return PartitionsExtendedResponse(partitions_response.MoveResult(),
+                                    http_response.GetNetworkStatistics());
 }
 
 MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
