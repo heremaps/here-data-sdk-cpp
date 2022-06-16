@@ -1,0 +1,4 @@
+<map id="olp::dataservice::write::model::TimeWindowIndexValue" name="olp::dataservice::write::model::TimeWindowIndexValue">
+<area shape="rect" id="node1" title="Represents the index layer of the time window type." alt="" coords="5,95,241,136"/>
+<area shape="rect" id="node2" href="$classolp_1_1dataservice_1_1write_1_1model_1_1IndexValue.html" title="Represents values supported by the HERE platform index layer." alt="" coords="40,5,207,47"/>
+</map>

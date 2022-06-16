@@ -1,0 +1,5 @@
+<map id="olp::authentication::Settings" name="olp::authentication::Settings">
+<area shape="rect" id="node1" title="Configures the TokenEndpoint instance." alt="" coords="131,109,275,151"/>
+<area shape="rect" id="node2" href="$structolp_1_1client_1_1RetrySettings.html" title="A collection of settings that controls how failed requests should be treated by the Data SDK." alt="" coords="5,13,188,39"/>
+<area shape="rect" id="node3" href="$classolp_1_1authentication_1_1AuthenticationCredentials.html" title="The access key ID and access key secret that you got from the HERE Account as a part of the onboardin..." alt="" coords="212,5,411,47"/>
+</map>
