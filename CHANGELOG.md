@@ -1,3 +1,8 @@
+## v1.15.1 (16/06/2022)
+
+**olp-cpp-sdk-dataservice-read**
+* **Hotfix** Reverted pull requests #1332, and #1332 as they introduced a regression which was not caught by our test suite.
+
 ## v1.15.0 (13/06/2022)
 
 **Common**
