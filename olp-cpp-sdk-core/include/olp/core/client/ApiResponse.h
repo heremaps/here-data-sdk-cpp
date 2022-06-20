@@ -86,11 +86,36 @@ class ApiResponse : public ResponseExtension<Payload> {
    *
    * @param other The `ApiResponse` instance.
    */
-  template <typename P = Payload, typename = typename std::enable_if<
-                                      !std::is_same<P, void>::value>::type>
-  ApiResponse(const ApiResponse<Result, Error, void>& other)  // NOLINT
+  template <
+      typename P = Payload, typename R = Result,
+      typename = typename std::enable_if<!std::is_same<P, void>::value>::type,
+      typename =
+          typename std::enable_if<std::is_copy_constructible<R>::value>::type>
+  ApiResponse(const ApiResponse<R, Error, void>& other)  // NOLINT
       : ResponseExtension<P>(),
         result_(other.GetResult()),
+        error_(other.GetError()),
+        success_(other.IsSuccessful()) {}
+
+  /**
+   * @brief Creates the `ApiResponse` instance from a similar response type
+   * without payload. The payload is default initialized.
+   *
+   * @note Enabled only for the use cases when the input response type has no
+   * payload.
+   *
+   * Used for moving the successfully executed request.
+   *
+   * @param other The `ApiResponse` instance.
+   */
+  template <
+      typename P = Payload, typename R = Result,
+      typename = typename std::enable_if<!std::is_same<P, void>::value>::type,
+      typename =
+          typename std::enable_if<std::is_move_constructible<R>::value>::type>
+  ApiResponse(ApiResponse<R, Error, void>&& other)  // NOLINT
+      : ResponseExtension<P>(),
+        result_(other.MoveResult()),
         error_(other.GetError()),
         success_(other.IsSuccessful()) {}
 
@@ -126,11 +151,35 @@ class ApiResponse : public ResponseExtension<Payload> {
    * @param other The `ApiResponse` instance.
    */
   template <
-      typename U, typename P = Payload,
-      typename = typename std::enable_if<std::is_same<P, void>::value>::type>
-  ApiResponse(const ApiResponse<Result, Error, U>& other)
+      typename U, typename P = Payload, typename R = Result,
+      typename = typename std::enable_if<std::is_same<P, void>::value>::type,
+      typename =
+          typename std::enable_if<std::is_copy_constructible<R>::value>::type>
+  ApiResponse(const ApiResponse<R, Error, U>& other)
       : ResponseExtension<P>(),
         result_(other.GetResult()),
+        error_(other.GetError()),
+        success_(other.IsSuccessful()) {}
+
+  /**
+   * @brief Creates the `ApiResponse` instance from a similar request with a
+   * payload.
+   *
+   * @note Enabled only for the use cases when the input with a payload is
+   * sliced to the response without payload.
+   *
+   * Used for moving the successfully executed request.
+   *
+   * @param other The `ApiResponse` instance.
+   */
+  template <
+      typename U, typename P = Payload, typename R = Result,
+      typename = typename std::enable_if<std::is_same<P, void>::value>::type,
+      typename =
+          typename std::enable_if<std::is_move_constructible<R>::value>::type>
+  ApiResponse(ApiResponse<R, Error, U>&& other)
+      : ResponseExtension<P>(),
+        result_(other.MoveResult()),
         error_(other.GetError()),
         success_(other.IsSuccessful()) {}
 

@@ -117,12 +117,20 @@ TEST(ApiResponseTest, ResponseExtention) {
 }
 
 TEST(ApiResponseTest, ResultWithoutCopyCtor) {
-  using ProvateResponse = ApiResponse<PrivateClass, ErrorType, PayloadT>;
+  using PrivateResponse = ApiResponse<PrivateClass, ErrorType>;
+  using ExtendedPrivateResponse =
+      ApiResponse<PrivateClass, ErrorType, PayloadT>;
   // move constructed
-  ProvateResponse response_1(PrivateClass(1));
+  ExtendedPrivateResponse response_1(PrivateClass(1));
   // move asigned
-  ProvateResponse response_2 = PrivateClass(1);
+  ExtendedPrivateResponse response_2 = PrivateClass(1);
   // response can be moved
-  ProvateResponse response_3 = std::move(response_2);
+  ExtendedPrivateResponse response_3 = std::move(response_2);
+  // no payload
+  PrivateResponse response_4(PrivateClass(1));
+  // extended
+  ExtendedPrivateResponse response_5(std::move(response_4));
+  // sliced
+  PrivateResponse response_6(std::move(response_5));
 }
 }  // namespace
