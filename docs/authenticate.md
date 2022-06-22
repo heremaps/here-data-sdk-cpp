@@ -2,6 +2,8 @@
 
 To authenticate to the HERE platform and start working with HERE Data SDK for C++, you need to get an access token. You can receive it using a [default token provider](#authenticate-using-a-default-token-provider), [project authentication](#authenticate-using-project-authentication), or [federated credentials](#authenticate-using-federated-credentials).
 
+For instructions, see the [OAuth tokens](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/dev-token.html) section in the Identity & Access Management Developer Guide.
+
 > #### Note
 > Keep your credentials secure and do not disclose them. Make sure that your credentials are not stored in a way that enables others to access them.
 
