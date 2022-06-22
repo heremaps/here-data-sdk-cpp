@@ -37,9 +37,6 @@ if(NOT TARGET zlib AND NOT ZLIB_FOUND)
         )
 endif()
 
-#find_package(OpenSSL QUIET)
-#message(FATAL_ERROR OPENSSL_FOUND=${OPENSSL_FOUND} " " OpenSSL=${OpenSSL})
-
 if(NOT TARGET OpenSSL AND NOT OPENSSL_FOUND)
     ExternalProject_Add(OpenSSL
         SOURCE_DIR ${OPENSSL_SOURCE_DIR}
@@ -50,8 +47,6 @@ if(NOT TARGET OpenSSL AND NOT OPENSSL_FOUND)
         UPDATE_COMMAND ""
         # Add our own cmake files as OpenSSL doesn't provide any.
         PATCH_COMMAND "${CMAKE_COMMAND}" -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/openssl" "${CMAKE_CURRENT_BINARY_DIR}/download/OpenSSL-prefix/src/OpenSSL"
-              # Make openssl 1.1.1 to us MD5 hash instead of SHA-1 for certificate file names.
-              COMMAND sed -i "s/h = X509_NAME_hash(name)/h = X509_NAME_hash_old(name)/g" ${CMAKE_CURRENT_BINARY_DIR}/download/OpenSSL-prefix/src/OpenSSL/crypto/x509/by_dir.c
         CMAKE_ARGS
         @COMMON_PLATFORM_FLAGS@
         -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>

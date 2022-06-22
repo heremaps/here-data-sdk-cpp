@@ -95,10 +95,10 @@ client::ApiNoResponse PartitionsCacheRepository::Put(
         cache::KeyGenerator::CreatePartitionsKey(catalog_, layer_id_, version);
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
-    const auto put_result =
-        cache_->Put(key, partition_ids,
-                    [&]() { return serializer::serialize(partition_ids); },
-                    expiry.get_value_or(default_expiry_));
+    const auto put_result = cache_->Put(
+        key, partition_ids,
+        [&]() { return serializer::serialize(partition_ids); },
+        expiry.get_value_or(default_expiry_));
 
     if (!put_result) {
       OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to write -> '%s'", key.c_str());
@@ -175,9 +175,9 @@ void PartitionsCacheRepository::Put(
       cache::KeyGenerator::CreateLayerVersionsKey(catalog_, catalog_version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
-  cache_->Put(key, layer_versions,
-              [&]() { return serializer::serialize(layer_versions); },
-              default_expiry_);
+  cache_->Put(
+      key, layer_versions,
+      [&]() { return serializer::serialize(layer_versions); }, default_expiry_);
 }
 
 boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
@@ -312,7 +312,7 @@ bool PartitionsCacheRepository::FindQuadTree(geo::TileKey key,
                                              boost::optional<int64_t> version,
                                              read::QuadTreeIndex& tree) {
   auto max_depth = std::min<std::uint32_t>(key.Level(), kMaxQuadTreeIndexDepth);
-  for (auto i = 0u; i <= max_depth; ++i) {
+  for (int32_t i = max_depth; i >= 0; i--) {
     const auto& root_tile_key = key.ChangedLevelBy(-i);
     QuadTreeIndex cached_tree;
     if (Get(root_tile_key, kMaxQuadTreeIndexDepth, version, cached_tree)) {

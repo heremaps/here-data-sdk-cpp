@@ -282,7 +282,7 @@ bool Dir::Create(const std::string& path) {
 #if !defined(_WIN32) || defined(__MINGW32__)
   struct stat sbuf;
   if (stat(path.c_str(), &sbuf) != 0) {
-    if (!mkdir_all(path.c_str(), 0777)) {
+    if (!mkdir_all(path.c_str(), 0774)) {
       ret = false;
     }
   }
@@ -514,7 +514,7 @@ bool Dir::IsReadOnly(const std::string& path) {
   CloseHandle(handle);
   return false;
 #else
-  return access(path.c_str(), W_OK) != 0;
+  return !(access(path.c_str(), W_OK) == 0 || errno == ENOENT);
 #endif
 }
 

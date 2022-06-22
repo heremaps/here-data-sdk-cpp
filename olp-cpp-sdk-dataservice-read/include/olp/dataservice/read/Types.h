@@ -26,6 +26,7 @@
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiNoResult.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/client/HttpResponse.h>
 
 #include <olp/dataservice/read/AggregatedDataResult.h>
 #include <olp/dataservice/read/PrefetchPartitionsResult.h>
@@ -45,12 +46,12 @@ namespace read {
 class PrefetchTileResult;
 
 /// The response template type.
-template <typename ResultType>
-using Response = client::ApiResponse<ResultType, client::ApiError>;
+template <typename ResultType, typename PayloadType = void>
+using Response = client::ApiResponse<ResultType, client::ApiError, PayloadType>;
 
 /// The callback template type.
-template <typename ResultType>
-using Callback = std::function<void(Response<ResultType>)>;
+template <typename ResultType, typename PayloadType = void>
+using Callback = std::function<void(Response<ResultType, PayloadType>)>;
 
 /// An alias for the catalog configuration.
 using CatalogResult = model::Catalog;
@@ -69,9 +70,11 @@ using CatalogVersionCallback = Callback<CatalogVersionResult>;
 /// An alias for the partition metadata result.
 using PartitionsResult = model::Partitions;
 /// The partition metadata response type.
-using PartitionsResponse = Response<PartitionsResult>;
+using PartitionsResponse =
+    Response<PartitionsResult, client::NetworkStatistics>;
 /// The callback type of the partition metadata response.
-using PartitionsResponseCallback = Callback<PartitionsResult>;
+using PartitionsResponseCallback =
+    Callback<PartitionsResult, client::NetworkStatistics>;
 
 /// The `Data` alias type.
 using DataResult = model::Data;
@@ -81,9 +84,11 @@ using DataResponse = Response<DataResult>;
 using DataResponseCallback = Callback<DataResult>;
 
 /// The aggregated data response alias.
-using AggregatedDataResponse = Response<AggregatedDataResult>;
+using AggregatedDataResponse =
+    Response<AggregatedDataResult, client::NetworkStatistics>;
 /// The callback type of the aggregated data response.
-using AggregatedDataResponseCallback = Callback<AggregatedDataResult>;
+using AggregatedDataResponseCallback =
+    Callback<AggregatedDataResult, client::NetworkStatistics>;
 
 /// An alias for the prefetch tiles result.
 using PrefetchTilesResult = std::vector<std::shared_ptr<PrefetchTileResult>>;

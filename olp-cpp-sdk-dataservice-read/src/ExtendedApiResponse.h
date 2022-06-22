@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,31 +26,7 @@ namespace dataservice {
 namespace read {
 
 template <typename Result, typename Error, typename Payload>
-class ExtendedApiResponse : public client::ApiResponse<Result, Error> {
- public:
-  ExtendedApiResponse() = default;
-
-  // Implicit constructor by desing, same as in ApiResponse
-  ExtendedApiResponse(Result result)
-      : client::ApiResponse<Result, Error>(std::move(result)), payload_{} {}
-
-  // Implicit constructor by desing, same as in ApiResponse
-  ExtendedApiResponse(const Error& error)
-      : client::ApiResponse<Result, Error>(error), payload_{} {}
-
-  ExtendedApiResponse(Result result, Payload payload)
-      : client::ApiResponse<Result, Error>(std::move(result)),
-        payload_(std::move(payload)) {}
-
-  ExtendedApiResponse(const Error& error, Payload payload)
-      : client::ApiResponse<Result, Error>(error),
-        payload_(std::move(payload)) {}
-
-  const Payload& GetPayload() const { return payload_; }
-
- private:
-  Payload payload_;
-};
+using ExtendedApiResponse = client::ApiResponse<Result, Error, Payload>;
 
 }  // namespace read
 }  // namespace dataservice

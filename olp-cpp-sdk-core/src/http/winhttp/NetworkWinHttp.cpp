@@ -174,7 +174,11 @@ std::wstring ProxyString(const olp::http::NetworkProxySettings& proxy) {
 
   switch (proxy.GetType()) {
     case olp::http::NetworkProxySettings::Type::NONE:
+    case olp::http::NetworkProxySettings::Type::HTTP:
       proxy_string_stream << "http://";
+      break;
+    case olp::http::NetworkProxySettings::Type::HTTPS:
+      proxy_string_stream << "https://";
       break;
     case olp::http::NetworkProxySettings::Type::SOCKS4:
       proxy_string_stream << "socks4://";
@@ -224,7 +228,7 @@ std::string QueryHeaders(HINTERNET handle) {
     headers.resize(len);
     const int convertResult =
         WideCharToMultiByte(CP_ACP, 0, wide_buffer.get(), len, &headers.front(),
-                            headers.size(), 0, nullptr);
+                            static_cast<int>(headers.size()), 0, nullptr);
     assert(convertResult == static_cast<int>(len));
   }
 
@@ -265,6 +269,11 @@ NetworkWinHttp::NetworkWinHttp(size_t max_request_count)
   // Store the memory tracking state during initialization so that it can be
   // used by the thread.
   thread_ = CreateThread(NULL, 0, NetworkWinHttp::Run, this, 0, NULL);
+  if (thread_ == NULL) {
+    OLP_SDK_LOG_ERROR(kLogTag, "CreateThread failed " << GetLastError());
+    return;
+  }
+
   SetThreadPriority(thread_, THREAD_PRIORITY_ABOVE_NORMAL);
 
   OLP_SDK_LOG_TRACE(kLogTag, "Created NetworkWinHttp with address="
@@ -460,9 +469,16 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
                      network_settings.GetTransferTimeout() * 1000);
 
   const auto& proxy = network_settings.GetProxySettings();
+  const auto proxy_type = proxy.GetType();
 
-  if (proxy.GetType() != NetworkProxySettings::Type::NONE) {
-    std::wstring proxy_string = ProxyString(proxy);
+  if (proxy_type != NetworkProxySettings::Type::NONE) {
+    const std::wstring proxy_string = ProxyString(proxy);
+
+    if (proxy_type == NetworkProxySettings::Type::HTTPS) {
+      OLP_SDK_LOG_ERROR(kLogTag, "Unsupported proxy type, proxy_type="
+                                     << proxy_string.c_str());
+      return SendOutcome(ErrorCode::UNKNOWN_ERROR);
+    }
 
     WINHTTP_PROXY_INFO proxy_info;
     proxy_info.dwAccessType = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
@@ -662,7 +678,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
             index++;
           }
         }
-        headers_size += headers.size();
+        headers_size += static_cast<DWORD>(headers.size());
       } else {
         headers_size += QueryHeadersSize(handle->http_request);
       }

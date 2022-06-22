@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,8 @@ namespace authentication {
 class AuthenticationClientImpl;
 
 /**
- * @brief Provides programmatic access to the HERE Account Authentication Service.
+ * @brief Provides programmatic access to the HERE Account Authentication
+ * Service.
  *
  * The supported APIs mirror the REST APIs currently available for the HERE
  * Account Authentication Service.
@@ -66,6 +67,14 @@ class AUTHENTICATION_API AuthenticationClient {
      * @brief (Optional) The scope assigned to the access token.
      */
     boost::optional<std::string> scope{boost::none};
+
+    /**
+     * @brief (Optional) The device ID assigned to the access token.
+     *
+     * @note This field is only necessary if you want to apply a oauth rate
+     * limit on a particular device.
+     */
+    boost::optional<std::string> device_id{boost::none};
 
     /**
      * @brief (Optional) The number of seconds left before the access

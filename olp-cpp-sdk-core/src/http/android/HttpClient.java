@@ -123,16 +123,20 @@ public class HttpClient {
           this.proxyType = Proxy.Type.HTTP;
           break;
         case 2:
-          this.proxyType = Proxy.Type.SOCKS;
+          Log.w(LOGTAG, "HttpClient::Request(): Unsupported proxy version (" + proxyType + "). Falling back to HTTP(1)");
+          this.proxyType = Proxy.Type.HTTP;
           break;
         case 3:
+          this.proxyType = Proxy.Type.SOCKS;
+          break;
         case 4:
         case 5:
+        case 6:
+          Log.w(LOGTAG, "HttpClient::Request(): Unsupported proxy version (" + proxyType + "). Falling back to SOCKS4(3)");
           this.proxyType = Proxy.Type.SOCKS;
-          Log.w(LOGTAG, "HttpClient::Request(): Unsupported proxy version (" + proxyType + "). Falling back to SOCKS4(4)");
           break;
         default:
-          Log.w(LOGTAG, "HttpClient::Request(): Unsupported proxy version (" + proxyType + "). Falling back to HTTP(0)");
+          Log.w(LOGTAG, "HttpClient::Request(): Unsupported proxy version (" + proxyType + "). Falling back to HTTP(1)");
           this.proxyType = Proxy.Type.HTTP;
           break;
       }

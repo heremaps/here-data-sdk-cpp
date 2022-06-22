@@ -147,6 +147,10 @@ bool ProtectedKeyList::Release(const KeyValueCache::KeyListType& keys) {
 }
 
 bool ProtectedKeyList::IsProtected(const std::string& key) const {
+  if (protected_data_.empty()) {
+    return false;
+  }
+
   auto it = protected_data_.lower_bound(key);
   if (it == protected_data_.end()) {
     return false;

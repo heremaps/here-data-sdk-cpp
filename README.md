@@ -62,23 +62,86 @@ The table below lists the dependencies of the Data SDK.
 
 | Library              | Minimum version |
 | :------------------- | :-------------- |
+| libcurl              | 7.52.0          |
 | OpenSSL              | 1.1.1           |
 | Boost (headers only) | 1.69.0          |
 | LevelDB              | 1.21            |
 | Snappy               | 1.1.7           |
 | RapidJSON            | latest          |
 
-<h6 id="additional-linux-dependencies"></h6>
-
-### Additional Linux dependencies
-
-To build the Data SDK on Linux, additionally to the dependencies listed in the previous section, you also need to have <a href="https://curl.haxx.se/download.html" target="_blank">libcurl</a> 7.47.0 or later.
-
 To install the dependencies on Linux, run the following command:
 
 ```bash
 sudo apt-get update && sudo apt-get --yes install git g++ make cmake libssl-dev libcurl4-openssl-dev libboost-all-dev
 ```
+
+=======
+> #### Note
+> Please note that on some Linux distribution, the default libcurl version can be lower than the required v7.52.0. In that case, you need to install the required libcurl version from a different PPA.
+
+## Install the SDK
+
+By default, the Data SDK downloads and compiles its dependencies. The versions of the downloaded dependencies may conflict with the versions that are already installed on your system. Therefore, the downloaded dependencies are not added to the install targets.
+
+You can use the Data SDK in your CMake project or install it on your system.
+
+Тo use the Data SDK directly in your CMake project, add the Data SDK via `add_subdirectory()`.
+
+**To install the Data SDK on your system:**
+
+1. Install all the dependencies needed for the Data SDK.<br>For more information on dependencies, see the [Dependencies](#dependencies) and [Additional Linux dependencies](#additional-linux-dependencies) sections.
+
+2. (Optional) To find the required dependencies in the system, set the `OLP_SDK_BUILD_EXTERNAL_DEPS` flag to `OFF`.
+
+3. (Optional) To build the Data SDK as a shared library, set the `BUILD_SHARED_LIBS` flag to `ON`.
+
+**Example**
+
+The following command builds and installs the Data SDK:
+
+```bash
+cmake --build . --target install
+```
+
+## Build the SDK
+
+<a href="https://cmake.org/download/" target="_blank">CMake</a> is the main build system. The minimal required version of CMake is 3.9.
+
+CMake downloads <a href="https://github.com/google/leveldb" target="_blank">LevelDB</a>, <a href="https://github.com/google/snappy" target="_blank">Snappy</a>, <a href="https://github.com/Tencent/rapidjson" target="_blank">RapidJSON</a>, and <a href="https://www.boost.org/" target="_blank">Boost</a>. To disable downloading, set `OLP_SDK_BUILD_EXTERNAL_DEPS` to `OFF`. For details on CMake flags, see the [related](#cmake-flags) section.
+
+**To build the Data SDK:**
+
+1. Clone the repository folder.
+2. In the root of the repository folder, run the following commands:
+
+```bash
+    mkdir build && cd build
+    cmake ..
+    cmake --build .
+```
+
+If you cannot build the Data SDK on Windows using this instruction, see [Build on Windows](#build-on-windows).
+
+<h6 id="build-on-windows"></h6>
+
+### Build on Windows
+
+<a href="https://dev.azure.com/heremaps/here-data-sdk/_build/latest?definitionId=3&branchName=master" target="_blank"><img src="https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=Windows_build" alt="Windows build status"/></a>
+
+We assume that you have installed CMake, Microsoft Visual Studio 2017, and the Visual C++ tools for CMake component.
+
+**To build the Data SDK on Windows:**
+
+1. Launch Microsoft Visual Studio as administrator.
+
+2. Open the folder containing the Data SDK or a CMake-based project that uses the Data SDK.
+
+3. In Microsoft Visual Studio, check that the target does not contain "(Default)".<br>For example, select "x64-Debug" instead of "x64-Debug (Default)".
+
+4. Using the CMake menu provided by the Visual C++ tools for CMake, generate the `.cmake` files, and build the entire project with default options.
+
+> #### Note
+> Microsoft Visual Studio uses a default build directory that has a long path name. Since dependencies for the Data SDK are installed within the build directory, it is recommended that you edit the generated `CMakeSettings.json` file and change the build directory path name to a shorter path name. This ensures that the maximum length of each path is not greater than 260 characters. For details, see the <a href="https://docs.microsoft.com/en-us/windows/desktop/fileio/naming-a-file" target="_blank">Naming Files, Paths, and Namespaces</a> section of the Windows Dev Center documentation.
 
 ### Generate documentation with Doxygen
 

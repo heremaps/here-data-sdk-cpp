@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <sstream>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -39,6 +40,7 @@ class QuadTreeIndex {
     olp::geo::TileKey tile_key;
     std::string data_handle;
     std::string additional_metadata;
+    std::string crc;
     std::string checksum;
     uint64_t version = -1;
     int64_t data_size = -1;
@@ -126,7 +128,7 @@ class QuadTreeIndex {
     return reinterpret_cast<const uint8_t*>(data_) + size_;
   }
 
-  bool ReadIndexData(IndexData& data, uint32_t offset) const;
+  bool ReadIndexData(IndexData& data, uint32_t offset, uint32_t limit) const;
 
   DataHeader* data_ = nullptr;
   cache::KeyValueCache::ValueTypePtr raw_data_ = nullptr;

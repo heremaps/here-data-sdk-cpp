@@ -43,6 +43,7 @@ constexpr auto kClientTestCacheDir = "\\catalog_client_test\\cache";
 constexpr auto kClientTestDir = "/catalog_client_test";
 constexpr auto kClientTestCacheDir = "/cata.log_client_test/cache";
 #endif
+constexpr auto kWaitTimeout = std::chrono::seconds(3);
 
 class CatalogClientCacheTest : public integration::CatalogClientTestBase {
  protected:
@@ -164,6 +165,27 @@ TEST_P(CatalogClientCacheTest, GetCatalog) {
       << ApiErrorToString(catalog_response2.GetError());
   ASSERT_EQ(catalog_response2.GetResult().GetName(),
             catalog_response.GetResult().GetName());
+}
+
+TEST_P(CatalogClientCacheTest, GetCatalogUsingCatalogEndpointProvider) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  std::string provider_url =
+      "https://api-lookup.data.api.platform.here.com/lookup/v1";
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(provider_url + "/catalogs/" +
+                                                hrn.ToCatalogHRNString()),
+                                   _, _, _, _))
+      .WillOnce(::testing::Return(
+          olp::http::SendOutcome(olp::http::ErrorCode::SUCCESS)));
+
+  settings_.api_lookup_settings.catalog_endpoint_provider =
+      [&provider_url](const olp::client::HRN&) { return provider_url; };
+  auto catalog_client = std::make_unique<read::CatalogClient>(hrn, settings_);
+
+  auto request = read::CatalogRequest();
+  auto future = catalog_client->GetCatalog(request).GetFuture();
+  ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+  future.get();
 }
 
 INSTANTIATE_TEST_SUITE_P(, CatalogClientCacheTest,

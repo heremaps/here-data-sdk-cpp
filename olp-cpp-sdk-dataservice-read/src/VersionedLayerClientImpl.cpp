@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,8 +87,7 @@ client::CancellationToken VersionedLayerClientImpl::GetPartitions(
              client::CancellationContext context) -> PartitionsResponse {
     const auto fetch_option = partitions_request.GetFetchOption();
     if (fetch_option == CacheWithUpdate) {
-      return client::ApiError(
-          client::ErrorCode::InvalidArgument,
+      return client::ApiError::InvalidArgument(
           "CacheWithUpdate option can not be used for versioned layer");
     }
 
@@ -127,9 +126,8 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
   auto data_task =
       [=](client::CancellationContext context) mutable -> DataResponse {
     if (request.GetFetchOption() == CacheWithUpdate) {
-      return {{client::ErrorCode::InvalidArgument,
-               "CacheWithUpdate option can not be used for versioned "
-               "layer"}};
+      return client::ApiError::InvalidArgument(
+          "CacheWithUpdate option can not be used for versioned layer");
     }
 
     int64_t version = -1;
@@ -149,6 +147,51 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
 
   return task_sink_.AddTask(std::move(data_task), std::move(callback),
                             request.GetPriority());
+}
+
+client::CancellationToken VersionedLayerClientImpl::QuadTreeIndex(
+    TileRequest tile_request, PartitionsResponseCallback callback) {
+  auto data_task =
+      [=](client::CancellationContext context) mutable -> PartitionsResponse {
+    if (!tile_request.GetTileKey().IsValid()) {
+      return client::ApiError::InvalidArgument("Tile key is invalid");
+    }
+
+    const auto& fetch_option = tile_request.GetFetchOption();
+    if (fetch_option == CacheWithUpdate) {
+      return client::ApiError::InvalidArgument(
+          "CacheWithUpdate option can not be used for versioned layer");
+    }
+
+    auto version_response =
+        GetVersion(tile_request.GetBillingTag(), fetch_option, context);
+    if (!version_response) {
+      return version_response.GetError();
+    }
+
+    const auto version = version_response.GetResult().GetVersion();
+
+    repository::PartitionsRepository repository(catalog_, layer_id_, settings_,
+                                                lookup_client_, mutex_storage_);
+
+    std::vector<std::string> additional_fields = {PartitionsRequest::kChecksum,
+                                                  PartitionsRequest::kCrc,
+                                                  PartitionsRequest::kDataSize};
+    auto partition_response = repository.GetTile(tile_request, version, context,
+                                                 std::move(additional_fields));
+    if (!partition_response) {
+      return PartitionsResponse(partition_response.GetError(),
+                                partition_response.GetPayload());
+    }
+
+    model::Partitions result;
+    result.GetMutablePartitions().emplace_back(partition_response.MoveResult());
+    return PartitionsResponse(std::move(result),
+                              partition_response.GetPayload());
+  };
+
+  return task_sink_.AddTask(std::move(data_task), std::move(callback),
+                            tile_request.GetPriority());
 }
 
 client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
@@ -194,7 +237,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
       OLP_SDK_LOG_WARNING_F(
           kLogTag, "PrefetchPartitions: invalid request, catalog=%s, key=%s",
           catalog_.ToCatalogHRNString().c_str(), key.c_str());
-      callback(ApiError(ErrorCode::InvalidArgument, "Empty partitions list"));
+      callback(ApiError::InvalidArgument("Empty partitions list"));
       return;
     }
 
@@ -324,167 +367,177 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
 
   client::CancellationContext execution_context;
 
-  return task_sink_.AddTask(
-      [=](client::CancellationContext context) mutable -> void {
-        if (context.IsCancelled()) {
-          callback(ApiError::Cancelled());
-          return;
-        }
+  execution_context.ExecuteOrCancelled([&]() -> client::CancellationToken {
+    return task_sink_.AddTask(
+        [=](client::CancellationContext context) mutable -> void {
+          if (context.IsCancelled()) {
+            callback(ApiError::Cancelled());
+            return;
+          }
 
-        const auto key = request.CreateKey(layer_id_);
+          const auto key = request.CreateKey(layer_id_);
 
-        if (!settings_.cache) {
-          OLP_SDK_LOG_ERROR_F(
-              kLogTag,
-              "PrefetchPartitions: cache is missing, aborting, hrn=%s, key=%s",
-              catalog_.ToCatalogHRNString().c_str(), key.c_str());
-          callback(ApiError::PreconditionFailed(
-              "Unable to prefetch without a cache"));
-          return;
-        }
+          if (!settings_.cache) {
+            OLP_SDK_LOG_ERROR_F(kLogTag,
+                                "PrefetchPartitions: cache is missing, "
+                                "aborting, hrn=%s, key=%s",
+                                catalog_.ToString().c_str(), key.c_str());
+            callback(ApiError::PreconditionFailed(
+                "Unable to prefetch without a cache"));
+            return;
+          }
 
-        if (request.GetTileKeys().empty()) {
-          OLP_SDK_LOG_WARNING_F(
-              kLogTag, "PrefetchTiles: invalid request, catalog=%s, key=%s",
-              catalog_.ToCatalogHRNString().c_str(), key.c_str());
-          callback(ApiError(ErrorCode::InvalidArgument, "Empty tile key list"));
-          return;
-        }
+          if (request.GetTileKeys().empty()) {
+            OLP_SDK_LOG_WARNING_F(
+                kLogTag, "PrefetchTiles: invalid request, catalog=%s, key=%s",
+                catalog_.ToString().c_str(), key.c_str());
+            callback(ApiError::InvalidArgument("Empty tile key list"));
+            return;
+          }
 
-        auto response =
-            GetVersion(request.GetBillingTag(), OnlineIfNotFound, context);
+          auto response =
+              GetVersion(request.GetBillingTag(), OnlineIfNotFound, context);
 
-        if (!response.IsSuccessful()) {
-          OLP_SDK_LOG_WARNING_F(
-              kLogTag, "PrefetchTiles: getting catalog version failed, key=%s",
-              key.c_str());
-          callback(response.GetError());
-          return;
-        }
+          if (!response.IsSuccessful()) {
+            OLP_SDK_LOG_WARNING_F(kLogTag,
+                                  "PrefetchTiles: getting catalog version "
+                                  "failed, catalog=%s, key=%s",
+                                  catalog_.ToString().c_str(), key.c_str());
+            callback(response.GetError());
+            return;
+          }
 
-        auto version = response.GetResult().GetVersion();
+          auto version = response.GetResult().GetVersion();
 
-        OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles: using key=%s",
-                            key.c_str());
+          OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles: using key=%s",
+                              key.c_str());
 
-        // Calculate the minimal set of Tile keys and depth to
-        // cover tree.
-        bool request_only_input_tiles =
-            !(request.GetMinLevel() <= request.GetMaxLevel() &&
-              request.GetMaxLevel() < geo::TileKey::LevelCount &&
-              request.GetMinLevel() < geo::TileKey::LevelCount);
-        unsigned int min_level =
-            (request_only_input_tiles
-                 ? static_cast<unsigned int>(geo::TileKey::LevelCount)
-                 : request.GetMinLevel());
-        unsigned int max_level =
-            (request_only_input_tiles
-                 ? static_cast<unsigned int>(geo::TileKey::LevelCount)
-                 : request.GetMaxLevel());
+          // Calculate the minimal set of Tile keys and depth to cover tree
+          bool request_only_input_tiles =
+              !(request.GetMinLevel() <= request.GetMaxLevel() &&
+                request.GetMaxLevel() < geo::TileKey::LevelCount &&
+                request.GetMinLevel() < geo::TileKey::LevelCount);
 
-        repository::PrefetchTilesRepository repository(
-            catalog_, layer_id_, settings_, lookup_client_,
-            request.GetBillingTag(), mutex_storage_);
+          unsigned int min_level =
+              (request_only_input_tiles
+                   ? static_cast<unsigned int>(geo::TileKey::LevelCount)
+                   : request.GetMinLevel());
+          unsigned int max_level =
+              (request_only_input_tiles
+                   ? static_cast<unsigned int>(geo::TileKey::LevelCount)
+                   : request.GetMaxLevel());
 
-        auto sliced_tiles = repository.GetSlicedTiles(request.GetTileKeys(),
-                                                      min_level, max_level);
+          repository::PrefetchTilesRepository repository(
+              catalog_, layer_id_, settings_, lookup_client_,
+              request.GetBillingTag(), mutex_storage_);
 
-        if (sliced_tiles.empty()) {
-          OLP_SDK_LOG_WARNING_F(kLogTag,
-                                "PrefetchTiles: tile/level mismatch, key=%s",
-                                key.c_str());
-          callback(
-              ApiError(ErrorCode::InvalidArgument, "TileKeys/levels mismatch"));
-          return;
-        }
+          auto sliced_tiles = repository.GetSlicedTiles(request.GetTileKeys(),
+                                                        min_level, max_level);
 
-        OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles, subquads=%zu, key=%s",
-                            sliced_tiles.size(), key.c_str());
+          if (sliced_tiles.empty()) {
+            OLP_SDK_LOG_WARNING_F(
+                kLogTag,
+                "PrefetchTiles: tile/level mismatch, catalog=%s, key=%s",
+                catalog_.ToString().c_str(), key.c_str());
+            callback(ApiError::InvalidArgument("TileKeys/levels mismatch"));
+            return;
+          }
 
-        const bool aggregation_enabled = request.GetDataAggregationEnabled();
+          OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles: subquads=%zu, key=%s",
+                              sliced_tiles.size(), key.c_str());
 
-        auto filter = [=](repository::SubQuadsResult tiles) mutable
-            -> repository::SubQuadsResult {
-          if (request_only_input_tiles) {
-            return repository.FilterTilesByList(request, std::move(tiles));
-          } else {
+          const bool aggregation_enabled = request.GetDataAggregationEnabled();
+
+          auto filter = [=](repository::SubQuadsResult tiles) mutable {
+            if (request_only_input_tiles) {
+              return repository.FilterTilesByList(request, std::move(tiles));
+            }
             return repository.FilterTilesByLevel(request, std::move(tiles));
-          }
-        };
+          };
 
-        auto query = [=](geo::TileKey root,
-                         client::CancellationContext inner_context) mutable {
-          auto response = repository.GetVersionedSubQuads(
-              root, kQuadTreeDepth, version, inner_context);
+          auto query = [=](geo::TileKey root,
+                           client::CancellationContext inner_context) mutable {
+            auto response = repository.GetVersionedSubQuads(
+                root, kQuadTreeDepth, version, inner_context);
 
-          if (response.IsSuccessful() && aggregation_enabled) {
-            auto subquads = filter(response.GetResult());
-            auto network_stats = repository.LoadAggregatedSubQuads(
-                root, std::move(subquads), version, inner_context);
+            if (response.IsSuccessful() && aggregation_enabled) {
+              auto network_stats = repository.LoadAggregatedSubQuads(
+                  root, filter(response.GetResult()), version, inner_context);
 
-            // append network statistics
-            network_stats += GetNetworkStatistics(response);
-            response = {response.GetResult(), network_stats};
-          }
+              // append network statistics
+              network_stats += GetNetworkStatistics(response);
+              response = {response.MoveResult(), network_stats};
+            }
 
-          return response;
-        };
+            return response;
+          };
 
-        auto& billing_tag = request.GetBillingTag();
-        auto download = [=](std::string data_handle,
-                            client::CancellationContext inner_context) mutable {
-          if (data_handle.empty()) {
-            return BlobApi::DataResponse(
-                ApiError(ErrorCode::NotFound, "Not found"));
-          }
-          repository::DataCacheRepository data_cache_repository(
-              catalog_, settings_.cache);
-          if (data_cache_repository.IsCached(layer_id_, data_handle)) {
-            return BlobApi::DataResponse(nullptr);
-          }
+          auto& billing_tag = request.GetBillingTag();
 
-          repository::DataRepository repository(catalog_, settings_,
-                                                lookup_client_, mutex_storage_);
-          // Fetch from online
-          return repository.GetVersionedData(
-              layer_id_,
-              DataRequest()
-                  .WithDataHandle(std::move(data_handle))
-                  .WithBillingTag(billing_tag),
-              version, std::move(inner_context), true);
-        };
+          auto download =
+              [=](std::string data_handle,
+                  client::CancellationContext inner_context) mutable {
+                if (data_handle.empty()) {
+                  return BlobApi::DataResponse(
+                      ApiError(ErrorCode::NotFound, "Not found"));
+                }
 
-        std::vector<geo::TileKey> roots;
-        roots.reserve(sliced_tiles.size());
+                repository::DataCacheRepository cache(catalog_,
+                                                      settings_.cache);
 
-        std::transform(
-            sliced_tiles.begin(), sliced_tiles.end(), std::back_inserter(roots),
-            [](const repository::RootTilesForRequest::value_type& root) {
-              return root.first;
-            });
+                if (cache.IsCached(layer_id_, data_handle)) {
+                  return BlobApi::DataResponse(nullptr);
+                }
 
-        auto append_result = [](ExtendedDataResponse response,
-                                geo::TileKey item,
-                                PrefetchTilesResult& prefetch_result) {
-          if (response.IsSuccessful()) {
-            prefetch_result.push_back(std::make_shared<PrefetchTileResult>(
-                item, PrefetchTileNoError()));
-          } else {
-            prefetch_result.push_back(std::make_shared<PrefetchTileResult>(
-                item, response.GetError()));
-          }
-        };
+                repository::DataRepository repository(
+                    catalog_, settings_, lookup_client_, mutex_storage_);
 
-        auto download_job = std::make_shared<PrefetchTilesHelper::DownloadJob>(
-            std::move(download), std::move(append_result), std::move(callback),
-            std::move(status_callback));
+                // Fetch from online
+                return repository.GetVersionedData(
+                    layer_id_,
+                    DataRequest()
+                        .WithDataHandle(std::move(data_handle))
+                        .WithBillingTag(billing_tag),
+                    version, std::move(inner_context), true);
+              };
 
-        return PrefetchTilesHelper::Prefetch(
-            std::move(download_job), std::move(roots), std::move(query),
-            std::move(filter), task_sink_, request.GetPriority(),
-            std::move(context));
-      },
-      request.GetPriority(), execution_context);
+          std::vector<geo::TileKey> roots;
+          roots.reserve(sliced_tiles.size());
+
+          std::transform(
+              sliced_tiles.begin(), sliced_tiles.end(),
+              std::back_inserter(roots),
+              [](const repository::RootTilesForRequest::value_type& root) {
+                return root.first;
+              });
+
+          auto append_result = [](ExtendedDataResponse response,
+                                  geo::TileKey item,
+                                  PrefetchTilesResult& prefetch_result) {
+            if (response.IsSuccessful()) {
+              prefetch_result.emplace_back(std::make_shared<PrefetchTileResult>(
+                  item, PrefetchTileNoError()));
+            } else {
+              prefetch_result.emplace_back(std::make_shared<PrefetchTileResult>(
+                  item, response.GetError()));
+            }
+          };
+
+          auto download_job =
+              std::make_shared<PrefetchTilesHelper::DownloadJob>(
+                  std::move(download), std::move(append_result),
+                  std::move(callback), std::move(status_callback));
+
+          return PrefetchTilesHelper::Prefetch(
+              std::move(download_job), std::move(roots), std::move(query),
+              std::move(filter), task_sink_, request.GetPriority(),
+              execution_context);
+        },
+        request.GetPriority(), client::CancellationContext{});
+  });
+
+  return client::CancellationToken(
+      [execution_context]() mutable { execution_context.CancelOperation(); });
 }
 
 client::CancellableFuture<PrefetchTilesResponse>
@@ -535,12 +588,12 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
     TileRequest request, DataResponseCallback callback) {
   auto data_task = [=](client::CancellationContext context) -> DataResponse {
     if (request.GetFetchOption() == CacheWithUpdate) {
-      return {{client::ErrorCode::InvalidArgument,
-               "CacheWithUpdate option can not be used for versioned layer"}};
+      return client::ApiError::InvalidArgument(
+          "CacheWithUpdate option can not be used for versioned layer");
     }
 
     if (!request.GetTileKey().IsValid()) {
-      return {{client::ErrorCode::InvalidArgument, "Tile key is invalid"}};
+      return client::ApiError::InvalidArgument("Tile key is invalid");
     }
 
     auto version_response =
@@ -688,13 +741,12 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     const auto billing_tag = request.GetBillingTag();
 
     if (fetch_option == CacheWithUpdate) {
-      return {{client::ErrorCode::InvalidArgument,
-               "CacheWithUpdate option can not be used for versioned "
-               "layer"}};
+      return client::ApiError::InvalidArgument(
+          "CacheWithUpdate option can not be used for versioned layer");
     }
 
     if (!request.GetTileKey().IsValid()) {
-      return {{client::ErrorCode::InvalidArgument, "Tile key is invalid"}};
+      return client::ApiError::InvalidArgument("Tile key is invalid");
     }
 
     auto version_response = GetVersion(billing_tag, fetch_option, context);
@@ -706,9 +758,10 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     repository::PartitionsRepository repository(catalog_, layer_id_, settings_,
                                                 lookup_client_, mutex_storage_);
     auto partition_response =
-        repository.GetAggregatedTile(std::move(request), version, context);
+        repository.GetAggregatedTile(request, version, context);
     if (!partition_response.IsSuccessful()) {
-      return partition_response.GetError();
+      return AggregatedDataResponse(partition_response.GetError(),
+                                    partition_response.GetPayload());
     }
 
     const auto& fetch_partition = partition_response.GetResult();
@@ -725,20 +778,25 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     auto data_response = data_repository.GetVersionedData(
         layer_id_, data_request, version, context);
 
-    if (!data_response.IsSuccessful()) {
+    const auto aggregated_network_statistics =
+        partition_response.GetPayload() + data_response.GetPayload();
+
+    if (!data_response) {
       OLP_SDK_LOG_WARNING_F(
           kLogTag,
           "GetAggregatedData: failed to load data, key=%s, data_handle=%s",
           fetch_tile_key.ToHereTile().c_str(),
           fetch_partition.GetDataHandle().c_str());
-      return data_response.GetError();
+      return AggregatedDataResponse(data_response.GetError(),
+                                    aggregated_network_statistics);
     }
 
     AggregatedDataResult result;
     result.SetTile(fetch_tile_key);
     result.SetData(data_response.MoveResult());
 
-    return std::move(result);
+    return AggregatedDataResponse(std::move(result),
+                                  aggregated_network_statistics);
   };
 
   return task_sink_.AddTask(std::move(data_task), std::move(callback),

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ constexpr auto kEmail = "email";
 constexpr auto kFirstName = "firstname";
 constexpr auto kGrantType = "grantType";
 constexpr auto kScope = "scope";
+constexpr auto kDeviceId = "deviceId";
 constexpr auto kInviteToken = "inviteToken";
 constexpr auto kLanguage = "language";
 constexpr auto kLastName = "lastname";
@@ -792,6 +793,12 @@ client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateClientBody(
     writer.Key(kScope);
     writer.String(properties.scope.get().c_str());
   }
+
+  if (properties.device_id) {
+    writer.Key(kDeviceId);
+    writer.String(properties.device_id.get().c_str());
+  }
+
   writer.EndObject();
   auto content = data.GetString();
   return std::make_shared<RequestBodyData>(content, content + data.GetSize());

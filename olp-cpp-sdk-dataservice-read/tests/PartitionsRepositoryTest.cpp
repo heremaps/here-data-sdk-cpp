@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,22 +43,23 @@ using olp::client::ErrorCode;
 using olp::client::HRN;
 using olp::client::OlpClientSettings;
 using olp::dataservice::read::DataRequest;
+using olp::geo::TileKey;
 using testing::_;
 
 namespace parser = olp::parser;
 namespace read = olp::dataservice::read;
-namespace model = olp::dataservice::read::model;
+namespace model = read::model;
 namespace client = olp::client;
-namespace repository = olp::dataservice::read::repository;
+namespace repository = read::repository;
 namespace cache = olp::cache;
 
 const std::string kCatalog =
     "hrn:here:data::olp-here-test:hereos-internal-test-v2";
-const std::string kVersionedLayerId = "test_layer";
+const std::string kVersionedLayerId = "testlayer";
 const std::string kVolatileLayerId = "testlayer_volatile";
 const std::string kPartitionId = "1111";
 const std::string kInvalidPartitionId = "2222";
-constexpr int kVersion = 4;
+constexpr int kVersion = 100;
 
 const std::string kOlpSdkUrlLookupQuery =
     R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/)" +
@@ -124,31 +125,41 @@ const std::string kOlpSdkUrlVolatilePartitions =
     kVolatileLayerId + R"(/partitions)";
 
 const std::string kOlpSdkHttpResponsePartitions =
-    R"jsonString({ "partitions": [{"version":4,"partition":"269","layer":"testlayer","dataHandle":"4eed6ed1-0d32-43b9-ae79-043cb4256432"},{"version":4,"partition":"270","layer":"testlayer","dataHandle":"30640762-b429-47b9-9ed6-7a4af6086e8e"},{"version":4,"partition":"3","layer":"testlayer","dataHandle":"data:SomethingBaH!"},{"version":4,"partition":"here_van_wc2018_pool","layer":"testlayer","dataHandle":"bcde4cc0-2678-40e9-b791-c630faee14c3"}]})jsonString";
+    R"jsonString({ "partitions": [{"version":100,"partition":"269","layer":"testlayer","dataHandle":"4eed6ed1-0d32-43b9-ae79-043cb4256432"},{"version":100,"partition":"270","layer":"testlayer","dataHandle":"30640762-b429-47b9-9ed6-7a4af6086e8e"},{"version":100,"partition":"3","layer":"testlayer","dataHandle":"data:SomethingBaH!"},{"version":100,"partition":"here_van_wc2018_pool","layer":"testlayer","dataHandle":"bcde4cc0-2678-40e9-b791-c630faee14c3"}]})jsonString";
 
 const std::string kUrlLookupQuery =
     R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis)";
 
-const std::string kHttpResponceLookupQuery =
+const std::string kHttpResponseLookupQuery =
     R"jsonString([{"api":"query","version":"v1","baseURL":"https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2","parameters":{}}])jsonString";
 
 const std::string kUrlQueryApi =
     R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2)";
 
 const std::string kQueryTreeIndex =
-    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/23064/depths/4)";
+    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/100/quadkeys/23064/depths/4)";
+
+const std::string kQueryTreeIndexWithAdditionalFields =
+    kQueryTreeIndex + R"(?additionalFields=)" +
+    olp::utils::Url::Encode(R"(checksum,crc,dataSize,compressedDataSize)");
 
 const std::string kQueryQuadTreeIndex =
-    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/90/depths/4)";
+    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/100/quadkeys/90/depths/4)";
 
 const std::string kSubQuads =
-    R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
+    R"jsonString({"subQuads": [{"subQuadKey":"115","version":100,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":100,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
 
 const std::string kInvalidJson =
-    R"jsonString({}"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
+    R"jsonString({}"subQuads": [{"subQuadKey":"115","version":100,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":100,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
 
 const std::string kSubQuadsWithParent =
-    R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": [{"partition":"5","version":282,"dataHandle":"13E2C624E0136C3357D092EE7F231E87.282","dataSize":99151}]})jsonString";
+    R"jsonString({"subQuads": [{"subQuadKey":"115","version":100,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":100,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": [{"partition":"5","version":282,"dataHandle":"13E2C624E0136C3357D092EE7F231E87.282","dataSize":99151}]})jsonString";
+
+const std::string kSubQuadsWithParentAndAdditionalFields =
+    R"jsonString({"subQuads": [{"subQuadKey":"115","version":100,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1","checksum":"xxx","compressedDataSize":10,"dataSize":15,"crc":"aaa"},{"subQuadKey":"463","version":100,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1","checksum":"yyy","compressedDataSize":20,"dataSize":25,"crc":"bbb"}],"parentQuads": [{"partition":"5","version":282,"dataHandle":"13E2C624E0136C3357D092EE7F231E87.282","checksum":"zzz","compressedDataSize":30,"dataSize":35,"crc":"ccc"}]})jsonString";
+
+const std::string kSubQuadsWithParentAndAdditionalFieldsWithoutCrc =
+    R"jsonString({"subQuads": [{"subQuadKey":"115","version":100,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1","checksum":"xxx","compressedDataSize":10,"dataSize":15},{"subQuadKey":"463","version":100,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1","checksum":"yyy","compressedDataSize":20,"dataSize":25}],"parentQuads": [{"partition":"5","version":282,"dataHandle":"13E2C624E0136C3357D092EE7F231E87.282","checksum":"zzz","compressedDataSize":30,"dataSize":35}]})jsonString";
 
 const std::string kBlobDataHandle1476147 =
     R"(95c5c703-e00e-4c38-841e-e419367474f1)";
@@ -186,7 +197,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
   auto setup_online_only_mocks = [&]() {
     ON_CALL(*cache, Get(_, _))
-        .WillByDefault([](const std::string&, const olp::cache::Decoder&) {
+        .WillByDefault([](const std::string&, const cache::Decoder&) {
           ADD_FAILURE() << "Cache should not be used in OnlineOnly request";
           return boost::any{};
         });
@@ -205,10 +216,9 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     SCOPED_TRACE("Fetch from cache [CacheOnly] positive");
 
     const std::string query_cache_response =
-        R"jsonString({"version":4,"partition":"1111","layer":"testlayer","dataHandle":"qwerty"})jsonString";
+        R"jsonString({"version":100,"partition":"1111","layer":"testlayer","dataHandle":"qwerty"})jsonString";
 
     EXPECT_CALL(*cache, Get(cache_key, _))
-        .Times(1)
         .WillOnce(
             Return(parser::parse<model::Partition>(query_cache_response)));
 
@@ -231,9 +241,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
   {
     SCOPED_TRACE("Fetch from cache [CacheOnly] negative");
 
-    EXPECT_CALL(*cache, Get(cache_key, _))
-        .Times(1)
-        .WillOnce(Return(boost::any()));
+    EXPECT_CALL(*cache, Get(cache_key, _)).WillOnce(Return(boost::any()));
 
     client::CancellationContext context;
     auto response = repository.GetPartitionById(
@@ -334,8 +342,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
         context);
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::AccessDenied);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::AccessDenied);
     Mock::VerifyAndClearExpectations(network.get());
   }
   {
@@ -356,8 +363,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
         context);
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::AccessDenied);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::AccessDenied);
     Mock::VerifyAndClearExpectations(network.get());
   }
   {
@@ -365,9 +371,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
         "Network error 403 clears cache and is propagated to the user");
     setup_online_only_mocks();
     setup_positive_metadata_mocks();
-    EXPECT_CALL(*cache, Get(cache_key, _))
-        .Times(1)
-        .WillOnce(Return(boost::any()));
+    EXPECT_CALL(*cache, Get(cache_key, _)).WillOnce(Return(boost::any()));
 
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlPartitionById), _, _, _, _))
@@ -381,8 +385,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
         context);
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::AccessDenied);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::AccessDenied);
     Mock::VerifyAndClearExpectations(network.get());
   }
 
@@ -393,7 +396,6 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     EXPECT_CALL(*network, Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
-        .Times(1)
         .WillOnce([=](olp::http::NetworkRequest /*request*/,
                       olp::http::Network::Payload /*payload*/,
                       olp::http::Network::Callback /*callback*/,
@@ -408,8 +410,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
         context);
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::Cancelled);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
     Mock::VerifyAndClearExpectations(network.get());
   }
   {
@@ -421,7 +422,6 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     client::CancellationContext context;
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlPartitionById), _, _, _, _))
-        .Times(1)
         .WillOnce([=](olp::http::NetworkRequest /*request*/,
                       olp::http::Network::Payload /*payload*/,
                       olp::http::Network::Callback /*callback*/,
@@ -436,8 +436,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
         context);
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::Cancelled);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
     Mock::VerifyAndClearExpectations(network.get());
   }
 
@@ -447,7 +446,6 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     EXPECT_CALL(*network, Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
-        .Times(1)
         .WillOnce([=](olp::http::NetworkRequest /*request*/,
                       olp::http::Network::Payload /*payload*/,
                       olp::http::Network::Callback /*callback*/,
@@ -458,15 +456,14 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
           constexpr auto unused_request_id = 12;
           return olp::http::SendOutcome(unused_request_id);
         });
-    EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
+    EXPECT_CALL(*network, Cancel(_)).WillOnce(Return());
 
     auto response = repository.GetPartitionById(
         DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
         context);
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::RequestTimeout);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::RequestTimeout);
     Mock::VerifyAndClearExpectations(network.get());
   }
 
@@ -478,7 +475,6 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     client::CancellationContext context;
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlPartitionById), _, _, _, _))
-        .Times(1)
         .WillOnce([=](olp::http::NetworkRequest /*request*/,
                       olp::http::Network::Payload /*payload*/,
                       olp::http::Network::Callback /*callback*/,
@@ -489,15 +485,14 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
           constexpr auto unused_request_id = 12;
           return olp::http::SendOutcome(unused_request_id);
         });
-    EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
+    EXPECT_CALL(*network, Cancel(_)).WillOnce(Return());
 
     auto response = repository.GetPartitionById(
         DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
         context);
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::RequestTimeout);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::RequestTimeout);
     Mock::VerifyAndClearExpectations(network.get());
   }
 
@@ -507,7 +502,6 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     EXPECT_CALL(*network, Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
-        .Times(1)
         .WillOnce([=, &context](
                       olp::http::NetworkRequest /*request*/,
                       olp::http::Network::Payload /*payload*/,
@@ -523,15 +517,14 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
           constexpr auto unused_request_id = 12;
           return olp::http::SendOutcome(unused_request_id);
         });
-    EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
+    EXPECT_CALL(*network, Cancel(_)).WillOnce(Return());
 
     auto response = repository.GetPartitionById(
         DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
         context);
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::Cancelled);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
     Mock::VerifyAndClearExpectations(network.get());
   }
   {
@@ -542,7 +535,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     client::CancellationContext context;
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlPartitionById), _, _, _, _))
-        .Times(1)
+
         .WillOnce([=, &context](
                       olp::http::NetworkRequest /*request*/,
                       olp::http::Network::Payload /*payload*/,
@@ -558,15 +551,14 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
           constexpr auto unused_request_id = 12;
           return olp::http::SendOutcome(unused_request_id);
         });
-    EXPECT_CALL(*network, Cancel(_)).Times(1).WillOnce(Return());
+    EXPECT_CALL(*network, Cancel(_)).WillOnce(Return());
 
     auto response = repository.GetPartitionById(
         DataRequest(request).WithFetchOption(read::OnlineOnly), kVersion,
         context);
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::Cancelled);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
     Mock::VerifyAndClearExpectations(network.get());
   }
 
@@ -581,8 +573,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
         context);
 
     EXPECT_FALSE(response.IsSuccessful());
-    EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::Cancelled);
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
     Mock::VerifyAndClearExpectations(network.get());
   }
 }
@@ -591,7 +582,7 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
   using testing::Return;
 
   std::shared_ptr<cache::KeyValueCache> default_cache =
-      olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+      client::OlpClientSettingsFactory::CreateDefaultCache({});
 
   auto mock_network = std::make_shared<NetworkMock>();
   auto cache = std::make_shared<testing::StrictMock<CacheMock>>();
@@ -614,19 +605,19 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
         "::" + std::to_string(kVersion) + "::partition";
 
     const std::string query_cache_response =
-        R"jsonString({"version":4,"partition":"1111","layer":"testlayer","dataHandle":"qwerty"})jsonString";
+        R"jsonString({"version":100,"partition":"1111","layer":"testlayer","dataHandle":"qwerty"})jsonString";
 
     EXPECT_CALL(*cache, Get(cache_key_1, _))
-        .Times(1)
+
         .WillOnce(
             Return(parser::parse<model::Partition>(query_cache_response)));
 
     EXPECT_CALL(*cache, Get(cache_key_2, _))
-        .Times(1)
+
         .WillOnce(Return(boost::any()));
 
     client::CancellationContext context;
-    olp::client::ApiLookupClient lookup_client(catalog, settings);
+    ApiLookupClient lookup_client(catalog, settings);
     repository::PartitionsRepository repository(catalog, kVersionedLayerId,
                                                 settings, lookup_client);
 
@@ -641,7 +632,7 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
     EXPECT_TRUE(response.GetResult().GetPartitions().empty());
   }
   {
-    SCOPED_TRACE("Successfull fetch from network with a list of partitions");
+    SCOPED_TRACE("Successful fetch from network with a list of partitions");
 
     OlpClientSettings settings;
     settings.cache = default_cache;
@@ -661,7 +652,7 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
                                      kOlpSdkHttpResponsePartitionById));
 
     client::CancellationContext context;
-    olp::client::ApiLookupClient lookup_client(catalog, settings);
+    ApiLookupClient lookup_client(catalog, settings);
     repository::PartitionsRepository repository(catalog, kVersionedLayerId,
                                                 settings, lookup_client);
     read::PartitionsRequest request;
@@ -674,7 +665,7 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
     EXPECT_EQ(response.GetResult().GetPartitions().size(), 1);
   }
   {
-    SCOPED_TRACE("Successfull fetch from network, empty layer");
+    SCOPED_TRACE("Successful fetch from network, empty layer");
 
     OlpClientSettings settings;
     settings.cache = default_cache;
@@ -694,7 +685,7 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
                                      kOlpSdkHttpResponseEmptyPartitionList));
 
     client::CancellationContext context;
-    olp::client::ApiLookupClient lookup_client(catalog, settings);
+    ApiLookupClient lookup_client(catalog, settings);
     repository::PartitionsRepository repository(catalog, kVersionedLayerId,
                                                 settings, lookup_client);
     read::PartitionsRequest request;
@@ -718,7 +709,7 @@ TEST_F(PartitionsRepositoryTest, GetVolatilePartitions) {
   using testing::Return;
 
   std::shared_ptr<cache::KeyValueCache> default_cache =
-      olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+      client::OlpClientSettingsFactory::CreateDefaultCache({});
 
   auto mock_network = std::make_shared<NetworkMock>();
   const auto catalog = HRN::FromString(kCatalog);
@@ -747,7 +738,7 @@ TEST_F(PartitionsRepositoryTest, GetVolatilePartitions) {
                                    kOlpSdkHttpResponsePartitions));
 
   {
-    SCOPED_TRACE("Successfull fetch from network");
+    SCOPED_TRACE("Successful fetch from network");
 
     OlpClientSettings settings;
     settings.cache = default_cache;
@@ -755,7 +746,7 @@ TEST_F(PartitionsRepositoryTest, GetVolatilePartitions) {
     settings.retry_settings.timeout = 1;
 
     client::CancellationContext context;
-    olp::client::ApiLookupClient lookup_client(catalog, settings);
+    ApiLookupClient lookup_client(catalog, settings);
     repository::PartitionsRepository repository(catalog, kVolatileLayerId,
                                                 settings, lookup_client);
     read::PartitionsRequest request;
@@ -767,13 +758,13 @@ TEST_F(PartitionsRepositoryTest, GetVolatilePartitions) {
   }
 
   {
-    SCOPED_TRACE("Successfull fetch from only cache");
+    SCOPED_TRACE("Successful fetch from only cache");
 
     OlpClientSettings settings;
     settings.cache = default_cache;
     settings.retry_settings.timeout = 0;
 
-    olp::client::ApiLookupClient lookup_client(catalog, settings);
+    ApiLookupClient lookup_client(catalog, settings);
     repository::PartitionsRepository repository(catalog, kVolatileLayerId,
                                                 settings, lookup_client);
     client::CancellationContext context;
@@ -791,7 +782,7 @@ TEST_F(PartitionsRepositoryTest, GetVolatilePartitions) {
 
 TEST_F(PartitionsRepositoryTest, AdditionalFields) {
   std::shared_ptr<cache::KeyValueCache> default_cache =
-      olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+      client::OlpClientSettingsFactory::CreateDefaultCache({});
 
   auto mock_network = std::make_shared<NetworkMock>();
   const auto catalog = HRN::FromString(kCatalog);
@@ -814,7 +805,7 @@ TEST_F(PartitionsRepositoryTest, AdditionalFields) {
   settings.cache = default_cache;
   settings.network_request_handler = mock_network;
 
-  olp::client::ApiLookupClient lookup_client(catalog, settings);
+  ApiLookupClient lookup_client(catalog, settings);
   repository::PartitionsRepository repository(catalog, kVersionedLayerId,
                                               settings, lookup_client);
   client::CancellationContext context;
@@ -857,7 +848,7 @@ TEST_F(PartitionsRepositoryTest, AdditionalFields) {
 
 TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
   std::shared_ptr<cache::KeyValueCache> default_cache =
-      olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
+      client::OlpClientSettingsFactory::CreateDefaultCache({});
   auto mock_network = std::make_shared<NetworkMock>();
   OlpClientSettings settings;
   settings.cache = default_cache;
@@ -867,7 +858,7 @@ TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
   EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
-                                   kHttpResponceLookupQuery));
+                                   kHttpResponseLookupQuery));
 
   EXPECT_CALL(*mock_network, Send(IsGetRequest(kQueryTreeIndex), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -875,20 +866,18 @@ TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
                                    kSubQuads));
 
   const auto hrn = HRN::FromString(kCatalog);
-  int64_t version = 4;
-  auto layer = "testlayer";
 
-  olp::client::ApiLookupClient lookup_client(hrn, settings);
-  repository::PartitionsRepository repository(hrn, layer, settings,
+  ApiLookupClient lookup_client(hrn, settings);
+  repository::PartitionsRepository repository(hrn, kVersionedLayerId, settings,
                                               lookup_client);
 
   {
     SCOPED_TRACE("query partitions and store to cache");
-    auto request = olp::dataservice::read::TileRequest().WithTileKey(
-        olp::geo::TileKey::FromHereTile("5904591"));
+    auto request =
+        read::TileRequest().WithTileKey(TileKey::FromHereTile("5904591"));
     olp::client::CancellationContext context;
 
-    auto response = repository.GetTile(request, version, context);
+    auto response = repository.GetTile(request, kVersion, context);
 
     ASSERT_TRUE(response.IsSuccessful());
     ASSERT_EQ(response.GetResult().GetDataHandle(),
@@ -899,11 +888,11 @@ TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
     SCOPED_TRACE(
         "Check if all partitions stored in cache, request another tile");
     olp::client::CancellationContext context;
-    auto request = olp::dataservice::read::TileRequest()
-                       .WithTileKey(olp::geo::TileKey::FromHereTile("1476147"))
+    auto request = read::TileRequest()
+                       .WithTileKey(TileKey::FromHereTile("1476147"))
                        .WithFetchOption(read::CacheOnly);
 
-    auto response = repository.GetTile(request, version, context);
+    auto response = repository.GetTile(request, kVersion, context);
 
     // check if partition was stored to cache
     ASSERT_TRUE(response.IsSuccessful());
@@ -912,21 +901,16 @@ TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
 }
 
 TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
-  using olp::cache::KeyValueCache;
-  using testing::_;
+  using cache::KeyValueCache;
   using testing::Return;
-
-  constexpr auto version = 4u;
-  constexpr auto layer = "testlayer";
 
   const auto hrn = HRN::FromString(kCatalog);
 
   {
     SCOPED_TRACE("Same tile");
 
-    const auto tile_key = olp::geo::TileKey::FromHereTile("23247");
-    const auto request =
-        olp::dataservice::read::TileRequest().WithTileKey(tile_key);
+    const auto tile_key = TileKey::FromHereTile("23247");
+    const auto request = read::TileRequest().WithTileKey(tile_key);
     olp::client::CancellationContext context;
 
     auto mock_network = std::make_shared<NetworkMock>();
@@ -939,7 +923,7 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
-                                     kHttpResponceLookupQuery));
+                                     kHttpResponseLookupQuery));
     EXPECT_CALL(*mock_network,
                 Send(IsGetRequest(kQueryQuadTreeIndex), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -951,10 +935,10 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
     EXPECT_CALL(*mock_cache, Put(_, _, _)).WillOnce(Return(true));
 
-    olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, layer, settings,
-                                                lookup_client);
-    auto response = repository.GetAggregatedTile(request, version, context);
+    ApiLookupClient lookup_client(hrn, settings);
+    repository::PartitionsRepository repository(hrn, kVersionedLayerId,
+                                                settings, lookup_client);
+    auto response = repository.GetAggregatedTile(request, kVersion, context);
     const auto& result = response.GetResult();
 
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
@@ -964,9 +948,8 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     SCOPED_TRACE("QuadTree is cached");
 
     const auto depth = 4;
-    const auto tile_key = olp::geo::TileKey::FromHereTile("23247");
-    const auto request =
-        olp::dataservice::read::TileRequest().WithTileKey(tile_key);
+    const auto tile_key = TileKey::FromHereTile("23247");
+    const auto request = read::TileRequest().WithTileKey(tile_key);
     olp::client::CancellationContext context;
 
     auto mock_network = std::make_shared<NetworkMock>();
@@ -981,10 +964,10 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
 
     EXPECT_CALL(*mock_cache, Get(_)).WillOnce(Return(quad_tree.GetRawData()));
 
-    olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, layer, settings,
-                                                lookup_client);
-    auto response = repository.GetAggregatedTile(request, version, context);
+    ApiLookupClient lookup_client(hrn, settings);
+    repository::PartitionsRepository repository(hrn, kVersionedLayerId,
+                                                settings, lookup_client);
+    auto response = repository.GetAggregatedTile(request, kVersion, context);
 
     const auto& result = response.GetResult();
 
@@ -995,9 +978,8 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
   {
     SCOPED_TRACE("QueryApi is cached");
 
-    const auto tile_key = olp::geo::TileKey::FromHereTile("23247");
-    const auto request =
-        olp::dataservice::read::TileRequest().WithTileKey(tile_key);
+    const auto tile_key = TileKey::FromHereTile("23247");
+    const auto request = read::TileRequest().WithTileKey(tile_key);
     olp::client::CancellationContext context;
 
     auto mock_network = std::make_shared<NetworkMock>();
@@ -1018,10 +1000,10 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
     EXPECT_CALL(*mock_cache, Put(_, _, _)).WillOnce(Return(true));
 
-    olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, layer, settings,
-                                                lookup_client);
-    auto response = repository.GetAggregatedTile(request, version, context);
+    ApiLookupClient lookup_client(hrn, settings);
+    repository::PartitionsRepository repository(hrn, kVersionedLayerId,
+                                                settings, lookup_client);
+    auto response = repository.GetAggregatedTile(request, kVersion, context);
 
     const auto& result = response.GetResult();
 
@@ -1032,9 +1014,8 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
   {
     SCOPED_TRACE("No tiles found");
 
-    const auto tile_key = olp::geo::TileKey::FromHereTile("23064");
-    const auto request =
-        olp::dataservice::read::TileRequest().WithTileKey(tile_key);
+    const auto tile_key = TileKey::FromHereTile("23064");
+    const auto request = read::TileRequest().WithTileKey(tile_key);
     olp::client::CancellationContext context;
 
     auto mock_network = std::make_shared<NetworkMock>();
@@ -1047,7 +1028,7 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
-                                     kHttpResponceLookupQuery));
+                                     kHttpResponseLookupQuery));
     EXPECT_CALL(*mock_network,
                 Send(IsGetRequest(kQueryQuadTreeIndex), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -1059,10 +1040,10 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
     EXPECT_CALL(*mock_cache, Put(_, _, _)).WillOnce(Return(true));
 
-    olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, layer, settings,
-                                                lookup_client);
-    auto response = repository.GetAggregatedTile(request, version, context);
+    ApiLookupClient lookup_client(hrn, settings);
+    repository::PartitionsRepository repository(hrn, kVersionedLayerId,
+                                                settings, lookup_client);
+    auto response = repository.GetAggregatedTile(request, kVersion, context);
 
     const auto& error = response.GetError();
 
@@ -1073,10 +1054,10 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
   {
     SCOPED_TRACE("CacheOnly");
 
-    const auto tile_key = olp::geo::TileKey::FromHereTile("23064");
-    const auto request = olp::dataservice::read::TileRequest()
-                             .WithTileKey(tile_key)
-                             .WithFetchOption(read::CacheOnly);
+    const auto tile_key = TileKey::FromHereTile("23064");
+    const auto request =
+        read::TileRequest().WithTileKey(tile_key).WithFetchOption(
+            read::CacheOnly);
     olp::client::CancellationContext context;
 
     auto mock_network = std::make_shared<NetworkMock>();
@@ -1089,10 +1070,10 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
 
-    olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, layer, settings,
-                                                lookup_client);
-    auto response = repository.GetAggregatedTile(request, version, context);
+    ApiLookupClient lookup_client(hrn, settings);
+    repository::PartitionsRepository repository(hrn, kVersionedLayerId,
+                                                settings, lookup_client);
+    auto response = repository.GetAggregatedTile(request, kVersion, context);
     const auto& error = response.GetError();
 
     ASSERT_FALSE(response.IsSuccessful());
@@ -1102,9 +1083,8 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
   {
     SCOPED_TRACE("QueryApi request failed");
 
-    const auto tile_key = olp::geo::TileKey::FromHereTile("23247");
-    const auto request =
-        olp::dataservice::read::TileRequest().WithTileKey(tile_key);
+    const auto tile_key = TileKey::FromHereTile("23247");
+    const auto request = read::TileRequest().WithTileKey(tile_key);
     olp::client::CancellationContext context;
 
     auto mock_network = std::make_shared<NetworkMock>();
@@ -1123,10 +1103,10 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
 
-    olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, layer, settings,
-                                                lookup_client);
-    auto response = repository.GetAggregatedTile(request, version, context);
+    ApiLookupClient lookup_client(hrn, settings);
+    repository::PartitionsRepository repository(hrn, kVersionedLayerId,
+                                                settings, lookup_client);
+    auto response = repository.GetAggregatedTile(request, kVersion, context);
 
     const auto& error = response.GetError();
 
@@ -1139,9 +1119,8 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
   {
     SCOPED_TRACE("QuadTreeIndex request failed");
 
-    const auto tile_key = olp::geo::TileKey::FromHereTile("23247");
-    const auto request =
-        olp::dataservice::read::TileRequest().WithTileKey(tile_key);
+    const auto tile_key = TileKey::FromHereTile("23247");
+    const auto request = read::TileRequest().WithTileKey(tile_key);
     olp::client::CancellationContext context;
 
     auto mock_network = std::make_shared<NetworkMock>();
@@ -1154,7 +1133,7 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
-                                     kHttpResponceLookupQuery));
+                                     kHttpResponseLookupQuery));
     EXPECT_CALL(*mock_network,
                 Send(IsGetRequest(kQueryQuadTreeIndex), _, _, _, _))
         .WillOnce(
@@ -1166,10 +1145,10 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
 
-    olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, layer, settings,
-                                                lookup_client);
-    auto response = repository.GetAggregatedTile(request, version, context);
+    ApiLookupClient lookup_client(hrn, settings);
+    repository::PartitionsRepository repository(hrn, kVersionedLayerId,
+                                                settings, lookup_client);
+    auto response = repository.GetAggregatedTile(request, kVersion, context);
 
     const auto& error = response.GetError();
 
@@ -1182,9 +1161,8 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
   {
     SCOPED_TRACE("Failed to parse json");
 
-    const auto tile_key = olp::geo::TileKey::FromHereTile("23247");
-    const auto request =
-        olp::dataservice::read::TileRequest().WithTileKey(tile_key);
+    const auto tile_key = TileKey::FromHereTile("23247");
+    const auto request = read::TileRequest().WithTileKey(tile_key);
     olp::client::CancellationContext context;
 
     auto mock_network = std::make_shared<NetworkMock>();
@@ -1197,7 +1175,7 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
-                                     kHttpResponceLookupQuery));
+                                     kHttpResponseLookupQuery));
     EXPECT_CALL(*mock_network,
                 Send(IsGetRequest(kQueryQuadTreeIndex), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -1208,10 +1186,10 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
 
-    olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, layer, settings,
-                                                lookup_client);
-    auto response = repository.GetAggregatedTile(request, version, context);
+    ApiLookupClient lookup_client(hrn, settings);
+    repository::PartitionsRepository repository(hrn, kVersionedLayerId,
+                                                settings, lookup_client);
+    auto response = repository.GetAggregatedTile(request, kVersion, context);
     const auto& error = response.GetError();
 
     ASSERT_FALSE(response.IsSuccessful());
@@ -1220,53 +1198,306 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
 }
 
 TEST_F(PartitionsRepositoryTest, GetTile) {
-  using olp::cache::KeyValueCache;
-  using testing::_;
+  using testing::Mock;
   using testing::Return;
 
-  constexpr auto version = 4u;
-  constexpr auto layer = "testlayer";
-
   const auto hrn = HRN::FromString(kCatalog);
+  olp::client::CancellationContext context;
+
+  auto mock_network = std::make_shared<NetworkMock>();
+  auto mock_cache = std::make_shared<CacheMock>();
+
+  OlpClientSettings settings;
+  settings.cache = mock_cache;
+  settings.network_request_handler = mock_network;
+
+  const auto depth = 4;
+  auto quad_cache_key = [&](const TileKey& key) {
+    return kCatalog + "::" + kVersionedLayerId + "::" + key.ToHereTile() +
+           "::" + std::to_string(kVersion) + "::" + std::to_string(depth) +
+           "::quadtree";
+  };
+
+  std::string expected_api = kCatalog + "::query::v1::api";
+  ApiLookupClient lookup_client(hrn, settings);
+  EXPECT_CALL(*mock_cache, Get(expected_api, _)).WillOnce(Return(kUrlQueryApi));
+
+  auto tile_key = TileKey::FromHereTile("23064");
+  auto root = tile_key.ChangedLevelBy(-depth);
+  auto request = read::TileRequest().WithTileKey(tile_key);
+
+  const auto setup_get_cached_quad_expectations =
+      [&](const boost::optional<std::string>& root_data = boost::none) {
+        testing::InSequence sequence;
+
+        for (int32_t i = depth; i > 0; --i) {
+          EXPECT_CALL(*mock_cache,
+                      Get(quad_cache_key(tile_key.ChangedLevelBy(-i))))
+              .WillOnce(Return(nullptr));
+        }
+
+        EXPECT_CALL(*mock_cache, Get(quad_cache_key(tile_key)))
+            .WillOnce(testing::WithoutArgs(
+                [=]() -> cache::KeyValueCache::ValueTypePtr {
+                  if (!root_data) {
+                    return nullptr;
+                  }
+
+                  auto stream = std::stringstream(*root_data);
+                  read::QuadTreeIndex quad_tree(root, depth, stream);
+                  return quad_tree.GetRawData();
+                }));
+      };
 
   {
-    SCOPED_TRACE("Get tile not aggregated, if parent exist");
+    SCOPED_TRACE("Get tile not aggregated, partition not found");
 
-    const auto tile_key = olp::geo::TileKey::FromHereTile("23064");
-    const auto parent_tile_key = tile_key.ChangedLevelBy(-6).ToHereTile();
-    const auto request =
-        olp::dataservice::read::TileRequest().WithTileKey(tile_key);
-    olp::client::CancellationContext context;
-
-    auto mock_network = std::make_shared<NetworkMock>();
-    auto mock_cache = std::make_shared<CacheMock>();
-
-    OlpClientSettings settings;
-    settings.cache = mock_cache;
-    settings.network_request_handler = mock_network;
-
-    EXPECT_CALL(*mock_network, Send(IsGetRequest(kUrlLookupQuery), _, _, _, _))
-        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                         olp::http::HttpStatusCode::OK),
-                                     kHttpResponceLookupQuery));
+    setup_get_cached_quad_expectations();
     EXPECT_CALL(*mock_network,
                 Send(IsGetRequest(kQueryQuadTreeIndex), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
                                      kSubQuadsWithParent));
-    EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(boost::any()));
-    EXPECT_CALL(*mock_cache, Put(_, _, _, _)).WillOnce(Return(true));
-    EXPECT_CALL(*mock_cache, Get(_))
-        .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
-    EXPECT_CALL(*mock_cache, Put(_, _, _)).WillOnce(Return(true));
+    EXPECT_CALL(*mock_cache, Put(quad_cache_key(root), _, _))
+        .WillOnce(Return(true));
 
-    olp::client::ApiLookupClient lookup_client(hrn, settings);
-    repository::PartitionsRepository repository(hrn, layer, settings,
-                                                lookup_client);
-    auto response = repository.GetTile(request, version, context);
+    repository::PartitionsRepository repository(hrn, kVersionedLayerId,
+                                                settings, lookup_client);
+    const auto response = repository.GetTile(request, kVersion, context);
 
-    ASSERT_FALSE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_FALSE(response);
+
+    testing::Mock::VerifyAndClearExpectations(mock_network.get());
+    testing::Mock::VerifyAndClearExpectations(mock_cache.get());
+  }
+
+  const auto kHereTile = "5904591";
+  tile_key = TileKey::FromHereTile(kHereTile);
+  root = tile_key.ChangedLevelBy(-depth);
+  request = read::TileRequest().WithTileKey(tile_key);
+
+  {
+    SCOPED_TRACE("Get tile not aggregated");
+
+    setup_get_cached_quad_expectations();
+    EXPECT_CALL(*mock_network, Send(IsGetRequest(kQueryTreeIndex), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kSubQuadsWithParent));
+    EXPECT_CALL(*mock_cache, Put(quad_cache_key(root), _, _))
+        .WillOnce(Return(true));
+
+    repository::PartitionsRepository repository(hrn, kVersionedLayerId,
+                                                settings, lookup_client);
+    const auto response = repository.GetTile(request, kVersion, context);
+
+    ASSERT_TRUE(response);
+    EXPECT_EQ(response.GetResult().GetPartition(), kHereTile);
+
+    testing::Mock::VerifyAndClearExpectations(mock_network.get());
+    testing::Mock::VerifyAndClearExpectations(mock_cache.get());
+  }
+
+  std::vector<std::string> all_additional_fields = {
+      read::PartitionsRequest::kChecksum, read::PartitionsRequest::kCrc,
+      read::PartitionsRequest::kDataSize,
+      read::PartitionsRequest::kCompressedDataSize};
+
+  // Expected values
+  int64_t data_size = 25;
+  int64_t compressed_data_size = 20;
+  std::string checksum = "yyy";
+  std::string crc = "bbb";
+
+  {
+    SCOPED_TRACE("Get tile not aggregated with additional fields");
+
+    setup_get_cached_quad_expectations();
+    EXPECT_CALL(
+        *mock_network,
+        Send(IsGetRequest(kQueryTreeIndexWithAdditionalFields), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kSubQuadsWithParentAndAdditionalFields));
+    EXPECT_CALL(*mock_cache, Put(quad_cache_key(root), _, _))
+        .WillOnce(Return(true));
+
+    repository::PartitionsRepository repository(hrn, kVersionedLayerId,
+                                                settings, lookup_client);
+    const auto response =
+        repository.GetTile(request, kVersion, context, all_additional_fields);
+
+    ASSERT_TRUE(response);
+    const auto& result = response.GetResult();
+    EXPECT_EQ(result.GetPartition(), kHereTile);
+    EXPECT_TRUE(result.GetDataSize());
+    EXPECT_EQ(*result.GetDataSize(), data_size);
+    EXPECT_TRUE(result.GetCompressedDataSize());
+    EXPECT_EQ(*result.GetCompressedDataSize(), compressed_data_size);
+    EXPECT_TRUE(result.GetChecksum());
+    EXPECT_EQ(*result.GetChecksum(), checksum);
+    EXPECT_TRUE(result.GetCrc());
+    EXPECT_EQ(*result.GetCrc(), crc);
+
+    testing::Mock::VerifyAndClearExpectations(mock_network.get());
+    testing::Mock::VerifyAndClearExpectations(mock_cache.get());
+  }
+
+  {
+    SCOPED_TRACE(
+        "Cached partition without additional fields, request without "
+        "additional fields");
+
+    setup_get_cached_quad_expectations(kSubQuadsWithParent);
+    EXPECT_CALL(*mock_network, Send(_, _, _, _, _)).Times(0);
+    EXPECT_CALL(*mock_cache, Put(_, _, _)).Times(0);
+
+    repository::PartitionsRepository repository(hrn, kVersionedLayerId,
+                                                settings, lookup_client);
+    const auto response = repository.GetTile(request, kVersion, context);
+
+    ASSERT_TRUE(response);
+    const auto& result = response.GetResult();
+    EXPECT_EQ(result.GetPartition(), kHereTile);
+    EXPECT_FALSE(result.GetDataSize());
+    EXPECT_FALSE(result.GetCompressedDataSize());
+    EXPECT_FALSE(result.GetChecksum());
+    EXPECT_FALSE(result.GetCrc());
+
+    testing::Mock::VerifyAndClearExpectations(mock_network.get());
+    testing::Mock::VerifyAndClearExpectations(mock_cache.get());
+  }
+
+  {
+    SCOPED_TRACE(
+        "Cached partition with additional fields, request without additional "
+        "fields");
+
+    setup_get_cached_quad_expectations(kSubQuadsWithParentAndAdditionalFields);
+    EXPECT_CALL(*mock_network, Send(_, _, _, _, _)).Times(0);
+    EXPECT_CALL(*mock_cache, Put(_, _, _)).Times(0);
+
+    repository::PartitionsRepository repository(hrn, kVersionedLayerId,
+                                                settings, lookup_client);
+    const auto response = repository.GetTile(request, kVersion, context);
+
+    ASSERT_TRUE(response);
+    const auto& result = response.GetResult();
+    EXPECT_EQ(result.GetPartition(), kHereTile);
+    EXPECT_TRUE(result.GetDataSize());
+    EXPECT_EQ(*result.GetDataSize(), data_size);
+    EXPECT_TRUE(result.GetCompressedDataSize());
+    EXPECT_EQ(*result.GetCompressedDataSize(), compressed_data_size);
+    EXPECT_TRUE(result.GetChecksum());
+    EXPECT_EQ(*result.GetChecksum(), checksum);
+    EXPECT_TRUE(result.GetCrc());
+    EXPECT_EQ(*result.GetCrc(), crc);
+
+    testing::Mock::VerifyAndClearExpectations(mock_network.get());
+    testing::Mock::VerifyAndClearExpectations(mock_cache.get());
+  }
+
+  {
+    SCOPED_TRACE(
+        "Cached partition without additional fields, request with additional "
+        "fields");
+
+    setup_get_cached_quad_expectations(kSubQuadsWithParent);
+    EXPECT_CALL(
+        *mock_network,
+        Send(IsGetRequest(kQueryTreeIndexWithAdditionalFields), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kSubQuadsWithParentAndAdditionalFields));
+    EXPECT_CALL(*mock_cache, Put(quad_cache_key(root), _, _))
+        .WillOnce(Return(true));
+
+    repository::PartitionsRepository repository(hrn, kVersionedLayerId,
+                                                settings, lookup_client);
+    const auto response =
+        repository.GetTile(request, kVersion, context, all_additional_fields);
+
+    ASSERT_TRUE(response);
+    const auto& result = response.GetResult();
+    EXPECT_EQ(result.GetPartition(), kHereTile);
+    EXPECT_TRUE(result.GetDataSize());
+    EXPECT_EQ(*result.GetDataSize(), data_size);
+    EXPECT_TRUE(result.GetCompressedDataSize());
+    EXPECT_EQ(*result.GetCompressedDataSize(), compressed_data_size);
+    EXPECT_TRUE(result.GetChecksum());
+    EXPECT_EQ(*result.GetChecksum(), checksum);
+    EXPECT_TRUE(result.GetCrc());
+    EXPECT_EQ(*result.GetCrc(), crc);
+
+    testing::Mock::VerifyAndClearExpectations(mock_network.get());
+    testing::Mock::VerifyAndClearExpectations(mock_cache.get());
+  }
+
+  {
+    SCOPED_TRACE(
+        "Cached partition with not all additional fields, request with all "
+        "additional fields");
+
+    setup_get_cached_quad_expectations(
+        kSubQuadsWithParentAndAdditionalFieldsWithoutCrc);
+    EXPECT_CALL(
+        *mock_network,
+        Send(IsGetRequest(kQueryTreeIndexWithAdditionalFields), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kSubQuadsWithParentAndAdditionalFields));
+    EXPECT_CALL(*mock_cache, Put(quad_cache_key(root), _, _))
+        .WillOnce(Return(true));
+
+    repository::PartitionsRepository repository(hrn, kVersionedLayerId,
+                                                settings, lookup_client);
+    const auto response =
+        repository.GetTile(request, kVersion, context, all_additional_fields);
+
+    ASSERT_TRUE(response);
+    const auto& result = response.GetResult();
+    EXPECT_EQ(result.GetPartition(), kHereTile);
+    EXPECT_TRUE(result.GetDataSize());
+    EXPECT_EQ(*result.GetDataSize(), data_size);
+    EXPECT_TRUE(result.GetCompressedDataSize());
+    EXPECT_EQ(*result.GetCompressedDataSize(), compressed_data_size);
+    EXPECT_TRUE(result.GetChecksum());
+    EXPECT_EQ(*result.GetChecksum(), checksum);
+    EXPECT_TRUE(result.GetCrc());
+    EXPECT_EQ(*result.GetCrc(), crc);
+
+    testing::Mock::VerifyAndClearExpectations(mock_network.get());
+    testing::Mock::VerifyAndClearExpectations(mock_cache.get());
+  }
+
+  {
+    SCOPED_TRACE(
+        "Cached partition with additional fields, request with additional "
+        "fields");
+
+    setup_get_cached_quad_expectations(kSubQuadsWithParentAndAdditionalFields);
+    EXPECT_CALL(*mock_network, Send(_, _, _, _, _)).Times(0);
+    EXPECT_CALL(*mock_cache, Put(_, _, _)).Times(0);
+
+    repository::PartitionsRepository repository(hrn, kVersionedLayerId,
+                                                settings, lookup_client);
+    const auto response =
+        repository.GetTile(request, kVersion, context, all_additional_fields);
+
+    ASSERT_TRUE(response);
+    const auto& result = response.GetResult();
+    EXPECT_EQ(result.GetPartition(), kHereTile);
+    EXPECT_TRUE(result.GetDataSize());
+    EXPECT_EQ(*result.GetDataSize(), data_size);
+    EXPECT_TRUE(result.GetCompressedDataSize());
+    EXPECT_EQ(*result.GetCompressedDataSize(), compressed_data_size);
+    EXPECT_TRUE(result.GetChecksum());
+    EXPECT_EQ(*result.GetChecksum(), checksum);
+    EXPECT_TRUE(result.GetCrc());
+    EXPECT_EQ(*result.GetCrc(), crc);
+
+    testing::Mock::VerifyAndClearExpectations(mock_network.get());
+    testing::Mock::VerifyAndClearExpectations(mock_cache.get());
   }
 }
-
 }  // namespace

@@ -53,7 +53,9 @@ TEST(ProtectedKeyList, Protect) {
       EXPECT_FALSE(protected_keys.IsDirty());
 
       // protect key
+      EXPECT_FALSE(protected_keys.IsProtected({"key:1"}));
       EXPECT_TRUE(protected_keys.Protect({"key:1"}, cb));
+      EXPECT_TRUE(protected_keys.IsProtected({"key:1"}));
       EXPECT_TRUE(protected_keys.IsDirty());
       auto raw_data = protected_keys.Serialize();
       EXPECT_TRUE(raw_data.get());

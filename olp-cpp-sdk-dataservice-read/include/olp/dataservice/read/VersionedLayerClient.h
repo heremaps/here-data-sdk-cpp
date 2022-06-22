@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -300,6 +300,25 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    */
   client::CancellableFuture<PartitionsResponse> GetPartitions(
       PartitionsRequest partitions_request);
+
+  /**
+   * @brief Fetches a list of partitions including data size, checksum and crc
+   * asynchronously.
+   *
+   * @note CacheWithUpdate fetch option is not supported.
+   * @note If OnlineIfNotFound fetch option is used and the cached data does not
+   * contain data size, checksum or crc, a new network request is triggered to
+   * download required data and update the cache record.
+   *
+   * @param tile_request The `TileRequest` instance that contains
+   * a complete set of request parameters.
+   * @param callback The `PartitionsResponseCallback` object that is invoked if
+   * the list of partitions is available or an error is encountered.
+   *
+   * @return A token that can be used to cancel this request.
+   */
+  client::CancellationToken QuadTreeIndex(TileRequest tile_request,
+                                          PartitionsResponseCallback callback);
 
   /**
    * @brief Prefetches a set of tiles asynchronously.

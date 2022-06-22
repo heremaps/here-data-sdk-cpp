@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,6 +65,11 @@ client::CancellationToken VersionedLayerClient::GetPartitions(
 client::CancellableFuture<PartitionsResponse>
 VersionedLayerClient::GetPartitions(PartitionsRequest partitions_request) {
   return impl_->GetPartitions(std::move(partitions_request));
+}
+
+client::CancellationToken VersionedLayerClient::QuadTreeIndex(
+    TileRequest tile_request, PartitionsResponseCallback callback) {
+  return impl_->QuadTreeIndex(std::move(tile_request), std::move(callback));
 }
 
 client::CancellationToken VersionedLayerClient::PrefetchTiles(

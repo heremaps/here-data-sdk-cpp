@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2309,4 +2309,43 @@ TEST_F(AuthenticationClientTest, Timeout) {
 
     testing::Mock::VerifyAndClearExpectations(network_.get());
   }
+}
+
+TEST_F(AuthenticationClientTest, SignInWithDevice) {
+  auth::AuthenticationSettings settings;
+  settings.network_request_handler = network_;
+  settings.token_endpoint_url = kTokenEndpointUrl;
+  settings.task_scheduler =
+      client::OlpClientSettingsFactory::CreateDefaultTaskScheduler();
+
+  std::string body =
+      R"({"grantType":"client_credentials","deviceId":"my-device-1"})";
+
+  EXPECT_CALL(*network_,
+              Send(testing::AllOf(HeadersContainAuthorization(), BodyEq(body),
+                                  IsPostRequest(kRequestAuth)),
+                   _, _, _, _))
+      .WillOnce(ReturnHttpResponse(
+          GetResponse(http::HttpStatusCode::OK).WithError(kErrorOk),
+          std::string()));
+
+  std::promise<void> request;
+  auth::AuthenticationClient::SignInClientResponse response;
+  auth::AuthenticationClient::SignInProperties properties;
+  properties.device_id = "my-device-1";
+
+  auto client =
+      std::make_unique<auth::AuthenticationClient>(std::move(settings));
+
+  client->SignInClient(
+      auth::AuthenticationCredentials(key_, secret_), properties,
+      [&](const auth::AuthenticationClient::SignInClientResponse& value) {
+        response = value;
+        request.set_value();
+      });
+
+  request.get_future().wait();
+  EXPECT_TRUE(response.IsSuccessful());
+
+  ::testing::Mock::VerifyAndClearExpectations(network_.get());
 }

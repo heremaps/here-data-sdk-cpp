@@ -16,7 +16,7 @@
 # License-Filename: LICENSE
 
 
-project(olp-cpp-sdk-core VERSION 1.14.0)
+project(olp-cpp-sdk-core VERSION 1.15.1)
 set(DESCRIPTION "Core network and utility library for the HERE OLP SDK C++")
 
 find_package(RapidJSON 1.1.0 REQUIRED CMAKE_FIND_ROOT_PATH_BOTH)
@@ -44,15 +44,14 @@ if(IOS OR (WIN32 AND NOT MINGW))
 elseif(ANDROID)
     if(OLP_SDK_ENABLE_ANDROID_CURL)
         set(NETWORK_NO_CURL OFF)
-        find_package(CURL 7.47.0 REQUIRED)
+        find_package(CURL 7.52.0 REQUIRED)
     else()
         find_package(Java REQUIRED)
         set(NETWORK_NO_CURL ON)
     endif()
 else()
     set(NETWORK_NO_CURL OFF)
-
-    find_package(CURL 7.47.0 REQUIRED)
+    find_package(CURL 7.52.0 REQUIRED)
 endif()
 
 set(Network_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
