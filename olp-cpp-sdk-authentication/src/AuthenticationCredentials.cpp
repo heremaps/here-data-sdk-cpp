@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
 #include <vector>
 
 namespace {
-const std::regex kRegex{"\\s*=\\s*"};
+const std::string kRegexString = "\\s*=\\s*";
 const std::string kHereAccessKeyId = "here.access.key.id";
 const std::string kHereAccessKeySecret = "here.access.key.secret";
 const std::string kHereTokenEndpointUrl = "here.token.endpoint.url";
@@ -56,6 +56,8 @@ namespace authentication {
 
 boost::optional<AuthenticationCredentials>
 AuthenticationCredentials::ReadFromStream(std::istream& stream) {
+  static const std::regex kRegex{kRegexString};
+
   std::string access_key_id;
   std::string access_key_secret;
   std::string token_endpoint_url;
