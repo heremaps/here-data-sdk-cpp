@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <cstdlib>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -115,7 +116,13 @@ std::string CaBundlePath() {
     bundle_path = AlternativeCaBundlePath();
   }
   if (!olp::utils::Dir::FileExists(bundle_path)) {
-    bundle_path.clear();
+    const char* ssl_cert_path = std::getenv("SSL_CERT_FILE");
+    if (ssl_cert_path) {
+      bundle_path = std::string{ssl_cert_path};
+    }
+    else {
+      bundle_path.clear();
+    }
   }
   return bundle_path;
 }
