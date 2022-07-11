@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-#include <cstdio>
 #include <memory>
 #include <string>
+#include <thread>
 
 #include <gmock/gmock.h>
 
