@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,7 +113,7 @@ olp::cache::StorageSettings CreateStorageSettings(
 }
 
 int64_t GetElapsedTime(std::chrono::steady_clock::time_point start) {
-  return std::chrono::duration_cast<std::chrono::milliseconds>(
+  return std::chrono::duration_cast<std::chrono::microseconds>(
              std::chrono::steady_clock::now() - start)
       .count();
 }
@@ -526,7 +526,7 @@ void DefaultCacheImpl::InitializeLru() {
   }
 
   OLP_SDK_LOG_INFO_F(kLogTag,
-                     "LRU cache initialized, items=%zu, time=%" PRId64 " ms",
+                     "LRU cache initialized, items=%zu, time=%" PRId64 "us",
                      mutable_cache_lru_->Size(), GetElapsedTime(start));
 }
 
@@ -632,7 +632,7 @@ uint64_t DefaultCacheImpl::MaybeEvictData() {
 
   OLP_SDK_LOG_INFO_F(kLogTag,
                      "Evicted from mutable cache, items=%" PRId32
-                     ", time=%" PRId64 "ms, size=%" PRIu64,
+                     ", time=%" PRId64 "us, size=%" PRIu64,
                      count, GetElapsedTime(start), evicted);
 
   return evicted;
@@ -998,7 +998,7 @@ bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
   }
 
   OLP_SDK_LOG_INFO_F(kLogTag,
-                     "Protect, time=%" PRId64 " ms, added keys size=%" PRIu64
+                     "Protect, time=%" PRId64 "us, added keys size=%" PRIu64
                      ", total size=%" PRIu64,
                      GetElapsedTime(start),
                      static_cast<std::uint64_t>(keys.size()),
@@ -1018,30 +1018,33 @@ bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
     return result;
   }
 
-  for (const auto& key : keys) {
-    if (memory_cache_) {
-      if (!memory_cache_->Remove(key)) {
-        memory_cache_->RemoveKeysWithPrefix(key);
-      }
-    }
-    if (mutable_cache_) {
-      auto it = mutable_cache_->NewIterator(leveldb::ReadOptions());
-      it->Seek(key);
-      while (it->Valid()) {
-        auto cached_key = it->key().ToString();
-        if (cached_key.size() >= key.size() &&
-            std::equal(key.begin(), key.end(), cached_key.begin())) {
-          AddKeyLru(cached_key, it->value());
-        } else {
-          break;
+  if (memory_cache_ || (mutable_cache_ && mutable_cache_lru_)) {
+    for (const auto& key : keys) {
+      if (memory_cache_) {
+        if (!memory_cache_->Remove(key)) {
+          memory_cache_->RemoveKeysWithPrefix(key);
         }
-        it->Next();
+      }
+
+      if (mutable_cache_ && mutable_cache_lru_) {
+        auto it = mutable_cache_->NewIterator(leveldb::ReadOptions());
+        auto key_slice = leveldb::Slice(key);
+        it->Seek(key_slice);
+        while (it->Valid()) {
+          auto cached_key = it->key();
+          if (cached_key.starts_with(key_slice)) {
+            AddKeyLru(cached_key.ToString(), it->value());
+          } else {
+            break;
+          }
+          it->Next();
+        }
       }
     }
   }
 
   OLP_SDK_LOG_INFO_F(kLogTag,
-                     "Release, time=%" PRId64 " ms, released keys size=%" PRIu64
+                     "Release, time=%" PRId64 "us, released keys size=%" PRIu64
                      ", total size=%" PRIu64,
                      GetElapsedTime(start),
                      static_cast<std::uint64_t>(keys.size()),

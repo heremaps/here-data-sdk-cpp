@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
  * SPDX-License-Identifier: Apache-2.0
  * License-Filename: LICENSE
  */
+
+#include <thread>
 
 #include <gmock/gmock.h>
 #include <matchers/NetworkUrlMatchers.h>
@@ -335,20 +337,18 @@ TEST_F(TokenProviderTest, RetrySettings) {
     client::CancellationContext context;
 
     EXPECT_CALL(*network_mock_, Send(IsPostRequest(kOAuthTokenUrl), _, _, _, _))
-        .WillOnce(
-            testing::WithArg<2>([&](http::Network::Callback callback) {
-              async_finish_future = std::async(std::launch::async, [=]() {
-                // Oversleep the timeout period.
-                std::this_thread::sleep_for(
-                    std::chrono::seconds(kMinTimeout * 2));
+        .WillOnce(testing::WithArg<2>([&](http::Network::Callback callback) {
+          async_finish_future = std::async(std::launch::async, [=]() {
+            // Oversleep the timeout period.
+            std::this_thread::sleep_for(std::chrono::seconds(kMinTimeout * 2));
 
-                callback(http::NetworkResponse()
-                             .WithStatus(http::HttpStatusCode::OK)
-                             .WithRequestId(kRequestId));
-              });
+            callback(http::NetworkResponse()
+                         .WithStatus(http::HttpStatusCode::OK)
+                         .WithRequestId(kRequestId));
+          });
 
-              return http::SendOutcome(kRequestId);
-            }));
+          return http::SendOutcome(kRequestId);
+        }));
 
     EXPECT_CALL(*network_mock_, Cancel(kRequestId)).Times(1);
 
@@ -435,25 +435,21 @@ TEST_F(TokenProviderTest, CancellableProvider) {
 
     client::CancellationContext context;
     EXPECT_CALL(*network_mock_, Send(IsPostRequest(kOAuthTokenUrl), _, _, _, _))
-        .WillOnce(
-            testing::WithArg<2>([&](http::Network::Callback callback) {
-              async_finish_future =
-                  std::async(std::launch::async, [&, callback]() {
-                    std::this_thread::sleep_for(
-                        std::chrono::seconds(kMinTimeout));
-                    context.CancelOperation();
+        .WillOnce(testing::WithArg<2>([&](http::Network::Callback callback) {
+          async_finish_future = std::async(std::launch::async, [&, callback]() {
+            std::this_thread::sleep_for(std::chrono::seconds(kMinTimeout));
+            context.CancelOperation();
 
-                    EXPECT_EQ(network_wait_promise.get_future().wait_for(
-                                  kWaitTimeout),
-                              std::future_status::ready);
+            EXPECT_EQ(network_wait_promise.get_future().wait_for(kWaitTimeout),
+                      std::future_status::ready);
 
-                    callback(http::NetworkResponse()
-                                 .WithStatus(http::HttpStatusCode::OK)
-                                 .WithRequestId(kRequestId));
-                  });
+            callback(http::NetworkResponse()
+                         .WithStatus(http::HttpStatusCode::OK)
+                         .WithRequestId(kRequestId));
+          });
 
-              return http::SendOutcome(kRequestId);
-            }));
+          return http::SendOutcome(kRequestId);
+        }));
 
     EXPECT_CALL(*network_mock_, Cancel(kRequestId)).Times(1);
 
