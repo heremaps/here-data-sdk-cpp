@@ -360,7 +360,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsForInvalidLayer) {
       });
 
   ASSERT_FALSE(partitions_response.IsSuccessful());
-  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
+  ASSERT_EQ(olp::client::ErrorCode::NotFound,
             partitions_response.GetError().GetErrorCode());
 }
 
@@ -625,7 +625,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileWithInvalidLayerId) {
   });
 
   ASSERT_FALSE(data_response.IsSuccessful());
-  ASSERT_EQ(olp::client::ErrorCode::BadRequest,
+  ASSERT_EQ(olp::client::ErrorCode::NotFound,
             data_response.GetError().GetErrorCode());
 }
 
