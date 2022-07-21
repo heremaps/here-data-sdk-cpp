@@ -76,9 +76,7 @@ TileKey TileKey::FromQuadKey(const std::string& quad_key) {
 }
 
 std::string TileKey::ToHereTile() const {
-  std::ostringstream os;
-  os << std::dec << ToQuadKey64();
-  return os.str();
+  return std::to_string(ToQuadKey64());
 }
 
 TileKey TileKey::FromHereTile(const std::string& key) {
