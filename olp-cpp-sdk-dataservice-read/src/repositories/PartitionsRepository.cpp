@@ -364,7 +364,7 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
                           catalog_.ToCatalogHRNString().c_str(), key.c_str());
       return cached_partitions;
     } else if (fetch_option == CacheOnly) {
-      OLP_SDK_LOG_INFO_F(
+      OLP_SDK_LOG_DEBUG_F(
           kLogTag, "GetPartitionById not found in cache, hrn='%s', key='%s'",
           catalog_.ToCatalogHRNString().c_str(), key.c_str());
       return client::ApiError::NotFound(
@@ -460,7 +460,7 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
             tile_key.ToHereTile().c_str(), kAggregateQuadTreeDepth);
       }
     } else if (fetch_option == CacheOnly) {
-      OLP_SDK_LOG_INFO_F(
+      OLP_SDK_LOG_DEBUG_F(
           kLogTag, "GetQuadTreeIndexForTile not found in cache, tile='%s'",
           tile_key.ToHereTile().c_str());
       return client::ApiError::NotFound(
