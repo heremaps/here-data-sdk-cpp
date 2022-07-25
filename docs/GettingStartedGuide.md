@@ -1,5 +1,20 @@
 # Getting Started Guide
 
+In this guide, learn how to authenticate to and start working with the HERE platform using the Data SDK:
+
+- [Prerequisites](#prerequisites)
+- [Concepts](#concepts)
+- [Get credentials](#get-credentials)
+- [Install the SDK](#install-the-sdk)
+- [Build the SDK](#build-the-sdk)
+  - [Build on Windows](#build-on-windows)
+  - [Generate documentation with Doxygen](#generate-documentation-with-doxygen)
+  - [CMake flags](#cmake-flags)
+- [Available components](#available-components)
+- [HERE Data SDK for C++ in CMake projects](#here-data-sdk-for-c-in-cmake-projects)
+- [Reference documentation](#reference-documentation)
+- [Examples](#examples)
+
 ## Prerequisites
 
 To start using HERE Data SDK for C++, you need a platform user account.
@@ -38,7 +53,7 @@ You can use the Data SDK in your CMake project or install it on your system.
 
 **To install the Data SDK on your system:**
 
-1. Install all the dependencies needed for the Data SDK.<br>For more information on dependencies, see the [Dependencies](#dependencies) and [Additional Linux dependencies](#additional-linux-dependencies) sections.
+1. Install all the dependencies needed for the Data SDK.<br>For more information on dependencies, see the [Dependencies](../README.md#dependencies) and [Linux dependencies](../README.md#linux-dependencies) sections in the README.md file.
 
 2. (Optional) To find the required dependencies in the system, set the `OLP_SDK_BUILD_EXTERNAL_DEPS` flag to `OFF`.
 
@@ -92,32 +107,6 @@ We assume that you have installed CMake, Microsoft Visual Studio 2017, and the V
 > #### Note
 > Microsoft Visual Studio uses a default build directory that has a long path name. Since dependencies for the Data SDK are installed within the build directory, it is recommended that you edit the generated `CMakeSettings.json` file and change the build directory path name to a shorter path name. This ensures that the maximum length of each path is not greater than 260 characters. For details, see the <a href="https://docs.microsoft.com/en-us/windows/desktop/fileio/naming-a-file" target="_blank">Naming Files, Paths, and Namespaces</a> section of the Windows Dev Center documentation.
 
-## Available components
-
-Data SDK for C++ contains separate libraries, each of which has a distinct functionality. For more information about the components, see the [architectural overview](OverallArchitecture.md).
-
-## HERE Data SDK for C++ in CMake projects
-
-Once the libraries are installed, you can find them using the `find_package()` function within your project. For more information on how to install libraries, see [the related section](../README.md#install-the-sdk) in the README.md file.
-
-```CMake
-find_package(olp-cpp-sdk-core REQUIRED)
-find_package(olp-cpp-sdk-authentication REQUIRED)
-find_package(olp-cpp-sdk-dataservice-read REQUIRED)
-find_package(olp-cpp-sdk-dataservice-write REQUIRED)
-```
-
-Once the necessary targets are imported, you can link them to your library:
-
-```CMake
-target_link_libraries(example_app
-    olp-cpp-sdk-core
-    olp-cpp-sdk-authentication
-    olp-cpp-sdk-dataservice-read
-    olp-cpp-sdk-dataservice-write
-)
-```
-
 ### Generate documentation with Doxygen
 
 If you want to build documentation from annotated source code, you need to have <a href="http://www.doxygen.nl/" target="_blank">Doxygen</a> and CMake version 3.9 or later.
@@ -148,6 +137,32 @@ cmake --build . --target docs
 | `OLP_SDK_ENABLE_DEFAULT_CACHE_LMDB `| Defaults to `OFF`. If enabled, the default cache implementation based on the LMDB backend is enabled. |
 | `OLP_SDK_ENABLE_ANDROID_CURL`| Defaults to `OFF`. If enabled, libcurl will be used instead of the Android native HTTP client. |
 
+## Available components
+
+Data SDK for C++ contains separate libraries, each of which has a distinct functionality. For more information about the components, see the [architectural overview](OverallArchitecture.md).
+
+## HERE Data SDK for C++ in CMake projects
+
+When the libraries are installed, you can find them using the `find_package()` function within your project. For more information on how to install libraries, see [Install the SDK](#install-the-sdk).
+
+```CMake
+find_package(olp-cpp-sdk-core REQUIRED)
+find_package(olp-cpp-sdk-authentication REQUIRED)
+find_package(olp-cpp-sdk-dataservice-read REQUIRED)
+find_package(olp-cpp-sdk-dataservice-write REQUIRED)
+```
+
+Once the necessary targets are imported, you can link them to your library:
+
+```CMake
+target_link_libraries(example_app
+    olp-cpp-sdk-core
+    olp-cpp-sdk-authentication
+    olp-cpp-sdk-dataservice-read
+    olp-cpp-sdk-dataservice-write
+)
+```
+
 ## Reference documentation
 
 The API reference documentation for Data SDK for C++ is available on our [GitHub Pages](https://heremaps.github.io/here-data-sdk-cpp/).
@@ -159,4 +174,4 @@ HERE Data SDK for C++ contains several example programs that demonstrate some of
 - [Read example](dataservice-read-catalog-example.md) – demonstrates how to get catalog and partition metadata, as well as partition data.
 - [Read example for a stream layer](dataservice-read-from-stream-layer-example.md) – demonstrates how to get data from a stream layer.
 - [Cache example](dataservice-cache-example.md) – demonstrates how to get partition data and work with a mutable and protected cache.
-- [Write example](dataservice-write-example.md) – demonstrates how to publish data to OLP.
+- [Write example](dataservice-write-example.md) – demonstrates how to publish data to the HERE platform.
