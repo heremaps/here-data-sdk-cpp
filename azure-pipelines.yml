@@ -48,7 +48,7 @@ jobs:
     LD_PRELOAD: "/lib/x86_64-linux-gnu/libSegFault.so"
     SEGFAULT_SIGNALS: "all"
   steps:
-    - bash: env && ls -la $ANDROID_HOME && ls -la $ANDROID_HOME/ndk-bundle
+    - bash: env && ls -la $ANDROID_HOME
       displayName: 'Verification of prerequisites'
     - bash: scripts/android/build.sh
       displayName: 'Android build and Examples'
