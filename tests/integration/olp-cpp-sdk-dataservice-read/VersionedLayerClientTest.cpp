@@ -284,10 +284,12 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
   EXPECT_CALL(*network_mock_, Send(_, _, _, _, _))
       .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                    HTTP_RESPONSE_LOOKUP))
-      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                   kHttpResponsePartition_269))
-      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                   kHttpResponseBlobData_269));
+      .WillOnce(
+          ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK, 1024, 123),
+                             kHttpResponsePartition_269))
+      .WillOnce(
+          ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK, 1024, 123),
+                             kHttpResponseBlobData_269));
 
   auto client = std::make_shared<read::VersionedLayerClient>(
       kCatalog, kTestLayer, kTestVersion, settings_);
@@ -305,6 +307,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataFromPartitionAsync) {
   ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
   ASSERT_NE(response.GetResult(), nullptr);
   ASSERT_NE(response.GetResult()->size(), 0u);
+
+  const auto& network_stats = response.GetPayload();
+  EXPECT_EQ(network_stats.GetBytesDownloaded(), 2048);
+  EXPECT_EQ(network_stats.GetBytesUploaded(), 246);
 
   const auto cache_key = olp::cache::KeyGenerator::CreatePartitionKey(
       GetTestCatalog(), kTestLayer, kTestPartition, kTestVersion);
@@ -2862,13 +2868,14 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTile) {
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                   kHttpSubQuads_23064));
+      .WillOnce(
+          ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK, 1024, 123),
+                             kHttpSubQuads_23064));
 
   EXPECT_CALL(*network_mock_,
               Send(IsGetRequest(kHttpResponseBlobData_5904591), _, _, _, _))
-      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                   "someData"));
+      .WillOnce(ReturnHttpResponse(
+          GetResponse(http::HttpStatusCode::OK, 1024, 123), "someData"));
 
   auto request =
       read::TileRequest().WithTileKey(geo::TileKey::FromHereTile("5904591"));
@@ -2880,6 +2887,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTile) {
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
   ASSERT_EQ("someData", data_string);
+
+  const auto& network_stats = data_response.GetPayload();
+  EXPECT_EQ(network_stats.GetBytesDownloaded(), 2048);
+  EXPECT_EQ(network_stats.GetBytesUploaded(), 246);
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetTileConcurrent) {
@@ -3463,7 +3474,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
         *network_mock_,
         Send(IsGetRequest(URL_BLOB_AGGREGATE_DATA_23618364), _, _, _, _))
         .WillOnce(ReturnHttpResponse(
-            GetResponse(http::HttpStatusCode::OK, 10240000, 123), "some_data"));
+            GetResponse(http::HttpStatusCode::OK, 1024, 123), "some_data"));
 
     auto client = read::VersionedLayerClient(kCatalog, kTestLayer, kTestVersion,
                                              settings_);
@@ -3481,7 +3492,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
     ASSERT_EQ(result.GetTile(), tile_key);
 
     const auto& network_stats = response.GetPayload();
-    EXPECT_EQ(network_stats.GetBytesDownloaded(), 10241024);
+    EXPECT_EQ(network_stats.GetBytesDownloaded(), 2048);
     EXPECT_EQ(network_stats.GetBytesUploaded(), 246);
 
     testing::Mock::VerifyAndClearExpectations(network_mock_.get());

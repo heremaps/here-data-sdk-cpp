@@ -79,9 +79,9 @@ using PartitionsResponseCallback =
 /// The `Data` alias type.
 using DataResult = model::Data;
 /// The data response alias.
-using DataResponse = Response<DataResult>;
+using DataResponse = Response<DataResult, client::NetworkStatistics>;
 /// The callback type of the data response.
-using DataResponseCallback = Callback<DataResult>;
+using DataResponseCallback = Callback<DataResult, client::NetworkStatistics>;
 
 /// The aggregated data response alias.
 using AggregatedDataResponse =

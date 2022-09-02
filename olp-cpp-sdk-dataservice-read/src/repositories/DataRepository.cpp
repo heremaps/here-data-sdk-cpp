@@ -64,13 +64,15 @@ DataResponse DataRepository::GetVersionedTile(
                                   storage_);
   auto response = repository.GetTile(request, version, context);
 
+  auto network_statistics = response.GetPayload();
+
   if (!response.IsSuccessful()) {
     OLP_SDK_LOG_WARNING_F(
         kLogTag,
         "GetVersionedDataTile partition request failed, hrn='%s', key='%s'",
         catalog_.ToCatalogHRNString().c_str(),
         request.CreateKey(layer_id).c_str());
-    return response.GetError();
+    return DataResponse(response.GetError(), network_statistics);
   }
 
   // Get the data using a data handle for requested tile
@@ -79,18 +81,28 @@ DataResponse DataRepository::GetVersionedTile(
                                 .WithDataHandle(partition.GetDataHandle())
                                 .WithFetchOption(request.GetFetchOption());
 
-  return GetBlobData(layer_id, kBlobService, data_request, std::move(context));
+  auto data_response =
+      GetBlobData(layer_id, kBlobService, data_request, std::move(context));
+  network_statistics += data_response.GetPayload();
+
+  if (data_response) {
+    return DataResponse(data_response.MoveResult(), network_statistics);
+  } else {
+    return DataResponse(data_response.GetError(), network_statistics);
+  }
 }
 
 BlobApi::DataResponse DataRepository::GetVersionedData(
     const std::string& layer_id, const DataRequest& request, int64_t version,
     client::CancellationContext context, const bool fail_on_cache_error) {
   if (request.GetDataHandle() && request.GetPartitionId()) {
-    return {{client::ErrorCode::PreconditionFailed,
-             "Both data handle and partition id specified"}};
+    return client::ApiError::PreconditionFailed(
+        "Both data handle and partition id specified");
   }
 
   auto blob_request = request;
+  client::NetworkStatistics network_statistics;
+
   if (!request.GetDataHandle()) {
     // get data handle for a partition to be queried
     PartitionsRepository repository(catalog_, layer_id, settings_,
@@ -98,8 +110,10 @@ BlobApi::DataResponse DataRepository::GetVersionedData(
     auto partitions_response =
         repository.GetPartitionById(request, version, context);
 
+    network_statistics = partitions_response.GetPayload();
+
     if (!partitions_response.IsSuccessful()) {
-      return partitions_response.GetError();
+      return DataResponse(partitions_response.GetError(), network_statistics);
     }
 
     const auto& partitions = partitions_response.GetResult().GetPartitions();
@@ -112,16 +126,25 @@ BlobApi::DataResponse DataRepository::GetVersionedData(
           catalog_.ToCatalogHRNString().c_str(),
           request.CreateKey(layer_id, version).c_str());
 
-      return {{client::ErrorCode::NotFound, "Partition not found"}};
+      return DataResponse(client::ApiError::NotFound("Partition not found"),
+                          network_statistics);
     }
 
     blob_request.WithDataHandle(partitions.front().GetDataHandle());
   }
 
   // finally get the data using a data handle
-  return repository::DataRepository::GetBlobData(
+  auto data_response = repository::DataRepository::GetBlobData(
       layer_id, kBlobService, blob_request, std::move(context),
       fail_on_cache_error);
+
+  network_statistics += data_response.GetPayload();
+
+  if (data_response) {
+    return DataResponse(data_response.MoveResult(), network_statistics);
+  } else {
+    return DataResponse(data_response.GetError(), network_statistics);
+  }
 }
 
 BlobApi::DataResponse DataRepository::GetBlobData(
@@ -132,7 +155,7 @@ BlobApi::DataResponse DataRepository::GetBlobData(
   const auto& data_handle = request.GetDataHandle();
 
   if (!data_handle) {
-    return {{client::ErrorCode::PreconditionFailed, "Data handle is missing"}};
+    return client::ApiError::PreconditionFailed("Data handle is missing");
   }
 
   NamedMutex mutex(storage_, catalog_.ToString() + layer + *data_handle);
@@ -157,8 +180,8 @@ BlobApi::DataResponse DataRepository::GetBlobData(
       OLP_SDK_LOG_INFO_F(
           kLogTag, "GetBlobData not found in cache, hrn='%s', key='%s'",
           catalog_.ToCatalogHRNString().c_str(), data_handle->c_str());
-      return {{client::ErrorCode::NotFound,
-               "CacheOnly: resource not found in cache"}};
+      return client::ApiError::NotFound(
+          "CacheOnly: resource not found in cache");
     }
   }
 
@@ -231,8 +254,8 @@ BlobApi::DataResponse DataRepository::GetVolatileData(
     const std::string& layer_id, const DataRequest& request,
     client::CancellationContext context, const bool fail_on_cache_error) {
   if (request.GetDataHandle() && request.GetPartitionId()) {
-    return {{client::ErrorCode::PreconditionFailed,
-             "Both data handle and partition id specified"}};
+    return client::ApiError::PreconditionFailed(
+        "Both data handle and partition id specified");
   }
 
   auto blob_request = request;
@@ -255,7 +278,7 @@ BlobApi::DataResponse DataRepository::GetVolatileData(
           catalog_.ToCatalogHRNString().c_str(),
           request.CreateKey(layer_id, boost::none).c_str());
 
-      return {{client::ErrorCode::NotFound, "Partition not found"}};
+      return client::ApiError::NotFound("Partition not found");
     }
 
     blob_request.WithDataHandle(partitions.front().GetDataHandle());
