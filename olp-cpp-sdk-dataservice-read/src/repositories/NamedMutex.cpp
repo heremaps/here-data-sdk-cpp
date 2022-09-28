@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
  */
 
 #include "NamedMutex.h"
+
+#include <thread>
 
 #include <olp/core/porting/make_unique.h>
 
@@ -104,16 +106,31 @@ boost::optional<client::ApiError> NamedMutexStorage::GetError(
   return impl_->GetError(resource);
 }
 
-NamedMutex::NamedMutex(NamedMutexStorage& storage, const std::string& name)
-    : storage_{storage}, name_{name}, mutex_{storage_.AquireLock(name_)} {}
+NamedMutex::NamedMutex(NamedMutexStorage& storage, const std::string& name,
+                       const client::CancellationContext& context)
+    : storage_{storage},
+      context_{context},
+      is_locked_{false},
+      name_{name},
+      mutex_{storage_.AquireLock(name_)} {}
 
 NamedMutex::~NamedMutex() { storage_.ReleaseLock(name_); }
 
-void NamedMutex::lock() { mutex_.lock(); }
+void NamedMutex::lock() {
+  while (!is_locked_ && !context_.IsCancelled()) {
+    is_locked_ = mutex_.try_lock();
+    std::this_thread::yield();
+  }
+}
 
-bool NamedMutex::try_lock() { return mutex_.try_lock(); }
+bool NamedMutex::try_lock() { return is_locked_ = mutex_.try_lock(); }
 
-void NamedMutex::unlock() { mutex_.unlock(); }
+void NamedMutex::unlock() {
+  if (is_locked_) {
+    mutex_.unlock();
+    is_locked_ = false;
+  }
+}
 
 void NamedMutex::SetError(const client::ApiError& error) {
   storage_.SetError(name_, error);

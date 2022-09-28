@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 #include <unordered_map>
 
 #include <olp/core/client/ApiError.h>
+#include <olp/core/client/CancellationContext.h>
 #include <boost/optional.hpp>
 
 namespace olp {
@@ -74,7 +75,8 @@ class NamedMutexStorage {
  */
 class NamedMutex final {
  public:
-  NamedMutex(NamedMutexStorage& storage, const std::string& name);
+  NamedMutex(NamedMutexStorage& storage, const std::string& name,
+             const client::CancellationContext& context);
 
   NamedMutex(const NamedMutex&) = delete;
   NamedMutex(NamedMutex&&) = delete;
@@ -106,6 +108,8 @@ class NamedMutex final {
 
  private:
   NamedMutexStorage& storage_;
+  const client::CancellationContext& context_;
+  bool is_locked_;
   std::string name_;
   std::mutex& mutex_;
 };

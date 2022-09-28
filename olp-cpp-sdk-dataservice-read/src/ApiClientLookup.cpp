@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,8 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
     std::string service_version, FetchOptions options,
     client::OlpClientSettings settings, repository::NamedMutexStorage storage) {
   // This mutex is required to avoid concurrent requests to online.
-  repository::NamedMutex mutex(storage, catalog.ToString());
+  repository::NamedMutex mutex(storage, catalog.ToString(),
+                               cancellation_context);
   std::unique_lock<repository::NamedMutex> lock(mutex, std::defer_lock);
 
   // If we are not planning to go online or access the cache, do not lock.

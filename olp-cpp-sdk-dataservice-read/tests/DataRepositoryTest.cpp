@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,10 @@
  */
 
 #include <gtest/gtest.h>
+
+#include <chrono>
+#include <future>
+#include <thread>
 
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/NetworkMock.h>
@@ -321,7 +325,7 @@ TEST_F(DataRepositoryTest, GetBlobDataSimultaniousFailedCalls) {
   // accuares the mutex, the stored error will not be cleaned up in scope of
   // ReleaseLock call from the first thread
   olp::dataservice::read::repository::NamedMutex mutex(
-      storage, hrn.ToString() + kService + kUrlBlobDataHandle);
+      storage, hrn.ToString() + kService + kUrlBlobDataHandle, context);
 
   // Start second request in a separate thread
   std::thread second_request_thread([&]() {
@@ -522,5 +526,78 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileReturnEmpty) {
             olp::client::ErrorCode::Unknown);
   ASSERT_EQ(response.GetError().GetMessage(),
             "Failed to parse quad tree response");
+}
+
+TEST_F(DataRepositoryTest, GetBlobDataCancelParralellRequest) {
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillRepeatedly(
+          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                 olp::http::HttpStatusCode::OK),
+                             kUrlResponseLookup));
+
+  constexpr auto wait_time = std::chrono::seconds(1);
+  auto wait = [&wait_time]() { std::this_thread::sleep_for(wait_time); };
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlBlobData269), _, _, _, _))
+      .WillRepeatedly(testing::DoAll(
+          testing::InvokeWithoutArgs(wait),
+          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                 olp::http::HttpStatusCode::OK),
+                             "Some Data")));
+
+  olp::client::CancellationContext context;
+  olp::dataservice::read::repository::NamedMutexStorage storage;
+
+  olp::dataservice::read::DataRequest request;
+  request.WithDataHandle(kUrlBlobDataHandle);
+
+  olp::client::HRN hrn(GetTestCatalog());
+  ApiLookupClient lookup_client(hrn, *settings_);
+  DataRepository repository(hrn, *settings_, lookup_client, storage);
+
+  std::promise<void> first_thread_finished_promise;
+  std::promise<void> second_thread_finished_promise;
+
+  // Start first request in a separate thread
+  std::thread first_request_thread([&]() {
+    auto response =
+        repository.GetBlobData(kLayerId, kService, request, context);
+
+    EXPECT_FALSE(response);
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::Cancelled);
+
+    first_thread_finished_promise.set_value();
+  });
+
+  // Start second request in a separate thread
+  std::thread second_request_thread([&]() {
+    auto response =
+        repository.GetBlobData(kLayerId, kService, request, context);
+
+    EXPECT_FALSE(response);
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::Cancelled);
+
+    second_thread_finished_promise.set_value();
+  });
+
+  const auto start = std::chrono::high_resolution_clock::now();
+
+  // Start threads w/o wait for them to finish
+  first_request_thread.detach();
+  second_request_thread.detach();
+
+  // Cancel operation should immeadeately finish both requests
+  context.CancelOperation();
+
+  // Wait until threads are finished
+  first_thread_finished_promise.get_future().wait();
+  second_thread_finished_promise.get_future().wait();
+
+  const auto end = std::chrono::high_resolution_clock::now();
+
+  // Compare time spanding for waiting for threads to finish
+  EXPECT_LT(end - start, wait_time);
 }
 }  // namespace

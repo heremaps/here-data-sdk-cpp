@@ -201,7 +201,7 @@ client::NetworkStatistics PrefetchTilesRepository::LoadAggregatedSubQuads(
       const auto quad_cache_key = cache::KeyGenerator::CreateQuadTreeKey(
           catalog_str_, layer_id_, root, version, kMaxQuadTreeIndexDepth);
 
-      NamedMutex mutex(storage_, quad_cache_key);
+      NamedMutex mutex(storage_, quad_cache_key, context);
       std::unique_lock<NamedMutex> lock(mutex);
 
       if (!cache_repository_.ContainsTree(root, kMaxQuadTreeIndexDepth,
@@ -229,7 +229,7 @@ SubQuadsResponse PrefetchTilesRepository::GetVersionedSubQuads(
   const auto quad_cache_key = cache::KeyGenerator::CreateQuadTreeKey(
       catalog_str_, layer_id_, tile, version, kMaxQuadTreeIndexDepth);
 
-  NamedMutex mutex(storage_, quad_cache_key);
+  NamedMutex mutex(storage_, quad_cache_key, context);
   std::lock_guard<NamedMutex> lock(mutex);
 
   if (cache_repository_.Get(tile, depth, version, quad_tree)) {
