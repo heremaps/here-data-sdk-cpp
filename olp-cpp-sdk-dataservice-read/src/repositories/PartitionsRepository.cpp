@@ -242,7 +242,8 @@ PartitionsRepository::GetPartitionsExtendedResponse(
       partition_ids.empty() ? "" : HashPartitions(partition_ids);
   const auto version_str = version ? std::to_string(*version) : "";
 
-  NamedMutex mutex(storage_, catalog_str + layer_id_ + version_str + detail);
+  NamedMutex mutex(storage_, catalog_str + layer_id_ + version_str + detail,
+                   context);
   std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);
 
   // If we are not planning to go online or access the cache, do not lock.
@@ -343,7 +344,7 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
   const auto request_key =
       catalog_.ToString() + request.CreateKey(layer_id_, version);
 
-  NamedMutex mutex(storage_, request_key);
+  NamedMutex mutex(storage_, request_key, context);
   std::unique_lock<repository::NamedMutex> lock(mutex, std::defer_lock);
 
   // If we are not planning to go online or access the cache, do not lock.
@@ -431,7 +432,7 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
       catalog_.ToCatalogHRNString(), layer_id_, root_tile_key, version,
       kAggregateQuadTreeDepth);
 
-  NamedMutex mutex(storage_, quad_cache_key);
+  NamedMutex mutex(storage_, quad_cache_key, context);
   std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);
 
   // If we are not planning to go online or access the cache, do not lock.
