@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2021 HERE Europe B.V.
+# Copyright (C) 2019-2022 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,7 +32,10 @@ if(CURL_FOUND AND NOT NETWORK_NO_CURL)
         add_definitions(-DOLP_SDK_ENABLE_ANDROID_CURL)
     endif()
 
-    find_package(OpenSSL)
+    if(NOT OPENSSL_FOUND)
+        find_package(OpenSSL)
+    endif()
+
     if(OPENSSL_FOUND)
         add_definitions(-DOLP_SDK_NETWORK_HAS_OPENSSL)
 
