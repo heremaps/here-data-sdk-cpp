@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -42,8 +43,11 @@ class NamedMutexStorage {
  public:
   NamedMutexStorage();
 
-  std::mutex& AquireLock(const std::string& resource);
+  std::mutex& AcquireLock(const std::string& resource);
   void ReleaseLock(const std::string& resource);
+
+  std::condition_variable& GetLockCondition(const std::string& resource);
+  std::mutex& GetLockMutex(const std::string& resource);
 
   /**
    * @brief Saves an error to share it among threads.
@@ -112,6 +116,8 @@ class NamedMutex final {
   bool is_locked_;
   std::string name_;
   std::mutex& mutex_;
+  std::condition_variable& lock_condition_;
+  std::mutex& lock_mutex_;
 };
 
 }  // namespace repository
