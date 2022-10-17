@@ -24,6 +24,7 @@ set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     DataRepositoryTest.cpp
     JsonResultParserTest.cpp
     MetadataApiTest.cpp
+    NamedMutexTest.cpp
     ParserTest.cpp
     PartitionsCacheRepositoryTest.cpp
     PartitionsRepositoryTest.cpp
