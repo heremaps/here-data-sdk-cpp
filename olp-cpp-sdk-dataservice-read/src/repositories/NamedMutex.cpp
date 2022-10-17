@@ -133,7 +133,7 @@ boost::optional<client::ApiError> NamedMutexStorage::GetError(
 }
 
 NamedMutex::NamedMutex(NamedMutexStorage& storage, const std::string& name,
-                       const client::CancellationContext& context)
+                       client::CancellationContext& context)
     : storage_{storage},
       context_{context},
       is_locked_{false},
@@ -145,10 +145,15 @@ NamedMutex::NamedMutex(NamedMutexStorage& storage, const std::string& name,
 NamedMutex::~NamedMutex() { storage_.ReleaseLock(name_); }
 
 void NamedMutex::lock() {
-  if (!context_.IsCancelled() && !try_lock()) {
+  const bool valid = context_.ExecuteOrCancelled(
+      [&]() { return client::CancellationToken([&]() { Notify(); }); });
+
+  if (valid) {
     std::unique_lock<std::mutex> unique_lock{lock_mutex_};
     lock_condition_.wait(unique_lock,
                          [&] { return context_.IsCancelled() || try_lock(); });
+    // Reset the cancel token
+    context_.ExecuteOrCancelled([&]() { return client::CancellationToken(); });
   }
 }
 
@@ -158,7 +163,7 @@ void NamedMutex::unlock() {
   if (is_locked_) {
     mutex_.unlock();
     is_locked_ = false;
-    lock_condition_.notify_all();
+    Notify();
   }
 }
 
@@ -168,6 +173,11 @@ void NamedMutex::SetError(const client::ApiError& error) {
 
 boost::optional<client::ApiError> NamedMutex::GetError() {
   return storage_.GetError(name_);
+}
+
+void NamedMutex::Notify() {
+  std::unique_lock<std::mutex> unique_lock{lock_mutex_};
+  lock_condition_.notify_all();
 }
 
 }  // namespace repository

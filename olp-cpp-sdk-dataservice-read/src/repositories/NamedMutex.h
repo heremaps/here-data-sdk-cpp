@@ -80,7 +80,7 @@ class NamedMutexStorage {
 class NamedMutex final {
  public:
   NamedMutex(NamedMutexStorage& storage, const std::string& name,
-             const client::CancellationContext& context);
+             client::CancellationContext& context);
 
   NamedMutex(const NamedMutex&) = delete;
   NamedMutex(NamedMutex&&) = delete;
@@ -111,8 +111,11 @@ class NamedMutex final {
   boost::optional<client::ApiError> GetError();
 
  private:
+  /// Notify waiting threads method.
+  void Notify();
+
   NamedMutexStorage& storage_;
-  const client::CancellationContext& context_;
+  client::CancellationContext& context_;
   bool is_locked_;
   std::string name_;
   std::mutex& mutex_;
