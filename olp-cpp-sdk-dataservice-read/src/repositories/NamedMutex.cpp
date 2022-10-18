@@ -140,21 +140,27 @@ NamedMutex::NamedMutex(NamedMutexStorage& storage, const std::string& name,
       name_{name},
       mutex_{storage_.AcquireLock(name_)},
       lock_condition_{storage_.GetLockCondition(name_)},
-      lock_mutex_{storage_.GetLockMutex(name_)} {}
+      lock_mutex_{storage_.GetLockMutex(name_)},
+      is_canceled_{context_.IsCancelled()} {}
 
 NamedMutex::~NamedMutex() { storage_.ReleaseLock(name_); }
 
 void NamedMutex::lock() {
-  const bool valid = context_.ExecuteOrCancelled(
-      [&]() { return client::CancellationToken([&]() { Notify(); }); });
+  const bool valid = context_.ExecuteOrCancelled([&]() {
+    return client::CancellationToken([&]() {
+      is_canceled_.store(true);
+      Notify();
+    });
+  });
 
   if (valid) {
     std::unique_lock<std::mutex> unique_lock{lock_mutex_};
     lock_condition_.wait(unique_lock,
-                         [&] { return context_.IsCancelled() || try_lock(); });
-    // Reset the cancel token
-    context_.ExecuteOrCancelled([&]() { return client::CancellationToken(); });
+                         [&] { return is_canceled_ || try_lock(); });
   }
+
+  // Reset the cancel token
+  context_.ExecuteOrCancelled([]() { return client::CancellationToken(); });
 }
 
 bool NamedMutex::try_lock() { return is_locked_ = mutex_.try_lock(); }
