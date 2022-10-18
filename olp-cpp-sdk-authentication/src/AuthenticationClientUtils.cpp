@@ -86,7 +86,7 @@ Response<rapidjson::Document> Parse(client::HttpResponse& http_response) {
                              "Failed to parse response"});
   }
 
-  return std::move(document);
+  return Response<rapidjson::Document>(std::move(document));
 }
 }  // namespace
 

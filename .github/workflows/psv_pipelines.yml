@@ -16,7 +16,7 @@ env:
 jobs:
   psv-linux-gcc-build-test-codecov:
     name: PSV / Linux gcc 7.5 / Tests / Code coverage
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - name: Check out repository
       uses: actions/checkout@v2
@@ -40,7 +40,7 @@ jobs:
 
   psv-linux-gcc-build-no-cache:
     name: PSV / Linux gcc 7.5 / OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     env:
       BUILD_TYPE: RelWithDebInfo
     steps:

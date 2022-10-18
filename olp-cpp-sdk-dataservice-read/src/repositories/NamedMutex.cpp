@@ -140,21 +140,29 @@ NamedMutex::NamedMutex(NamedMutexStorage& storage, const std::string& name,
       name_{name},
       mutex_{storage_.AcquireLock(name_)},
       lock_condition_{storage_.GetLockCondition(name_)},
-      lock_mutex_{storage_.GetLockMutex(name_)} {}
+      lock_mutex_{storage_.GetLockMutex(name_)},
+      is_canceled_{false} {}
 
 NamedMutex::~NamedMutex() { storage_.ReleaseLock(name_); }
 
 void NamedMutex::lock() {
-  const bool valid = context_.ExecuteOrCancelled(
-      [&]() { return client::CancellationToken([&]() { Notify(); }); });
+  const bool executed = context_.ExecuteOrCancelled([&]() {
+    return client::CancellationToken([&]() {
+      is_canceled_.store(true);
+      Notify();
+    });
+  });
 
-  if (valid) {
+  is_canceled_.store(!executed);
+
+  if (executed) {
     std::unique_lock<std::mutex> unique_lock{lock_mutex_};
     lock_condition_.wait(unique_lock,
-                         [&] { return context_.IsCancelled() || try_lock(); });
-    // Reset the cancel token
-    context_.ExecuteOrCancelled([&]() { return client::CancellationToken(); });
+                         [&] { return is_canceled_ || try_lock(); });
   }
+
+  // Reset the cancel token
+  context_.ExecuteOrCancelled([]() { return client::CancellationToken(); });
 }
 
 bool NamedMutex::try_lock() { return is_locked_ = mutex_.try_lock(); }
@@ -176,6 +184,8 @@ boost::optional<client::ApiError> NamedMutex::GetError() {
 }
 
 void NamedMutex::Notify() {
+  // A mutex is required since there is a gap between predicate call and wait
+  // call when calling wait in NamedMutex::lock.
   std::unique_lock<std::mutex> unique_lock{lock_mutex_};
   lock_condition_.notify_all();
 }
