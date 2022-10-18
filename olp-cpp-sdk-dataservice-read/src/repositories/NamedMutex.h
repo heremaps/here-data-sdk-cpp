@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -121,6 +122,9 @@ class NamedMutex final {
   std::mutex& mutex_;
   std::condition_variable& lock_condition_;
   std::mutex& lock_mutex_;
+  // We can't check CancellationContext::IsCanceled, since it might result in a
+  // deadlock.
+  std::atomic<bool> is_canceled_;
 };
 
 }  // namespace repository
