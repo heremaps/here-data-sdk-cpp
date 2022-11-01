@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -170,11 +170,13 @@ TEST_P(CatalogClientCacheTest, GetCatalog) {
 TEST_P(CatalogClientCacheTest, GetCatalogUsingCatalogEndpointProvider) {
   olp::client::HRN hrn(GetTestCatalog());
 
+  std::string service_name = "/config";
   std::string provider_url =
       "https://api-lookup.data.api.platform.here.com/lookup/v1";
-  EXPECT_CALL(*network_mock_, Send(IsGetRequest(provider_url + "/catalogs/" +
-                                                hrn.ToCatalogHRNString()),
-                                   _, _, _, _))
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(provider_url + service_name + "/catalogs/" +
+                                hrn.ToCatalogHRNString()),
+                   _, _, _, _))
       .WillOnce(::testing::Return(
           olp::http::SendOutcome(olp::http::ErrorCode::SUCCESS)));
 

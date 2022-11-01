@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,11 +55,21 @@ OlpClient CreateClient(const std::string& base_url,
 
 olp::client::OlpClient GetStaticUrl(
     const olp::client::HRN& catalog,
-    const olp::client::OlpClientSettings& settings) {
+    const olp::client::OlpClientSettings& settings,
+    const std::string& service) {
   const auto& provider = settings.api_lookup_settings.catalog_endpoint_provider;
   if (provider) {
     auto url = provider(catalog);
     if (!url.empty()) {
+      if (!service.empty()) {
+        // Ugly hack since blob service is the only place where URL component is
+        // different from the API name
+        if (service == "blob") {
+          url += "/blobstore";
+        } else {
+          url += '/' + service;
+        }
+      }
       url += "/catalogs/" + catalog.ToCatalogHRNString();
       return CreateClient(url, settings);
     }
@@ -97,7 +107,7 @@ ApiLookupClientImpl::ApiLookupClientImpl(const HRN& catalog,
 ApiLookupClient::LookupApiResponse ApiLookupClientImpl::LookupApi(
     const std::string& service, const std::string& service_version,
     FetchOptions options, CancellationContext context) {
-  auto result_client = GetStaticUrl(catalog_, settings_);
+  auto result_client = GetStaticUrl(catalog_, settings_, service);
   if (!result_client.GetBaseUrl().empty()) {
     return result_client;
   }
@@ -155,7 +165,7 @@ ApiLookupClient::LookupApiResponse ApiLookupClientImpl::LookupApi(
 CancellationToken ApiLookupClientImpl::LookupApi(
     const std::string& service, const std::string& service_version,
     FetchOptions options, ApiLookupClient::LookupApiCallback callback) {
-  auto result_client = GetStaticUrl(catalog_, settings_);
+  auto result_client = GetStaticUrl(catalog_, settings_, service);
   if (!result_client.GetBaseUrl().empty()) {
     callback(result_client);
     return CancellationToken();

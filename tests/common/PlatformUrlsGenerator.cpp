@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,16 @@
 #include <olp/dataservice/read/model/Partitions.h>
 #include <olp/dataservice/read/model/VersionResponse.h>
 #include "ApiDefaultResponses.h"
+
+namespace {
+std::string GetUrlForService(const std::string& service) {
+  if (service == "blob") {
+    return "/blobstore";
+  }
+
+  return '/' + service;
+}
+}  // namespace
 
 PlatformUrlsGenerator::PlatformUrlsGenerator(olp::client::Apis apis,
                                              const std::string& layer)
@@ -104,7 +114,7 @@ std::string PlatformUrlsGenerator::FullPath(const std::string& service,
       }
       url = "/" + service + "/" + v + "/catalogs/" + catalog_;
     } else {
-      url = http_prefix_ + "/catalogs/" + catalog_;
+      url = http_prefix_ + GetUrlForService(service) + "/catalogs/" + catalog_;
     }
   } else {
     auto it = find_if(apis_->begin(), apis_->end(), [&](olp::client::Api api) {

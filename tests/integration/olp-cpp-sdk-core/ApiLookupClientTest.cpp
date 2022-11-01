@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -634,7 +634,8 @@ TEST_F(ApiLookupClientTest, CustomCatalogProvider) {
   const std::string service_url = "http://random_service.com";
   const std::string service_version = "v8";
   const std::string provider_url = "https://some-lookup-url.com/lookup/v1";
-  const std::string static_base_url = provider_url + "/catalogs/" + catalog;
+  const std::string static_base_url =
+      provider_url + '/' + service_name + "/catalogs/" + catalog;
   const std::string lookup_url =
       "https://api-lookup.data.api.platform.here.com/lookup/v1/resources/" +
       catalog + "/apis";
@@ -692,7 +693,8 @@ TEST_F(ApiLookupClientTest, CustomCatalogProviderAsync) {
   const std::string service_url = "http://random_service.com";
   const std::string service_version = "v8";
   const std::string provider_url = "https://some-lookup-url.com/lookup/v1";
-  const std::string static_base_url = provider_url + "/catalogs/" + catalog;
+  const std::string static_base_url =
+      provider_url + '/' + service_name + "/catalogs/" + catalog;
   const std::string lookup_url =
       "https://api-lookup.data.api.platform.here.com/lookup/v1/resources/" +
       catalog + "/apis";
