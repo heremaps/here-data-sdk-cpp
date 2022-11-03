@@ -465,7 +465,7 @@ uint64_t Dir::Size(const std::string& path, FilterFunction filter_fn) {
       if (::lstat64(full_path.c_str(), &path_stat) == 0) {
 #endif
         if (S_ISREG(path_stat.st_mode)) {
-          if (filter_fn && filter_fn(entry_name)) {
+          if (!filter_fn || filter_fn(entry_name)) {
             result += path_stat.st_size;
           }
         } else if (S_ISDIR(path_stat.st_mode)) {
