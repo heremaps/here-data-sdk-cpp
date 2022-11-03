@@ -28,7 +28,7 @@ namespace olp {
 namespace utils {
 
 /** @brief Manages directories.
-*/
+ */
 class CORE_API Dir {
  public:
   /// An alias for the filter function.
@@ -115,8 +115,11 @@ class CORE_API Dir {
   /**
    * @brief Calculates the size of a directory.
    *
-   * Use a filter to exclude
-   * unnecessary files or directories from the calculation.
+   * Use a filter to exclude unnecessary files or directories from the
+   * calculation.
+   *
+   * @note This method will go all the way recursive for as long as needed
+   * to gather all files which pass the given filter.
    *
    * @param path The path of the directory.
    * @param filter_fn The filter function.

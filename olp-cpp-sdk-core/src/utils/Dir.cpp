@@ -36,6 +36,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <queue>
+#include <string>
 #endif
 
 #if defined(_WIN32) && !defined(__MINGW32__)
@@ -436,36 +438,38 @@ uint64_t Dir::Size(const std::string& path, FilterFunction filter_fn) {
 
 #else
 
-  DIR* dir = nullptr;
-  struct dirent* ent = nullptr;
+  std::queue<std::string> recursive_queue;
+  recursive_queue.push(path);
 
-  if ((dir = opendir(path.c_str())) != nullptr) {
-    while ((ent = readdir(dir)) != nullptr) {
-      std::string ent_path = path + "/" + ent->d_name;
+  auto iterate_directory = [&](const std::string& path) {
+    auto* dir = ::opendir(path.c_str());
+    if (dir == nullptr) {
+      return;
+    }
+
+    struct ::dirent* entry = nullptr;
+    while ((entry = ::readdir(dir)) != nullptr) {
+      const char* entry_name = entry->d_name;
+
+      if (strcmp(entry_name, ".") == 0 || strcmp(entry_name, "..") == 0) {
+        continue;
+      }
+
+      std::string full_path = path + "/" + entry_name;
+
 #ifdef __APPLE__
-      struct stat sb;
-      if (lstat(ent_path.c_str(), &sb) == 0) {
+      struct ::stat path_stat;
+      if (::lstat(full_path.c_str(), &path_stat) == 0) {
 #else
-      struct stat64 sb;
-      if (lstat64(ent_path.c_str(), &sb) == 0) {
+      struct ::stat64 path_stat;
+      if (::lstat64(full_path.c_str(), &path_stat) == 0) {
 #endif
-        if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) {
-          continue;
-        }
-
-        if (filter_fn && !filter_fn(ent->d_name)) {
-          continue;
-        }
-
-        switch (sb.st_mode & S_IFMT) {
-          case S_IFDIR:
-            result += Size(ent_path, filter_fn);
-            break;
-          case S_IFREG:
-            result += sb.st_size;
-            break;
-          default:
-            break;
+        if (S_ISREG(path_stat.st_mode)) {
+          if (filter_fn && filter_fn(entry_name)) {
+            result += path_stat.st_size;
+          }
+        } else if (S_ISDIR(path_stat.st_mode)) {
+          recursive_queue.push(std::move(full_path));
         }
       } else if (errno != ENOENT) {
         // Ignore ENOENT errors as its a common case, e.g. cache compaction.
@@ -474,7 +478,12 @@ uint64_t Dir::Size(const std::string& path, FilterFunction filter_fn) {
       }
     }
 
-    closedir(dir);
+    ::closedir(dir);
+  };
+
+  while (!recursive_queue.empty()) {
+    iterate_directory(recursive_queue.front());
+    recursive_queue.pop();
   }
 
 #endif
@@ -485,10 +494,10 @@ uint64_t Dir::Size(const std::string& path, FilterFunction filter_fn) {
 bool Dir::IsReadOnly(const std::string& path) {
 #if defined(_WIN32) && !defined(__MINGW32__)
 #ifdef _UNICODE
-    std::wstring wstrPath = ConvertStringToWideString(path);
-    const TCHAR* syspath = wstrPath.c_str();
+  std::wstring wstrPath = ConvertStringToWideString(path);
+  const TCHAR* syspath = wstrPath.c_str();
 #else
-    const TCHAR* syspath = path.c_str();
+  const TCHAR* syspath = path.c_str();
 #endif  // _UNICODE
 
   // Read only flag is for files inside directory
