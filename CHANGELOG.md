@@ -1,3 +1,22 @@
+## v1.15.2 (04/11/2022)
+
+**Common**
+* Extended `olp::client::ApiResponse` with an optional payload.
+* Added support for non-copiable response types in `olp::client::ApiResponse`.
+* Updated the README and GettingStartedGuide documentation.
+* Added performance improvements.
+* Enabled preprocessing for generating Doxygen documentation.
+* Added the service name in the base client's URL when `olp::client::ApiLookupSettings::catalog_endpoint_provider` is set.
+* Fixed `olp::utils::Dir::Size` to traverse through all nested directories.
+
+**olp-cpp-sdk-dataservice-read**
+* Extended `olp::dataservice::read::DataResponse` and `olp::dataservice::read::DataResponseCallback` with `olp::client::NetworkStatistics` as a payload.
+* Changed `olp::dataservice::read::repository::NamedMutex` to be cancellation-aware: when the request is canceled, you will not be able to lock the internal mutex.
+
+**olp-cpp-sdk-authentication**
+* Changed the internal static `std::regex` object to local instead of the global one. The local object prevents getting the `std::bad_cast` exception on some compilers.
+* Improved documentation.
+
 ## v1.15.1 (16/06/2022)
 
 **olp-cpp-sdk-dataservice-read**
