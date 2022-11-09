@@ -41,23 +41,3 @@ $CPP_TEST_SOURCE_DARASERVICE_WRITE/olp-cpp-sdk-dataservice-write-tests \
 echo ">>> Integration Test ... >>>"
 $CPP_TEST_SOURCE_INTEGRATION/olp-cpp-sdk-integration-tests \
     --gtest_output="xml:olp-cpp-sdk-integration-tests-report.xml"
-
-# CodeCov verification stage:
-# https://docs.codecov.io/docs/about-the-codecov-bash-uploader#validating-the-bash-script
-curl -fLso codecov https://codecov.io/bash;
-VERSION=$(grep -o 'VERSION=\"[0-9\.]*\"' codecov | cut -d'"' -f2);
-# Loop for 3 types of SHA sums
-for i in 1 256 512
-do
-  shasum -a $i -c <(curl -s "https://raw.githubusercontent.com/codecov/codecov-bash/${VERSION}/SHA${i}SUM" | grep -w "codecov")
-done
-
-
-curl -S -L --connect-timeout 5 --retry 6 -s https://codecov.io/bash -o codecov_upload_bash_$(date +%s).sh
-cp $(ls codecov_upload_bash_*.sh) codecov_upload_bash.sh
-# Execute CodeCov scanner
-ls -la *.xml
-bash codecov_upload_bash.sh -Z -X fix "$@"
-
-
-#bash <(curl -s https://codecov.io/bash)
