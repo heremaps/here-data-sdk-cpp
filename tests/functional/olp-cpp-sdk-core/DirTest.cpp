@@ -47,7 +47,8 @@ void CreateDirectory(const std::string& path) { Dir::Create(path); }
 
 void CreateSymLink(const std::string& to, const std::string& link) {
 #if !defined(_WIN32) || defined(__MINGW32__)
-  static_cast<void>(symlink(to.c_str(), link.c_str()));
+  // Suppress unused-result warning
+  (void)!symlink(to.c_str(), link.c_str());
 #else
   CreateSymbolicLink(to.c_str(), link.c_str(), 0);
 #endif
