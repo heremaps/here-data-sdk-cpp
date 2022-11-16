@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 #
-# Copyright (C) 2021 HERE Europe B.V.
+# Copyright (C) 2021-2022 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 mkdir -p build
 cd build
 
-cmake \
+cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
     -DOLP_SDK_ENABLE_TESTING=OFF \
     -DOLP_SDK_ENABLE_DEFAULT_CACHE=OFF \
     -DOLP_SDK_ENABLE_DEFAULT_CACHE_LMDB=OFF \

@@ -17,37 +17,40 @@ jobs:
   psv-linux-gcc-build-test-codecov:
     name: PSV / Linux gcc 7.5 / Tests / Code coverage
     runs-on: ubuntu-20.04
+    env:
+      BUILD_TYPE: RelWithDebInfo
+      CC: gcc-7
+      CXX: g++-7
     steps:
     - name: Check out repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: "C++ Lint checker script"
       run: ./scripts/misc/cpplint_ci.sh
       shell: bash
     - name: Install Ubuntu dependencies
-      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
+      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-7 g++-7 --no-install-recommends
       shell: bash
     - name: Compile project with cmake and ccache
       run: gcc --version && ./scripts/linux/psv/build_psv.sh
       shell: bash
-    - name: Run unit and integration tests. Report coverage to CodeCov. 
+    - name: Run unit and integration tests
       run: ./scripts/linux/psv/test_psv.sh
       shell: bash
-    - name: Archive code coverage script
-      uses: actions/upload-artifact@v2
-      with:
-        name: codecov-script
-        path: codecov_upload_bash_*.sh
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
 
   psv-linux-gcc-build-no-cache:
     name: PSV / Linux gcc 7.5 / OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
     runs-on: ubuntu-20.04
     env:
       BUILD_TYPE: RelWithDebInfo
+      CC: gcc-7
+      CXX: g++-7
     steps:
     - name: Check out repository
       uses: actions/checkout@v2
     - name: Install Ubuntu dependencies
-      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev --no-install-recommends
+      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-7 g++-7 --no-install-recommends
       shell: bash
     - name: Compile project without cache
       run: ./scripts/linux/psv/build_psv_no_cache.sh
