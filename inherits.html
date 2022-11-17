@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.0</span>
+   &#160;<span id="projectnumber">1.15.2</span>
    </div>
   </td>
  </tr>
@@ -193,7 +193,7 @@ $(function() {
 </td></tr>
 <tr><td><img src="inherit_graph_24.png" border="0" usemap="#aolp_1_1cache_1_1CacheSettings" alt=""/>
 <map name="aolp_1_1cache_1_1CacheSettings" id="aolp_1_1cache_1_1CacheSettings">
-<area shape="rect" href="structolp_1_1cache_1_1CacheSettings.html" title="Dummy settings for default cache factory." alt="" coords="5,5,195,32"/>
+<area shape="rect" href="structolp_1_1cache_1_1CacheSettings.html" title="Settings for memory and disk caching." alt="" coords="5,5,195,32"/>
 </map>
 </td></tr>
 <tr><td><img src="inherit_graph_25.png" border="0" usemap="#aolp_1_1cache_1_1KeyGenerator" alt=""/>
@@ -204,6 +204,7 @@ $(function() {
 <tr><td><img src="inherit_graph_26.png" border="0" usemap="#aolp_1_1cache_1_1KeyValueCache" alt=""/>
 <map name="aolp_1_1cache_1_1KeyValueCache" id="aolp_1_1cache_1_1KeyValueCache">
 <area shape="rect" href="classolp_1_1cache_1_1KeyValueCache.html" title="An interface for a cache that expects a key&#45;value pair." alt="" coords="5,5,201,32"/>
+<area shape="rect" href="classolp_1_1cache_1_1DefaultCache.html" title="A default cache that provides a memory LRU cache and persistence of cached key&#45;value pairs." alt="" coords="249,5,433,32"/>
 </map>
 </td></tr>
 <tr><td><img src="inherit_graph_27.png" border="0" usemap="#aolp_1_1client_1_1Api" alt=""/>
@@ -231,105 +232,107 @@ $(function() {
 <area shape="rect" href="classolp_1_1client_1_1ApiNoResult.html" title="Used when ApiResponse does not contain result data." alt="" coords="5,5,180,32"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_32.png" border="0" usemap="#aolp_1_1client_1_1ApiResponse_3_01PrefetchTileNoError_00_01client_1_1ApiError_01_4" alt=""/>
-<map name="aolp_1_1client_1_1ApiResponse_3_01PrefetchTileNoError_00_01client_1_1ApiError_01_4" id="aolp_1_1client_1_1ApiResponse_3_01PrefetchTileNoError_00_01client_1_1ApiError_01_4">
-<area shape="rect" href="classolp_1_1client_1_1ApiResponse.html" title=" " alt="" coords="5,5,184,61"/>
-<area shape="rect" href="classolp_1_1dataservice_1_1read_1_1PrefetchTileResult.html" title="Represents the result of a prefetch operation." alt="" coords="232,13,395,54"/>
-</map>
-</td></tr>
-<tr><td><img src="inherit_graph_33.png" border="0" usemap="#aolp_1_1client_1_1ApiResponse_3_01Result_00_01Error_01_4" alt=""/>
-<map name="aolp_1_1client_1_1ApiResponse_3_01Result_00_01Error_01_4" id="aolp_1_1client_1_1ApiResponse_3_01Result_00_01Error_01_4">
-<area shape="rect" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome." alt="" coords="5,5,184,47"/>
-</map>
-</td></tr>
-<tr><td><img src="inherit_graph_34.png" border="0" usemap="#aolp_1_1client_1_1AuthenticationSettings" alt=""/>
+<tr><td><img src="inherit_graph_32.png" border="0" usemap="#aolp_1_1client_1_1AuthenticationSettings" alt=""/>
 <map name="aolp_1_1client_1_1AuthenticationSettings" id="aolp_1_1client_1_1AuthenticationSettings">
 <area shape="rect" href="structolp_1_1client_1_1AuthenticationSettings.html" title="A set of settings that manages the TokenProviderCallback and TokenProviderCancelCallback functions." alt="" coords="5,5,195,47"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_35.png" border="0" usemap="#aolp_1_1client_1_1CancellableFuture_3_01T_01_4" alt=""/>
+<tr><td><img src="inherit_graph_33.png" border="0" usemap="#aolp_1_1client_1_1CancellableFuture_3_01T_01_4" alt=""/>
 <map name="aolp_1_1client_1_1CancellableFuture_3_01T_01_4" id="aolp_1_1client_1_1CancellableFuture_3_01T_01_4">
 <area shape="rect" href="classolp_1_1client_1_1CancellableFuture.html" title="A wrapper template that you can use to cancel a request or wait for it to finalize." alt="" coords="5,5,176,47"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_36.png" border="0" usemap="#aolp_1_1client_1_1CancellationContext" alt=""/>
+<tr><td><img src="inherit_graph_34.png" border="0" usemap="#aolp_1_1client_1_1CancellationContext" alt=""/>
 <map name="aolp_1_1client_1_1CancellationContext" id="aolp_1_1client_1_1CancellationContext">
 <area shape="rect" href="classolp_1_1client_1_1CancellationContext.html" title="A wrapper that manages the cancellation state of an asynchronous operation in a thread&#45;safe way." alt="" coords="5,5,180,47"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_37.png" border="0" usemap="#aolp_1_1client_1_1CancellationContextHash" alt=""/>
+<tr><td><img src="inherit_graph_35.png" border="0" usemap="#aolp_1_1client_1_1CancellationContextHash" alt=""/>
 <map name="aolp_1_1client_1_1CancellationContextHash" id="aolp_1_1client_1_1CancellationContextHash">
 <area shape="rect" href="structolp_1_1client_1_1CancellationContextHash.html" title="A helper for unordered containers." alt="" coords="5,5,180,47"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_38.png" border="0" usemap="#aolp_1_1client_1_1CancellationToken" alt=""/>
+<tr><td><img src="inherit_graph_36.png" border="0" usemap="#aolp_1_1client_1_1CancellationToken" alt=""/>
 <map name="aolp_1_1client_1_1CancellationToken" id="aolp_1_1client_1_1CancellationToken">
 <area shape="rect" href="classolp_1_1client_1_1CancellationToken.html" title="Cancels service requests." alt="" coords="5,5,180,47"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_39.png" border="0" usemap="#aolp_1_1client_1_1Condition" alt=""/>
+<tr><td><img src="inherit_graph_37.png" border="0" usemap="#aolp_1_1client_1_1Condition" alt=""/>
 <map name="aolp_1_1client_1_1Condition" id="aolp_1_1client_1_1Condition">
 <area shape="rect" href="classolp_1_1client_1_1Condition.html" title="A helper class that allows one thread to call and wait for a notification in the other thread." alt="" coords="5,5,161,32"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_40.png" border="0" usemap="#aolp_1_1client_1_1DefaultLookupEndpointProvider" alt=""/>
+<tr><td><img src="inherit_graph_38.png" border="0" usemap="#aolp_1_1client_1_1DefaultLookupEndpointProvider" alt=""/>
 <map name="aolp_1_1client_1_1DefaultLookupEndpointProvider" id="aolp_1_1client_1_1DefaultLookupEndpointProvider">
 <area shape="rect" href="structolp_1_1client_1_1DefaultLookupEndpointProvider.html" title="The default implementation of the lookup API endpoint provider." alt="" coords="5,5,193,47"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_41.png" border="0" usemap="#aolp_1_1client_1_1EqualJitterBackdownStrategy" alt=""/>
+<tr><td><img src="inherit_graph_39.png" border="0" usemap="#aolp_1_1client_1_1EqualJitterBackdownStrategy" alt=""/>
 <map name="aolp_1_1client_1_1EqualJitterBackdownStrategy" id="aolp_1_1client_1_1EqualJitterBackdownStrategy">
 <area shape="rect" href="structolp_1_1client_1_1EqualJitterBackdownStrategy.html" title="Computes wait time for the next retry attempt via the exponential backoff with the added jitter." alt="" coords="5,5,167,47"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_42.png" border="0" usemap="#aolp_1_1client_1_1ExponentialBackdownStrategy" alt=""/>
+<tr><td><img src="inherit_graph_40.png" border="0" usemap="#aolp_1_1client_1_1ExponentialBackdownStrategy" alt=""/>
 <map name="aolp_1_1client_1_1ExponentialBackdownStrategy" id="aolp_1_1client_1_1ExponentialBackdownStrategy">
 <area shape="rect" href="structolp_1_1client_1_1ExponentialBackdownStrategy.html" title="Computes wait time for the next retry attempt via the exponential backoff with the added jitter." alt="" coords="5,5,176,47"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_43.png" border="0" usemap="#aolp_1_1client_1_1HRN" alt=""/>
+<tr><td><img src="inherit_graph_41.png" border="0" usemap="#aolp_1_1client_1_1HRN" alt=""/>
 <map name="aolp_1_1client_1_1HRN" id="aolp_1_1client_1_1HRN">
 <area shape="rect" href="classolp_1_1client_1_1HRN.html" title="Allows a Here Resource Name (HRN) to be passed to the operations that require it." alt="" coords="5,5,128,32"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_44.png" border="0" usemap="#aolp_1_1client_1_1HttpResponse" alt=""/>
+<tr><td><img src="inherit_graph_42.png" border="0" usemap="#aolp_1_1client_1_1HttpResponse" alt=""/>
 <map name="aolp_1_1client_1_1HttpResponse" id="aolp_1_1client_1_1HttpResponse">
 <area shape="rect" href="classolp_1_1client_1_1HttpResponse.html" title="This class represents the HTTP response created from the NetworkResponse and the request body." alt="" coords="5,5,191,32"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_45.png" border="0" usemap="#aolp_1_1client_1_1NetworkStatistics" alt=""/>
+<tr><td><img src="inherit_graph_43.png" border="0" usemap="#aolp_1_1client_1_1NetworkStatistics" alt=""/>
 <map name="aolp_1_1client_1_1NetworkStatistics" id="aolp_1_1client_1_1NetworkStatistics">
 <area shape="rect" href="classolp_1_1client_1_1NetworkStatistics.html" title="Network statistics with information on the outbound and inbound trafic during API calls." alt="" coords="5,5,215,32"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_46.png" border="0" usemap="#aolp_1_1client_1_1OauthToken" alt=""/>
+<tr><td><img src="inherit_graph_44.png" border="0" usemap="#aolp_1_1client_1_1OauthToken" alt=""/>
 <map name="aolp_1_1client_1_1OauthToken" id="aolp_1_1client_1_1OauthToken">
 <area shape="rect" href="classolp_1_1client_1_1OauthToken.html" title="A parsed response received from the OAuth2.0 token endpoint." alt="" coords="5,5,176,32"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_47.png" border="0" usemap="#aolp_1_1client_1_1OlpClient" alt=""/>
+<tr><td><img src="inherit_graph_45.png" border="0" usemap="#aolp_1_1client_1_1OlpClient" alt=""/>
 <map name="aolp_1_1client_1_1OlpClient" id="aolp_1_1client_1_1OlpClient">
 <area shape="rect" href="classolp_1_1client_1_1OlpClient.html" title="Executes HTTP requests by using the base url and the provided parameters and body...." alt="" coords="5,5,160,32"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_48.png" border="0" usemap="#aolp_1_1client_1_1OlpClientFactory" alt=""/>
+<tr><td><img src="inherit_graph_46.png" border="0" usemap="#aolp_1_1client_1_1OlpClientFactory" alt=""/>
 <map name="aolp_1_1client_1_1OlpClientFactory" id="aolp_1_1client_1_1OlpClientFactory">
 <area shape="rect" href="classolp_1_1client_1_1OlpClientFactory.html" title="Creates the OlpClient instances that are used for every HTTP request." alt="" coords="5,5,207,32"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_49.png" border="0" usemap="#aolp_1_1client_1_1OlpClientSettings" alt=""/>
+<tr><td><img src="inherit_graph_47.png" border="0" usemap="#aolp_1_1client_1_1OlpClientSettings" alt=""/>
 <map name="aolp_1_1client_1_1OlpClientSettings" id="aolp_1_1client_1_1OlpClientSettings">
 <area shape="rect" href="structolp_1_1client_1_1OlpClientSettings.html" title="Configures the behavior of the OlpClient class." alt="" coords="5,5,212,32"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_50.png" border="0" usemap="#aolp_1_1client_1_1OlpClientSettingsFactory" alt=""/>
+<tr><td><img src="inherit_graph_48.png" border="0" usemap="#aolp_1_1client_1_1OlpClientSettingsFactory" alt=""/>
 <map name="aolp_1_1client_1_1OlpClientSettingsFactory" id="aolp_1_1client_1_1OlpClientSettingsFactory">
 <area shape="rect" href="classolp_1_1client_1_1OlpClientSettingsFactory.html" title="Fills in the OlpClientSettings structure with default handlers." alt="" coords="5,5,212,47"/>
 </map>
 </td></tr>
-<tr><td><img src="inherit_graph_51.png" border="0" usemap="#aolp_1_1client_1_1PendingRequests" alt=""/>
+<tr><td><img src="inherit_graph_49.png" border="0" usemap="#aolp_1_1client_1_1PendingRequests" alt=""/>
 <map name="aolp_1_1client_1_1PendingRequests" id="aolp_1_1client_1_1PendingRequests">
 <area shape="rect" href="classolp_1_1client_1_1PendingRequests.html" title="A container for requests that have not finished yet." alt="" coords="5,5,212,32"/>
+</map>
+</td></tr>
+<tr><td><img src="inherit_graph_50.png" border="0" usemap="#aolp_1_1client_1_1ResponseExtension_3_01Payload_01_4" alt=""/>
+<map name="aolp_1_1client_1_1ResponseExtension_3_01Payload_01_4" id="aolp_1_1client_1_1ResponseExtension_3_01Payload_01_4">
+<area shape="rect" href="classolp_1_1client_1_1ResponseExtension.html" title=" " alt="" coords="5,5,227,47"/>
+</map>
+</td></tr>
+<tr><td><img src="inherit_graph_51.png" border="0" usemap="#aolp_1_1client_1_1ResponseExtension_3_01void_01_4" alt=""/>
+<map name="aolp_1_1client_1_1ResponseExtension_3_01void_01_4" id="aolp_1_1client_1_1ResponseExtension_3_01void_01_4">
+<area shape="rect" href="classolp_1_1client_1_1ResponseExtension_3_01void_01_4.html" title="The ApiResponse extension class specialization without any payload." alt="" coords="5,50,227,91"/>
+<area shape="rect" href="classolp_1_1client_1_1ApiResponse.html" title=" " alt="" coords="281,5,459,61"/>
+<area shape="rect" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome." alt="" coords="275,86,465,127"/>
+<area shape="rect" href="classolp_1_1dataservice_1_1read_1_1PrefetchTileResult.html" title="Represents the result of a prefetch operation." alt="" coords="513,13,676,54"/>
 </map>
 </td></tr>
 <tr><td><img src="inherit_graph_52.png" border="0" usemap="#aolp_1_1client_1_1RetrySettings" alt=""/>

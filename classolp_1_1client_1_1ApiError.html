@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.0</span>
+   &#160;<span id="projectnumber">1.15.2</span>
    </div>
   </td>
  </tr>
@@ -115,6 +115,12 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a7d01a0c8ae224517a95653c790457691"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classolp_1_1client_1_1ApiError.html">ApiError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiError.html#a7d01a0c8ae224517a95653c790457691">InvalidArgument</a> (const char *message=&quot;Invalid argument&quot;)</td></tr>
 <tr class="memdesc:a7d01a0c8ae224517a95653c790457691"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance with the invalid argument error code and description.  <a href="classolp_1_1client_1_1ApiError.html#a7d01a0c8ae224517a95653c790457691">More...</a><br /></td></tr>
 <tr class="separator:a7d01a0c8ae224517a95653c790457691"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc7cfb7decff220a224547c7cb7b5693"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classolp_1_1client_1_1ApiError.html">ApiError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiError.html#adc7cfb7decff220a224547c7cb7b5693">NotFound</a> (const char *message=&quot;Resource not found&quot;)</td></tr>
+<tr class="memdesc:adc7cfb7decff220a224547c7cb7b5693"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance with the not found error code and description.  <a href="classolp_1_1client_1_1ApiError.html#adc7cfb7decff220a224547c7cb7b5693">More...</a><br /></td></tr>
+<tr class="separator:adc7cfb7decff220a224547c7cb7b5693"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adaf5a003b0bc8b7f9914a2b9d83307c9"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classolp_1_1client_1_1ApiError.html">ApiError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiError.html#adaf5a003b0bc8b7f9914a2b9d83307c9">Unknown</a> (const char *message=&quot;Unknown&quot;)</td></tr>
+<tr class="memdesc:adaf5a003b0bc8b7f9914a2b9d83307c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance with the unknown error code and description.  <a href="classolp_1_1client_1_1ApiError.html#adaf5a003b0bc8b7f9914a2b9d83307c9">More...</a><br /></td></tr>
+<tr class="separator:adaf5a003b0bc8b7f9914a2b9d83307c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A wrapper around an internal error or HTTP status code. </p>
@@ -408,6 +414,41 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="adc7cfb7decff220a224547c7cb7b5693"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc7cfb7decff220a224547c7cb7b5693">&#9670;&nbsp;</a></span>NotFound()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="classolp_1_1client_1_1ApiError.html">ApiError</a> olp::client::ApiError::NotFound </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>message</em> = <code>&quot;Resource&#160;not&#160;found&quot;</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates the <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance with the not found error code and description. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">description</td><td>The optional description.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance. </dd></dl>
+
+</div>
+</div>
 <a id="a8d17cf95595dcb52c49337e95b085c1e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8d17cf95595dcb52c49337e95b085c1e">&#9670;&nbsp;</a></span>PreconditionFailed()</h2>
 
@@ -468,6 +509,41 @@ Static Public Member Functions</h2></td></tr>
 
 <p>Checks if the request can be retried for this error. </p>
 <dl class="section return"><dt>Returns</dt><dd>True if the request can be retried for this error; false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="adaf5a003b0bc8b7f9914a2b9d83307c9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adaf5a003b0bc8b7f9914a2b9d83307c9">&#9670;&nbsp;</a></span>Unknown()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="classolp_1_1client_1_1ApiError.html">ApiError</a> olp::client::ApiError::Unknown </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>message</em> = <code>&quot;Unknown&quot;</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates the <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance with the unknown error code and description. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">description</td><td>The optional description.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance. </dd></dl>
 
 </div>
 </div>

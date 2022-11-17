@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.0</span>
+   &#160;<span id="projectnumber">1.15.2</span>
    </div>
   </td>
  </tr>
@@ -66,18 +66,178 @@ $(function() {
 </div>
 </div><!-- top -->
 <div class="header">
+  <div class="summary">
+<a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="structolp_1_1cache_1_1CacheSettings-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">olp::cache::CacheSettings Struct Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>Dummy settings for default cache factory.  
+<p>Settings for memory and disk caching.  
  <a href="structolp_1_1cache_1_1CacheSettings.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="CacheSettings_8h_source.html">CacheSettings.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:af238bd848a32514aa5eb13a7c9cae32e"><td class="memItemLeft" align="right" valign="top">boost::optional&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#af238bd848a32514aa5eb13a7c9cae32e">disk_path_mutable</a> = boost::none</td></tr>
+<tr class="memdesc:af238bd848a32514aa5eb13a7c9cae32e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The path to the mutable (read-write) disk cache where the SDK caches and lookups the content.  <a href="structolp_1_1cache_1_1CacheSettings.html#af238bd848a32514aa5eb13a7c9cae32e">More...</a><br /></td></tr>
+<tr class="separator:af238bd848a32514aa5eb13a7c9cae32e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a51eaa0afe7a35dd968f1d765caa662e3"><td class="memItemLeft" align="right" valign="top">std::uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a51eaa0afe7a35dd968f1d765caa662e3">max_disk_storage</a> = 1024ull * 1024ull * 32ull</td></tr>
+<tr class="memdesc:a51eaa0afe7a35dd968f1d765caa662e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the upper limit (in bytes) of the disk space that is used for persistent stores.  <a href="structolp_1_1cache_1_1CacheSettings.html#a51eaa0afe7a35dd968f1d765caa662e3">More...</a><br /></td></tr>
+<tr class="separator:a51eaa0afe7a35dd968f1d765caa662e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a85919590bd7f461a9060593eef06c6aa"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a85919590bd7f461a9060593eef06c6aa">max_chunk_size</a> = 1024u * 1024u * 32u</td></tr>
+<tr class="memdesc:a85919590bd7f461a9060593eef06c6aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the upper limit of the runtime memory (in bytes) before it is written to the disk.  <a href="structolp_1_1cache_1_1CacheSettings.html#a85919590bd7f461a9060593eef06c6aa">More...</a><br /></td></tr>
+<tr class="separator:a85919590bd7f461a9060593eef06c6aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c5d5b1ee5efe8d0e2826cb673e68309"><td class="memItemLeft" align="right" valign="top"><a id="a9c5d5b1ee5efe8d0e2826cb673e68309"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a9c5d5b1ee5efe8d0e2826cb673e68309">enforce_immediate_flush</a> = true</td></tr>
+<tr class="memdesc:a9c5d5b1ee5efe8d0e2826cb673e68309"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the flag to indicate that continuous flushes to the disk are necessary to preserve maximum data between the ignition cycles. <br /></td></tr>
+<tr class="separator:a9c5d5b1ee5efe8d0e2826cb673e68309"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aabc8a3a78b4843cef4118a22e6e57511"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#aabc8a3a78b4843cef4118a22e6e57511">max_file_size</a> = 1024u * 1024u * 2u</td></tr>
+<tr class="memdesc:aabc8a3a78b4843cef4118a22e6e57511"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the maximum permissible size of one file in the storage (in bytes).  <a href="structolp_1_1cache_1_1CacheSettings.html#aabc8a3a78b4843cef4118a22e6e57511">More...</a><br /></td></tr>
+<tr class="separator:aabc8a3a78b4843cef4118a22e6e57511"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7df952f9f0e65b898065e884dd864e47"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a7df952f9f0e65b898065e884dd864e47">max_memory_cache_size</a> = 1024u * 1024u</td></tr>
+<tr class="memdesc:a7df952f9f0e65b898065e884dd864e47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the upper limit of the memory data cache size (in bytes).  <a href="structolp_1_1cache_1_1CacheSettings.html#a7df952f9f0e65b898065e884dd864e47">More...</a><br /></td></tr>
+<tr class="separator:a7df952f9f0e65b898065e884dd864e47"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62b40ac0e8056a4b2d1a6542a2ed0f17"><td class="memItemLeft" align="right" valign="top"><a id="a62b40ac0e8056a4b2d1a6542a2ed0f17"></a>
+OpenOptions&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a62b40ac0e8056a4b2d1a6542a2ed0f17">openOptions</a> = OpenOptions::Default</td></tr>
+<tr class="memdesc:a62b40ac0e8056a4b2d1a6542a2ed0f17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the disk cache open options. <br /></td></tr>
+<tr class="separator:a62b40ac0e8056a4b2d1a6542a2ed0f17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad63162c076fbadbeca09c26fd766701a"><td class="memItemLeft" align="right" valign="top"><a id="ad63162c076fbadbeca09c26fd766701a"></a>
+EvictionPolicy&#160;</td><td class="memItemRight" valign="bottom"><b>eviction_policy</b> = EvictionPolicy::kLeastRecentlyUsed</td></tr>
+<tr class="separator:ad63162c076fbadbeca09c26fd766701a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2cac2763360a1eb06af36600058e9c36"><td class="memItemLeft" align="right" valign="top">CompressionType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a2cac2763360a1eb06af36600058e9c36">compression</a> = CompressionType::kDefaultCompression</td></tr>
+<tr class="memdesc:a2cac2763360a1eb06af36600058e9c36"><td class="mdescLeft">&#160;</td><td class="mdescRight">This flag sets the compression policy to be applied on the database.  <a href="structolp_1_1cache_1_1CacheSettings.html#a2cac2763360a1eb06af36600058e9c36">More...</a><br /></td></tr>
+<tr class="separator:a2cac2763360a1eb06af36600058e9c36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a809adae6c0c6a2167bbbaf7b6c368c3e"><td class="memItemLeft" align="right" valign="top">boost::optional&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a809adae6c0c6a2167bbbaf7b6c368c3e">disk_path_protected</a> = boost::none</td></tr>
+<tr class="memdesc:a809adae6c0c6a2167bbbaf7b6c368c3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The path to the protected (read-only) cache.  <a href="structolp_1_1cache_1_1CacheSettings.html#a809adae6c0c6a2167bbbaf7b6c368c3e">More...</a><br /></td></tr>
+<tr class="separator:a809adae6c0c6a2167bbbaf7b6c368c3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Dummy settings for default cache factory. </p>
-</div><hr/>The documentation for this struct was generated from the following file:<ul>
+<div class="textblock"><p>Settings for memory and disk caching. </p>
+</div><h2 class="groupheader">Member Data Documentation</h2>
+<a id="a2cac2763360a1eb06af36600058e9c36"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2cac2763360a1eb06af36600058e9c36">&#9670;&nbsp;</a></span>compression</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">CompressionType olp::cache::CacheSettings::compression = CompressionType::kDefaultCompression</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This flag sets the compression policy to be applied on the database. </p>
+<p>In some cases though, when all the data to be inserted is already compressed by any means, e.g. protobuf or other serialization protocols, it might not be worth to enable any compression at all as it will eat up some CPU to compress and decompress the metadata without major gain. This parameter is dynamic and can be changed between runs. If changed only new values which are added will be using the new compression policy all existing entries will remain unchanged. The default value is CompressionType::kDefaultCompression. </p>
+
+</div>
+</div>
+<a id="af238bd848a32514aa5eb13a7c9cae32e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af238bd848a32514aa5eb13a7c9cae32e">&#9670;&nbsp;</a></span>disk_path_mutable</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">boost::optional&lt;std::string&gt; olp::cache::CacheSettings::disk_path_mutable = boost::none</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The path to the mutable (read-write) disk cache where the SDK caches and lookups the content. </p>
+<p>You should have write permissions.</p>
+<p>If this parameter is not set, the downloaded data is stored only in the memory cache that is limited by <code>#max_memory_cache_size</code>. </p>
+
+</div>
+</div>
+<a id="a809adae6c0c6a2167bbbaf7b6c368c3e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a809adae6c0c6a2167bbbaf7b6c368c3e">&#9670;&nbsp;</a></span>disk_path_protected</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">boost::optional&lt;std::string&gt; olp::cache::CacheSettings::disk_path_protected = boost::none</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The path to the protected (read-only) cache. </p>
+<p>This cache will be used as the primary source for data lookup. The <code><a class="el" href="classolp_1_1cache_1_1DefaultCache.html" title="A default cache that provides a memory LRU cache and persistence of cached key-value pairs.">DefaultCache</a></code> will try to open this cache in the r/w mode to make sure the database can perform on-open optimizations like write-ahead logging (WAL) committing or compaction. In case we do not have permission to write on the provided path, or user set explicitly ReadOnly in the <code><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a62b40ac0e8056a4b2d1a6542a2ed0f17" title="Sets the disk cache open options.">CacheSettings::openOptions</a></code>, the protected cache will be opened in r/o mode. In both cases the database will not be opened and user will receive a <code>ProtectedCacheCorrupted</code> from <code><a class="el" href="classolp_1_1cache_1_1DefaultCache.html#ac75363a5f7129f4ec2128f5630eda167" title="Opens the cache to start read and write operations.">DefaultCache::Open</a></code> in case the database has after open still an un-commited WAL, is uncompressed or cannot guarantee a normal operation and RAM usage. Use this cache if you want to have a stable fallback state or offline data that you can always access regardless of the network state. </p>
+
+</div>
+</div>
+<a id="a85919590bd7f461a9060593eef06c6aa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a85919590bd7f461a9060593eef06c6aa">&#9670;&nbsp;</a></span>max_chunk_size</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t olp::cache::CacheSettings::max_chunk_size = 1024u * 1024u * 32u</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the upper limit of the runtime memory (in bytes) before it is written to the disk. </p>
+<p>Larger values increase performance, especially during bulk loads. Up to two write buffers may be held in memory at the same time, so you may wish to adjust this parameter to control memory usage. Also, a larger write buffer will result in a longer recovery time the next time the database is opened. The default value is 32 MB. </p>
+
+</div>
+</div>
+<a id="a51eaa0afe7a35dd968f1d765caa662e3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a51eaa0afe7a35dd968f1d765caa662e3">&#9670;&nbsp;</a></span>max_disk_storage</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::uint64_t olp::cache::CacheSettings::max_disk_storage = 1024ull * 1024ull * 32ull</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the upper limit (in bytes) of the disk space that is used for persistent stores. </p>
+<p>The default value is 32 MB. To never evict data, set <code>max_disk_storage</code> to <code>std::uint64_t(-1)</code>. </p>
+
+</div>
+</div>
+<a id="aabc8a3a78b4843cef4118a22e6e57511"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aabc8a3a78b4843cef4118a22e6e57511">&#9670;&nbsp;</a></span>max_file_size</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t olp::cache::CacheSettings::max_file_size = 1024u * 1024u * 2u</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the maximum permissible size of one file in the storage (in bytes). </p>
+<p>The default value is 2 MB. </p>
+
+</div>
+</div>
+<a id="a7df952f9f0e65b898065e884dd864e47"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7df952f9f0e65b898065e884dd864e47">&#9670;&nbsp;</a></span>max_memory_cache_size</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t olp::cache::CacheSettings::max_memory_cache_size = 1024u * 1024u</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the upper limit of the memory data cache size (in bytes). </p>
+<p>If set to <code>0</code>, the memory cache is not used. The default value is 1 MB. </p>
+
+</div>
+</div>
+<hr/>The documentation for this struct was generated from the following file:<ul>
 <li>olp-cpp-sdk-core/include/olp/core/cache/<a class="el" href="CacheSettings_8h_source.html">CacheSettings.h</a></li>
 </ul>
 </div><!-- contents -->

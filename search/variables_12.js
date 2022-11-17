@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['x_2461',['x',['../classolp_1_1geo_1_1GeoPoint.html#a70716f0eea3fe1d8928b597a8b386e80',1,'olp::geo::GeoPoint::x()'],['../structolp_1_1math_1_1Vector2.html#a3c6a9c97ed43f0db1e2e04b874306d09',1,'olp::math::Vector2::x()'],['../structolp_1_1math_1_1Vector3.html#ad8106e9d96e0bbbd5f6622b266f219e8',1,'olp::math::Vector3::x()']]]
+  ['use_5fsystem_5ftime_2502',['use_system_time',['../structolp_1_1authentication_1_1AuthenticationSettings.html#aad5d09bd8920bcc09efed78dcc1c64c5',1,'olp::authentication::AuthenticationSettings::use_system_time()'],['../structolp_1_1authentication_1_1Settings.html#a8c84932b2de8aba35107522c643e5b83',1,'olp::authentication::Settings::use_system_time()']]]
 ];

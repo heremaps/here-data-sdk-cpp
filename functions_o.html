@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.0</span>
+   &#160;<span id="projectnumber">1.15.2</span>
    </div>
   </td>
  </tr>
@@ -74,9 +74,18 @@ $(function() {
 <li>OlpClient()
 : <a class="el" href="classolp_1_1client_1_1OlpClient.html#ad065c805a635def2cf991981572d6064">olp::client::OlpClient</a>
 </li>
+<li>Open()
+: <a class="el" href="classolp_1_1cache_1_1DefaultCache.html#ac75363a5f7129f4ec2128f5630eda167">olp::cache::DefaultCache</a>
+</li>
+<li>OpenDiskPathFailure
+: <a class="el" href="classolp_1_1cache_1_1DefaultCache.html#a4988be6ab65560dc9ceb8da6dbbb0341a579665cceae447b9791c974dc1628607">olp::cache::DefaultCache</a>
+</li>
+<li>openOptions
+: <a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a62b40ac0e8056a4b2d1a6542a2ed0f17">olp::cache::CacheSettings</a>
+</li>
 <li>operator bool()
 : <a class="el" href="classolp_1_1authentication_1_1TokenProvider.html#aeb380f7de60d069e2b812aeb79946fa1">olp::authentication::TokenProvider&lt; MinimumValidity &gt;</a>
-, <a class="el" href="classolp_1_1client_1_1ApiResponse.html#ab55c74d9c6227a5daeee555334df32f5">olp::client::ApiResponse&lt; Result, Error &gt;</a>
+, <a class="el" href="classolp_1_1client_1_1ApiResponse.html#a97a2e365f36b72fbc78c6bc3b0b57ab5">olp::client::ApiResponse&lt; Result, Error, Payload &gt;</a>
 , <a class="el" href="classolp_1_1client_1_1HRN.html#add45d6a57586ab4590e98f269b69f226">olp::client::HRN</a>
 , <a class="el" href="classolp_1_1geo_1_1GeoCoordinates3d.html#a0d1ac7d4cbabcbacf862aa5b66ffaf01">olp::geo::GeoCoordinates3d</a>
 , <a class="el" href="classolp_1_1geo_1_1GeoCoordinates.html#af49e18d1c21a8b2a21c187a10821ed3e">olp::geo::GeoCoordinates</a>
@@ -97,7 +106,7 @@ $(function() {
 , <a class="el" href="classolp_1_1utils_1_1LruCache_1_1const__iterator.html#a0a51bfe36236e248c4fd8bb0bd9d508b">olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;::const_iterator</a>
 </li>
 <li>operator()()
-: <a class="el" href="classolp_1_1authentication_1_1internal_1_1TokenProviderImpl.html#a35f25ee6bcb5ebbcdcceb8c31110f854">olp::authentication::internal::TokenProviderImpl</a>
+: <a class="el" href="classolp_1_1authentication_1_1internal_1_1TokenProviderImpl.html#a2a1ff696b3dc10b541cc416c917437ea">olp::authentication::internal::TokenProviderImpl</a>
 , <a class="el" href="structolp_1_1client_1_1CancellationContextHash.html#aa1c652b91b3891dfbbdeae9692d67b47">olp::client::CancellationContextHash</a>
 , <a class="el" href="structolp_1_1client_1_1DefaultLookupEndpointProvider.html#ab212a48dcbc7e691ea6bcfd9c9c29138">olp::client::DefaultLookupEndpointProvider</a>
 , <a class="el" href="structolp_1_1client_1_1EqualJitterBackdownStrategy.html#ae941b5c54d54920ffa81f4e5c365194a">olp::client::EqualJitterBackdownStrategy</a>
@@ -113,11 +122,12 @@ $(function() {
 , <a class="el" href="classolp_1_1utils_1_1LruCache_1_1const__iterator.html#a6340053a952860427d6438cf7837bcfb">olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;::const_iterator</a>
 </li>
 <li>operator+()
-: <a class="el" href="structolp_1_1math_1_1Vector2.html#acbd2c69fb12822fca7c5191129d3dab0">olp::math::Vector2&lt; T &gt;</a>
+: <a class="el" href="classolp_1_1client_1_1NetworkStatistics.html#a9232f22c809c85a6cf11129b785d77c9">olp::client::NetworkStatistics</a>
+, <a class="el" href="structolp_1_1math_1_1Vector2.html#acbd2c69fb12822fca7c5191129d3dab0">olp::math::Vector2&lt; T &gt;</a>
 , <a class="el" href="structolp_1_1math_1_1Vector3.html#acfde4e6503acb8b4ad1dd67757f0df2f">olp::math::Vector3&lt; T &gt;</a>
 </li>
 <li>operator++()
-: <a class="el" href="classolp_1_1geo_1_1SubTiles_1_1Iterator.html#a91d96252b8e421f8b195e16ec1d6f3b2">olp::geo::SubTiles::Iterator</a>
+: <a class="el" href="classolp_1_1geo_1_1SubTiles_1_1Iterator.html#aeff2c5b141789988dc8c27504089f460">olp::geo::SubTiles::Iterator</a>
 , <a class="el" href="classolp_1_1utils_1_1LruCache_1_1const__iterator.html#aa25fd2ec31f7839c6898403cbe8b4805">olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;::const_iterator</a>
 </li>
 <li>operator+=()
@@ -126,7 +136,7 @@ $(function() {
 </li>
 <li>operator-()
 : <a class="el" href="structolp_1_1math_1_1Vector2.html#a22651902f939a9e83a6a1e77467d9e84">olp::math::Vector2&lt; T &gt;</a>
-, <a class="el" href="structolp_1_1math_1_1Vector3.html#a193e4f25f2671434f0caa95a344e5b49">olp::math::Vector3&lt; T &gt;</a>
+, <a class="el" href="structolp_1_1math_1_1Vector3.html#a4d646c4800e38baf181a10e86d0d4e6a">olp::math::Vector3&lt; T &gt;</a>
 </li>
 <li>operator--()
 : <a class="el" href="classolp_1_1utils_1_1LruCache_1_1const__iterator.html#ac41b9448fdb671acc38c06b4ed93d6f8">olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;::const_iterator</a>
@@ -143,21 +153,21 @@ $(function() {
 <li>operator=()
 : <a class="el" href="classolp_1_1authentication_1_1AuthenticationClient.html#aaa347eac9d30e3a2335c01b371678c9d">olp::authentication::AuthenticationClient</a>
 , <a class="el" href="classolp_1_1authentication_1_1TokenProvider.html#ae02108e3c28189edf6e3c98751e1e1bd">olp::authentication::TokenProvider&lt; MinimumValidity &gt;</a>
-, <a class="el" href="classolp_1_1client_1_1HttpResponse.html#a6626285ae6f84c4e63615a552f9e8ce8">olp::client::HttpResponse</a>
+, <a class="el" href="classolp_1_1client_1_1HttpResponse.html#a634af9630f2eaed486861a952f9bc53b">olp::client::HttpResponse</a>
 , <a class="el" href="classolp_1_1client_1_1OlpClient.html#a672cfe9ab5dd97557f37fd293977f926">olp::client::OlpClient</a>
 , <a class="el" href="classolp_1_1context_1_1Context_1_1Scope.html#a179eb5784d17dd95bd38bc26295cbd97">olp::context::Context::Scope</a>
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1CatalogClient.html#a317dc1309df789aff078f72c0420be9c">olp::dataservice::read::CatalogClient</a>
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1StreamLayerClient.html#af84114ce0b2e7e7eeaef5fb7df53d1b1">olp::dataservice::read::StreamLayerClient</a>
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#abe01e039fb552f5ef83ff2efd687415b">olp::dataservice::read::VersionedLayerClient</a>
-, <a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#ae25c5632d1287b7621465ea676cd0996">olp::dataservice::read::VolatileLayerClient</a>
+, <a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#a979ddae398d313fa49174c0ef141e0e9">olp::dataservice::read::VolatileLayerClient</a>
 , <a class="el" href="classolp_1_1dataservice_1_1write_1_1model_1_1IndexValue.html#aa05d146656aeb07aa307c91f9b82c1d9">olp::dataservice::write::model::IndexValue</a>
 , <a class="el" href="classolp_1_1geo_1_1TileKey.html#a45c4ef36dfe37c889fe5d291dff458f4">olp::geo::TileKey</a>
 , <a class="el" href="classolp_1_1logging_1_1FilterGroup.html#a80d2c7a4aa8de39af0873c402d31d0dd">olp::logging::FilterGroup</a>
 , <a class="el" href="structolp_1_1logging_1_1MessageFormatter_1_1Element.html#ab0d5f18a1ac0d94b208d62dd7bb160c9">olp::logging::MessageFormatter::Element</a>
-, <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#acec83f159e2fd32dfe11ed6c1d66ff4f">olp::logging::MessageFormatter</a>
+, <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#aa4038b490ca7262b29438a473ab3dfb2">olp::logging::MessageFormatter</a>
 , <a class="el" href="structolp_1_1math_1_1Vector2.html#a0215fc17f5e51228aef5dd907be6c4e2">olp::math::Vector2&lt; T &gt;</a>
 , <a class="el" href="classolp_1_1thread_1_1SyncQueue.html#a33b618f3316657e3a7572c52e12109e6">olp::thread::SyncQueue&lt; T, Container &gt;</a>
-, <a class="el" href="classolp_1_1thread_1_1ThreadPoolTaskScheduler.html#afb7893dfdbc5d2c7bbe56b9a7b89a14a">olp::thread::ThreadPoolTaskScheduler</a>
+, <a class="el" href="classolp_1_1thread_1_1ThreadPoolTaskScheduler.html#aa5193da0fcf425ef96b3db107f88d4dc">olp::thread::ThreadPoolTaskScheduler</a>
 , <a class="el" href="classolp_1_1utils_1_1LruCache_1_1const__iterator.html#ae7015139a8b663ad53b458594376bf03">olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;::const_iterator</a>
 , <a class="el" href="classolp_1_1utils_1_1LruCache.html#aef9c280975a7658bb6df4b7e4cbdb444">olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;</a>
 , <a class="el" href="classstd_1_1shared__lock.html#aeea7cdaf05f01b81b515d3318b87f415">std::shared_lock&lt; Mutex &gt;</a>

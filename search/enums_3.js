@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['httpverb_2566',['HttpVerb',['../classolp_1_1http_1_1NetworkRequest.html#ac280dc7b10a02ce328cf1b6dcae42fd5',1,'olp::http::NetworkRequest']]]
+  ['fetchoptions_2609',['FetchOptions',['../namespaceolp_1_1client.html#a10640e8b99199adda7a527790ec4f606',1,'olp::client']]]
 ];

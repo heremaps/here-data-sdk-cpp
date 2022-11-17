@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.0</span>
+   &#160;<span id="projectnumber">1.15.2</span>
    </div>
   </td>
  </tr>
@@ -100,10 +100,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a3686b5bc4086ac3e1bcc4a5b34dc4a6a"><td class="memItemLeft" align="right" valign="top">std::chrono::seconds&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1TokenResult.html#a3686b5bc4086ac3e1bcc4a5b34dc4a6a">GetExpiresIn</a> () const</td></tr>
 <tr class="memdesc:a3686b5bc4086ac3e1bcc4a5b34dc4a6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the access token expiry time.  <a href="classolp_1_1authentication_1_1TokenResult.html#a3686b5bc4086ac3e1bcc4a5b34dc4a6a">More...</a><br /></td></tr>
 <tr class="separator:a3686b5bc4086ac3e1bcc4a5b34dc4a6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac7270ea9b26ff592330cd102bd1422db"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1TokenResult.html#ac7270ea9b26ff592330cd102bd1422db">OLP_SDK_DEPRECATED</a> (&quot;Will be removed by 10.2022. Use &quot; &quot;`<a class="el" href="classolp_1_1client_1_1ApiResponse.html#ab2fb1fe6e1d5e2dce0d370d8e2482418">TokenResponse::GetError</a>().GetHttpStatusCode()` instead.&quot;) int GetHttpStatus() const</td></tr>
+<tr class="memitem:ac7270ea9b26ff592330cd102bd1422db"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1TokenResult.html#ac7270ea9b26ff592330cd102bd1422db">OLP_SDK_DEPRECATED</a> (&quot;Will be removed by 10.2022. Use &quot; &quot;`<a class="el" href="classolp_1_1client_1_1ApiResponse.html#ae89ffd0b6a39674db21afa59c3208895">TokenResponse::GetError</a>().GetHttpStatusCode()` instead.&quot;) int GetHttpStatus() const</td></tr>
 <tr class="memdesc:ac7270ea9b26ff592330cd102bd1422db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the HTTP status code.  <a href="classolp_1_1authentication_1_1TokenResult.html#ac7270ea9b26ff592330cd102bd1422db">More...</a><br /></td></tr>
 <tr class="separator:ac7270ea9b26ff592330cd102bd1422db"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae850b03b8e2e9f9359f8ba2294ae9e16"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1TokenResult.html#ae850b03b8e2e9f9359f8ba2294ae9e16">OLP_SDK_DEPRECATED</a> (&quot;Will be removed by 10.2022. Use &quot; &quot;`<a class="el" href="classolp_1_1client_1_1ApiResponse.html#ab2fb1fe6e1d5e2dce0d370d8e2482418">TokenResponse::GetError</a>().GetMessagee()` instead.&quot;) ErrorResponse GetErrorResponse() const</td></tr>
+<tr class="memitem:ae850b03b8e2e9f9359f8ba2294ae9e16"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1TokenResult.html#ae850b03b8e2e9f9359f8ba2294ae9e16">OLP_SDK_DEPRECATED</a> (&quot;Will be removed by 10.2022. Use &quot; &quot;`<a class="el" href="classolp_1_1client_1_1ApiResponse.html#ae89ffd0b6a39674db21afa59c3208895">TokenResponse::GetError</a>().GetMessagee()` instead.&quot;) ErrorResponse GetErrorResponse() const</td></tr>
 <tr class="memdesc:ae850b03b8e2e9f9359f8ba2294ae9e16"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets an error description.  <a href="classolp_1_1authentication_1_1TokenResult.html#ae850b03b8e2e9f9359f8ba2294ae9e16">More...</a><br /></td></tr>
 <tr class="separator:ae850b03b8e2e9f9359f8ba2294ae9e16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -283,7 +283,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">olp::authentication::TokenResult::OLP_SDK_DEPRECATED </td>
           <td>(</td>
-          <td class="paramtype">&quot;Will be removed by 10.2022. Use &quot; &quot;`<a class="el" href="classolp_1_1client_1_1ApiResponse.html#ab2fb1fe6e1d5e2dce0d370d8e2482418">TokenResponse::GetError</a>().GetHttpStatusCode()` instead.&quot;&#160;</td>
+          <td class="paramtype">&quot;Will be removed by 10.2022. Use &quot; &quot;`<a class="el" href="classolp_1_1client_1_1ApiResponse.html#ae89ffd0b6a39674db21afa59c3208895">TokenResponse::GetError</a>().GetHttpStatusCode()` instead.&quot;&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
         </tr>
@@ -292,7 +292,7 @@ Public Member Functions</h2></td></tr>
 
 <p>Gets the HTTP status code. </p>
 <dl class="section return"><dt>Returns</dt><dd>The status code of the HTTP response if a positive value is returned. A negative value indicates a possible networking error. If you get the negative value, retry the request.</dd></dl>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000004">Deprecated:</a></b></dt><dd>Will be removed by 10.2022. Use <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html#ab2fb1fe6e1d5e2dce0d370d8e2482418" title="Gets the error of the unsuccessful request attempt.">TokenResponse::GetError()</a>.GetHttpStatusCode()</code> instead. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000004">Deprecated:</a></b></dt><dd>Will be removed by 10.2022. Use <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html#ae89ffd0b6a39674db21afa59c3208895" title="Gets the error of the unsuccessful request attempt.">TokenResponse::GetError()</a>.GetHttpStatusCode()</code> instead. </dd></dl>
 
 </div>
 </div>
@@ -305,7 +305,7 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">olp::authentication::TokenResult::OLP_SDK_DEPRECATED </td>
           <td>(</td>
-          <td class="paramtype">&quot;Will be removed by 10.2022. Use &quot; &quot;`<a class="el" href="classolp_1_1client_1_1ApiResponse.html#ab2fb1fe6e1d5e2dce0d370d8e2482418">TokenResponse::GetError</a>().GetMessagee()` instead.&quot;&#160;</td>
+          <td class="paramtype">&quot;Will be removed by 10.2022. Use &quot; &quot;`<a class="el" href="classolp_1_1client_1_1ApiResponse.html#ae89ffd0b6a39674db21afa59c3208895">TokenResponse::GetError</a>().GetMessagee()` instead.&quot;&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
         </tr>
@@ -314,7 +314,7 @@ Public Member Functions</h2></td></tr>
 
 <p>Gets an error description. </p>
 <dl class="section return"><dt>Returns</dt><dd>The error description of the failed request.</dd></dl>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000005">Deprecated:</a></b></dt><dd>Will be removed by 10.2022. Use <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html#ab2fb1fe6e1d5e2dce0d370d8e2482418" title="Gets the error of the unsuccessful request attempt.">TokenResponse::GetError()</a>.GetMessagee()</code> instead. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000005">Deprecated:</a></b></dt><dd>Will be removed by 10.2022. Use <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html#ae89ffd0b6a39674db21afa59c3208895" title="Gets the error of the unsuccessful request attempt.">TokenResponse::GetError()</a>.GetMessagee()</code> instead. </dd></dl>
 
 </div>
 </div>

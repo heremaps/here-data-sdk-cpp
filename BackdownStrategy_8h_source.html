@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.0</span>
+   &#160;<span id="projectnumber">1.15.2</span>
    </div>
   </td>
  </tr>
@@ -71,7 +71,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/*</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2020 HERE Europe B.V.</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2020-2022 HERE Europe B.V.</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment"> * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment"> * you may not use this file except in compliance with the License.</span></div>
@@ -126,7 +126,7 @@ $(function() {
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;    constexpr <span class="keywordtype">size_t</span> max_retry_count = 30u;</div>
 <div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;    retry_count = std::min&lt;size_t&gt;(retry_count, max_retry_count);</div>
 <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    <span class="keyword">const</span> int64_t exponential_wait_time =</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;        initial_backdown_period.count() * (1 &lt;&lt; retry_count);</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;        initial_backdown_period.count() * (1ull &lt;&lt; retry_count);</div>
 <div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    <span class="keyword">static</span> thread_local std::mt19937 kGenerator(std::random_device{}());</div>
 <div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    <span class="keyword">const</span> <span class="keyword">auto</span> temp = std::min&lt;int64_t&gt;(cap_.count(), exponential_wait_time);</div>
 <div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;    std::uniform_int_distribution&lt;int64_t&gt; dist(0, temp / 2);</div>

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.0</span>
+   &#160;<span id="projectnumber">1.15.2</span>
    </div>
   </td>
  </tr>
@@ -81,13 +81,14 @@ $(function() {
 : <a class="el" href="classolp_1_1geo_1_1GeoPoint.html#a26ed03769a306dc496fdbbcdced1aa02">olp::geo::GeoPoint</a>
 </li>
 <li>GeoRectangle()
-: <a class="el" href="classolp_1_1geo_1_1GeoRectangle.html#aec7163f3d1725aa47b7413bebab6bf2d">olp::geo::GeoRectangle</a>
+: <a class="el" href="classolp_1_1geo_1_1GeoRectangle.html#a0b5e3cf8925e1756bc0e5ad755f6775a">olp::geo::GeoRectangle</a>
 </li>
 <li>GeoRectangleToTileKeys()
 : <a class="el" href="classolp_1_1geo_1_1TileKeyUtils.html#a678a58ab7004592a6277d6db90f23481">olp::geo::TileKeyUtils</a>
 </li>
 <li>Get()
-: <a class="el" href="classolp_1_1cache_1_1KeyValueCache.html#a3400a61c3291c239e75e7fa52360330a">olp::cache::KeyValueCache</a>
+: <a class="el" href="classolp_1_1cache_1_1DefaultCache.html#a8d46b47fcefad5e52d692be938ed416e">olp::cache::DefaultCache</a>
+, <a class="el" href="classolp_1_1cache_1_1KeyValueCache.html#a3400a61c3291c239e75e7fa52360330a">olp::cache::KeyValueCache</a>
 , <a class="el" href="structolp_1_1thread_1_1internal_1_1TypedSmartPointer.html#a8055f8d5f0305d312d6fe679f2a2d26e">olp::thread::internal::TypedSmartPointer&lt; SmartPointer &gt;</a>
 </li>
 <li>GetAbsoluteSubTileKey()
@@ -191,7 +192,7 @@ $(function() {
 : <a class="el" href="classolp_1_1client_1_1CancellableFuture.html#a189fea7164b54e7d2014335fe2979585">olp::client::CancellableFuture&lt; T &gt;</a>
 </li>
 <li>GetCatalog()
-: <a class="el" href="classolp_1_1dataservice_1_1read_1_1CatalogClient.html#ac33f318d62c3b7dfe95b83f3a5de27a3">olp::dataservice::read::CatalogClient</a>
+: <a class="el" href="classolp_1_1dataservice_1_1read_1_1CatalogClient.html#a41e16e27bcf6054e34ce46832aca016b">olp::dataservice::read::CatalogClient</a>
 </li>
 <li>GetCatalogId()
 : <a class="el" href="classolp_1_1client_1_1HRN.html#ae88e4587f5e95f73b2abe7377058c522">olp::client::HRN</a>
@@ -364,7 +365,7 @@ $(function() {
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionsRequest.html#adbb696c68c2219ceca0cd8950fd5ace3">olp::dataservice::read::VersionsRequest</a>
 </li>
 <li>GetError()
-: <a class="el" href="classolp_1_1client_1_1ApiResponse.html#ab2fb1fe6e1d5e2dce0d370d8e2482418">olp::client::ApiResponse&lt; Result, Error &gt;</a>
+: <a class="el" href="classolp_1_1client_1_1ApiResponse.html#ae89ffd0b6a39674db21afa59c3208895">olp::client::ApiResponse&lt; Result, Error, Payload &gt;</a>
 , <a class="el" href="classolp_1_1http_1_1NetworkResponse.html#a19c42ebbad78492c249027addbb3d342">olp::http::NetworkResponse</a>
 </li>
 <li>GetErrorCode()
@@ -898,8 +899,8 @@ $(function() {
 <li>GetPartitions()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1Partitions.html#a07906e97b1d7764c472cf656a9b3779c">olp::dataservice::read::model::Partitions</a>
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1PrefetchPartitionsResult.html#afb87a3984106b7342423210a5d3a621d">olp::dataservice::read::PrefetchPartitionsResult</a>
-, <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#aa03f42fc70e94e445121204898a38ade">olp::dataservice::read::VersionedLayerClient</a>
-, <a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#aa41d345daabeb25836e073de8d5f8400">olp::dataservice::read::VolatileLayerClient</a>
+, <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#aff231c033335efaa0210490a8562c21e">olp::dataservice::read::VersionedLayerClient</a>
+, <a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#a96054f14c90644e8065700dbd6a2bdb5">olp::dataservice::read::VolatileLayerClient</a>
 </li>
 <li>GetPassword()
 : <a class="el" href="classolp_1_1http_1_1NetworkProxySettings.html#ad47b3632c00bf9aef51d3e204cfedcfe">olp::http::NetworkProxySettings</a>
@@ -973,13 +974,13 @@ $(function() {
 </li>
 <li>GetResponse()
 : <a class="el" href="classolp_1_1authentication_1_1internal_1_1TokenProviderImpl.html#a2c5e3e5b7452989193e44295bafb503a">olp::authentication::internal::TokenProviderImpl</a>
-, <a class="el" href="classolp_1_1client_1_1HttpResponse.html#a65d0960cab3104acb5d92ed67919aec4">olp::client::HttpResponse</a>
+, <a class="el" href="classolp_1_1client_1_1HttpResponse.html#a509ddb748bda08f9fd3d08013e92c451">olp::client::HttpResponse</a>
 </li>
 <li>GetResponseTypes()
 : <a class="el" href="classolp_1_1authentication_1_1IntrospectAppResult.html#aab33cedd2b9d99a52b10bcad3ec631d1">olp::authentication::IntrospectAppResult</a>
 </li>
 <li>GetResult()
-: <a class="el" href="classolp_1_1client_1_1ApiResponse.html#a24012ebe168758bafcc45399b8d8b4af">olp::client::ApiResponse&lt; Result, Error &gt;</a>
+: <a class="el" href="classolp_1_1client_1_1ApiResponse.html#a051feafeeb2e3be3b1a8d1396134bde1">olp::client::ApiResponse&lt; Result, Error, Payload &gt;</a>
 </li>
 <li>GetRetries()
 : <a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a9bb5f97918ddd54b61a354db0faf1909">olp::http::NetworkSettings</a>

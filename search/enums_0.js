@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['decisionoperatortype_2561',['DecisionOperatorType',['../classolp_1_1authentication_1_1AuthorizeRequest.html#af1f988e1ea8b039b4110e319936647c3',1,'olp::authentication::AuthorizeRequest']]],
-  ['decisiontype_2562',['DecisionType',['../namespaceolp_1_1authentication.html#a1841dcf42eeb1ee355168da066fb4d44',1,'olp::authentication']]]
+  ['cachetype_2604',['CacheType',['../classolp_1_1cache_1_1DefaultCache.html#a103a09b4dec53cbefc6ee9415089c90c',1,'olp::cache::DefaultCache']]]
 ];

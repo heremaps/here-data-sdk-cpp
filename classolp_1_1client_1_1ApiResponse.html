@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>olp-cpp-sdk: olp::client::ApiResponse&lt; Result, Error &gt; Class Template Reference</title>
+<title>olp-cpp-sdk: olp::client::ApiResponse&lt; Result, Error, Payload &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.0</span>
+   &#160;<span id="projectnumber">1.15.2</span>
    </div>
   </td>
  </tr>
@@ -71,7 +71,7 @@ $(function() {
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="classolp_1_1client_1_1ApiResponse-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">olp::client::ApiResponse&lt; Result, Error &gt; Class Template Reference</div>  </div>
+<div class="title">olp::client::ApiResponse&lt; Result, Error, Payload &gt; Class Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -79,45 +79,95 @@ $(function() {
  <a href="classolp_1_1client_1_1ApiResponse.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="ApiResponse_8h_source.html">ApiResponse.h</a>&gt;</code></p>
+<div class="dynheader">
+Inheritance diagram for olp::client::ApiResponse&lt; Result, Error, Payload &gt;:</div>
+<div class="dyncontent">
+<div class="center"><img src="classolp_1_1client_1_1ApiResponse__inherit__graph.png" border="0" usemap="#aolp_1_1client_1_1ApiResponse_3_01Result_00_01Error_00_01Payload_01_4_inherit__map" alt="Inheritance graph"/></div>
+<map name="aolp_1_1client_1_1ApiResponse_3_01Result_00_01Error_00_01Payload_01_4_inherit__map" id="aolp_1_1client_1_1ApiResponse_3_01Result_00_01Error_00_01Payload_01_4_inherit__map">
+<area shape="rect" title="Represents a request outcome." alt="" coords="21,95,211,136"/>
+<area shape="rect" href="classolp_1_1client_1_1ResponseExtension_3_01void_01_4.html" title="The ApiResponse extension class specialization without any payload." alt="" coords="5,5,227,47"/>
+</map>
+<center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
+<div class="dynheader">
+Collaboration diagram for olp::client::ApiResponse&lt; Result, Error, Payload &gt;:</div>
+<div class="dyncontent">
+<div class="center"><img src="classolp_1_1client_1_1ApiResponse__coll__graph.png" border="0" usemap="#aolp_1_1client_1_1ApiResponse_3_01Result_00_01Error_00_01Payload_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="aolp_1_1client_1_1ApiResponse_3_01Result_00_01Error_00_01Payload_01_4_coll__map" id="aolp_1_1client_1_1ApiResponse_3_01Result_00_01Error_00_01Payload_01_4_coll__map">
+<area shape="rect" title="Represents a request outcome." alt="" coords="21,95,211,136"/>
+<area shape="rect" href="classolp_1_1client_1_1ResponseExtension_3_01void_01_4.html" title="The ApiResponse extension class specialization without any payload." alt="" coords="5,5,227,47"/>
+</map>
+<center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:aaec31a03fb7d5edcc1a8a9e84989bf21"><td class="memItemLeft" align="right" valign="top"><a id="aaec31a03fb7d5edcc1a8a9e84989bf21"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#aaec31a03fb7d5edcc1a8a9e84989bf21">ResultType</a> = Result</td></tr>
-<tr class="memdesc:aaec31a03fb7d5edcc1a8a9e84989bf21"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of result. <br /></td></tr>
-<tr class="separator:aaec31a03fb7d5edcc1a8a9e84989bf21"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4cf389333af573484cb308cf9d327003"><td class="memItemLeft" align="right" valign="top"><a id="a4cf389333af573484cb308cf9d327003"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#a4cf389333af573484cb308cf9d327003">ErrorType</a> = Error</td></tr>
-<tr class="memdesc:a4cf389333af573484cb308cf9d327003"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of error. <br /></td></tr>
-<tr class="separator:a4cf389333af573484cb308cf9d327003"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa79938195944f87836fdff4ef0358c05"><td class="memItemLeft" align="right" valign="top"><a id="aa79938195944f87836fdff4ef0358c05"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#aa79938195944f87836fdff4ef0358c05">ResultType</a> = Result</td></tr>
+<tr class="memdesc:aa79938195944f87836fdff4ef0358c05"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of result. <br /></td></tr>
+<tr class="separator:aa79938195944f87836fdff4ef0358c05"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aadd8337cdfecf832780926b7954fed57"><td class="memItemLeft" align="right" valign="top"><a id="aadd8337cdfecf832780926b7954fed57"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#aadd8337cdfecf832780926b7954fed57">ErrorType</a> = Error</td></tr>
+<tr class="memdesc:aadd8337cdfecf832780926b7954fed57"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of error. <br /></td></tr>
+<tr class="separator:aadd8337cdfecf832780926b7954fed57"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2cceafc27d8bb38630f7c377c6176a8a"><td class="memItemLeft" align="right" valign="top"><a id="a2cceafc27d8bb38630f7c377c6176a8a"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#a2cceafc27d8bb38630f7c377c6176a8a">PayloadType</a> = Payload</td></tr>
+<tr class="memdesc:a2cceafc27d8bb38630f7c377c6176a8a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of additional payload. <br /></td></tr>
+<tr class="separator:a2cceafc27d8bb38630f7c377c6176a8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a30c4df3367ad29a6bdfdf421aa9e359c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#a30c4df3367ad29a6bdfdf421aa9e359c">ApiResponse</a> (<a class="el" href="classolp_1_1client_1_1ApiResponse.html#aaec31a03fb7d5edcc1a8a9e84989bf21">ResultType</a> result)</td></tr>
-<tr class="memdesc:a30c4df3367ad29a6bdfdf421aa9e359c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance.  <a href="classolp_1_1client_1_1ApiResponse.html#a30c4df3367ad29a6bdfdf421aa9e359c">More...</a><br /></td></tr>
-<tr class="separator:a30c4df3367ad29a6bdfdf421aa9e359c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aabd23c7a36a2ddf1b8c8e0a6f8d8f189"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#aabd23c7a36a2ddf1b8c8e0a6f8d8f189">ApiResponse</a> (const <a class="el" href="classolp_1_1client_1_1ApiResponse.html#a4cf389333af573484cb308cf9d327003">ErrorType</a> &amp;error)</td></tr>
-<tr class="memdesc:aabd23c7a36a2ddf1b8c8e0a6f8d8f189"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance if the request is not successful.  <a href="classolp_1_1client_1_1ApiResponse.html#aabd23c7a36a2ddf1b8c8e0a6f8d8f189">More...</a><br /></td></tr>
-<tr class="separator:aabd23c7a36a2ddf1b8c8e0a6f8d8f189"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abb531acb2cd49fce9e57d35fa7b8f5e1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#abb531acb2cd49fce9e57d35fa7b8f5e1">IsSuccessful</a> () const</td></tr>
-<tr class="memdesc:abb531acb2cd49fce9e57d35fa7b8f5e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks the status of the request attempt.  <a href="classolp_1_1client_1_1ApiResponse.html#abb531acb2cd49fce9e57d35fa7b8f5e1">More...</a><br /></td></tr>
-<tr class="separator:abb531acb2cd49fce9e57d35fa7b8f5e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a24012ebe168758bafcc45399b8d8b4af"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classolp_1_1client_1_1ApiResponse.html#aaec31a03fb7d5edcc1a8a9e84989bf21">ResultType</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#a24012ebe168758bafcc45399b8d8b4af">GetResult</a> () const</td></tr>
-<tr class="memdesc:a24012ebe168758bafcc45399b8d8b4af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the result of the successfully executed request.  <a href="classolp_1_1client_1_1ApiResponse.html#a24012ebe168758bafcc45399b8d8b4af">More...</a><br /></td></tr>
-<tr class="separator:a24012ebe168758bafcc45399b8d8b4af"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aad8f906719cb325fc1eb61096771e416"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#aaec31a03fb7d5edcc1a8a9e84989bf21">ResultType</a> &amp;&amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#aad8f906719cb325fc1eb61096771e416">MoveResult</a> ()</td></tr>
-<tr class="memdesc:aad8f906719cb325fc1eb61096771e416"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the result of the successfully executed request.  <a href="classolp_1_1client_1_1ApiResponse.html#aad8f906719cb325fc1eb61096771e416">More...</a><br /></td></tr>
-<tr class="separator:aad8f906719cb325fc1eb61096771e416"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab2fb1fe6e1d5e2dce0d370d8e2482418"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classolp_1_1client_1_1ApiResponse.html#a4cf389333af573484cb308cf9d327003">ErrorType</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#ab2fb1fe6e1d5e2dce0d370d8e2482418">GetError</a> () const</td></tr>
-<tr class="memdesc:ab2fb1fe6e1d5e2dce0d370d8e2482418"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the error of the unsuccessful request attempt.  <a href="classolp_1_1client_1_1ApiResponse.html#ab2fb1fe6e1d5e2dce0d370d8e2482418">More...</a><br /></td></tr>
-<tr class="separator:ab2fb1fe6e1d5e2dce0d370d8e2482418"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab55c74d9c6227a5daeee555334df32f5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#ab55c74d9c6227a5daeee555334df32f5">operator bool</a> () const</td></tr>
-<tr class="memdesc:ab55c74d9c6227a5daeee555334df32f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Operator to check the status of the request attempt.  <a href="classolp_1_1client_1_1ApiResponse.html#ab55c74d9c6227a5daeee555334df32f5">More...</a><br /></td></tr>
-<tr class="separator:ab55c74d9c6227a5daeee555334df32f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae8f328c0d9d3593bd7a586dd802344a0"><td class="memTemplParams" colspan="2">template&lt;typename P  = Payload, typename R  = Result, typename  = typename std::enable_if&lt;!std::is_same&lt;P, void&gt;::value&gt;::type, typename  = typename std::enable_if&lt;std::is_copy_constructible&lt;R&gt;::value&gt;::type&gt; </td></tr>
+<tr class="memitem:ae8f328c0d9d3593bd7a586dd802344a0"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#ae8f328c0d9d3593bd7a586dd802344a0">ApiResponse</a> (const <a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a>&lt; R, Error, void &gt; &amp;other)</td></tr>
+<tr class="memdesc:ae8f328c0d9d3593bd7a586dd802344a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance from a similar response type without payload. The payload is default initialized.  <a href="classolp_1_1client_1_1ApiResponse.html#ae8f328c0d9d3593bd7a586dd802344a0">More...</a><br /></td></tr>
+<tr class="separator:ae8f328c0d9d3593bd7a586dd802344a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a175ec188b9e68008eae9cbb9d3a03a3d"><td class="memTemplParams" colspan="2">template&lt;typename P  = Payload, typename R  = Result, typename  = typename std::enable_if&lt;!std::is_same&lt;P, void&gt;::value&gt;::type, typename  = typename std::enable_if&lt;std::is_move_constructible&lt;R&gt;::value&gt;::type&gt; </td></tr>
+<tr class="memitem:a175ec188b9e68008eae9cbb9d3a03a3d"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#a175ec188b9e68008eae9cbb9d3a03a3d">ApiResponse</a> (<a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a>&lt; R, Error, void &gt; &amp;&amp;other)</td></tr>
+<tr class="memdesc:a175ec188b9e68008eae9cbb9d3a03a3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance from a similar response type without payload. The payload is default initialized.  <a href="classolp_1_1client_1_1ApiResponse.html#a175ec188b9e68008eae9cbb9d3a03a3d">More...</a><br /></td></tr>
+<tr class="separator:a175ec188b9e68008eae9cbb9d3a03a3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a581b437e97e2e21ada564d9c322cf1f7"><td class="memTemplParams" colspan="2">template&lt;typename P  = Payload, typename  = typename std::enable_if&lt;                                      !std::is_same&lt;P, void&gt;::value&gt;::type&gt; </td></tr>
+<tr class="memitem:a581b437e97e2e21ada564d9c322cf1f7"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#a581b437e97e2e21ada564d9c322cf1f7">ApiResponse</a> (const <a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a>&lt; Result, Error, void &gt; &amp;other, P payload)</td></tr>
+<tr class="memdesc:a581b437e97e2e21ada564d9c322cf1f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance from a similar response type without payload, and a separate payload.  <a href="classolp_1_1client_1_1ApiResponse.html#a581b437e97e2e21ada564d9c322cf1f7">More...</a><br /></td></tr>
+<tr class="separator:a581b437e97e2e21ada564d9c322cf1f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afec7e18a08f9ede5e9d4fd2d79c6ce4f"><td class="memTemplParams" colspan="2">template&lt;typename U , typename P  = Payload, typename R  = Result, typename  = typename std::enable_if&lt;std::is_same&lt;P, void&gt;::value&gt;::type, typename  = typename std::enable_if&lt;std::is_copy_constructible&lt;R&gt;::value&gt;::type&gt; </td></tr>
+<tr class="memitem:afec7e18a08f9ede5e9d4fd2d79c6ce4f"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#afec7e18a08f9ede5e9d4fd2d79c6ce4f">ApiResponse</a> (const <a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a>&lt; R, Error, U &gt; &amp;other)</td></tr>
+<tr class="memdesc:afec7e18a08f9ede5e9d4fd2d79c6ce4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance from a similar request with a payload.  <a href="classolp_1_1client_1_1ApiResponse.html#afec7e18a08f9ede5e9d4fd2d79c6ce4f">More...</a><br /></td></tr>
+<tr class="separator:afec7e18a08f9ede5e9d4fd2d79c6ce4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5e4a4b9fed6f00efb28f248b800ad41"><td class="memTemplParams" colspan="2">template&lt;typename U , typename P  = Payload, typename R  = Result, typename  = typename std::enable_if&lt;std::is_same&lt;P, void&gt;::value&gt;::type, typename  = typename std::enable_if&lt;std::is_move_constructible&lt;R&gt;::value&gt;::type&gt; </td></tr>
+<tr class="memitem:af5e4a4b9fed6f00efb28f248b800ad41"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#af5e4a4b9fed6f00efb28f248b800ad41">ApiResponse</a> (<a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a>&lt; R, Error, U &gt; &amp;&amp;other)</td></tr>
+<tr class="memdesc:af5e4a4b9fed6f00efb28f248b800ad41"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance from a similar request with a payload.  <a href="classolp_1_1client_1_1ApiResponse.html#af5e4a4b9fed6f00efb28f248b800ad41">More...</a><br /></td></tr>
+<tr class="separator:af5e4a4b9fed6f00efb28f248b800ad41"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49ab4f42524b86d1406ba2a16131507b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#a49ab4f42524b86d1406ba2a16131507b">ApiResponse</a> (<a class="el" href="classolp_1_1client_1_1ApiResponse.html#aa79938195944f87836fdff4ef0358c05">ResultType</a> result)</td></tr>
+<tr class="memdesc:a49ab4f42524b86d1406ba2a16131507b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance.  <a href="classolp_1_1client_1_1ApiResponse.html#a49ab4f42524b86d1406ba2a16131507b">More...</a><br /></td></tr>
+<tr class="separator:a49ab4f42524b86d1406ba2a16131507b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abb73939598176cb41df37be28886da66"><td class="memTemplParams" colspan="2">template&lt;typename P  = Payload, typename  = typename std::enable_if&lt;                                      !std::is_same&lt;P, void&gt;::value&gt;::type&gt; </td></tr>
+<tr class="memitem:abb73939598176cb41df37be28886da66"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#abb73939598176cb41df37be28886da66">ApiResponse</a> (<a class="el" href="classolp_1_1client_1_1ApiResponse.html#aa79938195944f87836fdff4ef0358c05">ResultType</a> result, P payload)</td></tr>
+<tr class="memdesc:abb73939598176cb41df37be28886da66"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance with payload.  <a href="classolp_1_1client_1_1ApiResponse.html#abb73939598176cb41df37be28886da66">More...</a><br /></td></tr>
+<tr class="separator:abb73939598176cb41df37be28886da66"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5cf44b69569304c6404a79c230cf88d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#ad5cf44b69569304c6404a79c230cf88d">ApiResponse</a> (const <a class="el" href="classolp_1_1client_1_1ApiResponse.html#aadd8337cdfecf832780926b7954fed57">ErrorType</a> &amp;error)</td></tr>
+<tr class="memdesc:ad5cf44b69569304c6404a79c230cf88d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance if the request is not successful.  <a href="classolp_1_1client_1_1ApiResponse.html#ad5cf44b69569304c6404a79c230cf88d">More...</a><br /></td></tr>
+<tr class="separator:ad5cf44b69569304c6404a79c230cf88d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a22204756f50c85d709ea8abd42284e00"><td class="memTemplParams" colspan="2">template&lt;typename P  = Payload, typename  = typename std::enable_if&lt;                                      !std::is_same&lt;P, void&gt;::value&gt;::type&gt; </td></tr>
+<tr class="memitem:a22204756f50c85d709ea8abd42284e00"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#a22204756f50c85d709ea8abd42284e00">ApiResponse</a> (const <a class="el" href="classolp_1_1client_1_1ApiResponse.html#aadd8337cdfecf832780926b7954fed57">ErrorType</a> &amp;error, P payload)</td></tr>
+<tr class="memdesc:a22204756f50c85d709ea8abd42284e00"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance if the request is not successful.  <a href="classolp_1_1client_1_1ApiResponse.html#a22204756f50c85d709ea8abd42284e00">More...</a><br /></td></tr>
+<tr class="separator:a22204756f50c85d709ea8abd42284e00"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8ba412d73fac73d68cce7889b79aaec0"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#a8ba412d73fac73d68cce7889b79aaec0">IsSuccessful</a> () const</td></tr>
+<tr class="memdesc:a8ba412d73fac73d68cce7889b79aaec0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks the status of the request attempt.  <a href="classolp_1_1client_1_1ApiResponse.html#a8ba412d73fac73d68cce7889b79aaec0">More...</a><br /></td></tr>
+<tr class="separator:a8ba412d73fac73d68cce7889b79aaec0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a051feafeeb2e3be3b1a8d1396134bde1"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classolp_1_1client_1_1ApiResponse.html#aa79938195944f87836fdff4ef0358c05">ResultType</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#a051feafeeb2e3be3b1a8d1396134bde1">GetResult</a> () const</td></tr>
+<tr class="memdesc:a051feafeeb2e3be3b1a8d1396134bde1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the result of the successfully executed request.  <a href="classolp_1_1client_1_1ApiResponse.html#a051feafeeb2e3be3b1a8d1396134bde1">More...</a><br /></td></tr>
+<tr class="separator:a051feafeeb2e3be3b1a8d1396134bde1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a299ef82430c6630e77ca3516d8e40f51"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#aa79938195944f87836fdff4ef0358c05">ResultType</a> &amp;&amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#a299ef82430c6630e77ca3516d8e40f51">MoveResult</a> ()</td></tr>
+<tr class="memdesc:a299ef82430c6630e77ca3516d8e40f51"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the result of the successfully executed request.  <a href="classolp_1_1client_1_1ApiResponse.html#a299ef82430c6630e77ca3516d8e40f51">More...</a><br /></td></tr>
+<tr class="separator:a299ef82430c6630e77ca3516d8e40f51"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae89ffd0b6a39674db21afa59c3208895"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classolp_1_1client_1_1ApiResponse.html#aadd8337cdfecf832780926b7954fed57">ErrorType</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#ae89ffd0b6a39674db21afa59c3208895">GetError</a> () const</td></tr>
+<tr class="memdesc:ae89ffd0b6a39674db21afa59c3208895"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the error of the unsuccessful request attempt.  <a href="classolp_1_1client_1_1ApiResponse.html#ae89ffd0b6a39674db21afa59c3208895">More...</a><br /></td></tr>
+<tr class="separator:ae89ffd0b6a39674db21afa59c3208895"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a97a2e365f36b72fbc78c6bc3b0b57ab5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#a97a2e365f36b72fbc78c6bc3b0b57ab5">operator bool</a> () const</td></tr>
+<tr class="memdesc:a97a2e365f36b72fbc78c6bc3b0b57ab5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Operator to check the status of the request attempt.  <a href="classolp_1_1client_1_1ApiResponse.html#a97a2e365f36b72fbc78c6bc3b0b57ab5">More...</a><br /></td></tr>
+<tr class="separator:a97a2e365f36b72fbc78c6bc3b0b57ab5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;typename Result, typename Error&gt;<br />
-class olp::client::ApiResponse&lt; Result, Error &gt;</h3>
+<div class="textblock"><h3>template&lt;typename Result, typename Error, typename Payload = void&gt;<br />
+class olp::client::ApiResponse&lt; Result, Error, Payload &gt;</h3>
 
 <p>Represents a request outcome. </p>
 <p>Contains a successful result or failure error. Before you try to access the error result, check the request outcome.</p>
@@ -129,21 +179,232 @@ class olp::client::ApiResponse&lt; Result, Error &gt;</h3>
   </dd>
 </dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a30c4df3367ad29a6bdfdf421aa9e359c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a30c4df3367ad29a6bdfdf421aa9e359c">&#9670;&nbsp;</a></span>ApiResponse() <span class="overload">[1/2]</span></h2>
+<a id="ae8f328c0d9d3593bd7a586dd802344a0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae8f328c0d9d3593bd7a586dd802344a0">&#9670;&nbsp;</a></span>ApiResponse() <span class="overload">[1/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Result , typename Error &gt; </div>
+template&lt;typename Result , typename Error , typename Payload  = void&gt; </div>
+<div class="memtemplate">
+template&lt;typename P  = Payload, typename R  = Result, typename  = typename std::enable_if&lt;!std::is_same&lt;P, void&gt;::value&gt;::type, typename  = typename std::enable_if&lt;std::is_copy_constructible&lt;R&gt;::value&gt;::type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error &gt;::<a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a> </td>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error, Payload &gt;::<a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a> </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#aaec31a03fb7d5edcc1a8a9e84989bf21">ResultType</a>&#160;</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a>&lt; R, Error, void &gt; &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance from a similar response type without payload. The payload is default initialized. </p>
+<dl class="section note"><dt>Note</dt><dd>Enabled only for the use cases when the input response type has no payload.</dd></dl>
+<p>Used for moving the successfully executed request.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>The <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a175ec188b9e68008eae9cbb9d3a03a3d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a175ec188b9e68008eae9cbb9d3a03a3d">&#9670;&nbsp;</a></span>ApiResponse() <span class="overload">[2/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Result , typename Error , typename Payload  = void&gt; </div>
+<div class="memtemplate">
+template&lt;typename P  = Payload, typename R  = Result, typename  = typename std::enable_if&lt;!std::is_same&lt;P, void&gt;::value&gt;::type, typename  = typename std::enable_if&lt;std::is_move_constructible&lt;R&gt;::value&gt;::type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error, Payload &gt;::<a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a> </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a>&lt; R, Error, void &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance from a similar response type without payload. The payload is default initialized. </p>
+<dl class="section note"><dt>Note</dt><dd>Enabled only for the use cases when the input response type has no payload.</dd></dl>
+<p>Used for moving the successfully executed request.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>The <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a581b437e97e2e21ada564d9c322cf1f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a581b437e97e2e21ada564d9c322cf1f7">&#9670;&nbsp;</a></span>ApiResponse() <span class="overload">[3/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Result , typename Error , typename Payload  = void&gt; </div>
+<div class="memtemplate">
+template&lt;typename P  = Payload, typename  = typename std::enable_if&lt;                                      !std::is_same&lt;P, void&gt;::value&gt;::type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error, Payload &gt;::<a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a> </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a>&lt; Result, Error, void &gt; &amp;&#160;</td>
+          <td class="paramname"><em>other</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">P&#160;</td>
+          <td class="paramname"><em>payload</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance from a similar response type without payload, and a separate payload. </p>
+<dl class="section note"><dt>Note</dt><dd>Enabled only for the use cases when the input response type has no payload.</dd></dl>
+<p>Used for moving the successfully executed request.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>The <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance. </td></tr>
+    <tr><td class="paramname">payload</td><td>The <code>Payload</code> value. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="afec7e18a08f9ede5e9d4fd2d79c6ce4f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afec7e18a08f9ede5e9d4fd2d79c6ce4f">&#9670;&nbsp;</a></span>ApiResponse() <span class="overload">[4/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Result , typename Error , typename Payload  = void&gt; </div>
+<div class="memtemplate">
+template&lt;typename U , typename P  = Payload, typename R  = Result, typename  = typename std::enable_if&lt;std::is_same&lt;P, void&gt;::value&gt;::type, typename  = typename std::enable_if&lt;std::is_copy_constructible&lt;R&gt;::value&gt;::type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error, Payload &gt;::<a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a> </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a>&lt; R, Error, U &gt; &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance from a similar request with a payload. </p>
+<dl class="section note"><dt>Note</dt><dd>Enabled only for the use cases when the input with a payload is sliced to the response without payload.</dd></dl>
+<p>Used for moving the successfully executed request.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>The <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="af5e4a4b9fed6f00efb28f248b800ad41"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5e4a4b9fed6f00efb28f248b800ad41">&#9670;&nbsp;</a></span>ApiResponse() <span class="overload">[5/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Result , typename Error , typename Payload  = void&gt; </div>
+<div class="memtemplate">
+template&lt;typename U , typename P  = Payload, typename R  = Result, typename  = typename std::enable_if&lt;std::is_same&lt;P, void&gt;::value&gt;::type, typename  = typename std::enable_if&lt;std::is_move_constructible&lt;R&gt;::value&gt;::type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error, Payload &gt;::<a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a> </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a>&lt; R, Error, U &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance from a similar request with a payload. </p>
+<dl class="section note"><dt>Note</dt><dd>Enabled only for the use cases when the input with a payload is sliced to the response without payload.</dd></dl>
+<p>Used for moving the successfully executed request.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">other</td><td>The <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a49ab4f42524b86d1406ba2a16131507b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a49ab4f42524b86d1406ba2a16131507b">&#9670;&nbsp;</a></span>ApiResponse() <span class="overload">[6/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Result , typename Error , typename Payload  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error, Payload &gt;::<a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a> </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#aa79938195944f87836fdff4ef0358c05">ResultType</a>&#160;</td>
           <td class="paramname"><em>result</em></td><td>)</td>
           <td></td>
         </tr>
@@ -166,21 +427,71 @@ template&lt;typename Result , typename Error &gt; </div>
 
 </div>
 </div>
-<a id="aabd23c7a36a2ddf1b8c8e0a6f8d8f189"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aabd23c7a36a2ddf1b8c8e0a6f8d8f189">&#9670;&nbsp;</a></span>ApiResponse() <span class="overload">[2/2]</span></h2>
+<a id="abb73939598176cb41df37be28886da66"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abb73939598176cb41df37be28886da66">&#9670;&nbsp;</a></span>ApiResponse() <span class="overload">[7/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Result , typename Error &gt; </div>
+template&lt;typename Result , typename Error , typename Payload  = void&gt; </div>
+<div class="memtemplate">
+template&lt;typename P  = Payload, typename  = typename std::enable_if&lt;                                      !std::is_same&lt;P, void&gt;::value&gt;::type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error &gt;::<a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a> </td>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error, Payload &gt;::<a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a> </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classolp_1_1client_1_1ApiResponse.html#a4cf389333af573484cb308cf9d327003">ErrorType</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#aa79938195944f87836fdff4ef0358c05">ResultType</a>&#160;</td>
+          <td class="paramname"><em>result</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">P&#160;</td>
+          <td class="paramname"><em>payload</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance with payload. </p>
+<p>Used for moving the successfully executed request.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">result</td><td>The <code>ResultType</code> instance. </td></tr>
+    <tr><td class="paramname">payload</td><td>The payload. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ad5cf44b69569304c6404a79c230cf88d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad5cf44b69569304c6404a79c230cf88d">&#9670;&nbsp;</a></span>ApiResponse() <span class="overload">[8/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Result , typename Error , typename Payload  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error, Payload &gt;::<a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a> </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1client_1_1ApiResponse.html#aadd8337cdfecf832780926b7954fed57">ErrorType</a> &amp;&#160;</td>
           <td class="paramname"><em>error</em></td><td>)</td>
           <td></td>
         </tr>
@@ -202,20 +513,68 @@ template&lt;typename Result , typename Error &gt; </div>
 
 </div>
 </div>
-<h2 class="groupheader">Member Function Documentation</h2>
-<a id="ab2fb1fe6e1d5e2dce0d370d8e2482418"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab2fb1fe6e1d5e2dce0d370d8e2482418">&#9670;&nbsp;</a></span>GetError()</h2>
+<a id="a22204756f50c85d709ea8abd42284e00"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a22204756f50c85d709ea8abd42284e00">&#9670;&nbsp;</a></span>ApiResponse() <span class="overload">[9/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Result , typename Error &gt; </div>
+template&lt;typename Result , typename Error , typename Payload  = void&gt; </div>
+<div class="memtemplate">
+template&lt;typename P  = Payload, typename  = typename std::enable_if&lt;                                      !std::is_same&lt;P, void&gt;::value&gt;::type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="classolp_1_1client_1_1ApiResponse.html#a4cf389333af573484cb308cf9d327003">ErrorType</a>&amp; <a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error &gt;::GetError </td>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error, Payload &gt;::<a class="el" href="classolp_1_1client_1_1ApiResponse.html">ApiResponse</a> </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1client_1_1ApiResponse.html#aadd8337cdfecf832780926b7954fed57">ErrorType</a> &amp;&#160;</td>
+          <td class="paramname"><em>error</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">P&#160;</td>
+          <td class="paramname"><em>payload</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates the <code><a class="el" href="classolp_1_1client_1_1ApiResponse.html" title="Represents a request outcome.">ApiResponse</a></code> instance if the request is not successful. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">error</td><td>The <code>ErrorType</code> instance. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="ae89ffd0b6a39674db21afa59c3208895"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae89ffd0b6a39674db21afa59c3208895">&#9670;&nbsp;</a></span>GetError()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Result , typename Error , typename Payload  = void&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="classolp_1_1client_1_1ApiResponse.html#aadd8337cdfecf832780926b7954fed57">ErrorType</a>&amp; <a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error, Payload &gt;::GetError </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -233,19 +592,19 @@ template&lt;typename Result , typename Error &gt; </div>
 
 </div>
 </div>
-<a id="a24012ebe168758bafcc45399b8d8b4af"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a24012ebe168758bafcc45399b8d8b4af">&#9670;&nbsp;</a></span>GetResult()</h2>
+<a id="a051feafeeb2e3be3b1a8d1396134bde1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a051feafeeb2e3be3b1a8d1396134bde1">&#9670;&nbsp;</a></span>GetResult()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Result , typename Error &gt; </div>
+template&lt;typename Result , typename Error , typename Payload  = void&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="classolp_1_1client_1_1ApiResponse.html#aaec31a03fb7d5edcc1a8a9e84989bf21">ResultType</a>&amp; <a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error &gt;::GetResult </td>
+          <td class="memname">const <a class="el" href="classolp_1_1client_1_1ApiResponse.html#aa79938195944f87836fdff4ef0358c05">ResultType</a>&amp; <a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error, Payload &gt;::GetResult </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -263,19 +622,19 @@ template&lt;typename Result , typename Error &gt; </div>
 
 </div>
 </div>
-<a id="abb531acb2cd49fce9e57d35fa7b8f5e1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abb531acb2cd49fce9e57d35fa7b8f5e1">&#9670;&nbsp;</a></span>IsSuccessful()</h2>
+<a id="a8ba412d73fac73d68cce7889b79aaec0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8ba412d73fac73d68cce7889b79aaec0">&#9670;&nbsp;</a></span>IsSuccessful()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Result , typename Error &gt; </div>
+template&lt;typename Result , typename Error , typename Payload  = void&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool <a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error &gt;::IsSuccessful </td>
+          <td class="memname">bool <a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error, Payload &gt;::IsSuccessful </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -293,19 +652,19 @@ template&lt;typename Result , typename Error &gt; </div>
 
 </div>
 </div>
-<a id="aad8f906719cb325fc1eb61096771e416"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aad8f906719cb325fc1eb61096771e416">&#9670;&nbsp;</a></span>MoveResult()</h2>
+<a id="a299ef82430c6630e77ca3516d8e40f51"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a299ef82430c6630e77ca3516d8e40f51">&#9670;&nbsp;</a></span>MoveResult()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Result , typename Error &gt; </div>
+template&lt;typename Result , typename Error , typename Payload  = void&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#aaec31a03fb7d5edcc1a8a9e84989bf21">ResultType</a>&amp;&amp; <a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error &gt;::MoveResult </td>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1ApiResponse.html#aa79938195944f87836fdff4ef0358c05">ResultType</a>&amp;&amp; <a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error, Payload &gt;::MoveResult </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -323,19 +682,19 @@ template&lt;typename Result , typename Error &gt; </div>
 
 </div>
 </div>
-<a id="ab55c74d9c6227a5daeee555334df32f5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab55c74d9c6227a5daeee555334df32f5">&#9670;&nbsp;</a></span>operator bool()</h2>
+<a id="a97a2e365f36b72fbc78c6bc3b0b57ab5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a97a2e365f36b72fbc78c6bc3b0b57ab5">&#9670;&nbsp;</a></span>operator bool()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Result , typename Error &gt; </div>
+template&lt;typename Result , typename Error , typename Payload  = void&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error &gt;::operator bool </td>
+          <td class="memname"><a class="el" href="classolp_1_1client_1_1ApiResponse.html">olp::client::ApiResponse</a>&lt; Result, Error, Payload &gt;::operator bool </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
