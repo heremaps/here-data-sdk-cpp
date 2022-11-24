@@ -19,6 +19,7 @@
 
 #include "PlatformUrlsGenerator.h"
 
+#include <algorithm>
 #include <utility>
 
 #include <olp/dataservice/read/model/Partitions.h>
