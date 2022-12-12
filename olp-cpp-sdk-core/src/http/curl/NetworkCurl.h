@@ -124,9 +124,6 @@ class NetworkCurl : public olp::http::Network,
     bool cancelled{};
     bool skip_content{};
     char error_text[CURL_ERROR_SIZE]{};
-#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
-    X509_LOOKUP_METHOD* md5_lookup_method{nullptr};
-#endif
   };
 
   /**
@@ -351,11 +348,6 @@ class NetworkCurl : public olp::http::Network,
   /// Mutexes that are used by OpenSSL to synchronize during concurrent
   /// network transfer.
   std::unique_ptr<std::mutex[]> ssl_mutexes_{};
-#endif
-
-#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
-  /// Additional lookup method.
-  X509_LOOKUP_METHOD* md5_lookup_method_{nullptr};
 #endif
 
   /// Stores value if `curl_global_init()` was successful on construction.

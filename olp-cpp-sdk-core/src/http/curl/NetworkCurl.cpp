@@ -325,23 +325,12 @@ bool NetworkCurl::Initialize() {
     return false;
   }
 
-#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
-  md5_lookup_method_ = X509_LOOKUP_meth_new(kLookupMethodName);
-
-  X509_LOOKUP_meth_set_ctrl(md5_lookup_method_, Md5LookupCtrl);
-  X509_LOOKUP_meth_set_get_by_subject(md5_lookup_method_,
-                                      Md5LookupGetBySubject);
-#endif
-
   // handles setup
   std::shared_ptr<NetworkCurl> that = shared_from_this();
   for (auto& handle : handles_) {
     handle.handle = nullptr;
     handle.in_use = false;
     handle.self = that;
-#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
-    handle.md5_lookup_method = md5_lookup_method_;
-#endif
   }
 
   std::unique_lock<std::mutex> lock(event_mutex_);
@@ -356,10 +345,6 @@ bool NetworkCurl::Initialize() {
 
 void NetworkCurl::Deinitialize() {
   std::lock_guard<std::mutex> init_lock(init_mutex_);
-
-#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
-  X509_LOOKUP_meth_free(md5_lookup_method_);
-#endif
 
   // Stop worker thread
   if (!IsStarted()) {
@@ -1159,12 +1144,21 @@ CURLcode NetworkCurl::AddMd5LookupMethod(CURL*, SSL_CTX* ssl_ctx,
     return CURLE_ABORTED_BY_CALLBACK;
   }
 
+  auto* md5_lookup_method = X509_LOOKUP_meth_new(kLookupMethodName);
+  if (!md5_lookup_method) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to allocate MD5 lookup method");
+    return CURLE_ABORTED_BY_CALLBACK;
+  }
+
+  X509_LOOKUP_meth_set_ctrl(md5_lookup_method, Md5LookupCtrl);
+  X509_LOOKUP_meth_set_get_by_subject(md5_lookup_method, Md5LookupGetBySubject);
+
   auto* cert_store = SSL_CTX_get_cert_store(ssl_ctx);
-  auto* lookup = X509_STORE_add_lookup(cert_store, handle->md5_lookup_method);
+  auto* lookup = X509_STORE_add_lookup(cert_store, md5_lookup_method);
   if (lookup) {
     X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_PEM);
   } else {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to add lookup method");
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to add MD5 lookup method");
     return CURLE_ABORTED_BY_CALLBACK;
   }
 
