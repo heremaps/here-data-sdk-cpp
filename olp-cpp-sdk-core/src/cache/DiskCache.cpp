@@ -247,6 +247,13 @@ OpenResult DiskCache::Open(const std::string& data_path,
 
   if (status.IsCorruption() || status.IsIOError()) {
     if (is_read_only || !repair_if_broken) {
+      if (status.IsIOError()) {
+        OLP_SDK_LOG_ERROR_F(
+            kLogTag, "Open: IO error, cache_path='%s', error='%s'",
+            versioned_data_path.c_str(), status.ToString().c_str());
+        return OpenResult::IOError;
+      }
+
       OLP_SDK_LOG_ERROR_F(
           kLogTag, "Open: cache corrupted, cache_path='%s', error='%s'",
           versioned_data_path.c_str(), status.ToString().c_str());

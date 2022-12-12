@@ -57,6 +57,8 @@ enum class OpenResult {
   Fail,
   /// The store was corrupted or store compaction was interrupted.
   Corrupted,
+  /// Opening the store failed due to IO error.
+  IOError,
   /// The store was corrupted and has been repaired. Internal integrity might be
   /// broken.
   Repaired,

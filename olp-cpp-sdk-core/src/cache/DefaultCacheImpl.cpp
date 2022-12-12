@@ -128,6 +128,7 @@ olp::cache::DefaultCache::StorageOpenResult ToStorageOpenResult(
     case olp::cache::OpenResult::Fail:
       return StorageOpenResult::OpenDiskPathFailure;
     case olp::cache::OpenResult::Corrupted:
+    case olp::cache::OpenResult::IOError:
       return StorageOpenResult::ProtectedCacheCorrupted;
     case olp::cache::OpenResult::Repaired:
     case olp::cache::OpenResult::Success:
@@ -847,12 +848,27 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupProtectedCache() {
                          "r/o mode, disk_path_protected='%s'",
                          settings_.disk_path_protected.get().c_str());
       open_mode = static_cast<OpenOptions>(open_mode | OpenOptions::ReadOnly);
+      is_read_only = true;
     }
   }
 
   auto status = protected_cache_->Open(
       settings_.disk_path_protected.get(), settings_.disk_path_protected.get(),
       protected_storage_settings, open_mode, false);
+
+  if (status == OpenResult::IOError && !is_read_only) {
+    OLP_SDK_LOG_INFO_F(
+        kLogTag,
+        "Failed to open in r/w mode, trying r/o, disk_path_protected='%s'",
+        settings_.disk_path_protected.get().c_str());
+
+    open_mode = static_cast<OpenOptions>(open_mode | OpenOptions::ReadOnly);
+    status =
+        protected_cache_->Open(settings_.disk_path_protected.get(),
+                               settings_.disk_path_protected.get(),
+                               protected_storage_settings, open_mode, false);
+  }
+
   if (status != OpenResult::Success) {
     OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to open protected cache %s",
                         settings_.disk_path_protected.get().c_str());
