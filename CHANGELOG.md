@@ -1,3 +1,8 @@
+## v1.15.3 (19/12/2022)
+
+**Common**
+* Fixed open behavior on the `No space left` errors in the protected cache. Now, the cache will be opened in the Read-Only mode if the `No space left` error occurs while opening cache in the Read-Write mode.
+
 ## v1.15.2 (04/11/2022)
 
 **Common**
