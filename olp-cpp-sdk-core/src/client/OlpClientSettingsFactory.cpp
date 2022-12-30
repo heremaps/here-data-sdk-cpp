@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ OlpClientSettingsFactory::CreateDefaultCache(cache::CacheSettings settings) {
   auto cache = std::make_unique<cache::DefaultCache>(settings);
   auto error = cache->Open();
   if (error == cache::DefaultCache::StorageOpenResult::OpenDiskPathFailure) {
-    OLP_SDK_LOG_FATAL_F(
+    OLP_SDK_LOG_ERROR_F(
         kLogTag,
         "Error opening disk cache, disk_path_mutable=%s, "
         "disk_path_protected=%s",
@@ -63,7 +63,7 @@ OlpClientSettingsFactory::CreateDefaultCache(cache::CacheSettings settings) {
   return cache;
 #else
   OLP_SDK_CORE_UNUSED(settings);
-  OLP_SDK_LOG_FATAL(kLogTag, "Default cache implementation is disabled.");
+  OLP_SDK_LOG_ERROR(kLogTag, "Default cache implementation is disabled.");
   return nullptr;
 #endif // OLP_SDK_ENABLE_DEFAULT_CACHE
 }
