@@ -90,7 +90,7 @@ For details, see <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/mas
 
 ## LICENSE
 
-Copyright (C) 2019–2022 HERE Europe B.V.
+Copyright (C) 2019–2023 HERE Europe B.V.
 
 For license details, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/LICENSE" target="_blank">LICENSE</a> file in the root of this project.
 
