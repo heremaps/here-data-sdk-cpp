@@ -418,14 +418,14 @@ uint64_t Dir::Size(const std::string& path, FilterFunction filter_fn) {
         continue;
       }
 
-      if (filter_fn && !filter_fn(find_data.cFileName)) {
-        continue;
-      }
-
       if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
         current_path = path + "\\" + find_data.cFileName;
         result += Size(current_path, filter_fn);
       } else {
+        if (filter_fn && !filter_fn(find_data.cFileName)) {
+          continue;
+        }
+
         LARGE_INTEGER size;
         size.LowPart = find_data.nFileSizeLow;
         size.HighPart = find_data.nFileSizeHigh;

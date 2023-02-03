@@ -116,6 +116,17 @@ TEST(DirTest, CheckDirSize) {
     CreateFile(PathBuild(path, "sub", "subsub", "subsub_file2"), 10);
     EXPECT_EQ(Dir::Size(path), 60u);
   }
+  {
+    SCOPED_TRACE("Filtering");
+    CreateFile(PathBuild(path, "file3.hpp"), 10);
+    CreateFile(PathBuild(path, "sub", "sub_file2"), 10);
+    CreateFile(PathBuild(path, "sub", "subsub", "subsub_file2"), 10);
+    EXPECT_EQ(Dir::Size(path,
+                        [](const std::string& filename) {
+                          return filename.find(".hpp") != std::string::npos;
+                        }),
+              10u);
+  }
   Dir::Remove(path);
 }
 
