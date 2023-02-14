@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -178,9 +178,12 @@ void DiskCache::Compact() {
   if (database_ && !compacting_.exchange(true)) {
     OLP_SDK_LOG_INFO(kLogTag, "Compact: Compacting database started");
 
+    const auto kMaxCompactionAttempts = 3u;
+    auto current_attempt = 0u;
     do {
       database_->CompactRange(nullptr, nullptr);
-    } while (!CheckCompactionFinished(*database_));
+    } while (++current_attempt < kMaxCompactionAttempts &&
+             !CheckCompactionFinished(*database_));
 
     compacting_ = false;
 
