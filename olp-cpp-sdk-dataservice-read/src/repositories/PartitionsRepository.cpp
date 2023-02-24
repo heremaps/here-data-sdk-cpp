@@ -259,9 +259,9 @@ PartitionsRepository::GetPartitionsExtendedResponse(
                           catalog_str.c_str(), key.c_str());
       return cached_partitions.get();
     } else if (fetch_option == CacheOnly) {
-      OLP_SDK_LOG_INFO_F(kLogTag,
-                         "GetPartitions not found in cache, hrn='%s', key='%s'",
-                         catalog_str.c_str(), key.c_str());
+      OLP_SDK_LOG_DEBUG_F(
+          kLogTag, "GetPartitions not found in cache, hrn='%s', key='%s'",
+          catalog_str.c_str(), key.c_str());
       return client::ApiError::NotFound(
           "CacheOnly: resource not found in cache");
     }
