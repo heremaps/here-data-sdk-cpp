@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2022 HERE Europe B.V.
+# Copyright (C) 2019-2023 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ if(CURL_FOUND AND NOT NETWORK_NO_CURL)
 
     if(OPENSSL_FOUND)
         add_definitions(-DOLP_SDK_NETWORK_HAS_OPENSSL)
+        set(OLP_SDK_NETWORK_CURL_LIBRARIES ${OLP_SDK_NETWORK_CURL_LIBRARIES} ${OPENSSL_SSL_LIBRARY})
 
         option(OLP_SDK_USE_LIBCRYPTO "Enables the libcrypto dependency" ON)
 
