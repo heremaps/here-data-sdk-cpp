@@ -108,8 +108,10 @@ build_test_nv:
     when: always
     paths:
       - reports
-      - $CI_PROJECT_DIR
-    expire_in: 1 year
+      - scripts
+      - build
+      - tests
+    expire_in: 90 days
 
 test_performance_nv:
   stage: test
