@@ -23,7 +23,7 @@ ulimit -c unlimited
 # Start local server
 node tests/utils/olp_server/server.js & export SERVER_PID=$!
 
-# Node can start server in 1 second, but not faster.
+# Node can start server in 1-5 seconds, but not faster.
 # Add waiter for server to be started. No other way to solve that.
 # Curl returns code 1 - means server still down. Curl returns 0 when server is up
 RC=1
@@ -32,7 +32,7 @@ do
         set +e
         curl -s http://localhost:3000
         RC=$?
-        sleep 0.2
+        sleep 5
         set -e
 done
 echo ">>> Local Server started for further performance test ... >>>"
