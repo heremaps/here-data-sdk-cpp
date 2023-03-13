@@ -1,3 +1,16 @@
+## v1.15.4 (13/03/2023)
+
+**Common**
+* Changed the log level from `FATAL` to `ERROR` in case of errors during opening cache.
+* Changed network layer implementation based on cURL to handle certificates lookup.
+* Improved documentation.
+* Improved `olp::utils::Dir::Size` to filter only files on Windows.
+* Added a limit of attempts for cache compaction.
+* Added `libssl` to the list of network libraries.
+
+**olp-cpp-sdk-dataservice-read**
+* Changed the log level of repetitive log messages from `INFO` to `DEBUG`.
+
 ## v1.15.3 (19/12/2022)
 
 **Common**
