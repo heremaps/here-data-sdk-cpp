@@ -64,14 +64,14 @@ The table below lists the platforms on which the Data SDK has been tested.
 
 The table below lists the dependencies of the Data SDK.
 
-| Library              | Minimum version |
-| :------------------- | :-------------- |
-| libcurl              | 7.52.0          |
-| OpenSSL              | 1.1.1           |
-| Boost (headers only) | 1.69.0          |
-| LevelDB              | 1.21            |
-| Snappy               | 1.1.7           |
-| RapidJSON            | latest          |
+| Library              | Recommended version |
+| :------------------- | :------------------ |
+| libcurl              | 7.52.0              |
+| OpenSSL              | 1.1.1g              |
+| Boost (headers only) | 1.69.0              |
+| LevelDB              | 1.21                |
+| Snappy               | 1.1.7               |
+| RapidJSON            | latest              |
 
 ### Linux dependencies
 
