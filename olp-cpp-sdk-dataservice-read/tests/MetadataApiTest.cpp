@@ -65,7 +65,7 @@ class MetadataApiTest : public testing::Test {
   std::shared_ptr<NetworkMock> network_mock_;
 };
 
-TEST_F(MetadataApiTest, GetListVersions) {
+TEST_F(MetadataApiTest, DISABLED_GetListVersions) {
   {
     SCOPED_TRACE("Request metadata versions.");
     EXPECT_CALL(

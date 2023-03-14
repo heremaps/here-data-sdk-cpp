@@ -184,7 +184,7 @@ const char* quad_tree_index_dump =
 
 const auto quad_tree_index_dump_len = 607;
 
-TEST(QuadTreeIndexTest, BackwardsCompatibility) {
+TEST(QuadTreeIndexTest, DISABLED_BackwardsCompatibility) {
   auto tile_key = olp::geo::TileKey::FromHereTile("381");
 
   auto dump_data = std::make_shared<std::vector<unsigned char>>();

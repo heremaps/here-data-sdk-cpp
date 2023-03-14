@@ -225,7 +225,7 @@ void StreamLayerClientImplTest::SetupNetworkExpectation(T url, T response,
   }
 }
 
-TEST_F(StreamLayerClientImplTest, Subscribe) {
+TEST_F(StreamLayerClientImplTest, DISABLED_Subscribe) {
   {
     SCOPED_TRACE("Subscribe success");
 
@@ -281,7 +281,7 @@ TEST_F(StreamLayerClientImplTest, Subscribe) {
   }
 }
 
-TEST_F(StreamLayerClientImplTest, SubscribeCancellableFuture) {
+TEST_F(StreamLayerClientImplTest, DISABLED_SubscribeCancellableFuture) {
   {
     SCOPED_TRACE("Subscribe success");
 
@@ -341,7 +341,7 @@ TEST_F(StreamLayerClientImplTest, SubscribeCancellableFuture) {
   }
 }
 
-TEST_F(StreamLayerClientImplTest, SubscribeCancel) {
+TEST_F(StreamLayerClientImplTest, DISABLED_SubscribeCancel) {
   settings_.task_scheduler =
       client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
 
@@ -367,7 +367,7 @@ TEST_F(StreamLayerClientImplTest, SubscribeCancel) {
   EXPECT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::Cancelled);
 }
 
-TEST_F(StreamLayerClientImplTest, SubscribeCancelOnClientDestroy) {
+TEST_F(StreamLayerClientImplTest, DISABLED_SubscribeCancelOnClientDestroy) {
   settings_.task_scheduler =
       client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
 

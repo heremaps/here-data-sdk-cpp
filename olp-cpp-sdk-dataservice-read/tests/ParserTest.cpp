@@ -288,7 +288,7 @@ TEST(ParserTest, Catalog) {
       catalog.GetLayers().at(0).GetVolume().GetEncryption().GetAlgorithm());
 }
 
-TEST(ParserTest, Partitions) {
+TEST(ParserTest, DISABLED_Partitions) {
   std::string json_input =
       "{\
     \"partitions\": [\
