@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,19 @@
 
 #include <chrono>
 #include <iostream>
+#include <string>
+#include <time.h>
+#include <utility>
 
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/logging/Log.h>
+#include <olp/core/porting/platform.h>
 #include "TokenEndpoint.h"
 #include "TokenRequest.h"
 
 namespace {
 constexpr auto kLogTag = "AutoRefreshingToken";
+constexpr size_t kAscTimeResultLength = 26u;
 
 std::chrono::steady_clock::time_point ComputeRefreshTime(
     const olp::authentication::TokenResponse& current_token,
@@ -42,6 +47,25 @@ std::chrono::steady_clock::time_point ComputeRefreshTime(
   auto expiry_time_chrono = now + current_token.GetResult().GetExpiresIn();
   return (expiry_time_chrono <= now) ? now
                                      : (expiry_time_chrono - minimum_validity);
+}
+
+std::string ToString(time_t timer) {
+  std::string result(kAscTimeResultLength, '\0');
+  struct tm structured_time;
+
+#ifdef PORTING_PLATFORM_WINDOWS
+  if (gmtime_s(&structured_time, &timer) ||
+      asctime_s(&result[0], kAscTimeResultLength, &structured_time)) {
+    return "incorrect time";
+  }
+#else
+  if (!gmtime_r(&timer, &structured_time) ||
+      !asctime_r(&structured_time, &result[0])) {
+    return "incorrect time";
+  }
+#endif
+
+  return result;
 }
 }  // namespace
 
@@ -110,7 +134,7 @@ struct AutoRefreshingToken::Impl {
     } else {
       auto expiry_time = current_token_.GetResult().GetExpiryTime();
       OLP_SDK_LOG_INFO_F(kLogTag, "Token OK, expires=%s",
-                         std::asctime(std::gmtime(&expiry_time)));
+                         ToString(expiry_time).c_str());
     }
 
     token_refresh_time_ = ComputeRefreshTime(current_token_, minimum_validity);
@@ -130,7 +154,7 @@ struct AutoRefreshingToken::Impl {
     } else {
       auto expiry_time = current_token_.GetResult().GetExpiryTime();
       OLP_SDK_LOG_INFO_F(kLogTag, "Token OK, expires=%s",
-                         std::asctime(std::gmtime(&expiry_time)));
+                         ToString(expiry_time).c_str());
     }
 
     token_refresh_time_ = ComputeRefreshTime(current_token_, minimum_validity);
@@ -160,7 +184,7 @@ struct AutoRefreshingToken::Impl {
           } else {
             auto expiry_time = current_token.GetResult().GetExpiryTime();
             OLP_SDK_LOG_INFO_F(kLogTag, "Token OK, expires=%s",
-                               std::asctime(std::gmtime(&expiry_time)));
+                               ToString(expiry_time).c_str());
           }
 
           token_refresh_time =
