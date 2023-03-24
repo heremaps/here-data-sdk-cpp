@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 HERE Europe B.V.
+ * Copyright (C) 2021-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ namespace cache {
 /// The wrapper for a leveldb default environment
 class DiskCacheEnv {
  public:
-  static std::shared_ptr<leveldb::Env> CreateEnv();
+  static std::shared_ptr<leveldb::Env> CreateEnv(bool extended_permissions);
 };
 
 }  // namespace cache

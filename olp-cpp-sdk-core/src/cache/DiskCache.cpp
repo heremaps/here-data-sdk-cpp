@@ -146,7 +146,8 @@ int CheckCompactionFinished(leveldb::DB& db) {
 
 }  // anonymous namespace
 
-DiskCache::DiskCache() : env_(DiskCacheEnv::CreateEnv()){};
+DiskCache::DiskCache(bool extend_permissions)
+    : env_(DiskCacheEnv::CreateEnv(extend_permissions)){};
 DiskCache::~DiskCache() { Close(); }
 
 void DiskCache::LevelDBLogger::Logv(const char* format, va_list ap) {

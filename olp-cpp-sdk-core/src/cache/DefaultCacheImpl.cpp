@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -828,7 +828,7 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupStorage() {
 }
 
 DefaultCache::StorageOpenResult DefaultCacheImpl::SetupProtectedCache() {
-  protected_cache_ = std::make_unique<DiskCache>();
+  protected_cache_ = std::make_unique<DiskCache>(settings_.extend_permissions);
 
   // Storage settings for protected cache are different. We want to specify the
   // max_file_size greater than the manifest file size. Or else leveldb will try
@@ -883,7 +883,7 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupProtectedCache() {
 DefaultCache::StorageOpenResult DefaultCacheImpl::SetupMutableCache() {
   auto storage_settings = CreateStorageSettings(settings_);
 
-  mutable_cache_ = std::make_unique<DiskCache>();
+  mutable_cache_ = std::make_unique<DiskCache>(settings_.extend_permissions);
   auto status = mutable_cache_->Open(settings_.disk_path_mutable.get(),
                                      settings_.disk_path_mutable.get(),
                                      storage_settings, settings_.openOptions);

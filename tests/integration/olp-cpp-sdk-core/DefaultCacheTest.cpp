@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 #include <thread>
 
 #include <olp/core/cache/DefaultCache.h>
+#include <olp/core/utils/Dir.h>
 
 namespace {
 namespace cache = olp::cache;
@@ -257,6 +258,7 @@ TEST(DefaultCacheTest, ProtectExpiration) {
     cache.Close();
   }
 }
+
 TEST(DefaultCacheTest, ProtectedLruEviction) {
   {
     SCOPED_TRACE("Protect and release keys, which suppose to be evicted");
@@ -334,5 +336,71 @@ TEST(DefaultCacheTest, ProtectedLruEviction) {
     cache.Close();
   }
 }
+
+#ifndef WIN32
+
+TEST(DefaultCacheTest, Permissions) {
+    // Enable the process to use all permissions
+  auto old_mask = umask(0);
+
+  {
+    SCOPED_TRACE("Default permissions");
+    cache::CacheSettings settings;
+    settings.disk_path_mutable = "./cache";
+    settings.eviction_policy = cache::EvictionPolicy::kLeastRecentlyUsed;
+    settings.max_disk_storage = 2u * 1024u * 1024u;
+    settings.extend_permissions = false;
+    cache::DefaultCache cache(settings);
+    cache.Open();
+    cache.Close();
+
+    struct stat st;
+    EXPECT_EQ(stat("./cache/CURRENT", &st), 0);
+    mode_t permissions = st.st_mode;
+    EXPECT_TRUE((permissions & S_IRUSR) == S_IRUSR);
+    EXPECT_TRUE((permissions & S_IWUSR) == S_IWUSR);
+    EXPECT_TRUE((permissions & S_IXUSR) == 0);
+    EXPECT_TRUE((permissions & S_IRGRP) == S_IRGRP);
+    EXPECT_TRUE((permissions & S_IWGRP) == 0);
+    EXPECT_TRUE((permissions & S_IXGRP) == 0);
+    EXPECT_TRUE((permissions & S_IROTH) == S_IROTH);
+    EXPECT_TRUE((permissions & S_IWOTH) == 0);
+    EXPECT_TRUE((permissions & S_IXOTH) == 0);
+  }
+
+  EXPECT_TRUE(olp::utils::Dir::remove("./cache"));
+
+  {
+    SCOPED_TRACE("Modified permission");
+    cache::CacheSettings settings;
+    settings.disk_path_mutable = "./cache";
+    settings.eviction_policy = cache::EvictionPolicy::kLeastRecentlyUsed;
+    settings.max_disk_storage = 2u * 1024u * 1024u;
+    settings.extend_permissions = true;
+    cache::DefaultCache cache(settings);
+    cache.Open();
+    cache.Close();
+
+    struct stat st;
+    EXPECT_EQ(stat("./cache/CURRENT", &st), 0);
+    mode_t permissions = st.st_mode;
+    EXPECT_TRUE((permissions & S_IRUSR) == S_IRUSR);
+    EXPECT_TRUE((permissions & S_IWUSR) == S_IWUSR);
+    EXPECT_TRUE((permissions & S_IXUSR) == 0);
+    EXPECT_TRUE((permissions & S_IRGRP) == S_IRGRP);
+    EXPECT_TRUE((permissions & S_IWGRP) == S_IWGRP);
+    EXPECT_TRUE((permissions & S_IXGRP) == 0);
+    EXPECT_TRUE((permissions & S_IROTH) == S_IROTH);
+    EXPECT_TRUE((permissions & S_IWOTH) == S_IWOTH);
+    EXPECT_TRUE((permissions & S_IXOTH) == 0);
+  }
+
+  EXPECT_TRUE(olp::utils::Dir::remove("./cache"));
+
+  // Restore the mask
+  umask(old_mask);
+}
+
+#endif
 
 }  // namespace
