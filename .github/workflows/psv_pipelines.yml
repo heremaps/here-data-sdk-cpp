@@ -71,6 +71,23 @@ jobs:
       run: gcc --version && ./scripts/linux/psv/build_psv.sh
       shell: bash
 
+  psv-linux-22-04-gcc11-build:
+    name: PSV / Linux gcc 11
+    runs-on: ubuntu-22.04
+    env:
+      BUILD_TYPE: RelWithDebInfo
+      CC: gcc-11
+      CXX: g++-11
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+    - name: Install Ubuntu dependencies
+      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-11 g++-11 --no-install-recommends
+      shell: bash
+    - name: Compile project with cmake and ccache
+      run: gcc --version && ./scripts/linux/psv/build_psv.sh
+      shell: bash
+
   psv-linux-gcc-build-no-cache:
     name: PSV / Linux gcc 7.5 / OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
     runs-on: ubuntu-20.04
