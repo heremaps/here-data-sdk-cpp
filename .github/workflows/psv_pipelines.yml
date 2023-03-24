@@ -9,40 +9,73 @@ on:
       - '*'
 
 env:
-  BUILD_TYPE: COVERAGE
-  LD_PRELOAD: /lib/x86_64-linux-gnu/libSegFault.so
   SEGFAULT_SIGNALS: all
 
 jobs:
-  psv-linux-gcc-build-test-codecov:
+  psv-linux-18-04-gcc-build-test-cpplint-codecov:
     name: PSV / Linux gcc 7.5 / Tests / Code coverage
+    runs-on: ubuntu-18.04
+    env:
+      LD_PRELOAD: /lib/x86_64-linux-gnu/libSegFault.so
+      BUILD_TYPE: COVERAGE
+      CC: gcc-7
+      CXX: g++-7
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: "C++ Lint checker script"
+        run: ./scripts/misc/cpplint_ci.sh
+        shell: bash
+      - name: Install Ubuntu dependencies
+        run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-7 g++-7 --no-install-recommends
+        shell: bash
+      - name: Compile project with cmake and ccache
+        run: gcc --version && ./scripts/linux/psv/build_psv.sh
+        shell: bash
+      - name: Run unit and integration tests
+        run: ./scripts/linux/psv/test_psv.sh
+        shell: bash
+
+  psv-linux-20-04-gcc-build:
+    name: PSV / Linux gcc 7.5
     runs-on: ubuntu-20.04
     env:
+      LD_PRELOAD: /lib/x86_64-linux-gnu/libSegFault.so
       BUILD_TYPE: RelWithDebInfo
       CC: gcc-7
       CXX: g++-7
     steps:
     - name: Check out repository
       uses: actions/checkout@v3
-    - name: "C++ Lint checker script"
-      run: ./scripts/misc/cpplint_ci.sh
-      shell: bash
     - name: Install Ubuntu dependencies
       run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-7 g++-7 --no-install-recommends
       shell: bash
     - name: Compile project with cmake and ccache
       run: gcc --version && ./scripts/linux/psv/build_psv.sh
       shell: bash
-    - name: Run unit and integration tests
-      run: ./scripts/linux/psv/test_psv.sh
+
+  psv-linux-22-04-gcc9-build:
+    name: PSV / Linux gcc 9
+    runs-on: ubuntu-22.04
+    env:
+      BUILD_TYPE: RelWithDebInfo
+      CC: gcc-9
+      CXX: g++-9
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+    - name: Install Ubuntu dependencies
+      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-9 g++-9 --no-install-recommends
       shell: bash
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+    - name: Compile project with cmake and ccache
+      run: gcc --version && ./scripts/linux/psv/build_psv.sh
+      shell: bash
 
   psv-linux-gcc-build-no-cache:
     name: PSV / Linux gcc 7.5 / OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
     runs-on: ubuntu-20.04
     env:
+      LD_PRELOAD: /lib/x86_64-linux-gnu/libSegFault.so
       BUILD_TYPE: RelWithDebInfo
       CC: gcc-7
       CXX: g++-7
