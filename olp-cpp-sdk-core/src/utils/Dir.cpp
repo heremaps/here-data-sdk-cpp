@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -284,7 +284,7 @@ bool Dir::Create(const std::string& path) {
 #if !defined(_WIN32) || defined(__MINGW32__)
   struct stat sbuf;
   if (stat(path.c_str(), &sbuf) != 0) {
-    if (!mkdir_all(path.c_str(), 0774)) {
+    if (!mkdir_all(path.c_str(), ACCESSPERMS)) {
       ret = false;
     }
   }

@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2021 HERE Europe B.V.
+# Copyright (C) 2019-2023 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
-
 
 project(olp-cpp-sdk-core VERSION 1.15.4)
 set(DESCRIPTION "Core network and utility library for the HERE OLP SDK C++")
@@ -39,7 +38,7 @@ include(cmake/CompileChecks.cmake)
 
 porting_do_checks()
 
-if(IOS OR (WIN32 AND NOT MINGW))
+if(IOS OR(WIN32 AND NOT MINGW))
     set(NETWORK_NO_CURL ON)
 elseif(ANDROID)
     if(OLP_SDK_ENABLE_ANDROID_CURL)
@@ -290,7 +289,7 @@ set(OLP_SDK_HTTP_SOURCES
     ./src/http/NetworkUtils.cpp
 )
 
-if (ANDROID)
+if(ANDROID)
     # http network Android implementation:
     set(OLP_SDK_HTTP_ANDROID_SOURCES
         ./src/http/android/NetworkAndroid.h
@@ -303,20 +302,20 @@ if (ANDROID)
     set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_ANDROID)
 endif()
 
-if (UNIX AND (NOT ANDROID OR OLP_SDK_ENABLE_ANDROID_CURL))
+if(UNIX AND(NOT ANDROID OR OLP_SDK_ENABLE_ANDROID_CURL))
     set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_CURL_SOURCES})
 
     set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_CURL)
 endif()
 
-if (IOS)
+if(IOS)
     set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_IOS_SOURCES})
 
     set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_IOS)
 endif()
 
-if (WIN32)
-    if (MINGW)
+if(WIN32)
+    if(MINGW)
         set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_CURL_SOURCES})
         set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_CURL)
     else()
@@ -392,7 +391,7 @@ endif()
 
 add_library(${PROJECT_NAME} ${OLP_SDK_CORE_SOURCES} ${OLP_SDK_CORE_HEADERS})
 
-if (OLP_SDK_DISABLE_DEBUG_LOGGING)
+if(OLP_SDK_DISABLE_DEBUG_LOGGING)
     target_compile_definitions(${PROJECT_NAME}
         PUBLIC LOGGING_DISABLE_DEBUG_LEVEL)
 endif()
@@ -400,7 +399,7 @@ endif()
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE ${OLP_SDK_DEFAULT_NETWORK_DEFINITION})
 
-if (OLP_SDK_NO_EXCEPTION AND NOT OLP_SDK_BOOST_THROW_EXCEPTION_EXTERNAL)
+if(OLP_SDK_NO_EXCEPTION AND NOT OLP_SDK_BOOST_THROW_EXCEPTION_EXTERNAL)
     target_compile_definitions(${PROJECT_NAME}
         PRIVATE OLP_SDK_BOOST_THROW_EXCEPTION=1)
 endif()
@@ -417,52 +416,68 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
     $<INSTALL_INTERFACE:include>)
 
-if (ANDROID)
+if(ANDROID)
     set(ADDITIONAL_LIBRARIES log)
 else()
     set(ADDITIONAL_LIBRARIES)
 endif()
 
-if (HAVE_PTHREAD_SETNAME_NP)
+if(HAVE_PTHREAD_SETNAME_NP)
     add_definitions(-DOLP_SDK_HAVE_PTHREAD_SETNAME_NP)
 endif()
 
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
-        ${ADDITIONAL_LIBRARIES}
-        ${OLP_SDK_NETWORK_CURL_LIBRARIES}
-        ${NETWORK_WINHTTP_LIBRARIES}
-        ${CMAKE_THREAD_LIBS_INIT}
+    ${ADDITIONAL_LIBRARIES}
+    ${OLP_SDK_NETWORK_CURL_LIBRARIES}
+    ${NETWORK_WINHTTP_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
 )
 
 if(OLP_SDK_ENABLE_DEFAULT_CACHE)
+    include(CheckCXXSymbolExists)
+    check_cxx_symbol_exists(fdatasync "unistd.h" HAVE_FDATASYNC)
+    check_cxx_symbol_exists(F_FULLFSYNC "fcntl.h" HAVE_FULLFSYNC)
+
     target_include_directories(${PROJECT_NAME}
         PUBLIC
-            $<BUILD_INTERFACE:${leveldb_INCLUDE_DIR}>
+        $<BUILD_INTERFACE:${leveldb_INCLUDE_DIR}>
     )
     target_link_libraries(${PROJECT_NAME}
         PRIVATE
-            leveldb::leveldb
+        leveldb::leveldb
     )
+
+    if(HAVE_FDATASYNC)
+        target_compile_definitions(${PROJECT_NAME}
+            PRIVATE
+            HAVE_FDATASYNC)
+    endif()
+
+    if(HAVE_FULLFSYNC)
+        target_compile_definitions(${PROJECT_NAME}
+            PRIVATE
+            HAVE_FULLFSYNC)
+    endif()
 endif()
 
 if(OLP_SDK_ENABLE_DEFAULT_CACHE_LMDB)
     target_include_directories(${PROJECT_NAME}
         PRIVATE
-            $<BUILD_INTERFACE:${lmdb_INCLUDE_DIR}>
+        $<BUILD_INTERFACE:${lmdb_INCLUDE_DIR}>
     )
     target_link_libraries(${PROJECT_NAME}
         PRIVATE
-            lmdb::lmdb
+        lmdb::lmdb
     )
 endif()
 
 if(IOS)
-    if (CMAKE_GENERATOR MATCHES "Xcode")
-        set_target_properties (
-                ${PROJECT_NAME}
-                PROPERTIES
-                XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC YES
+    if(CMAKE_GENERATOR MATCHES "Xcode")
+        set_target_properties(
+            ${PROJECT_NAME}
+            PROPERTIES
+            XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC YES
         )
     else()
         target_compile_options(${PROJECT_NAME} PRIVATE "-fobjc-arc")
@@ -473,8 +488,8 @@ if(IOS)
     find_library(OLP_SDK_CFNETWORK_FRAMEWORK CFNetwork)
 
     target_link_libraries(${PROJECT_NAME} PRIVATE ${OLP_SDK_CORE_FOUNDATION_FRAMEWORK}
-                                                  ${OLP_SDK_SECURITY_FRAMEWORK}
-                                                  ${OLP_SDK_CFNETWORK_FRAMEWORK})
+        ${OLP_SDK_SECURITY_FRAMEWORK}
+        ${OLP_SDK_CFNETWORK_FRAMEWORK})
 elseif(ANDROID AND NOT OLP_SDK_ENABLE_ANDROID_CURL)
     # Make sure that OlpHttpClient.jar is built before olp-cpp-sdk-core
     add_dependencies(${PROJECT_NAME} ${OLP_SDK_ANDROID_HTTP_CLIENT_JAR})
@@ -483,6 +498,7 @@ endif()
 if(CURL_FOUND AND NOT MINGW)
     include(CheckIncludeFile)
     check_include_file(signal.h HAVE_SIGNAL_H)
+
     if(HAVE_SIGNAL_H)
         target_compile_definitions(${PROJECT_NAME}
             PRIVATE HAVE_SIGNAL_H IGNORE_SIGPIPE)
@@ -491,6 +507,7 @@ endif()
 
 option(NETWORK_SSL_VERIFY_OVERRIDE
     "Enable support for NETWORK_SSL_VERIFY environment variable to override SSL certificate verification" OFF)
+
 if(NETWORK_SSL_VERIFY_OVERRIDE)
     target_compile_definitions(${PROJECT_NAME}
         PRIVATE NETWORK_SSL_VERIFY_OVERRIDE)
@@ -498,6 +515,7 @@ endif()
 
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE THREAD_LIBRARY)
+
 if(BUILD_SHARED_LIBS)
     target_compile_definitions(${PROJECT_NAME}
         PRIVATE THREAD_LIBRARY_DYNAMIC)
@@ -505,28 +523,29 @@ endif()
 
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE CORE_LIBRARY)
+
 if(BUILD_SHARED_LIBS)
     target_compile_definitions(${PROJECT_NAME}
         PUBLIC CORE_SHARED_LIBRARY)
 endif()
 
 # install component
-install (FILES ${OLP_SDK_HTTP_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/http)
-install (FILES ${OLP_SDK_MODEL_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/model)
-install (FILES ${OLP_SDK_PLATFORM_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/platform)
-install (FILES ${OLP_SDK_PORTING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/porting)
-install (FILES ${OLP_SDK_UTILS_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/utils)
-install (FILES ${OLP_SDK_THREAD_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/thread)
-install (FILES ${OLP_SDK_CACHE_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/cache)
-install (FILES ${OLP_SDK_CLIENT_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/client)
-install (FILES ${OLP_SDK_MATH_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/math)
-install (FILES ${OLP_SDK_GEOCOORDINATES_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo/coordinates)
-install (FILES ${OLP_SDP_GEOPROJECTION_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo/projection)
-install (FILES ${OLP_SDK_GEOTILING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo/tiling)
-install (FILES ${OLP_SDK_LOGGING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/logging)
-install (FILES ${OLP_SDK_COREAPI_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core)
-install (FILES ${OLP_SDK_GEOTYPE_HEADER} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo)
-install (FILES ${OLP_SDK_CONFIG_HEADER} DESTINATION ${INCLUDE_DIRECTORY}/olp/core)
+install(FILES ${OLP_SDK_HTTP_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/http)
+install(FILES ${OLP_SDK_MODEL_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/model)
+install(FILES ${OLP_SDK_PLATFORM_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/platform)
+install(FILES ${OLP_SDK_PORTING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/porting)
+install(FILES ${OLP_SDK_UTILS_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/utils)
+install(FILES ${OLP_SDK_THREAD_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/thread)
+install(FILES ${OLP_SDK_CACHE_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/cache)
+install(FILES ${OLP_SDK_CLIENT_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/client)
+install(FILES ${OLP_SDK_MATH_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/math)
+install(FILES ${OLP_SDK_GEOCOORDINATES_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo/coordinates)
+install(FILES ${OLP_SDP_GEOPROJECTION_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo/projection)
+install(FILES ${OLP_SDK_GEOTILING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo/tiling)
+install(FILES ${OLP_SDK_LOGGING_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/logging)
+install(FILES ${OLP_SDK_COREAPI_HEADERS} DESTINATION ${INCLUDE_DIRECTORY}/olp/core)
+install(FILES ${OLP_SDK_GEOTYPE_HEADER} DESTINATION ${INCLUDE_DIRECTORY}/olp/core/geo)
+install(FILES ${OLP_SDK_CONFIG_HEADER} DESTINATION ${INCLUDE_DIRECTORY}/olp/core)
 
 export_config()
 
