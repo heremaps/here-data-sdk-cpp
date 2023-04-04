@@ -12,12 +12,12 @@ env:
   SEGFAULT_SIGNALS: all
 
 jobs:
-  psv-linux-18-04-gcc-build-test-cpplint-codecov:
-    name: PSV / Linux gcc 7.5 / Tests / Code coverage
-    runs-on: ubuntu-18.04
+  psv-linux-20-04-gcc7-build-cpplint:
+    name: PSV.Linux.20.04.gcc7.Cpplint
+    runs-on: ubuntu-20.04
     env:
       LD_PRELOAD: /lib/x86_64-linux-gnu/libSegFault.so
-      BUILD_TYPE: COVERAGE
+      BUILD_TYPE: RelWithDebInfo
       CC: gcc-7
       CXX: g++-7
     steps:
@@ -32,33 +32,12 @@ jobs:
       - name: Compile project with cmake and ccache
         run: gcc --version && ./scripts/linux/psv/build_psv.sh
         shell: bash
-      - name: Run unit and integration tests
-        run: ./scripts/linux/psv/test_psv.sh
-        shell: bash
 
-  psv-linux-20-04-gcc-build:
-    name: PSV / Linux gcc 7.5
-    runs-on: ubuntu-20.04
-    env:
-      LD_PRELOAD: /lib/x86_64-linux-gnu/libSegFault.so
-      BUILD_TYPE: RelWithDebInfo
-      CC: gcc-7
-      CXX: g++-7
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v3
-    - name: Install Ubuntu dependencies
-      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-7 g++-7 --no-install-recommends
-      shell: bash
-    - name: Compile project with cmake and ccache
-      run: gcc --version && ./scripts/linux/psv/build_psv.sh
-      shell: bash
-
-  psv-linux-22-04-gcc9-build:
-    name: PSV / Linux gcc 9
+  psv-linux-22-04-gcc9-build-test-codecov:
+    name: PSV.Linux.22.04.gcc9.Tests.CodeCov
     runs-on: ubuntu-22.04
     env:
-      BUILD_TYPE: RelWithDebInfo
+      BUILD_TYPE: COVERAGE
       CC: gcc-9
       CXX: g++-9
     steps:
@@ -70,9 +49,12 @@ jobs:
     - name: Compile project with cmake and ccache
       run: gcc --version && ./scripts/linux/psv/build_psv.sh
       shell: bash
+    - name: Run unit and integration tests
+      run: ./scripts/linux/psv/test_psv.sh
+      shell: bash
 
-  psv-linux-gcc-build-no-cache:
-    name: PSV / Linux gcc 7.5 / OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
+  psv-linux-20-04-gcc7-build-no-cache:
+    name: PSV.Linux.20.04.gcc7.OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
     runs-on: ubuntu-20.04
     env:
       LD_PRELOAD: /lib/x86_64-linux-gnu/libSegFault.so

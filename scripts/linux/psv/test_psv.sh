@@ -43,9 +43,6 @@ $CPP_TEST_SOURCE_INTEGRATION/olp-cpp-sdk-integration-tests \
     --gtest_output="xml:olp-cpp-sdk-integration-tests-report.xml"
 
 # CodeCov
-# Find all .cpp.o and run gcov for them
-pip install coveragepy
-
 curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --no-default-keyring --keyring trustedkeys.gpg --import # One-time step
 curl -Os https://uploader.codecov.io/latest/linux/codecov
 curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM
