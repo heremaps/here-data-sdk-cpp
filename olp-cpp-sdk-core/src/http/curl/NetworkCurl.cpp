@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -523,6 +523,8 @@ ErrorCode NetworkCurl::SendImplementation(
   } else {
     curl_easy_setopt(handle->handle, CURLOPT_VERBOSE, 0L);
   }
+
+  curl_easy_setopt(handle->handle, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
 
   const std::string& url = request.GetUrl();
   curl_easy_setopt(handle->handle, CURLOPT_URL, url.c_str());
