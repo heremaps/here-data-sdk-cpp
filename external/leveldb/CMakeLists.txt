@@ -30,6 +30,10 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists-leveldb.txt
 file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/config/leveldb/CMakeLists-leveldb.txt
      ${CMAKE_CURRENT_BINARY_DIR}/config/leveldb/CMakeLists.txt)
 
+if (NOT DEFINED ${CMAKE_BUILD_TYPE})
+    set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+endif()
+
 execute_process(COMMAND ${CMAKE_COMMAND} --build . --config ${CMAKE_BUILD_TYPE}
   RESULT_VARIABLE result
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/download)
