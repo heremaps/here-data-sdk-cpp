@@ -165,8 +165,11 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     // Setup task request data:
     const NetworkSettings& settings = request.GetSettings();
 
+    const auto connectionTimeoutSeconds = std::chrono::duration_cast<std::chrono::seconds>(
+        settings.GetConnectionTimeoutDuration()).count();
+
     task.url = url;
-    task.connectionTimeout = settings.GetConnectionTimeout();
+    task.connectionTimeout = static_cast<int>(connectionTimeoutSeconds);
     task.payload = payload;
     task.callback = callback;
     task.callbackMutex = std::make_shared<std::mutex>();

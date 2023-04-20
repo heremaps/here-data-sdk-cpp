@@ -449,11 +449,11 @@ boost::optional<client::ApiError> OlpClient::OlpClientImpl::AddBearer(
     return client::ApiError(
         static_cast<int>(http::ErrorCode::AUTHORIZATION_ERROR),
         "Invalid bearer token.");
-    }
+  }
 
-    request.WithHeader(http::kAuthorizationHeader,
-                       http::kBearer + std::string(" ") + token);
-    return boost::none;
+  request.WithHeader(http::kAuthorizationHeader,
+                     http::kBearer + std::string(" ") + token);
+  return boost::none;
 }
 
 bool OlpClient::OlpClientImpl::ValidateBaseUrl() const {
@@ -578,8 +578,8 @@ CancellationToken OlpClient::OlpClientImpl::CallApi(
   auto proxy = settings_.proxy_settings.value_or(http::NetworkProxySettings());
   network_request->WithSettings(
       http::NetworkSettings()
-          .WithConnectionTimeout(retry_settings.timeout)
-          .WithTransferTimeout(retry_settings.timeout)
+          .WithConnectionTimeout(std::chrono::seconds(retry_settings.timeout))
+          .WithTransferTimeout(std::chrono::seconds(retry_settings.timeout))
           .WithRetries(retry_settings.max_attempts)
           .WithProxySettings(std::move(proxy)));
 
@@ -615,8 +615,8 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
   const auto& retry_settings = settings_.retry_settings;
   auto network_settings =
       http::NetworkSettings()
-          .WithTransferTimeout(retry_settings.timeout)
-          .WithConnectionTimeout(retry_settings.timeout)
+          .WithTransferTimeout(std::chrono::seconds(retry_settings.timeout))
+          .WithConnectionTimeout(std::chrono::seconds(retry_settings.timeout))
           .WithProxySettings(
               settings_.proxy_settings.value_or(http::NetworkProxySettings()));
 

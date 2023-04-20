@@ -503,7 +503,6 @@ ErrorCode NetworkCurl::SendImplementation(
   OLP_SDK_LOG_DEBUG(
       kLogTag, "Send request with url=" << request.GetUrl() << ", id=" << id);
 
-  handle->transfer_timeout = config.GetTransferTimeout();
   handle->ignore_offset = false;  // request.IgnoreOffset();
   handle->skip_content = false;   // config->SkipContentWhenError();
 
@@ -609,10 +608,10 @@ ErrorCode NetworkCurl::SendImplementation(
 #endif
 
   curl_easy_setopt(handle->handle, CURLOPT_FOLLOWLOCATION, 1L);
-  curl_easy_setopt(handle->handle, CURLOPT_CONNECTTIMEOUT,
-                   config.GetConnectionTimeout());
-  curl_easy_setopt(handle->handle, CURLOPT_TIMEOUT,
-                   config.GetTransferTimeout());
+  curl_easy_setopt(handle->handle, CURLOPT_CONNECTTIMEOUT_MS,
+                   config.GetConnectionTimeoutDuration().count());
+  curl_easy_setopt(handle->handle, CURLOPT_TIMEOUT_MS,
+                   config.GetTransferTimeoutDuration().count());
   curl_easy_setopt(handle->handle, CURLOPT_WRITEFUNCTION,
                    &NetworkCurl::RxFunction);
   curl_easy_setopt(handle->handle, CURLOPT_WRITEDATA, handle);
@@ -711,7 +710,6 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
       handle.offset = 0u;
       handle.chunk = nullptr;
       handle.cancelled = false;
-      handle.transfer_timeout = 30u;
       handle.payload = std::move(payload);
       handle.body = std::move(body);
       handle.send_time = std::chrono::steady_clock::now();

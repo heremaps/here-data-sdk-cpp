@@ -64,6 +64,8 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./thread/SyncQueueTest.cpp
     ./thread/TaskContinuationTest.cpp
     ./thread/ThreadPoolTaskSchedulerTest.cpp
+
+    ./http/NetworkSettingsTest.cpp
     ./http/NetworkUtils.cpp
 )
 

@@ -116,7 +116,6 @@ class NetworkCurl : public olp::http::Network,
     std::uint64_t offset{};
     CURL* handle{nullptr};
     struct curl_slist* chunk{nullptr};
-    std::uint32_t transfer_timeout{};
     int index{};
     RequestId id{};
     bool ignore_offset{};

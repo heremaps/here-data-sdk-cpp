@@ -463,10 +463,10 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
   const auto& network_settings = request.GetSettings();
 
   WinHttpSetTimeouts(http_request,
-                     network_settings.GetConnectionTimeout() * 1000,
-                     network_settings.GetConnectionTimeout() * 1000,
-                     network_settings.GetTransferTimeout() * 1000,
-                     network_settings.GetTransferTimeout() * 1000);
+                     network_settings.GetConnectionTimeoutDuration().count(),
+                     network_settings.GetConnectionTimeoutDuration().count(),
+                     network_settings.GetTransferTimeoutDuration().count(),
+                     network_settings.GetTransferTimeoutDuration().count());
 
   const auto& proxy = network_settings.GetProxySettings();
   const auto proxy_type = proxy.GetType();
