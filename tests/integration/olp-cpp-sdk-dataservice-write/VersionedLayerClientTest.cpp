@@ -441,7 +441,8 @@ TEST_F(VersionedLayerClientTest, CompleteBatchCancel) {
   const auto catalog = kHrn.ToCatalogHRNString();
   const auto apis =
       mockserver::DefaultResponses::GenerateResourceApisResponse(catalog);
-  const auto apis_response = olp::serializer::serialize(apis).c_str();
+  const auto apis_response_str = olp::serializer::serialize(apis);
+  const auto apis_response = apis_response_str.c_str();
   const auto publication =
       mockserver::DefaultResponses::GeneratePublicationResponse({kLayer}, {});
   ASSERT_TRUE(publication.GetId());
@@ -566,7 +567,8 @@ TEST_F(VersionedLayerClientTest, CancelBatch) {
   const auto catalog = kHrn.ToCatalogHRNString();
   const auto apis =
       mockserver::DefaultResponses::GenerateResourceApisResponse(catalog);
-  const auto apis_response = olp::serializer::serialize(apis).c_str();
+  const auto apis_response_str = olp::serializer::serialize(apis);
+  const auto apis_response = apis_response_str.c_str();
   const auto publication =
       mockserver::DefaultResponses::GeneratePublicationResponse({kLayer}, {});
   ASSERT_TRUE(publication.GetId());
