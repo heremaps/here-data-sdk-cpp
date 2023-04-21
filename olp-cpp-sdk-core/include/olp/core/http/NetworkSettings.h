@@ -41,6 +41,7 @@ class CORE_API NetworkSettings final {
    *
    * @return The maximum number of retries for the HTTP request.
    */
+  OLP_SDK_DEPRECATED("Will be removed by 04.2024")
   std::size_t GetRetries() const;
 
   /**
@@ -50,6 +51,7 @@ class CORE_API NetworkSettings final {
    *
    * @return A reference to *this.
    */
+  OLP_SDK_DEPRECATED("Will be removed by 04.2024")
   NetworkSettings& WithRetries(std::size_t retries);
 
   /**

@@ -61,6 +61,11 @@ TEST(NetworkSettingsTest, WithTransferTimeout) {
   EXPECT_EQ(settings.GetTransferTimeoutDuration(), std::chrono::seconds(15));
 }
 
+TEST(NetworkSettingsTest, WithRetriesDeprecated) {
+  const auto settings = olp::http::NetworkSettings().WithRetries(5);
+  EXPECT_EQ(settings.GetRetries(), 5);
+}
+
 }  // namespace
 
 PORTING_POP_WARNINGS()
