@@ -45,6 +45,10 @@ std::chrono::milliseconds NetworkSettings::GetTransferTimeoutDuration() const {
   return transfer_timeout_;
 }
 
+std::chrono::seconds NetworkSettings::GetMaxConnectionLifetime() const {
+  return connection_lifetime_;
+}
+
 const NetworkProxySettings& NetworkSettings::GetProxySettings() const {
   return proxy_settings_;
 }
@@ -71,6 +75,12 @@ NetworkSettings& NetworkSettings::WithTransferTimeout(int timeout) {
 NetworkSettings& NetworkSettings::WithTransferTimeout(
     std::chrono::milliseconds timeout) {
   transfer_timeout_ = timeout;
+  return *this;
+}
+
+NetworkSettings& NetworkSettings::WithMaxConnectionLifetime(
+    std::chrono::seconds lifetime) {
+  connection_lifetime_ = lifetime;
   return *this;
 }
 

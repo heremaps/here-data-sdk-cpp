@@ -66,6 +66,17 @@ TEST(NetworkSettingsTest, WithRetriesDeprecated) {
   EXPECT_EQ(settings.GetRetries(), 5);
 }
 
+TEST(NetworkSettingsTest, WithMaxConnectionLifetimeDefault) {
+  const auto settings = olp::http::NetworkSettings();
+  EXPECT_EQ(settings.GetMaxConnectionLifetime(), std::chrono::seconds(0));
+}
+
+TEST(NetworkSettingsTest, WithMaxConnectionLifetime) {
+  const auto settings = olp::http::NetworkSettings().WithMaxConnectionLifetime(
+      std::chrono::seconds(15));
+  EXPECT_EQ(settings.GetMaxConnectionLifetime(), std::chrono::seconds(15));
+}
+
 }  // namespace
 
 PORTING_POP_WARNINGS()

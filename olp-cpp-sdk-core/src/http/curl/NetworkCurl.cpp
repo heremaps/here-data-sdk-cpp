@@ -184,7 +184,7 @@ int ConvertErrorCode(CURLcode curl_code) {
   } else if ((curl_code == CURLE_UNSUPPORTED_PROTOCOL) ||
              (curl_code == CURLE_URL_MALFORMAT)) {
     return static_cast<int>(ErrorCode::INVALID_URL_ERROR);
-#if (LIBCURL_VERSION_MAJOR >= 7) && (LIBCURL_VERSION_MINOR >= 24)
+#if CURL_AT_LEAST_VERSION(7, 24, 0)
   } else if (curl_code == CURLE_FTP_ACCEPT_FAILED) {
     return static_cast<int>(ErrorCode::AUTHORIZATION_ERROR);
 #endif
@@ -624,16 +624,24 @@ ErrorCode NetworkCurl::SendImplementation(
   }
   curl_easy_setopt(handle->handle, CURLOPT_ERRORBUFFER, handle->error_text);
 
-#if (LIBCURL_VERSION_MAJOR >= 7) && (LIBCURL_VERSION_MINOR >= 21)
+#if CURL_AT_LEAST_VERSION(7, 21, 0)
   curl_easy_setopt(handle->handle, CURLOPT_ACCEPT_ENCODING, "");
   curl_easy_setopt(handle->handle, CURLOPT_TRANSFER_ENCODING, 1L);
 #endif
 
-#if (LIBCURL_VERSION_MAJOR >= 7) && (LIBCURL_VERSION_MINOR >= 25)
+#if CURL_AT_LEAST_VERSION(7, 25, 0)
   // Enable keep-alive (since Curl 7.25.0)
   curl_easy_setopt(handle->handle, CURLOPT_TCP_KEEPALIVE, 1L);
   curl_easy_setopt(handle->handle, CURLOPT_TCP_KEEPIDLE, 120L);
   curl_easy_setopt(handle->handle, CURLOPT_TCP_KEEPINTVL, 60L);
+#endif
+
+#if CURL_AT_LEAST_VERSION(7, 80, 0)
+  curl_easy_setopt(handle->handle, CURLOPT_MAXLIFETIME_CONN,
+                   config.GetMaxConnectionLifetime().count());
+#else
+  curl_easy_setopt(handle->handle, CURLOPT_FORBID_REUSE,
+                   config.GetMaxConnectionLifetime().count() ? 1L : 0L);
 #endif
 
   {
