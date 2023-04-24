@@ -120,6 +120,22 @@ class CORE_API NetworkSettings final {
   NetworkSettings& WithTransferTimeout(int timeout);
 
   /**
+   * @brief Gets max lifetime (since creation) allowed for reusing a connection.
+   *
+   * @return The lifetime.
+   */
+  std::chrono::seconds GetMaxConnectionLifetime() const;
+
+  /**
+   * @brief Sets max lifetime (since creation) allowed for reusing a connection.
+   * Supported only for CURL implementation. If set to 0, this behavior is
+   * disabled: all connections are eligible for reuse.
+   *
+   * @return A reference to *this.
+   */
+  NetworkSettings& WithMaxConnectionLifetime(std::chrono::seconds lifetime);
+
+  /**
    * @brief Sets the transfer timeout.
    *
    * @param[in] timeout The transfer timeout.
@@ -151,6 +167,8 @@ class CORE_API NetworkSettings final {
   std::chrono::milliseconds connection_timeout_ = std::chrono::seconds(60);
   /// The transfer timeout.
   std::chrono::milliseconds transfer_timeout_ = std::chrono::seconds(30);
+  /// The max lifetime since creation allowed for reusing a connection.
+  std::chrono::seconds connection_lifetime_{0};
   /// The network proxy settings.
   NetworkProxySettings proxy_settings_;
 };
