@@ -1836,10 +1836,11 @@ TEST_F(AuthenticationClientTest, RetrySettings) {
   const auto retry_predicate = testing::Property(
       &http::NetworkRequest::GetSettings,
       testing::AllOf(
-          testing::Property(&http::NetworkSettings::GetConnectionTimeout,
-                            kRetryTimeout),
-          testing::Property(&http::NetworkSettings::GetTransferTimeout,
-                            kRetryTimeout)));
+          testing::Property(
+              &http::NetworkSettings::GetConnectionTimeoutDuration,
+              std::chrono::seconds(kRetryTimeout)),
+          testing::Property(&http::NetworkSettings::GetTransferTimeoutDuration,
+                            std::chrono::seconds(kRetryTimeout))));
 
   ON_CALL(*network_, Send(retry_predicate, _, _, _, _))
       .WillByDefault(ReturnHttpResponse(

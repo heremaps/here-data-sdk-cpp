@@ -65,7 +65,7 @@ OlpClientSettingsFactory::CreateDefaultCache(cache::CacheSettings settings) {
   OLP_SDK_CORE_UNUSED(settings);
   OLP_SDK_LOG_ERROR(kLogTag, "Default cache implementation is disabled.");
   return nullptr;
-#endif // OLP_SDK_ENABLE_DEFAULT_CACHE
+#endif  // OLP_SDK_ENABLE_DEFAULT_CACHE
 }
 
 void OlpClientSettingsFactory::PrewarmConnection(
@@ -80,8 +80,8 @@ void OlpClientSettingsFactory::PrewarmConnection(
   const auto& retry_settings = settings.retry_settings;
   auto request_settings =
       http::NetworkSettings()
-          .WithTransferTimeout(retry_settings.timeout)
-          .WithConnectionTimeout(retry_settings.timeout)
+          .WithTransferTimeout(std::chrono::seconds(retry_settings.timeout))
+          .WithConnectionTimeout(std::chrono::seconds(retry_settings.timeout))
           .WithProxySettings(
               settings.proxy_settings.value_or(http::NetworkProxySettings()));
 

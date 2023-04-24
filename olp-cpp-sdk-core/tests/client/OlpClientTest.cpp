@@ -515,7 +515,7 @@ TEST_P(OlpClientTest, RetryTimeout) {
 TEST_P(OlpClientTest, Timeout) {
   client_settings_.retry_settings.timeout = 100;
   client_settings_.retry_settings.max_attempts = 0;
-  int timeout = 0;
+  std::chrono::milliseconds timeout{0};
   auto network = network_;
   client_.SetSettings(client_settings_);
 
@@ -529,7 +529,7 @@ TEST_P(OlpClientTest, Timeout) {
               olp::http::Network::Callback callback,
               olp::http::Network::HeaderCallback /*header_callback*/,
               olp::http::Network::DataCallback /*data_callback*/) {
-            timeout = request.GetSettings().GetConnectionTimeout();
+            timeout = request.GetSettings().GetConnectionTimeoutDuration();
             auto current_request_id = request_id++;
 
             futures.emplace_back(std::async(std::launch::async, [=]() {
@@ -553,7 +553,8 @@ TEST_P(OlpClientTest, Timeout) {
     future.wait();
   }
 
-  ASSERT_EQ(client_settings_.retry_settings.timeout, timeout);
+  ASSERT_EQ(std::chrono::seconds(client_settings_.retry_settings.timeout),
+            timeout);
   ASSERT_EQ(kToManyRequestResponse.GetStatus(), response.GetStatus());
   testing::Mock::VerifyAndClearExpectations(network.get());
 }

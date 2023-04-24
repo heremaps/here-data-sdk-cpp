@@ -19,12 +19,14 @@
 
 #pragma once
 
+#include <chrono>
 #include <cstdint>
 #include <string>
 
 #include <olp/core/CoreApi.h>
 #include <olp/core/http/NetworkProxySettings.h>
 #include <olp/core/http/NetworkTypes.h>
+#include <olp/core/porting/deprecated.h>
 
 namespace olp {
 namespace http {
@@ -55,7 +57,16 @@ class CORE_API NetworkSettings final {
    *
    * @return The connection timeout in seconds.
    */
+  OLP_SDK_DEPRECATED(
+      "Will be removed by 04.2024, use GetConnectionTimeoutDuration() instead")
   int GetConnectionTimeout() const;
+
+  /**
+   * @brief Gets the connection timeout.
+   *
+   * @return The connection timeout.
+   */
+  std::chrono::milliseconds GetConnectionTimeoutDuration() const;
 
   /**
    * @brief Sets the connection timeout in seconds.
@@ -64,14 +75,35 @@ class CORE_API NetworkSettings final {
    *
    * @return A reference to *this.
    */
+  OLP_SDK_DEPRECATED(
+      "Will be removed by 04.2024, use "
+      "WithConnectionTimeout(std::chrono::milliseconds) instead")
   NetworkSettings& WithConnectionTimeout(int timeout);
+
+  /**
+   * @brief Sets the connection timeout.
+   *
+   * @param[in] timeout The connection timeout.
+   *
+   * @return A reference to *this.
+   */
+  NetworkSettings& WithConnectionTimeout(std::chrono::milliseconds timeout);
 
   /**
    * @brief Gets the transfer timeout in seconds.
    *
    * @return The transfer timeout in seconds.
    */
+  OLP_SDK_DEPRECATED(
+      "Will be removed by 04.2024, use GetTransferTimeoutDuration() instead")
   int GetTransferTimeout() const;
+
+  /**
+   * @brief Gets the transfer timeout.
+   *
+   * @return The transfer timeout.
+   */
+  std::chrono::milliseconds GetTransferTimeoutDuration() const;
 
   /**
    * @brief Sets the transfer timeout in seconds.
@@ -80,7 +112,19 @@ class CORE_API NetworkSettings final {
    *
    * @return A reference to *this.
    */
+  OLP_SDK_DEPRECATED(
+      "Will be removed by 04.2024, use "
+      "WithTransferTimeout(std::chrono::milliseconds) instead")
   NetworkSettings& WithTransferTimeout(int timeout);
+
+  /**
+   * @brief Sets the transfer timeout.
+   *
+   * @param[in] timeout The transfer timeout.
+   *
+   * @return A reference to *this.
+   */
+  NetworkSettings& WithTransferTimeout(std::chrono::milliseconds timeout);
 
   /**
    * @brief Gets the proxy settings.
@@ -101,10 +145,10 @@ class CORE_API NetworkSettings final {
  private:
   /// The maximum number of retries for the HTTP request.
   std::size_t retries_{3};
-  /// The connection timeout in seconds.
-  int connection_timeout_{60};
-  /// The transfer timeout in seconds.
-  int transfer_timeout_{30};
+  /// The connection timeout.
+  std::chrono::milliseconds connection_timeout_ = std::chrono::seconds(60);
+  /// The transfer timeout.
+  std::chrono::milliseconds transfer_timeout_ = std::chrono::seconds(30);
   /// The network proxy settings.
   NetworkProxySettings proxy_settings_;
 };

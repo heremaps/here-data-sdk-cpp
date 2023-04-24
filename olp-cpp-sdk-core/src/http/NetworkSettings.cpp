@@ -25,10 +25,25 @@ namespace http {
 std::size_t NetworkSettings::GetRetries() const { return retries_; }
 
 int NetworkSettings::GetConnectionTimeout() const {
+  return static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(
+                              GetConnectionTimeoutDuration())
+                              .count());
+}
+
+std::chrono::milliseconds NetworkSettings::GetConnectionTimeoutDuration()
+    const {
   return connection_timeout_;
 }
 
-int NetworkSettings::GetTransferTimeout() const { return transfer_timeout_; }
+int NetworkSettings::GetTransferTimeout() const {
+  return static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(
+                              GetTransferTimeoutDuration())
+                              .count());
+}
+
+std::chrono::milliseconds NetworkSettings::GetTransferTimeoutDuration() const {
+  return transfer_timeout_;
+}
 
 const NetworkProxySettings& NetworkSettings::GetProxySettings() const {
   return proxy_settings_;
@@ -40,11 +55,21 @@ NetworkSettings& NetworkSettings::WithRetries(std::size_t retries) {
 }
 
 NetworkSettings& NetworkSettings::WithConnectionTimeout(int timeout) {
+  return WithConnectionTimeout(std::chrono::seconds(timeout));
+}
+
+NetworkSettings& NetworkSettings::WithConnectionTimeout(
+    std::chrono::milliseconds timeout) {
   connection_timeout_ = timeout;
   return *this;
 }
 
 NetworkSettings& NetworkSettings::WithTransferTimeout(int timeout) {
+  return WithTransferTimeout(std::chrono::seconds(timeout));
+}
+
+NetworkSettings& NetworkSettings::WithTransferTimeout(
+    std::chrono::milliseconds timeout) {
   transfer_timeout_ = timeout;
   return *this;
 }

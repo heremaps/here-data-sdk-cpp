@@ -304,10 +304,11 @@ TEST_F(TokenProviderTest, RetrySettings) {
   const auto retry_predicate = testing::Property(
       &http::NetworkRequest::GetSettings,
       testing::AllOf(
-          testing::Property(&http::NetworkSettings::GetConnectionTimeout,
-                            kMinTimeout),
-          testing::Property(&http::NetworkSettings::GetTransferTimeout,
-                            kMinTimeout)));
+          testing::Property(
+              &http::NetworkSettings::GetConnectionTimeoutDuration,
+              std::chrono::seconds(kMinTimeout)),
+          testing::Property(&http::NetworkSettings::GetTransferTimeoutDuration,
+                            std::chrono::seconds(kMinTimeout))));
   {
     SCOPED_TRACE("Max attempts");
 

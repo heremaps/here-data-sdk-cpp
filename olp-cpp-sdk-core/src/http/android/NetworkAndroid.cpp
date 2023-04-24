@@ -950,10 +950,15 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
       static_cast<RequestId>(RequestIdConstants::RequestIdMin);
 
   const jint jhttp_verb = static_cast<jint>(request.GetVerb());
-  const jint jconnection_timeout =
-      static_cast<jint>(request.GetSettings().GetConnectionTimeout());
+
+  const jint jconnection_timeout = static_cast<jint>(
+      std::chrono::duration_cast<std::chrono::seconds>(
+          request.GetSettings().GetConnectionTimeoutDuration())
+          .count());
   const jint jtransfer_timeout =
-      static_cast<jint>(request.GetSettings().GetTransferTimeout());
+      static_cast<jint>(std::chrono::duration_cast<std::chrono::seconds>(
+                            request.GetSettings().GetTransferTimeoutDuration())
+                            .count());
   const jint jproxy_port = static_cast<jint>(proxy_settings.GetPort());
   const jint jproxy_type = static_cast<jint>(proxy_settings.GetType());
   const jint jmax_retries = 1;

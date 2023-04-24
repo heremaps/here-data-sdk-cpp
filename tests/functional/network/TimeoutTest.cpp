@@ -44,7 +44,7 @@ TEST_F(TimeoutTest, TransferTimeout) {
       "GET", kApiBase, mockserver::ReadDefaultResponses::GenerateData(), 200,
       true, kTimeout * 1000);
 
-  settings_.WithTransferTimeout(kTimeout);
+  settings_.WithTransferTimeout(std::chrono::seconds(kTimeout));
   const auto url = kUrlBase + kApiBase;
   const auto request = NetworkRequest(url).WithSettings(settings_).WithVerb(
       olp::http::NetworkRequest::HttpVerb::GET);
