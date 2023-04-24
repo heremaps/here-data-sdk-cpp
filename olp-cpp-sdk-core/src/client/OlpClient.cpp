@@ -580,7 +580,6 @@ CancellationToken OlpClient::OlpClientImpl::CallApi(
       http::NetworkSettings()
           .WithConnectionTimeout(std::chrono::seconds(retry_settings.timeout))
           .WithTransferTimeout(std::chrono::seconds(retry_settings.timeout))
-          .WithRetries(retry_settings.max_attempts)
           .WithProxySettings(std::move(proxy)));
 
   auto network = settings_.network_request_handler;
