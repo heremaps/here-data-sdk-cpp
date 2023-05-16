@@ -237,7 +237,9 @@ TEST_F(DataserviceWriteStreamLayerClientTest, PublishData) {
   ASSERT_NO_FATAL_FAILURE(PublishDataSuccessAssertions(response));
 }
 
-TEST_F(DataserviceWriteStreamLayerClientTest, PublishDataGreaterThanTwentyMib) {
+// Test unavailable since the service is no longer available
+TEST_F(DataserviceWriteStreamLayerClientTest,
+       DISABLED_PublishDataGreaterThanTwentyMib) {
   auto large_data =
       std::make_shared<std::vector<unsigned char>>(kTwentyMib + 1, 'z');
 
@@ -355,8 +357,9 @@ TEST_F(DataserviceWriteStreamLayerClientTest,
   //  response.GetError().GetErrorCode());
 }
 
+// Test unavailable since the service is no longer available
 TEST_F(DataserviceWriteStreamLayerClientTest,
-       PublishDataGreaterThanTwentyMibCancel) {
+       DISABLED_PublishDataGreaterThanTwentyMibCancel) {
   auto large_data =
       std::make_shared<std::vector<unsigned char>>(kTwentyMib + 1, 'z');
 
