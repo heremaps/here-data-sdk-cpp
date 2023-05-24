@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@
 #include <utility>
 
 #include "AuthenticationClientImpl.h"
-#include "olp/authentication/AuthenticationError.h"
 #include "olp/authentication/AuthorizeRequest.h"
 #include "olp/core/client/ApiError.h"
 #include "olp/core/client/CancellationToken.h"
@@ -66,13 +65,6 @@ client::CancellationToken AuthenticationClient::SignInFacebook(
     const FederatedProperties& properties, const SignInUserCallback& callback) {
   return impl_->SignInFederated(
       credentials, FederatedSignInType::FacebookSignIn, properties, callback);
-}
-
-client::CancellationToken AuthenticationClient::SignInGoogle(
-    const AuthenticationCredentials& credentials,
-    const FederatedProperties& properties, const SignInUserCallback& callback) {
-  return impl_->SignInFederated(credentials, FederatedSignInType::GoogleSignIn,
-                                properties, callback);
 }
 
 client::CancellationToken AuthenticationClient::SignInArcGis(

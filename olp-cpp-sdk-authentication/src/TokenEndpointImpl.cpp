@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 HERE Europe B.V.
+ * Copyright (C) 2021-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,13 +103,13 @@ TimeResponse ParseTimeResponse(const std::string& payload) {
   document.Parse(payload.c_str());
 
   if (!document.IsObject()) {
-    return AuthenticationError(client::ErrorCode::InternalFailure,
-                               "JSON document root is not an Object type");
+    return client::ApiError(client::ErrorCode::InternalFailure,
+                            "JSON document root is not an Object type");
   }
 
   const auto timestamp_it = document.FindMember("timestamp");
   if (timestamp_it == document.MemberEnd() || !timestamp_it->value.IsUint()) {
-    return AuthenticationError(
+    return client::ApiError(
         client::ErrorCode::InternalFailure,
         "JSON document must contain timestamp integer field");
   }
@@ -158,7 +158,7 @@ TimeResponse GetTimeFromServer(client::CancellationContext& context,
         kLogTag, "Failed to get time from server, status=%d, response='%s'",
         http_result.GetStatus(), response.c_str());
 
-    return AuthenticationError(http_result.GetStatus(), std::move(response));
+    return client::ApiError(http_result.GetStatus(), std::move(response));
   }
 
   auto server_time = ParseTimeResponse(response);
@@ -201,8 +201,7 @@ client::CancellationToken TokenEndpointImpl::RequestToken(
         }
 
         callback(TokenResult{sign_in_result.GetAccessToken(),
-                             sign_in_result.GetExpiresIn(),
-                             http::HttpStatusCode::OK, ErrorResponse{}});
+                             sign_in_result.GetExpiresIn()});
       });
 }
 
@@ -238,8 +237,7 @@ TokenResponse TokenEndpointImpl::RequestToken(
   }
 
   return TokenResult{sign_in_result.GetAccessToken(),
-                     sign_in_result.GetExpiresIn(), http::HttpStatusCode::OK,
-                     ErrorResponse{}};
+                     sign_in_result.GetExpiresIn()};
 }
 
 SignInResponse TokenEndpointImpl::SignInClient(

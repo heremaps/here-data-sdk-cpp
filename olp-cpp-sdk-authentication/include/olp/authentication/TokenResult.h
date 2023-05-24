@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include <olp/core/porting/deprecated.h>
-
 #include <chrono>
 #include <ctime>
 #include <string>
@@ -34,9 +32,8 @@ namespace authentication {
  * @brief A parsed response received from the OAuth2.0 token endpoint.
  *
  * You can get the following information: the access token issued by
- * the authorization server (`GetAccessToken`), its expiry time
- * (`GetExpiryTime`), HTTP status code (`GetHttpStatus`),
- * and error description (`GetErrorResponse`) in case of a failure.
+ * the authorization server (`GetAccessToken`), and its expiry time
+ * (`GetExpiryTime`).
  */
 class AUTHENTICATION_API TokenResult {
  public:
@@ -46,22 +43,16 @@ class AUTHENTICATION_API TokenResult {
    * @param access_token The access token issued by the authorization server.
    * @param expiry_time The Epoch time when the token expires, or -1 if
    * the token is invalid.
-   * @param http_status The status code of the HTTP response.
-   * @param error The error description of the request.
    */
-  TokenResult(std::string access_token, time_t expiry_time, int http_status,
-              ErrorResponse error);
+  TokenResult(std::string access_token, time_t expiry_time);
 
   /**
    * @brief Creates the `TokenResult` instance.
    *
    * @param access_token The access token issued by the authorization server.
    * @param expires_in The expiry time of the access token.
-   * @param http_status The status code of the HTTP response.
-   * @param error The error description of the request.
    */
-  TokenResult(std::string access_token, std::chrono::seconds expires_in,
-              int http_status, ErrorResponse error);
+  TokenResult(std::string access_token, std::chrono::seconds expires_in);
   /**
    * @brief Creates the default `TokenResult` instance.
    */
@@ -90,40 +81,10 @@ class AUTHENTICATION_API TokenResult {
    */
   std::chrono::seconds GetExpiresIn() const;
 
-  /**
-   * @brief Gets the HTTP status code.
-   *
-   * @return The status code of the HTTP response if a positive value is
-   * returned. A negative value indicates a possible networking error. If you
-   * get the negative value, retry the request.
-   *
-   * @deprecated Will be removed by 10.2022. Use
-   * `TokenResponse::GetError().GetHttpStatusCode()` instead.
-   */
-  OLP_SDK_DEPRECATED(
-      "Will be removed by 10.2022. Use "
-      "`TokenResponse::GetError().GetHttpStatusCode()` instead.")
-  int GetHttpStatus() const;
-
-  /**
-   * @brief Gets an error description.
-   *
-   * @return The error description of the failed request.
-   *
-   * @deprecated Will be removed by 10.2022. Use
-   * `TokenResponse::GetError().GetMessagee()` instead.
-   */
-  OLP_SDK_DEPRECATED(
-      "Will be removed by 10.2022. Use "
-      "`TokenResponse::GetError().GetMessagee()` instead.")
-  ErrorResponse GetErrorResponse() const;
-
  private:
   std::string access_token_;
-  time_t expiry_time_;
-  std::chrono::seconds expires_in_;
-  int http_status_;
-  ErrorResponse error_;
+  time_t expiry_time_{};
+  std::chrono::seconds expires_in_{};
 };
 
 }  // namespace authentication

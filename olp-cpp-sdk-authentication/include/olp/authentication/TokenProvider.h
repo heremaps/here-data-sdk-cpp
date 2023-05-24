@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,9 +58,6 @@ class AUTHENTICATION_API TokenProviderImpl {
    * the token in seconds.
    */
   TokenProviderImpl(Settings settings, std::chrono::seconds minimum_validity);
-
-  /// @copydoc TokenProvider::operator()()
-  std::string operator()() const;
 
   /// @copydoc TokenProvider::operator()(client::CancellationContext&)
   client::OauthTokenResponse operator()(
@@ -127,23 +124,6 @@ class TokenProvider {
    * otherwise.
    */
   operator bool() const { return impl_->IsTokenResponseOK(); }
-
-  /**
-   * @brief Casts the `TokenProvider` instance to the `std::string` type.
-   *
-   * Returns the access token string if the response is successful. Otherwise,
-   * returns an empty string.
-   *
-   * @returns The access token string if the response is successful; an empty
-   * string otherwise.
-   *
-   * @deprecated Will be removed by 10.2022. Use the operator with
-   * `CancellationContext` instead.
-   */
-  OLP_SDK_DEPRECATED(
-      "Will be removed by 10.2022. Use the operator with `CancellationContext` "
-      "instead.")
-  std::string operator()() const { return impl_->operator()(); }
 
   /**
    * @brief Returns the access token or an error.

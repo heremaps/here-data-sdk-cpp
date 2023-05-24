@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,24 +21,16 @@
 
 namespace olp {
 namespace authentication {
-TokenResult::TokenResult(std::string access_token, time_t expiry_time,
-                         int http_status, ErrorResponse error)
-    : access_token_(std::move(access_token)),
-      expiry_time_(expiry_time),
-      http_status_(http_status),
-      error_(std::move(error)) {
+TokenResult::TokenResult(std::string access_token, time_t expiry_time)
+    : access_token_(std::move(access_token)), expiry_time_(expiry_time) {
   const auto now = std::time(nullptr);
   expires_in_ =
       std::chrono::seconds(expiry_time_ > now ? (expiry_time_ - now) : 0);
 }
 
 TokenResult::TokenResult(std::string access_token,
-                         std::chrono::seconds expires_in, int http_status,
-                         ErrorResponse error)
-    : access_token_(std::move(access_token)),
-      expires_in_(std::move(expires_in)),
-      http_status_(http_status),
-      error_(std::move(error)) {
+                         std::chrono::seconds expires_in)
+    : access_token_(std::move(access_token)), expires_in_(expires_in) {
   expiry_time_ = std::time(nullptr) + expires_in_.count();
 }
 
@@ -47,10 +39,6 @@ const std::string& TokenResult::GetAccessToken() const { return access_token_; }
 time_t TokenResult::GetExpiryTime() const { return expiry_time_; }
 
 std::chrono::seconds TokenResult::GetExpiresIn() const { return expires_in_; }
-
-int TokenResult::GetHttpStatus() const { return http_status_; }
-
-ErrorResponse TokenResult::GetErrorResponse() const { return error_; }
 
 }  // namespace authentication
 }  // namespace olp
