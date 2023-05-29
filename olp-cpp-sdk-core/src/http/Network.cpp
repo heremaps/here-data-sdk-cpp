@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,16 +36,17 @@ namespace olp {
 namespace http {
 
 namespace {
-std::shared_ptr<Network> CreateDefaultNetworkImpl(size_t max_requests_count) {
-  OLP_SDK_CORE_UNUSED(max_requests_count);
+std::shared_ptr<Network> CreateDefaultNetworkImpl(
+    NetworkInitializationSettings settings) {
+  OLP_SDK_CORE_UNUSED(settings);
 #ifdef OLP_SDK_NETWORK_HAS_CURL
-  return std::make_shared<NetworkCurl>(max_requests_count);
+  return std::make_shared<NetworkCurl>(settings);
 #elif OLP_SDK_NETWORK_HAS_ANDROID
-  return std::make_shared<NetworkAndroid>(max_requests_count);
+  return std::make_shared<NetworkAndroid>(settings.max_requests_count);
 #elif OLP_SDK_NETWORK_HAS_IOS
-  return std::make_shared<OLPNetworkIOS>(max_requests_count);
+  return std::make_shared<OLPNetworkIOS>(settings.max_requests_count);
 #elif OLP_SDK_NETWORK_HAS_WINHTTP
-  return std::make_shared<NetworkWinHttp>(max_requests_count);
+  return std::make_shared<NetworkWinHttp>(settings.max_requests_count);
 #else
   static_assert(false, "No default network implementation provided");
 #endif
@@ -61,7 +62,14 @@ Network::Statistics Network::GetStatistics(uint8_t /*bucket_id*/) {
 }
 
 std::shared_ptr<Network> CreateDefaultNetwork(size_t max_requests_count) {
-  auto network = CreateDefaultNetworkImpl(max_requests_count);
+  NetworkInitializationSettings settings;
+  settings.max_requests_count = max_requests_count;
+  return CreateDefaultNetwork(std::move(settings));
+}
+
+std::shared_ptr<Network> CreateDefaultNetwork(
+    NetworkInitializationSettings settings) {
+  auto network = CreateDefaultNetworkImpl(std::move(settings));
   if (network) {
     return std::make_shared<DefaultNetwork>(network);
   }

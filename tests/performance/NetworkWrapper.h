@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,11 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <utility>
 
-#include <olp/core/http/Network.h>
+#include "olp/core/http/Network.h"
+#include "olp/core/http/NetworkInitializationSettings.h"
 
 /*
  * Node test server is limited to http proxy. Wrapper alters ongoing requests
@@ -29,7 +32,12 @@
  */
 class Http2HttpNetworkWrapper : public olp::http::Network {
  public:
-  Http2HttpNetworkWrapper() : network_{olp::http::CreateDefaultNetwork(32)} {}
+  Http2HttpNetworkWrapper() {
+    olp::http::NetworkInitializationSettings network_initialization_settings;
+    network_initialization_settings.max_requests_count = 32u;
+    network_ = olp::http::CreateDefaultNetwork(
+        std::move(network_initialization_settings));
+  }
 
   olp::http::SendOutcome Send(olp::http::NetworkRequest request,
                               Payload payload, Callback callback,

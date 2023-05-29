@@ -24,6 +24,7 @@
 #include "olp/core/cache/DefaultCache.h"
 #include "olp/core/client/OlpClientSettings.h"
 #include "olp/core/http/NetworkConstants.h"
+#include "olp/core/http/NetworkInitializationSettings.h"
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
 #include "olp/core/thread/ThreadPoolTaskScheduler.h"
@@ -43,7 +44,15 @@ OlpClientSettingsFactory::CreateDefaultTaskScheduler(size_t thread_count) {
 std::shared_ptr<http::Network>
 OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler(
     size_t max_requests_count) {
-  return http::CreateDefaultNetwork(max_requests_count);
+  http::NetworkInitializationSettings settings;
+  settings.max_requests_count = max_requests_count;
+  return CreateDefaultNetworkRequestHandler(std::move(settings));
+}
+
+std::shared_ptr<http::Network>
+OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler(
+    http::NetworkInitializationSettings settings) {
+  return http::CreateDefaultNetwork(std::move(settings));
 }
 
 std::unique_ptr<cache::KeyValueCache>

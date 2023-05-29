@@ -19,12 +19,14 @@
 
 #include "NetworkCurl.h"
 
-#include <algorithm>
-#include <cstring>
-
 #include <fcntl.h>
 #include <unistd.h>
+
+#include <algorithm>
 #include <cerrno>
+#include <cstring>
+#include <memory>
+#include <utility>
 
 #if defined(HAVE_SIGNAL_H)
 #include <signal.h>
@@ -40,6 +42,7 @@
 #endif
 
 #include "olp/core/http/HttpStatusCode.h"
+#include "olp/core/http/NetworkInitializationSettings.h"
 #include "olp/core/http/NetworkUtils.h"
 #include "olp/core/logging/Log.h"
 
@@ -255,19 +258,29 @@ int64_t GetElapsedTime(std::chrono::steady_clock::time_point start) {
 }
 }  // anonymous namespace
 
-NetworkCurl::NetworkCurl(size_t max_requests_count)
-    : handles_(max_requests_count),
+NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
+    : handles_(settings.max_requests_count),
       static_handle_count_(
-          std::max(static_cast<size_t>(1u), max_requests_count / 4u)) {
+          std::max(static_cast<size_t>(1u), settings.max_requests_count / 4u)),
+      certificate_settings_(std::move(settings.certificate_settings)) {
   OLP_SDK_LOG_TRACE(kLogTag, "Created NetworkCurl with address="
-                                 << this
-                                 << ", handles_count=" << max_requests_count);
+                                 << this << ", handles_count="
+                                 << settings.max_requests_count);
   auto error = curl_global_init(CURL_GLOBAL_ALL);
   curl_initialized_ = (error == CURLE_OK);
   if (!curl_initialized_) {
     OLP_SDK_LOG_ERROR_F(kLogTag, "Error initializing Curl. Error: %i",
                         static_cast<int>(error));
   }
+
+#ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
+  SetupCertificateBlobs();
+#else
+  OLP_SDK_LOG_INFO_F(
+      kLogTag,
+      "CURL does not support SSL info with blobs, required 7.71.0, detected %s",
+      LIBCURL_VERSION);
+#endif
 }
 
 NetworkCurl::~NetworkCurl() {
@@ -590,12 +603,24 @@ ErrorCode NetworkCurl::SendImplementation(
     curl_easy_setopt(handle->handle, CURLOPT_HTTPHEADER, handle->chunk);
   }
 
-  CURLcode error = SetCaBundlePaths(handle->handle);
-  if (CURLE_OK != error) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Send failed - set ca bundle path failed, url="
-                                   << request.GetUrl() << ", error=" << error
-                                   << ", id=" << id);
-    return ErrorCode::UNKNOWN_ERROR;
+#ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
+  if (ssl_certificates_blobs_) {
+    curl_easy_setopt(handle->handle, CURLOPT_SSLCERT_BLOB,
+                     &ssl_certificates_blobs_->ssl_cert_blob);
+    curl_easy_setopt(handle->handle, CURLOPT_SSLKEY_BLOB,
+                     &ssl_certificates_blobs_->ssl_key_blob);
+    curl_easy_setopt(handle->handle, CURLOPT_CAINFO_BLOB,
+                     &ssl_certificates_blobs_->ca_info_blob);
+  } else
+#endif
+  {
+    CURLcode error = SetCaBundlePaths(handle->handle);
+    if (CURLE_OK != error) {
+      OLP_SDK_LOG_ERROR(kLogTag, "Send failed - set ca bundle path failed, url="
+                                     << request.GetUrl() << ", error=" << error
+                                     << ", id=" << id);
+      return ErrorCode::UNKNOWN_ERROR;
+    }
   }
 
   curl_easy_setopt(handle->handle, CURLOPT_SSL_VERIFYPEER, 1L);
@@ -649,7 +674,7 @@ ErrorCode NetworkCurl::SendImplementation(
     AddEvent(EventInfo::Type::SEND_EVENT, handle);
   }
   return ErrorCode::SUCCESS;  // NetworkProtocol::ErrorNone;
-}
+}  // namespace http
 
 void NetworkCurl::Cancel(RequestId id) {
   if (!IsStarted()) {
@@ -1142,6 +1167,34 @@ void NetworkCurl::Run() {
   }
   OLP_SDK_LOG_DEBUG(kLogTag, "Thread exit, this=" << this);
 }
+
+#ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
+void NetworkCurl::SetupCertificateBlobs() {
+  if (certificate_settings_.client_cert_file_blob.empty() ||
+      certificate_settings_.client_key_file_blob.empty() ||
+      certificate_settings_.cert_file_blob.empty()) {
+    OLP_SDK_LOG_INFO(kLogTag, "No certificate blobs provided");
+    return;
+  }
+
+  auto setup_blob = [](struct curl_blob& blob, std::string& src) {
+    blob.data = const_cast<char*>(src.data());
+    blob.len = src.size();
+    blob.flags = CURL_BLOB_NOCOPY;
+  };
+
+  ssl_certificates_blobs_ = SslCertificateBlobs{};
+
+  setup_blob(ssl_certificates_blobs_->ssl_cert_blob,
+             certificate_settings_.client_cert_file_blob);
+  setup_blob(ssl_certificates_blobs_->ssl_key_blob,
+             certificate_settings_.client_key_file_blob);
+  setup_blob(ssl_certificates_blobs_->ca_info_blob,
+             certificate_settings_.cert_file_blob);
+
+  OLP_SDK_LOG_INFO(kLogTag, "Certificate blobs provided");
+}
+#endif
 
 #ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
 CURLcode NetworkCurl::AddMd5LookupMethod(CURL*, SSL_CTX* ssl_ctx,

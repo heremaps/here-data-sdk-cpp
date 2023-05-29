@@ -100,10 +100,12 @@ set(OLP_SDK_GENERATED_HEADERS
 )
 
 set(OLP_SDK_HTTP_HEADERS
+    ./include/olp/core/http/CertificateSettings.h
     ./include/olp/core/http/HttpStatusCode.h
     ./include/olp/core/http/Network.h
     ./include/olp/core/http/HttpStatusCode.h
     ./include/olp/core/http/NetworkConstants.h
+    ./include/olp/core/http/NetworkInitializationSettings.h
     ./include/olp/core/http/NetworkProxySettings.h
     ./include/olp/core/http/NetworkRequest.h
     ./include/olp/core/http/NetworkResponse.h

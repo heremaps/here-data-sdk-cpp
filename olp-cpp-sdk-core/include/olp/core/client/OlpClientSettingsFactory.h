@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,14 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
-#include <olp/core/CoreApi.h>
-#include <olp/core/http/Network.h>
-#include <olp/core/thread/TaskScheduler.h>
 #include <boost/optional.hpp>
+
+#include "olp/core/CoreApi.h"
+#include "olp/core/http/Network.h"
+#include "olp/core/http/NetworkInitializationSettings.h"
+#include "olp/core/thread/TaskScheduler.h"
 
 namespace olp {
 namespace cache {
@@ -73,6 +76,29 @@ class CORE_API OlpClientSettingsFactory final {
    */
   static std::shared_ptr<http::Network> CreateDefaultNetworkRequestHandler(
       size_t max_requests_count = 30u);
+
+  /**
+   * @brief Creates the `Network` instance used for all the non-local requests.
+   *
+   * Defaulted to platform-specific implementation.
+   *
+   * On UNIX platforms, the default network request handler is libcurl-based and
+   * has the known issue of static initialization and cleanup that needs special
+   * care. Therefore, we recommend initializing this network request handler at
+   * a very early stage, preferably as global static or from the main thread,
+   * and pass it on to every created client. For this matter, it is also not
+   * recommended to create multiple network request handlers.
+   *
+   * @see [cURL documentation]
+   * (Lhttps://curl.haxx.se/libcurl/c/curl_global_init.html) for more
+   * information.
+   *
+   * @param[in] settings The `NetworkInitializationSettings` instance.
+   *
+   * @return The `Network` instance.
+   */
+  static std::shared_ptr<http::Network> CreateDefaultNetworkRequestHandler(
+      http::NetworkInitializationSettings settings);
 
   /**
    * @brief Creates the `KeyValueCache` instance that includes both a small

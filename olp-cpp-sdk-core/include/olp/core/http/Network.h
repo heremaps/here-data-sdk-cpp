@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,11 @@
 #include <memory>
 #include <string>
 
-#include <olp/core/CoreApi.h>
-#include <olp/core/http/NetworkRequest.h>
-#include <olp/core/http/NetworkResponse.h>
-#include <olp/core/http/NetworkTypes.h>
+#include "olp/core/CoreApi.h"
+#include "olp/core/http/NetworkInitializationSettings.h"
+#include "olp/core/http/NetworkRequest.h"
+#include "olp/core/http/NetworkResponse.h"
+#include "olp/core/http/NetworkTypes.h"
 
 namespace olp {
 /// Provides a platform specific network abstraction layer.
@@ -147,8 +148,15 @@ class CORE_API Network {
 };
 
 /// Creates a default `Network` implementation.
+OLP_SDK_DEPRECATED(
+    "Will be removed by 05.2024, use "
+    "CreateDefaultNetwork(NetworkInitializationSettings) instead")
 CORE_API std::shared_ptr<Network> CreateDefaultNetwork(
     size_t max_requests_count);
+
+/// Creates a default `Network` implementation.
+CORE_API std::shared_ptr<Network> CreateDefaultNetwork(
+    NetworkInitializationSettings settings);
 
 }  // namespace http
 }  // namespace olp
