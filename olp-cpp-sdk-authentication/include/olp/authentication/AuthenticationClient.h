@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@
 #include <olp/authentication/AppleSignInProperties.h>
 #include <olp/authentication/AuthenticationApi.h>
 #include <olp/authentication/AuthenticationCredentials.h>
-#include <olp/authentication/AuthenticationError.h>
 #include <olp/authentication/AuthenticationSettings.h>
 #include <olp/authentication/AuthorizeRequest.h>
 #include <olp/authentication/SignInResult.h>
@@ -392,34 +391,6 @@ class AUTHENTICATION_API AuthenticationClient {
    * the request.
    */
   client::CancellationToken SignInFacebook(
-      const AuthenticationCredentials& credentials,
-      const FederatedProperties& properties,
-      const SignInUserCallback& callback);
-
-  /**
-   * @brief Signs in with your valid Google token and requests your user access
-   * token.
-   *
-   * If this is the first time that you use Google to sign in,
-   * a new HERE Account is automatically created and filled in with the data
-   * from your Google account, including your name and email.
-   *
-   * @param credentials The `AuthenticationCredentials` instance.
-   * @param properties The `FederatedProperties` structure.
-   * @param callback The `SignInUserCallback` method that is called when
-   * the user sign-in request is completed. If successful, the returned HTTP
-   * status is 200. If a new account is created as a part of the sign-in request
-   * and terms must be accepted, the returned HTTP status is 201. Otherwise,
-   * check the response error.
-   *
-   * @return The `CancellationToken` instance that can be used to cancel
-   * the request.
-   *
-   * @deprecated Will be removed by 12.2020.
-   */
-  OLP_SDK_DEPRECATED(
-      "Sign in with Google token is deprecated and will be removed by 12.2020")
-  client::CancellationToken SignInGoogle(
       const AuthenticationCredentials& credentials,
       const FederatedProperties& properties,
       const SignInUserCallback& callback);

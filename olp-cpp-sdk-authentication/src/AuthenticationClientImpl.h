@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@
 #include <string>
 
 #include "olp/authentication/AuthenticationClient.h"
-#include "olp/authentication/AuthenticationError.h"
 #include "olp/authentication/AuthenticationSettings.h"
 #include "olp/authentication/AuthorizeRequest.h"
 #include "olp/authentication/Types.h"
@@ -57,7 +56,7 @@ using SignOutUserCallback = AuthenticationClient::SignOutUserCallback;
 using TimeResponse = Response<time_t>;
 using TimeCallback = Callback<time_t>;
 
-enum class FederatedSignInType { FacebookSignIn, GoogleSignIn, ArcgisSignIn };
+enum class FederatedSignInType { FacebookSignIn, ArcgisSignIn };
 
 class AuthenticationClientImpl {
  public:

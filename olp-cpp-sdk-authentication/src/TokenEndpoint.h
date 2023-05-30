@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@
 
 #include <olp/authentication/AuthenticationApi.h>
 #include <olp/authentication/AuthenticationCredentials.h>
-#include <olp/authentication/AuthenticationError.h>
 #include <olp/authentication/Settings.h>
 #include <olp/authentication/Types.h>
 #include <olp/core/client/ApiResponse.h>

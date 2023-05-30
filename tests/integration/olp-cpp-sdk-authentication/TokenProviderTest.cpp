@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,7 @@
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/porting/make_unique.h>
-#include <olp/core/porting/warning_disable.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
-#include "../olp-cpp-sdk-dataservice-read/HttpResponses.h"
 #include "AuthenticationMockedResponses.h"
 
 namespace http = olp::http;
@@ -397,11 +395,6 @@ TEST_F(TokenProviderTest, CancellableProvider) {
     EXPECT_EQ(token_provider.GetHttpStatusCode(), status_code);
 
     EXPECT_EQ(token_provider.GetErrorResponse().code, 0);
-
-    PORTING_PUSH_WARNINGS()
-    PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
-    EXPECT_EQ(token_provider(), kResponseToken);
-    PORTING_POP_WARNINGS()
 
     testing::Mock::VerifyAndClearExpectations(network_mock_.get());
   }

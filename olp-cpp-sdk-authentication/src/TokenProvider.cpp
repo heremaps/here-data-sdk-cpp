@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
 #include <olp/authentication/TokenProvider.h>
 
-#include <olp/core/porting/warning_disable.h>
+#include <olp/authentication/ErrorResponse.h>
 #include "AutoRefreshingToken.h"
 #include "TokenEndpoint.h"
 
@@ -49,21 +49,25 @@ class TokenProviderPrivate {
                     : client::OauthTokenResponse(response.GetError());
   }
 
-  PORTING_PUSH_WARNINGS()
-  PORTING_CLANG_GCC_DISABLE_WARNING("-Wdeprecated-declarations")
   ErrorResponse GetErrorResponse() const {
     client::CancellationContext context;
     const auto response = GetResponse(context);
-    return response ? response.GetResult().GetErrorResponse() : ErrorResponse{};
+    if (response) {
+      return ErrorResponse{};
+    }
+
+    ErrorResponse error_response;
+    error_response.message = response.GetError().GetMessage();
+
+    return error_response;
   }
 
   int GetHttpStatusCode() const {
     client::CancellationContext context;
     const auto response = GetResponse(context);
-    return response ? response.GetResult().GetHttpStatus()
+    return response ? http::HttpStatusCode::OK
                     : response.GetError().GetHttpStatusCode();
   }
-  PORTING_POP_WARNINGS()
 
   TokenResponse GetResponse(client::CancellationContext& context) const {
     // Prevents multiple authorization requests that can
@@ -91,10 +95,6 @@ TokenProviderImpl::TokenProviderImpl(Settings settings,
                                      std::chrono::seconds minimum_validity)
     : impl_(std::make_shared<TokenProviderPrivate>(
           std::move(settings), std::chrono::seconds(minimum_validity))) {}
-
-std::string TokenProviderImpl::operator()() const {
-  return impl_->operator()();
-}
 
 client::OauthTokenResponse TokenProviderImpl::operator()(
     client::CancellationContext& context) const {

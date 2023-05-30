@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,28 +78,6 @@ struct CORE_API AuthenticationSettings {
 
   /**
    * @brief Implemented by the client that should return the OAuth2 bearer
-   * access token.
-   *
-   * The access token should be used as the authorization header for the service
-   * calls. This allows for an external OAuth2 library to be used to provide
-   * the authentication functionality for any service.
-   *
-   * The provided token should be authorized to access the resources
-   * provided by the HERE platform Services you are trying
-   * to request. Also, the token should not be expired by the time the service
-   * request is sent to the server. Otherwise, a service-specific authorization
-   * error is returned when calls are made.
-   *
-   * An empty string can be returned for the token if the service is
-   * offline.
-   *
-   * @deprecated Will be removed by 10.2022. Use the
-   * `TokenProviderCancellableCallback` instead.
-   */
-  using TokenProviderCallback = std::function<std::string()>;
-
-  /**
-   * @brief Implemented by the client that should return the OAuth2 bearer
    * access token if the operation is successful; an `ApiError` otherwise.
    *
    * The access token should be used as the authorization header for the service
@@ -117,35 +95,6 @@ struct CORE_API AuthenticationSettings {
    */
   using TokenProviderCancellableCallback =
       std::function<OauthTokenResponse(CancellationContext&)>;
-
-  /**
-   * @brief Cancels the ongoing `TokenProviderCallback` request.
-   *
-   * Cancels the `TokenProviderCallback` request by calls to the service cancel
-   * methods (for example, `CancellationToken`). This method is only called if
-   * both it and the `TokenProviderCallback` callback are set, and a service
-   * cancel method is called while the `TokenProviderCallback` request is
-   * currently being made. For example, it is not called if the
-   * `TokenProviderCallback` request has finished and a service cancel method is
-   * called while a subsequent part of the service request is being made.
-   *
-   * @see `CancellationToken` and `TokenProviderCallback` or more
-   * details.
-   *
-   * @deprecated Will be removed by 10.2022.
-   */
-  using TokenProviderCancelCallback = std::function<void()>;
-
-  /**
-   * @brief The user-provided function that returns the OAuth2 bearer access
-   * token.
-   *
-   * @see `TokenProviderCallback` for more details.
-   *
-   * @deprecated Will be removed by 10.2022. Use the `token_provider`
-   * instead.
-   */
-  TokenProviderCallback provider = nullptr;
 
   /**
    * @brief The user-provided function that returns the OAuth2 bearer access
@@ -166,17 +115,6 @@ struct CORE_API AuthenticationSettings {
    * `TaskScheduler` as this might result in a deadlock.
    */
   ApiKeyProviderType api_key_provider = nullptr;
-
-  /**
-   * @brief (Optional) The user-provided function that is used to cancel
-   * the ongoing access token request.
-   *
-   * @see `TokenProviderCallback` and `TokenProviderCancelCallback` for more
-   * details.
-   *
-   * @deprecated Will be removed by 10.2022.
-   */
-  boost::optional<TokenProviderCancelCallback> cancel;
 };
 
 /**

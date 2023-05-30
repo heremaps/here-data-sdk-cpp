@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@
 
 #include <memory>
 
-#include <olp/authentication/AuthenticationError.h>
 #include <olp/authentication/AuthorizeResult.h>
 #include <olp/authentication/IntrospectAppResult.h>
 #include <olp/authentication/TokenResult.h>
@@ -34,7 +33,7 @@ namespace authentication {
 
 /// The response template type.
 template <typename ResultType>
-using Response = client::ApiResponse<ResultType, AuthenticationError>;
+using Response = client::ApiResponse<ResultType, client::ApiError>;
 
 /// The callback template type.
 template <typename ResultType>

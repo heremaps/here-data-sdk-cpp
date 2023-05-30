@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2022 HERE Europe B.V.
+ * Copyright (C) 2020-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,7 +84,6 @@ constexpr auto kFamilyName = "familyName";
 constexpr auto kClientGrantType = "client_credentials";
 constexpr auto kUserGrantType = "password";
 constexpr auto kFacebookGrantType = "facebook";
-constexpr auto kGoogleGrantType = "google";
 constexpr auto kArcgisGrantType = "arcgis";
 constexpr auto kAppleGrantType = "jwtIssNotHERE";
 constexpr auto kRefreshGrantType = "refresh_token";
@@ -365,13 +364,13 @@ TimeResponse AuthenticationClientImpl::ParseTimeResponse(
   document.ParseStream(stream);
 
   if (!document.IsObject()) {
-    return AuthenticationError(client::ErrorCode::InternalFailure,
-                               "JSON document root is not an Object type");
+    return client::ApiError(client::ErrorCode::InternalFailure,
+                            "JSON document root is not an Object type");
   }
 
   const auto timestamp_it = document.FindMember("timestamp");
   if (timestamp_it == document.MemberEnd() || !timestamp_it->value.IsUint()) {
-    return AuthenticationError(
+    return client::ApiError(
         client::ErrorCode::InternalFailure,
         "JSON document must contain timestamp integer field");
   }
@@ -390,7 +389,7 @@ TimeResponse AuthenticationClientImpl::GetTimeFromServer(
     OLP_SDK_LOG_WARNING_F(
         kLogTag, "Failed to get time from server, status=%d, response='%s'",
         http_result.status, response.c_str());
-    return AuthenticationError(http_result.status, http_result.response.str());
+    return client::ApiError(http_result.status, http_result.response.str());
   }
 
   auto server_time = ParseTimeResponse(http_result.response);
@@ -841,9 +840,6 @@ AuthenticationClientImpl::GenerateFederatedBody(
   switch (type) {
     case FederatedSignInType::FacebookSignIn:
       writer.String(kFacebookGrantType);
-      break;
-    case FederatedSignInType::GoogleSignIn:
-      writer.String(kGoogleGrantType);
       break;
     case FederatedSignInType::ArcgisSignIn:
       writer.String(kArcgisGrantType);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -438,8 +438,6 @@ boost::optional<client::ApiError> OlpClient::OlpClientImpl::AddBearer(
     }
 
     token = response.GetResult().GetAccessToken();
-  } else if (settings->provider) {
-    token = settings->provider();
   } else {
     // There is no token provider defined.
     return boost::none;
