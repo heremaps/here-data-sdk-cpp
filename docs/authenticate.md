@@ -30,7 +30,7 @@ For instructions, see the [OAuth tokens](https://developer.here.com/documentatio
 
    ```cpp
    olp::client::AuthenticationSettings auth_settings;
-   auth_settings.provider =
+   auth_settings.token_provider =
      olp::authentication::TokenProviderDefault(std::move(settings));
    ```
 
@@ -130,7 +130,7 @@ You can use the `AuthenticationSettings` object to create the `OlpClientSettings
    ```cpp
    auto token = std::make_shared<std::string>();
 
-   settings.provider = [token](){
+   settings.token_provider = [token](){
    if (token->empty() || isExpired(token)) {
    std::promise<AuthenticationClient::SignInUserResponse> token_promise;
 
