@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.4</span>
+   &#160;<span id="projectnumber">1.16.0</span>
    </div>
   </td>
  </tr>
@@ -103,6 +103,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aeb380f7de60d069e2b812aeb79946fa1"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1TokenProvider.html#aeb380f7de60d069e2b812aeb79946fa1">operator bool</a> () const</td></tr>
 <tr class="memdesc:aeb380f7de60d069e2b812aeb79946fa1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Casts the <code><a class="el" href="classolp_1_1authentication_1_1TokenProvider.html" title="Provides the authentication tokens if the HERE platform user credentials are valid.">TokenProvider</a></code> instance to the <code>bool</code> type.  <a href="classolp_1_1authentication_1_1TokenProvider.html#aeb380f7de60d069e2b812aeb79946fa1">More...</a><br /></td></tr>
 <tr class="separator:aeb380f7de60d069e2b812aeb79946fa1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a735e0fae2887a4505aa65ce5600f51f1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceolp_1_1client.html#a61487ce58bb2970e466d88a73006858f">client::OauthTokenResponse</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1TokenProvider.html#a735e0fae2887a4505aa65ce5600f51f1">operator()</a> (<a class="el" href="classolp_1_1client_1_1CancellationContext.html">client::CancellationContext</a> &amp;context) const</td></tr>
+<tr class="memdesc:a735e0fae2887a4505aa65ce5600f51f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the access token or an error.  <a href="classolp_1_1authentication_1_1TokenProvider.html#a735e0fae2887a4505aa65ce5600f51f1">More...</a><br /></td></tr>
+<tr class="separator:a735e0fae2887a4505aa65ce5600f51f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf203c0138ebd0c7844b73f5625901ba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structolp_1_1authentication_1_1ErrorResponse.html">ErrorResponse</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1TokenProvider.html#adf203c0138ebd0c7844b73f5625901ba">GetErrorResponse</a> () const</td></tr>
+<tr class="memdesc:adf203c0138ebd0c7844b73f5625901ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allows the <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">olp::client::ApiError</a></code> object associated with the last request to be accessed if the token request is unsuccessful.  <a href="classolp_1_1authentication_1_1TokenProvider.html#adf203c0138ebd0c7844b73f5625901ba">More...</a><br /></td></tr>
+<tr class="separator:adf203c0138ebd0c7844b73f5625901ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f2e8943bf95f82698b67d2ddedf809b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1authentication_1_1TokenProvider.html#a3f2e8943bf95f82698b67d2ddedf809b">GetHttpStatusCode</a> () const</td></tr>
+<tr class="memdesc:a3f2e8943bf95f82698b67d2ddedf809b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the HTTP status code of the last request.  <a href="classolp_1_1authentication_1_1TokenProvider.html#a3f2e8943bf95f82698b67d2ddedf809b">More...</a><br /></td></tr>
+<tr class="separator:a3f2e8943bf95f82698b67d2ddedf809b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;uint64_t MinimumValidity&gt;<br />
@@ -154,6 +163,66 @@ template&lt;uint64_t MinimumValidity&gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="adf203c0138ebd0c7844b73f5625901ba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adf203c0138ebd0c7844b73f5625901ba">&#9670;&nbsp;</a></span>GetErrorResponse()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;uint64_t MinimumValidity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structolp_1_1authentication_1_1ErrorResponse.html">ErrorResponse</a> <a class="el" href="classolp_1_1authentication_1_1TokenProvider.html">olp::authentication::TokenProvider</a>&lt; MinimumValidity &gt;::GetErrorResponse </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Allows the <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">olp::client::ApiError</a></code> object associated with the last request to be accessed if the token request is unsuccessful. </p>
+<dl class="section return"><dt>Returns</dt><dd>An error if the last token request failed. </dd></dl>
+
+</div>
+</div>
+<a id="a3f2e8943bf95f82698b67d2ddedf809b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f2e8943bf95f82698b67d2ddedf809b">&#9670;&nbsp;</a></span>GetHttpStatusCode()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;uint64_t MinimumValidity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int <a class="el" href="classolp_1_1authentication_1_1TokenProvider.html">olp::authentication::TokenProvider</a>&lt; MinimumValidity &gt;::GetHttpStatusCode </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Gets the HTTP status code of the last request. </p>
+<dl class="section return"><dt>Returns</dt><dd>The HTTP code of the last token request if it was successful. Otherwise, returns the HTTP 503 Service Unavailable server error. </dd></dl>
+
+</div>
+</div>
 <a id="aeb380f7de60d069e2b812aeb79946fa1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aeb380f7de60d069e2b812aeb79946fa1">&#9670;&nbsp;</a></span>operator bool()</h2>
 
@@ -182,6 +251,43 @@ template&lt;uint64_t MinimumValidity&gt; </div>
 <p>Casts the <code><a class="el" href="classolp_1_1authentication_1_1TokenProvider.html" title="Provides the authentication tokens if the HERE platform user credentials are valid.">TokenProvider</a></code> instance to the <code>bool</code> type. </p>
 <p>Returns true if the previous token request was successful.</p>
 <dl class="section return"><dt>Returns</dt><dd>True if the previous token request was successful; false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="a735e0fae2887a4505aa65ce5600f51f1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a735e0fae2887a4505aa65ce5600f51f1">&#9670;&nbsp;</a></span>operator()()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;uint64_t MinimumValidity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceolp_1_1client.html#a61487ce58bb2970e466d88a73006858f">client::OauthTokenResponse</a> <a class="el" href="classolp_1_1authentication_1_1TokenProvider.html">olp::authentication::TokenProvider</a>&lt; MinimumValidity &gt;::operator() </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classolp_1_1client_1_1CancellationContext.html">client::CancellationContext</a> &amp;&#160;</td>
+          <td class="paramname"><em>context</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the access token or an error. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">context</td><td>Used to cancel the pending token request.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>An <code>OauthTokenResponse</code> if the response is successful; an <code>ApiError</code> otherwise. </dd></dl>
 
 </div>
 </div>

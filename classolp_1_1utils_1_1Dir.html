@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.4</span>
+   &#160;<span id="projectnumber">1.16.0</span>
    </div>
   </td>
  </tr>
@@ -104,9 +104,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a6069424aab026849cabc4e7661ec0e7d"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1utils_1_1Dir.html#a6069424aab026849cabc4e7661ec0e7d">create</a> (const std::string &amp;path)</td></tr>
 <tr class="memdesc:a6069424aab026849cabc4e7661ec0e7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a directory and all required directories specified in the path.  <a href="classolp_1_1utils_1_1Dir.html#a6069424aab026849cabc4e7661ec0e7d">More...</a><br /></td></tr>
 <tr class="separator:a6069424aab026849cabc4e7661ec0e7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac97dba5e8186ecd6ea2707c86d963e14"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1utils_1_1Dir.html#ac97dba5e8186ecd6ea2707c86d963e14">Create</a> (const std::string &amp;path)</td></tr>
-<tr class="memdesc:ac97dba5e8186ecd6ea2707c86d963e14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a directory and all required directories specified in the path.  <a href="classolp_1_1utils_1_1Dir.html#ac97dba5e8186ecd6ea2707c86d963e14">More...</a><br /></td></tr>
-<tr class="separator:ac97dba5e8186ecd6ea2707c86d963e14"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3896701f4a5ff2e66308c525d9f5c929"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1utils_1_1Dir.html#a3896701f4a5ff2e66308c525d9f5c929">Create</a> (const std::string &amp;path, bool extend_permissions=false)</td></tr>
+<tr class="memdesc:a3896701f4a5ff2e66308c525d9f5c929"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a directory and all required directories specified in the path.  <a href="classolp_1_1utils_1_1Dir.html#a3896701f4a5ff2e66308c525d9f5c929">More...</a><br /></td></tr>
+<tr class="separator:a3896701f4a5ff2e66308c525d9f5c929"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad7d7d070f4ff96fed05839e08ceff408"><td class="memItemLeft" align="right" valign="top">static std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1utils_1_1Dir.html#ad7d7d070f4ff96fed05839e08ceff408">TempDirectory</a> ()</td></tr>
 <tr class="memdesc:ad7d7d070f4ff96fed05839e08ceff408"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets a platform-specific temporary path.  <a href="classolp_1_1utils_1_1Dir.html#ad7d7d070f4ff96fed05839e08ceff408">More...</a><br /></td></tr>
 <tr class="separator:ad7d7d070f4ff96fed05839e08ceff408"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -155,12 +155,12 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>True if the operation is successful; false otherwise.</dd></dl>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000017">Deprecated:</a></b></dt><dd>Will be removed by 10/2020. Use <code><a class="el" href="classolp_1_1utils_1_1Dir.html#ac97dba5e8186ecd6ea2707c86d963e14" title="Creates a directory and all required directories specified in the path.">Create()</a></code> instead. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000008">Deprecated:</a></b></dt><dd>Will be removed by 10/2020. Use <code><a class="el" href="classolp_1_1utils_1_1Dir.html#a3896701f4a5ff2e66308c525d9f5c929" title="Creates a directory and all required directories specified in the path.">Create()</a></code> instead. </dd></dl>
 
 </div>
 </div>
-<a id="ac97dba5e8186ecd6ea2707c86d963e14"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac97dba5e8186ecd6ea2707c86d963e14">&#9670;&nbsp;</a></span>Create()</h2>
+<a id="a3896701f4a5ff2e66308c525d9f5c929"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3896701f4a5ff2e66308c525d9f5c929">&#9670;&nbsp;</a></span>Create()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -172,8 +172,18 @@ Static Public Member Functions</h2></td></tr>
           <td class="memname">static bool olp::utils::Dir::Create </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;&#160;</td>
-          <td class="paramname"><em>path</em></td><td>)</td>
+          <td class="paramname"><em>path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>extend_permissions</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -186,10 +196,12 @@ Static Public Member Functions</h2></td></tr>
 <p>Creates a directory and all required directories specified in the path. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">path</td><td>The path of the directory.</td></tr>
+    <tr><td class="paramname">path</td><td>The path of the directory. </td></tr>
+    <tr><td class="paramname">extend_permissions</td><td>Controls the permission extension.</td></tr>
   </table>
   </dd>
 </dl>
+<p>Note: extend_permissions are applicable for Unix systems, if enabled, it sets the 0777 permissions for created folders.</p>
 <dl class="section return"><dt>Returns</dt><dd>True if the operation is successful; false otherwise. </dd></dl>
 
 </div>
@@ -226,7 +238,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>True if the directory exists; false otherwise.</dd></dl>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000015">Deprecated:</a></b></dt><dd>Will be removed by 10/2020. Use <code><a class="el" href="classolp_1_1utils_1_1Dir.html#a75640af28cf6cd8cfd570420cead2c3b" title="Checks whether a directory exists.">Exists()</a></code> instead. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000006">Deprecated:</a></b></dt><dd>Will be removed by 10/2020. Use <code><a class="el" href="classolp_1_1utils_1_1Dir.html#a75640af28cf6cd8cfd570420cead2c3b" title="Checks whether a directory exists.">Exists()</a></code> instead. </dd></dl>
 
 </div>
 </div>
@@ -367,7 +379,7 @@ Static Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>True if the operation is successful; false otherwise.</dd></dl>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000016">Deprecated:</a></b></dt><dd>Will be removed by 10/2020. Use <code><a class="el" href="classolp_1_1utils_1_1Dir.html#ac1ed9bbf29aee81fad6ca452ea367109" title="Removes a directory and deletes all its subfolders and files.">Remove()</a></code> instead. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000007">Deprecated:</a></b></dt><dd>Will be removed by 10/2020. Use <code><a class="el" href="classolp_1_1utils_1_1Dir.html#ac1ed9bbf29aee81fad6ca452ea367109" title="Removes a directory and deletes all its subfolders and files.">Remove()</a></code> instead. </dd></dl>
 
 </div>
 </div>

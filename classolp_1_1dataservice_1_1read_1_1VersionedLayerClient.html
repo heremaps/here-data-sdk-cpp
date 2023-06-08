@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.4</span>
+   &#160;<span id="projectnumber">1.16.0</span>
    </div>
   </td>
  </tr>
@@ -186,7 +186,7 @@ Public Member Functions</h2></td></tr>
 <div class="line">settings.network_request_handler = http_client;</div>
 <div class="line"> </div>
 <div class="line"><a class="code" href="structolp_1_1client_1_1AuthenticationSettings.html">olp::client::AuthenticationSettings</a> auth_settings;</div>
-<div class="line">auth_settings.<a class="code" href="structolp_1_1client_1_1AuthenticationSettings.html#a8a4240addea5ddd967ed14f0b9858dac">provider</a> =</div>
+<div class="line">auth_settings.provider =</div>
 <div class="line">    <a class="code" href="namespaceolp_1_1authentication.html#add9e77c777aa9984099a62d7ca94ba5c">olp::authentication::TokenProviderDefault</a>(std::move(settings));</div>
 <div class="line"> </div>
 <div class="line"><span class="keyword">auto</span> client_settings = <a class="code" href="structolp_1_1client_1_1OlpClientSettings.html">olp::client::OlpClientSettings</a>();</div>
@@ -202,12 +202,11 @@ Public Member Functions</h2></td></tr>
 <div class="ttc" id="aclassolp_1_1client_1_1OlpClientSettingsFactory_html_a2d7121fa1c55ec4c339f3378f7078dd2"><div class="ttname"><a href="classolp_1_1client_1_1OlpClientSettingsFactory.html#a2d7121fa1c55ec4c339f3378f7078dd2">olp::client::OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler</a></div><div class="ttdeci">static std::shared_ptr&lt; http::Network &gt; CreateDefaultNetworkRequestHandler(size_t max_requests_count=30u)</div><div class="ttdoc">Creates the Network instance used for all the non-local requests.</div></div>
 <div class="ttc" id="aclassolp_1_1client_1_1OlpClientSettingsFactory_html_a67f547a761b34910c5b60f8b6e1233c1"><div class="ttname"><a href="classolp_1_1client_1_1OlpClientSettingsFactory.html#a67f547a761b34910c5b60f8b6e1233c1">olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler</a></div><div class="ttdeci">static std::unique_ptr&lt; thread::TaskScheduler &gt; CreateDefaultTaskScheduler(size_t thread_count=1u)</div><div class="ttdoc">Creates the TaskScheduler instance used for all the delayed operations.</div></div>
 <div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1VersionedLayerClient_html_ade2e0b03e80385481a982e03b6adb2d4"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#ade2e0b03e80385481a982e03b6adb2d4">olp::dataservice::read::VersionedLayerClient::VersionedLayerClient</a></div><div class="ttdeci">VersionedLayerClient(client::HRN catalog, std::string layer_id, boost::optional&lt; int64_t &gt; catalog_version, client::OlpClientSettings settings)</div><div class="ttdoc">Creates the VersionedLayerClient instance with the specified catalog version.</div></div>
-<div class="ttc" id="anamespaceolp_1_1authentication_html_add9e77c777aa9984099a62d7ca94ba5c"><div class="ttname"><a href="namespaceolp_1_1authentication.html#add9e77c777aa9984099a62d7ca94ba5c">olp::authentication::TokenProviderDefault</a></div><div class="ttdeci">TokenProvider&lt; kDefaultMinimumValidity &gt; TokenProviderDefault</div><div class="ttdef"><b>Definition:</b> TokenProvider.h:183</div></div>
+<div class="ttc" id="anamespaceolp_1_1authentication_html_add9e77c777aa9984099a62d7ca94ba5c"><div class="ttname"><a href="namespaceolp_1_1authentication.html#add9e77c777aa9984099a62d7ca94ba5c">olp::authentication::TokenProviderDefault</a></div><div class="ttdeci">TokenProvider&lt; kDefaultMinimumValidity &gt; TokenProviderDefault</div><div class="ttdef"><b>Definition:</b> TokenProvider.h:163</div></div>
 <div class="ttc" id="astructolp_1_1authentication_1_1Settings_html"><div class="ttname"><a href="structolp_1_1authentication_1_1Settings.html">olp::authentication::Settings</a></div><div class="ttdoc">Configures the TokenEndpoint instance.</div><div class="ttdef"><b>Definition:</b> Settings.h:50</div></div>
 <div class="ttc" id="astructolp_1_1authentication_1_1Settings_html_a613b8ae683f2288b6b03b3692f1485a7"><div class="ttname"><a href="structolp_1_1authentication_1_1Settings.html#a613b8ae683f2288b6b03b3692f1485a7">olp::authentication::Settings::task_scheduler</a></div><div class="ttdeci">std::shared_ptr&lt; thread::TaskScheduler &gt; task_scheduler</div><div class="ttdoc">(Optional) The TaskScheduler class that is used to manage the callbacks enqueue.</div><div class="ttdef"><b>Definition:</b> Settings.h:76</div></div>
 <div class="ttc" id="astructolp_1_1client_1_1AuthenticationSettings_html"><div class="ttname"><a href="structolp_1_1client_1_1AuthenticationSettings.html">olp::client::AuthenticationSettings</a></div><div class="ttdoc">A set of settings that manages the TokenProviderCallback and TokenProviderCancelCallback functions.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:75</div></div>
-<div class="ttc" id="astructolp_1_1client_1_1AuthenticationSettings_html_a8a4240addea5ddd967ed14f0b9858dac"><div class="ttname"><a href="structolp_1_1client_1_1AuthenticationSettings.html#a8a4240addea5ddd967ed14f0b9858dac">olp::client::AuthenticationSettings::provider</a></div><div class="ttdeci">TokenProviderCallback provider</div><div class="ttdoc">The user-provided function that returns the OAuth2 bearer access token.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:148</div></div>
-<div class="ttc" id="astructolp_1_1client_1_1OlpClientSettings_html"><div class="ttname"><a href="structolp_1_1client_1_1OlpClientSettings.html">olp::client::OlpClientSettings</a></div><div class="ttdoc">Configures the behavior of the OlpClient class.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:242</div></div>
+<div class="ttc" id="astructolp_1_1client_1_1OlpClientSettings_html"><div class="ttname"><a href="structolp_1_1client_1_1OlpClientSettings.html">olp::client::OlpClientSettings</a></div><div class="ttdoc">Configures the behavior of the OlpClient class.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:180</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd>The <a href="https://developer.here.com/documentation/data-user-guide/portal/layers/layers.html#versioned-layers">versioned layer</a> section in the Data User Guide. </dd></dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ade2e0b03e80385481a982e03b6adb2d4"></a>

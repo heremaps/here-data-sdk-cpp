@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.4</span>
+   &#160;<span id="projectnumber">1.16.0</span>
    </div>
   </td>
  </tr>
@@ -86,9 +86,6 @@ $(function() {
 <li>CallFuncType
 : <a class="el" href="classolp_1_1thread_1_1TaskScheduler.html#a54f91863ec0c34f219b21d09d9b09f5a">olp::thread::TaskScheduler</a>
 </li>
-<li>cancel
-: <a class="el" href="structolp_1_1client_1_1AuthenticationSettings.html#a7e2df1759d3f4689670b1850c8184537">olp::client::AuthenticationSettings</a>
-</li>
 <li>Cancel()
 : <a class="el" href="classolp_1_1client_1_1CancellationToken.html#a9fc96f9b56644437a0a385760a90d086">olp::client::CancellationToken</a>
 , <a class="el" href="classolp_1_1http_1_1Network.html#a22cbb26cc175c8e28d5d4693e9cf147f">olp::http::Network</a>
@@ -100,7 +97,7 @@ $(function() {
 : <a class="el" href="classolp_1_1client_1_1PendingRequests.html#a5484249ed82aca4171c8ec698b680503">olp::client::PendingRequests</a>
 </li>
 <li>CancelBatch()
-: <a class="el" href="classolp_1_1dataservice_1_1write_1_1VersionedLayerClient.html#a07089cdbd334a96de66789c83eb5faa1">olp::dataservice::write::VersionedLayerClient</a>
+: <a class="el" href="classolp_1_1dataservice_1_1write_1_1VersionedLayerClient.html#a7d8e89a0ca3b27aee0cf7ab19fa0a57a">olp::dataservice::write::VersionedLayerClient</a>
 </li>
 <li>CancelFuncType
 : <a class="el" href="classolp_1_1client_1_1CancellationContext.html#adf67a7396c4a4a7ea1e2fc55430ea926">olp::client::CancellationContext</a>
@@ -168,6 +165,12 @@ $(function() {
 : <a class="el" href="classolp_1_1geo_1_1GeoRectangle.html#a4c08ec2cd98213b7ed29cc4fdcf20efb">olp::geo::GeoRectangle</a>
 , <a class="el" href="classolp_1_1math_1_1AlignedBox.html#a3b2df1c824afbc4aadbb2a9299fb3e9c">olp::math::AlignedBox&lt; T, N &gt;</a>
 </li>
+<li>cert_file_blob
+: <a class="el" href="structolp_1_1http_1_1CertificateSettings.html#af8c59bc92bd058bff887e8f49a455f4a">olp::http::CertificateSettings</a>
+</li>
+<li>certificate_settings
+: <a class="el" href="structolp_1_1http_1_1NetworkInitializationSettings.html#a82efd512675ebb539ef9581dcd9da8d6">olp::http::NetworkInitializationSettings</a>
+</li>
 <li>ChangedLevelBy()
 : <a class="el" href="classolp_1_1geo_1_1TileKey.html#aba0435c3e2b62da1a50fce21c0b9f60b">olp::geo::TileKey</a>
 </li>
@@ -200,6 +203,12 @@ $(function() {
 </li>
 <li>clearLevels()
 : <a class="el" href="classolp_1_1logging_1_1Log.html#acc6286af80828f7e5f94b59f3ef7da55">olp::logging::Log</a>
+</li>
+<li>client_cert_file_blob
+: <a class="el" href="structolp_1_1http_1_1CertificateSettings.html#a7a3e5abe54441d2e8c41f8f1f45f8793">olp::http::CertificateSettings</a>
+</li>
+<li>client_key_file_blob
+: <a class="el" href="structolp_1_1http_1_1CertificateSettings.html#ae5afa3008ea99626ea3ae1dfccd74b3c">olp::http::CertificateSettings</a>
 </li>
 <li>Close()
 : <a class="el" href="classolp_1_1cache_1_1DefaultCache.html#a1f629c6942320a153c3666bddfc0720e">olp::cache::DefaultCache</a>
@@ -246,7 +255,7 @@ $(function() {
 : <a class="el" href="classolp_1_1utils_1_1Url.html#a6f23cd43f8b00336a8b32c577684b8ba">olp::utils::Url</a>
 </li>
 <li>ConsumerOption()
-: <a class="el" href="classolp_1_1dataservice_1_1read_1_1ConsumerOption.html#a121b00b1f14692dd55f7016d96a26081">olp::dataservice::read::ConsumerOption</a>
+: <a class="el" href="classolp_1_1dataservice_1_1read_1_1ConsumerOption.html#a770fefecbc95ebbc8bf43e9a79a1b10a">olp::dataservice::read::ConsumerOption</a>
 </li>
 <li>ConsumerProperties()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1ConsumerProperties.html#a65336a78dae5225e75425a98ba622625">olp::dataservice::read::ConsumerProperties</a>
@@ -286,12 +295,10 @@ $(function() {
 <li>Create()
 : <a class="el" href="classolp_1_1client_1_1OlpClientFactory.html#ab2504979b525ed1da6e133f3bb0f8502">olp::client::OlpClientFactory</a>
 , <a class="el" href="classolp_1_1client_1_1TaskContext.html#a8d0626314dd8ea560a99896405630412">olp::client::TaskContext</a>
+, <a class="el" href="classolp_1_1utils_1_1Dir.html#a3896701f4a5ff2e66308c525d9f5c929">olp::utils::Dir</a>
 </li>
 <li>create()
 : <a class="el" href="classolp_1_1utils_1_1Dir.html#a6069424aab026849cabc4e7661ec0e7d">olp::utils::Dir</a>
-</li>
-<li>Create()
-: <a class="el" href="classolp_1_1utils_1_1Dir.html#ac97dba5e8186ecd6ea2707c86d963e14">olp::utils::Dir</a>
 </li>
 <li>CreateApiKey()
 : <a class="el" href="classolp_1_1cache_1_1KeyGenerator.html#a6d2f8ba172a013d6772f8159d27b18e0">olp::cache::KeyGenerator</a>
@@ -310,7 +317,7 @@ $(function() {
 : <a class="el" href="classolp_1_1client_1_1OlpClientSettingsFactory.html#a149f4816f59c87e56776b2614c6f2011">olp::client::OlpClientSettingsFactory</a>
 </li>
 <li>CreateDefaultNetworkRequestHandler()
-: <a class="el" href="classolp_1_1client_1_1OlpClientSettingsFactory.html#a2d7121fa1c55ec4c339f3378f7078dd2">olp::client::OlpClientSettingsFactory</a>
+: <a class="el" href="classolp_1_1client_1_1OlpClientSettingsFactory.html#a47bf503f706f56056572e6b0871b9a5f">olp::client::OlpClientSettingsFactory</a>
 </li>
 <li>CreateDefaultTaskScheduler()
 : <a class="el" href="classolp_1_1client_1_1OlpClientSettingsFactory.html#a67f547a761b34910c5b60f8b6e1233c1">olp::client::OlpClientSettingsFactory</a>

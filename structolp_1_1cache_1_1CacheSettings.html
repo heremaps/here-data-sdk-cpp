@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.4</span>
+   &#160;<span id="projectnumber">1.16.0</span>
    </div>
   </td>
  </tr>
@@ -113,6 +113,9 @@ EvictionPolicy&#160;</td><td class="memItemRight" valign="bottom"><b>eviction_po
 <tr class="memitem:a809adae6c0c6a2167bbbaf7b6c368c3e"><td class="memItemLeft" align="right" valign="top">boost::optional&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a809adae6c0c6a2167bbbaf7b6c368c3e">disk_path_protected</a> = boost::none</td></tr>
 <tr class="memdesc:a809adae6c0c6a2167bbbaf7b6c368c3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The path to the protected (read-only) cache.  <a href="structolp_1_1cache_1_1CacheSettings.html#a809adae6c0c6a2167bbbaf7b6c368c3e">More...</a><br /></td></tr>
 <tr class="separator:a809adae6c0c6a2167bbbaf7b6c368c3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39d741cd253e6dcf5e279f946eb24664"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a39d741cd253e6dcf5e279f946eb24664">extend_permissions</a> = false</td></tr>
+<tr class="memdesc:a39d741cd253e6dcf5e279f946eb24664"><td class="mdescLeft">&#160;</td><td class="mdescRight">The extend permissions flag (applicable for Unix systems).  <a href="structolp_1_1cache_1_1CacheSettings.html#a39d741cd253e6dcf5e279f946eb24664">More...</a><br /></td></tr>
+<tr class="separator:a39d741cd253e6dcf5e279f946eb24664"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Settings for memory and disk caching. </p>
@@ -166,6 +169,24 @@ EvictionPolicy&#160;</td><td class="memItemRight" valign="bottom"><b>eviction_po
 
 <p>The path to the protected (read-only) cache. </p>
 <p>This cache will be used as the primary source for data lookup. The <code><a class="el" href="classolp_1_1cache_1_1DefaultCache.html" title="A default cache that provides a memory LRU cache and persistence of cached key-value pairs.">DefaultCache</a></code> will try to open this cache in the r/w mode to make sure the database can perform on-open optimizations like write-ahead logging (WAL) committing or compaction. In case we do not have permission to write on the provided path, or user set explicitly ReadOnly in the <code><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a62b40ac0e8056a4b2d1a6542a2ed0f17" title="Sets the disk cache open options.">CacheSettings::openOptions</a></code>, the protected cache will be opened in r/o mode. In both cases the database will not be opened and user will receive a <code>ProtectedCacheCorrupted</code> from <code><a class="el" href="classolp_1_1cache_1_1DefaultCache.html#ac75363a5f7129f4ec2128f5630eda167" title="Opens the cache to start read and write operations.">DefaultCache::Open</a></code> in case the database has after open still an un-commited WAL, is uncompressed or cannot guarantee a normal operation and RAM usage. Use this cache if you want to have a stable fallback state or offline data that you can always access regardless of the network state. </p>
+
+</div>
+</div>
+<a id="a39d741cd253e6dcf5e279f946eb24664"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a39d741cd253e6dcf5e279f946eb24664">&#9670;&nbsp;</a></span>extend_permissions</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool olp::cache::CacheSettings::extend_permissions = false</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The extend permissions flag (applicable for Unix systems). </p>
+<p>A boolean option that controls the default permission for file and directory creation. When enabled, all permissions for files and directories will be set to 0666 and 0777 respectively, which allows read, write, and execute access to all users.</p>
+<p>Note: the resulting permissions are affected by the umask. </p>
 
 </div>
 </div>

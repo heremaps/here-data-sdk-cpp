@@ -1,5 +1,5 @@
 <map id="olp::client::OlpClientSettings" name="olp::client::OlpClientSettings">
-<area shape="rect" id="node1" title="Configures the behavior of the OlpClient class." alt="" coords="120,95,327,121"/>
-<area shape="rect" id="node2" href="$structolp_1_1client_1_1ApiLookupSettings.html" title="Settings to provide URLs for API lookup requests." alt="" coords="5,5,220,32"/>
-<area shape="rect" id="node3" href="$structolp_1_1client_1_1RetrySettings.html" title="A collection of settings that controls how failed requests should be treated by the Data SDK." alt="" coords="244,5,427,32"/>
+<area shape="rect" id="node1" title="Configures the behavior of the OlpClient class." alt="" coords="111,95,299,121"/>
+<area shape="rect" id="node2" href="$structolp_1_1client_1_1ApiLookupSettings.html" title="Settings to provide URLs for API lookup requests." alt="" coords="5,5,200,32"/>
+<area shape="rect" id="node3" href="$structolp_1_1client_1_1RetrySettings.html" title="A collection of settings that controls how failed requests should be treated by the Data SDK." alt="" coords="225,5,391,32"/>
 </map>

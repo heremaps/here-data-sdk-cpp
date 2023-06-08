@@ -1,4 +1,4 @@
 <map id="olp::logging::ConsoleAppender" name="olp::logging::ConsoleAppender">
-<area shape="rect" id="node1" title="An appender that prints messages to the console." alt="" coords="5,80,225,107"/>
-<area shape="rect" id="node2" href="$classolp_1_1logging_1_1IAppender.html" title="Appends a message to the log." alt="" coords="29,5,201,32"/>
+<area shape="rect" id="node1" title="An appender that prints messages to the console." alt="" coords="5,80,204,107"/>
+<area shape="rect" id="node2" href="$classolp_1_1logging_1_1IAppender.html" title="Appends a message to the log." alt="" coords="27,5,182,32"/>
 </map>

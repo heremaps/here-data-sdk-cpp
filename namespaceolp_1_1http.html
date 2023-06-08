@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.4</span>
+   &#160;<span id="projectnumber">1.16.0</span>
    </div>
   </td>
  </tr>
@@ -81,11 +81,17 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1http_1_1CertificateSettings.html">CertificateSettings</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Settings for custom network certificate.  <a href="structolp_1_1http_1_1CertificateSettings.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1HttpStatusCode.html">HttpStatusCode</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">HTTP status codes, as specified in RFC7231.  <a href="classolp_1_1http_1_1HttpStatusCode.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1Network.html">Network</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An HTTP client abstraction.  <a href="classolp_1_1http_1_1Network.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1http_1_1NetworkInitializationSettings.html">NetworkInitializationSettings</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Settings for network initialization.  <a href="structolp_1_1http_1_1NetworkInitializationSettings.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkProxySettings.html">NetworkProxySettings</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains a proxy configuration for the network interface that is applied per request.  <a href="classolp_1_1http_1_1NetworkProxySettings.html#details">More...</a><br /></td></tr>
@@ -148,10 +154,9 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a4bd6ade1097956b382987fa9c173827f"><td class="memItemLeft" align="right" valign="top"><a id="a4bd6ade1097956b382987fa9c173827f"></a>
-CORE_API std::shared_ptr&lt; <a class="el" href="classolp_1_1http_1_1Network.html">Network</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1http.html#a4bd6ade1097956b382987fa9c173827f">CreateDefaultNetwork</a> (size_t max_requests_count)</td></tr>
-<tr class="memdesc:a4bd6ade1097956b382987fa9c173827f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a default <code><a class="el" href="classolp_1_1http_1_1Network.html" title="An HTTP client abstraction.">Network</a></code> implementation. <br /></td></tr>
-<tr class="separator:a4bd6ade1097956b382987fa9c173827f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afeb9a055cb0b7ec4347b5d0f36bd5b69"><td class="memItemLeft" align="right" valign="top">OLP_SDK_DEPRECATED(&quot;Will be removed by 05.2024, use &quot; &quot;CreateDefaultNetwork(<a class="el" href="structolp_1_1http_1_1NetworkInitializationSettings.html">NetworkInitializationSettings</a>) instead&quot;) CORE_API std CORE_API std::shared_ptr&lt; <a class="el" href="classolp_1_1http_1_1Network.html">Network</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1http.html#afeb9a055cb0b7ec4347b5d0f36bd5b69">CreateDefaultNetwork</a> (<a class="el" href="structolp_1_1http_1_1NetworkInitializationSettings.html">NetworkInitializationSettings</a> settings)</td></tr>
+<tr class="memdesc:afeb9a055cb0b7ec4347b5d0f36bd5b69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a default <code><a class="el" href="classolp_1_1http_1_1Network.html" title="An HTTP client abstraction.">Network</a></code> implementation.  <a href="namespaceolp_1_1http.html#afeb9a055cb0b7ec4347b5d0f36bd5b69">More...</a><br /></td></tr>
+<tr class="separator:afeb9a055cb0b7ec4347b5d0f36bd5b69"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa8aa1b3eaa94d47031f24abc93255e80"><td class="memItemLeft" align="right" valign="top"><a id="aa8aa1b3eaa94d47031f24abc93255e80"></a>
 CORE_API std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1http.html#aa8aa1b3eaa94d47031f24abc93255e80">ErrorCodeToString</a> (<a class="el" href="namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17">ErrorCode</a> code)</td></tr>
 <tr class="memdesc:aa8aa1b3eaa94d47031f24abc93255e80"><td class="mdescLeft">&#160;</td><td class="mdescRight">The helper function that converts an error code to a human readable string. <br /></td></tr>
@@ -246,6 +251,27 @@ CORE_API std::string&#160;</td><td class="memItemRight" valign="bottom"><a class
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="afeb9a055cb0b7ec4347b5d0f36bd5b69"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afeb9a055cb0b7ec4347b5d0f36bd5b69">&#9670;&nbsp;</a></span>CreateDefaultNetwork()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">OLP_SDK_DEPRECATED ( &quot;Will be removed by 05.2024, use &quot; &quot;CreateDefaultNetwork(<a class="el" href="structolp_1_1http_1_1NetworkInitializationSettings.html">NetworkInitializationSettings</a>) instead&quot;) CORE_API std CORE_API std::shared_ptr&lt;<a class="el" href="classolp_1_1http_1_1Network.html">Network</a>&gt; olp::http::CreateDefaultNetwork </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structolp_1_1http_1_1NetworkInitializationSettings.html">NetworkInitializationSettings</a>&#160;</td>
+          <td class="paramname"><em>settings</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Creates a default <code><a class="el" href="classolp_1_1http_1_1Network.html" title="An HTTP client abstraction.">Network</a></code> implementation. </p>
+<p>Creates a default <code><a class="el" href="classolp_1_1http_1_1Network.html" title="An HTTP client abstraction.">Network</a></code> implementation. </p>
+
+</div>
+</div>
 <a id="ada1c2a710d730bcd6c220cba9ad9e280"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ada1c2a710d730bcd6c220cba9ad9e280">&#9670;&nbsp;</a></span>HttpErrorToString()</h2>
 
