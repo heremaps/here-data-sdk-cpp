@@ -162,6 +162,18 @@ struct CORE_API CacheSettings {
    * regardless of the network state.
    */
   boost::optional<std::string> disk_path_protected = boost::none;
+
+  /**
+   * @brief The extend permissions flag (applicable for Unix systems).
+   *
+   * A boolean option that controls the default permission for file and
+   * directory creation. When enabled, all permissions for files and directories
+   * will be set to 0666 and 0777 respectively, which allows read, write, and
+   * execute access to all users.
+   * 
+   * Note: the resulting permissions are affected by the umask.
+   */
+  bool extend_permissions = false;
 };
 
 #else

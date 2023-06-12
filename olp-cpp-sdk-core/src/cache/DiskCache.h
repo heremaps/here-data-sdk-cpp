@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +109,7 @@ class DiskCache {
     void Logv(const char* format, va_list ap) override;
   };
 
-  DiskCache();
+  explicit DiskCache(bool extend_permissions);
   ~DiskCache();
   OpenResult Open(const std::string& data_path,
                   const std::string& versioned_data_path,

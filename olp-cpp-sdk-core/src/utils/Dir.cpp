@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
+#include <olp/core/utils/WarningWorkarounds.h>
 #include <strsafe.h>
 #include <tchar.h>
 #include <windows.h>
@@ -276,7 +277,7 @@ bool Dir::Remove(const std::string& path) {
 
 bool Dir::remove(const std::string& path) { return Dir::Remove(path); }
 
-bool Dir::Create(const std::string& path) {
+bool Dir::Create(const std::string& path, bool extend_permissions) {
   if (exists(path)) {
     return true;
   }
@@ -284,11 +285,13 @@ bool Dir::Create(const std::string& path) {
 #if !defined(_WIN32) || defined(__MINGW32__)
   struct stat sbuf;
   if (stat(path.c_str(), &sbuf) != 0) {
-    if (!mkdir_all(path.c_str(), 0774)) {
+    if (!mkdir_all(path.c_str(), extend_permissions ? 0777 : 0755)) {
       ret = false;
     }
   }
 #else
+  OLP_SDK_CORE_UNUSED(extend_permissions);
+
   std::string dir_path;
   std::string hyfon = path.substr(0, 1);
   bool b_relative_path = false;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,10 +91,14 @@ class CORE_API Dir {
    * in the path.
    *
    * @param path The path of the directory.
+   * @param extend_permissions Controls the permission extension.
+   *
+   * Note: extend_permissions are applicable for Unix systems, if enabled, it
+   * sets the 0777 permissions for created folders.
    *
    * @return True if the operation is successful; false otherwise.
    */
-  static bool Create(const std::string& path);
+  static bool Create(const std::string& path, bool extend_permissions = false);
 
   /**
    * @brief Gets a platform-specific temporary path.

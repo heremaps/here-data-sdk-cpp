@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2021 HERE Europe B.V.
+# Copyright (C) 2019-2023 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -436,14 +436,37 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 if(OLP_SDK_ENABLE_DEFAULT_CACHE)
+    include(CheckCXXSymbolExists)
+    check_cxx_symbol_exists(fdatasync "unistd.h" HAVE_FDATASYNC)
+    check_cxx_symbol_exists(F_FULLFSYNC "fcntl.h" HAVE_FULLFSYNC)
+    check_cxx_symbol_exists(O_CLOEXEC "fcntl.h" HAVE_O_CLOEXEC)
+
     target_include_directories(${PROJECT_NAME}
         PUBLIC
-            $<BUILD_INTERFACE:${leveldb_INCLUDE_DIR}>
+        $<BUILD_INTERFACE:${leveldb_INCLUDE_DIR}>
     )
     target_link_libraries(${PROJECT_NAME}
         PRIVATE
-            leveldb::leveldb
+        leveldb::leveldb
     )
+
+    if(HAVE_FDATASYNC)
+        target_compile_definitions(${PROJECT_NAME}
+            PRIVATE
+            HAVE_FDATASYNC)
+    endif()
+
+    if(HAVE_FULLFSYNC)
+        target_compile_definitions(${PROJECT_NAME}
+            PRIVATE
+            HAVE_FULLFSYNC)
+    endif()
+
+    if(HAVE_O_CLOEXEC)
+        target_compile_definitions(${PROJECT_NAME}
+            PRIVATE
+            HAVE_O_CLOEXEC)
+    endif()
 endif()
 
 if(OLP_SDK_ENABLE_DEFAULT_CACHE_LMDB)
