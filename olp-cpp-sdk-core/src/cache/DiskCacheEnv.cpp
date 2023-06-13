@@ -47,6 +47,10 @@ constexpr const int kOpenBaseFlags = 0;
 
 namespace {
 
+constexpr const auto kExtendedFilePermissions =
+    S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+constexpr const auto kExtendedDirPermissions = S_IRWXU | S_IRWXG | S_IRWXO;
+
 constexpr const size_t kWritableFileBufferSize = 65536;
 
 leveldb::Status PosixError(const std::string& context, int error_number) {
@@ -530,8 +534,10 @@ class EnvWrapper : public leveldb::EnvWrapper {
       : leveldb::EnvWrapper(leveldb::Env::Default()),
         locks_(locks),
         fd_limiter_(fd_limiter),
-        default_file_permissions_(extend_permissions ? DEFFILEMODE : 0644),
-        default_dir_permissions_(extend_permissions ? ACCESSPERMS : 0755) {}
+        default_file_permissions_(extend_permissions ? kExtendedFilePermissions
+                                                     : 0644),
+        default_dir_permissions_(extend_permissions ? kExtendedDirPermissions
+                                                    : 0755) {}
 
   ~EnvWrapper() = default;
 
@@ -657,8 +663,7 @@ class EnvWrapper : public leveldb::EnvWrapper {
 namespace olp {
 namespace cache {
 
-std::shared_ptr<leveldb::Env> DiskCacheEnv::CreateEnv(
-    bool extend_permissions) {
+std::shared_ptr<leveldb::Env> DiskCacheEnv::CreateEnv(bool extend_permissions) {
 #ifdef PORTING_PLATFORM_WINDOWS
   OLP_SDK_CORE_UNUSED(extend_permissions);
   // return the normal env as a shared ptr with empty deleter
