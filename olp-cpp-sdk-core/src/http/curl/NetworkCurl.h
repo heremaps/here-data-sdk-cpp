@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,19 @@
 
 #pragma once
 
+#include <curl/curl.h>
+
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <deque>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
 
-#include <curl/curl.h>
+#include <boost/optional.hpp>
 
 #ifdef OLP_SDK_ENABLE_ANDROID_CURL
 #ifdef OLP_SDK_NETWORK_HAS_OPENSSL
@@ -46,8 +49,14 @@
 #endif
 #endif
 
-#include <olp/core/http/Network.h>
-#include <olp/core/http/NetworkRequest.h>
+#if CURL_AT_LEAST_VERSION(7, 71, 0)
+#define OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
+#endif
+
+#include "olp/core/http/CertificateSettings.h"
+#include "olp/core/http/Network.h"
+#include "olp/core/http/NetworkInitializationSettings.h"
+#include "olp/core/http/NetworkRequest.h"
 
 namespace olp {
 namespace http {
@@ -61,7 +70,7 @@ class NetworkCurl : public olp::http::Network,
   /**
    * @brief NetworkCurl constructor.
    */
-  explicit NetworkCurl(size_t max_requests_count);
+  explicit NetworkCurl(NetworkInitializationSettings settings);
 
   /**
    * @brief ~NetworkCurl destructor.
@@ -149,6 +158,22 @@ class NetworkCurl : public olp::http::Network,
     RequestHandle* handle{};
   };
 
+#ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
+  /**
+   * @brief Blobs required for custom certificate validation.
+   */
+  struct SslCertificateBlobs {
+    /// Certificate blob.
+    struct curl_blob ssl_cert_blob;
+
+    /// Private key blob.
+    struct curl_blob ssl_key_blob;
+
+    /// Certificate authority blob.
+    struct curl_blob ca_info_blob;
+  };
+#endif
+
   /**
    * @brief Actual routine that sends network request.
    *
@@ -173,13 +198,13 @@ class NetworkCurl : public olp::http::Network,
 
   /**
    * @brief Initialize internal data structures, start worker thread.
-   * @return @c true if initialized successfuly, @c false otherwise.
+   * @return @c true if initialized successfully, @c false otherwise.
    */
   bool Initialize();
 
   /**
    * @brief Release network resources, join worker thread.
-   * @return @c true if deinitialized successfuly, @c false otherwise.
+   * @return @c true if deinitialized successfully, @c false otherwise.
    */
   void Deinitialize();
 
@@ -281,6 +306,13 @@ class NetworkCurl : public olp::http::Network,
    */
   inline bool IsStarted() const;
 
+#ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
+  /**
+   * @brief Setups all necessary blobs for custom certificate settings.
+   */
+  void SetupCertificateBlobs();
+#endif
+
 #ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
   /**
    * @brief Adds new lookup method for certificates search routine.
@@ -351,6 +383,15 @@ class NetworkCurl : public olp::http::Network,
 
   /// Stores value if `curl_global_init()` was successful on construction.
   bool curl_initialized_;
+
+  /// Store original certificate setting in order to reference them in the SSL
+  /// blobs so cURL does not need to copy them.
+  CertificateSettings certificate_settings_;
+
+#ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
+  /// SSL certificate blobs.
+  boost::optional<SslCertificateBlobs> ssl_certificates_blobs_;
+#endif
 };
 
 }  // namespace http
