@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.4</span>
+   &#160;<span id="projectnumber">1.16.0</span>
    </div>
   </td>
  </tr>
@@ -147,7 +147,7 @@ Public Member Functions</h2></td></tr>
 <div class="line">settings.network_request_handler = http_client;</div>
 <div class="line"> </div>
 <div class="line"><a class="code" href="structolp_1_1client_1_1AuthenticationSettings.html">olp::client::AuthenticationSettings</a> auth_settings;</div>
-<div class="line">auth_settings.<a class="code" href="structolp_1_1client_1_1AuthenticationSettings.html#a8a4240addea5ddd967ed14f0b9858dac">provider</a> =</div>
+<div class="line">auth_settings.provider =</div>
 <div class="line">    <a class="code" href="namespaceolp_1_1authentication.html#add9e77c777aa9984099a62d7ca94ba5c">olp::authentication::TokenProviderDefault</a>(std::move(settings));</div>
 <div class="line"> </div>
 <div class="line"><span class="keyword">auto</span> client_settings = <a class="code" href="structolp_1_1client_1_1OlpClientSettings.html">olp::client::OlpClientSettings</a>();</div>
@@ -181,12 +181,11 @@ Public Member Functions</h2></td></tr>
 <div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1SubscribeRequest_html"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1SubscribeRequest.html">olp::dataservice::read::SubscribeRequest</a></div><div class="ttdoc">Used to subscribe to a stream layer.</div><div class="ttdef"><b>Definition:</b> SubscribeRequest.h:36</div></div>
 <div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1SubscribeRequest_html_a0c184cc44979c9731848c058fde8671eaf54983ae8eb79e77ee6be2f8384e1cb1"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1SubscribeRequest.html#a0c184cc44979c9731848c058fde8671eaf54983ae8eb79e77ee6be2f8384e1cb1">olp::dataservice::read::SubscribeRequest::SubscriptionMode::kSerial</a></div><div class="ttdeci">@ kSerial</div></div>
 <div class="ttc" id="aclassolp_1_1dataservice_1_1read_1_1SubscribeRequest_html_a695eb726ecda38b460c735fb85e83b36"><div class="ttname"><a href="classolp_1_1dataservice_1_1read_1_1SubscribeRequest.html#a695eb726ecda38b460c735fb85e83b36">olp::dataservice::read::SubscribeRequest::WithSubscriptionMode</a></div><div class="ttdeci">SubscribeRequest &amp; WithSubscriptionMode(SubscriptionMode mode)</div><div class="ttdoc">Sets the subscription mode for the request.</div><div class="ttdef"><b>Definition:</b> SubscribeRequest.h:64</div></div>
-<div class="ttc" id="anamespaceolp_1_1authentication_html_add9e77c777aa9984099a62d7ca94ba5c"><div class="ttname"><a href="namespaceolp_1_1authentication.html#add9e77c777aa9984099a62d7ca94ba5c">olp::authentication::TokenProviderDefault</a></div><div class="ttdeci">TokenProvider&lt; kDefaultMinimumValidity &gt; TokenProviderDefault</div><div class="ttdef"><b>Definition:</b> TokenProvider.h:183</div></div>
+<div class="ttc" id="anamespaceolp_1_1authentication_html_add9e77c777aa9984099a62d7ca94ba5c"><div class="ttname"><a href="namespaceolp_1_1authentication.html#add9e77c777aa9984099a62d7ca94ba5c">olp::authentication::TokenProviderDefault</a></div><div class="ttdeci">TokenProvider&lt; kDefaultMinimumValidity &gt; TokenProviderDefault</div><div class="ttdef"><b>Definition:</b> TokenProvider.h:163</div></div>
 <div class="ttc" id="astructolp_1_1authentication_1_1Settings_html"><div class="ttname"><a href="structolp_1_1authentication_1_1Settings.html">olp::authentication::Settings</a></div><div class="ttdoc">Configures the TokenEndpoint instance.</div><div class="ttdef"><b>Definition:</b> Settings.h:50</div></div>
 <div class="ttc" id="astructolp_1_1authentication_1_1Settings_html_a613b8ae683f2288b6b03b3692f1485a7"><div class="ttname"><a href="structolp_1_1authentication_1_1Settings.html#a613b8ae683f2288b6b03b3692f1485a7">olp::authentication::Settings::task_scheduler</a></div><div class="ttdeci">std::shared_ptr&lt; thread::TaskScheduler &gt; task_scheduler</div><div class="ttdoc">(Optional) The TaskScheduler class that is used to manage the callbacks enqueue.</div><div class="ttdef"><b>Definition:</b> Settings.h:76</div></div>
 <div class="ttc" id="astructolp_1_1client_1_1AuthenticationSettings_html"><div class="ttname"><a href="structolp_1_1client_1_1AuthenticationSettings.html">olp::client::AuthenticationSettings</a></div><div class="ttdoc">A set of settings that manages the TokenProviderCallback and TokenProviderCancelCallback functions.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:75</div></div>
-<div class="ttc" id="astructolp_1_1client_1_1AuthenticationSettings_html_a8a4240addea5ddd967ed14f0b9858dac"><div class="ttname"><a href="structolp_1_1client_1_1AuthenticationSettings.html#a8a4240addea5ddd967ed14f0b9858dac">olp::client::AuthenticationSettings::provider</a></div><div class="ttdeci">TokenProviderCallback provider</div><div class="ttdoc">The user-provided function that returns the OAuth2 bearer access token.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:148</div></div>
-<div class="ttc" id="astructolp_1_1client_1_1OlpClientSettings_html"><div class="ttname"><a href="structolp_1_1client_1_1OlpClientSettings.html">olp::client::OlpClientSettings</a></div><div class="ttdoc">Configures the behavior of the OlpClient class.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:242</div></div>
+<div class="ttc" id="astructolp_1_1client_1_1OlpClientSettings_html"><div class="ttname"><a href="structolp_1_1client_1_1OlpClientSettings.html">olp::client::OlpClientSettings</a></div><div class="ttdoc">Configures the behavior of the OlpClient class.</div><div class="ttdef"><b>Definition:</b> OlpClientSettings.h:180</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd>The <a href="https://developer.here.com/documentation/data-user-guide/portal/layers/layers.html">Layers</a> section of the Data User Guide and the <a href="https://developer.here.com/documentation/data-api/data_dev_guide/rest/getting-data-stream.html">Get Data from a Stream Layer</a> section of the Data API Developer Guide. </dd></dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a54b1fe66c38bbb80800a8964ad7417a7"></a>

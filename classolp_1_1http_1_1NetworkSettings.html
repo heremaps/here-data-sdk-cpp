@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.4</span>
+   &#160;<span id="projectnumber">1.16.0</span>
    </div>
   </td>
  </tr>
@@ -87,18 +87,36 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a247cf825cc9c64d5c15935f64ae3cbdf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a247cf825cc9c64d5c15935f64ae3cbdf">WithRetries</a> (std::size_t retries)</td></tr>
 <tr class="memdesc:a247cf825cc9c64d5c15935f64ae3cbdf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the maximum number of retries for the HTTP request.  <a href="classolp_1_1http_1_1NetworkSettings.html#a247cf825cc9c64d5c15935f64ae3cbdf">More...</a><br /></td></tr>
 <tr class="separator:a247cf825cc9c64d5c15935f64ae3cbdf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a738d962726efdb7c97174a0ca78dce6c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a738d962726efdb7c97174a0ca78dce6c">GetConnectionTimeout</a> () const</td></tr>
-<tr class="memdesc:a738d962726efdb7c97174a0ca78dce6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the connection timeout in seconds.  <a href="classolp_1_1http_1_1NetworkSettings.html#a738d962726efdb7c97174a0ca78dce6c">More...</a><br /></td></tr>
-<tr class="separator:a738d962726efdb7c97174a0ca78dce6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab595c95c6614326e764148ab9ee12993"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html#ab595c95c6614326e764148ab9ee12993">WithConnectionTimeout</a> (int timeout)</td></tr>
-<tr class="memdesc:ab595c95c6614326e764148ab9ee12993"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the connection timeout in seconds.  <a href="classolp_1_1http_1_1NetworkSettings.html#ab595c95c6614326e764148ab9ee12993">More...</a><br /></td></tr>
-<tr class="separator:ab595c95c6614326e764148ab9ee12993"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a08dcf83a7a52f79f03b77d68f7257e92"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a08dcf83a7a52f79f03b77d68f7257e92">GetTransferTimeout</a> () const</td></tr>
-<tr class="memdesc:a08dcf83a7a52f79f03b77d68f7257e92"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the transfer timeout in seconds.  <a href="classolp_1_1http_1_1NetworkSettings.html#a08dcf83a7a52f79f03b77d68f7257e92">More...</a><br /></td></tr>
-<tr class="separator:a08dcf83a7a52f79f03b77d68f7257e92"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8cda8e589cd9418f353f197324d046d0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a8cda8e589cd9418f353f197324d046d0">WithTransferTimeout</a> (int timeout)</td></tr>
-<tr class="memdesc:a8cda8e589cd9418f353f197324d046d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the transfer timeout in seconds.  <a href="classolp_1_1http_1_1NetworkSettings.html#a8cda8e589cd9418f353f197324d046d0">More...</a><br /></td></tr>
-<tr class="separator:a8cda8e589cd9418f353f197324d046d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9773fa803f2964e003f005c1e4f0926"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html#ae9773fa803f2964e003f005c1e4f0926">OLP_SDK_DEPRECATED</a> (&quot;Will be removed by 04.2024, use <a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a54a024e2598b3eed8a390043a2cd326a">GetConnectionTimeoutDuration</a>() instead&quot;) int GetConnectionTimeout() const</td></tr>
+<tr class="memdesc:ae9773fa803f2964e003f005c1e4f0926"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the connection timeout in seconds.  <a href="classolp_1_1http_1_1NetworkSettings.html#ae9773fa803f2964e003f005c1e4f0926">More...</a><br /></td></tr>
+<tr class="separator:ae9773fa803f2964e003f005c1e4f0926"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54a024e2598b3eed8a390043a2cd326a"><td class="memItemLeft" align="right" valign="top">std::chrono::milliseconds&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a54a024e2598b3eed8a390043a2cd326a">GetConnectionTimeoutDuration</a> () const</td></tr>
+<tr class="memdesc:a54a024e2598b3eed8a390043a2cd326a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the connection timeout.  <a href="classolp_1_1http_1_1NetworkSettings.html#a54a024e2598b3eed8a390043a2cd326a">More...</a><br /></td></tr>
+<tr class="separator:a54a024e2598b3eed8a390043a2cd326a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc459ed117c71e873a218d4613c6d832"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html#adc459ed117c71e873a218d4613c6d832">OLP_SDK_DEPRECATED</a> (&quot;Will be removed by 04.2024, use &quot; &quot;<a class="el" href="classolp_1_1http_1_1NetworkSettings.html#aaffbe52e579428f0ff871522ec860f33">WithConnectionTimeout</a>(std::chrono::milliseconds) instead&quot;) NetworkSettings &amp;<a class="el" href="classolp_1_1http_1_1NetworkSettings.html#aaffbe52e579428f0ff871522ec860f33">WithConnectionTimeout</a>(int timeout)</td></tr>
+<tr class="memdesc:adc459ed117c71e873a218d4613c6d832"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the connection timeout in seconds.  <a href="classolp_1_1http_1_1NetworkSettings.html#adc459ed117c71e873a218d4613c6d832">More...</a><br /></td></tr>
+<tr class="separator:adc459ed117c71e873a218d4613c6d832"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaffbe52e579428f0ff871522ec860f33"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html#aaffbe52e579428f0ff871522ec860f33">WithConnectionTimeout</a> (std::chrono::milliseconds timeout)</td></tr>
+<tr class="memdesc:aaffbe52e579428f0ff871522ec860f33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the connection timeout.  <a href="classolp_1_1http_1_1NetworkSettings.html#aaffbe52e579428f0ff871522ec860f33">More...</a><br /></td></tr>
+<tr class="separator:aaffbe52e579428f0ff871522ec860f33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17b09c2e49b8b19261a5767cfd8fd96a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a17b09c2e49b8b19261a5767cfd8fd96a">OLP_SDK_DEPRECATED</a> (&quot;Will be removed by 04.2024, use <a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a23a1770d404e16e400bcb434052a942b">GetTransferTimeoutDuration</a>() instead&quot;) int GetTransferTimeout() const</td></tr>
+<tr class="memdesc:a17b09c2e49b8b19261a5767cfd8fd96a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the transfer timeout in seconds.  <a href="classolp_1_1http_1_1NetworkSettings.html#a17b09c2e49b8b19261a5767cfd8fd96a">More...</a><br /></td></tr>
+<tr class="separator:a17b09c2e49b8b19261a5767cfd8fd96a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23a1770d404e16e400bcb434052a942b"><td class="memItemLeft" align="right" valign="top">std::chrono::milliseconds&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a23a1770d404e16e400bcb434052a942b">GetTransferTimeoutDuration</a> () const</td></tr>
+<tr class="memdesc:a23a1770d404e16e400bcb434052a942b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the transfer timeout.  <a href="classolp_1_1http_1_1NetworkSettings.html#a23a1770d404e16e400bcb434052a942b">More...</a><br /></td></tr>
+<tr class="separator:a23a1770d404e16e400bcb434052a942b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3dade49fed118438328efed59c4496b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html#ae3dade49fed118438328efed59c4496b">OLP_SDK_DEPRECATED</a> (&quot;Will be removed by 04.2024, use &quot; &quot;<a class="el" href="classolp_1_1http_1_1NetworkSettings.html#ad0c299f69c02fcb7907e63663f6248fe">WithTransferTimeout</a>(std::chrono::milliseconds) instead&quot;) NetworkSettings &amp;<a class="el" href="classolp_1_1http_1_1NetworkSettings.html#ad0c299f69c02fcb7907e63663f6248fe">WithTransferTimeout</a>(int timeout)</td></tr>
+<tr class="memdesc:ae3dade49fed118438328efed59c4496b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the transfer timeout in seconds.  <a href="classolp_1_1http_1_1NetworkSettings.html#ae3dade49fed118438328efed59c4496b">More...</a><br /></td></tr>
+<tr class="separator:ae3dade49fed118438328efed59c4496b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e900bb264b00741f9b056a89b2dd6ce"><td class="memItemLeft" align="right" valign="top">std::chrono::seconds&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a5e900bb264b00741f9b056a89b2dd6ce">GetMaxConnectionLifetime</a> () const</td></tr>
+<tr class="memdesc:a5e900bb264b00741f9b056a89b2dd6ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets max lifetime (since creation) allowed for reusing a connection.  <a href="classolp_1_1http_1_1NetworkSettings.html#a5e900bb264b00741f9b056a89b2dd6ce">More...</a><br /></td></tr>
+<tr class="separator:a5e900bb264b00741f9b056a89b2dd6ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac221bd4b5ab05318ad8a40844d4d70f7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html#ac221bd4b5ab05318ad8a40844d4d70f7">WithMaxConnectionLifetime</a> (std::chrono::seconds lifetime)</td></tr>
+<tr class="memdesc:ac221bd4b5ab05318ad8a40844d4d70f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets max lifetime (since creation) allowed for reusing a connection. Supported only for CURL implementation. If set to 0, this behavior is disabled: all connections are eligible for reuse.  <a href="classolp_1_1http_1_1NetworkSettings.html#ac221bd4b5ab05318ad8a40844d4d70f7">More...</a><br /></td></tr>
+<tr class="separator:ac221bd4b5ab05318ad8a40844d4d70f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad0c299f69c02fcb7907e63663f6248fe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html#ad0c299f69c02fcb7907e63663f6248fe">WithTransferTimeout</a> (std::chrono::milliseconds timeout)</td></tr>
+<tr class="memdesc:ad0c299f69c02fcb7907e63663f6248fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the transfer timeout.  <a href="classolp_1_1http_1_1NetworkSettings.html#ad0c299f69c02fcb7907e63663f6248fe">More...</a><br /></td></tr>
+<tr class="separator:ad0c299f69c02fcb7907e63663f6248fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab59e6bd5defd48871d722edc8af954bc"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classolp_1_1http_1_1NetworkProxySettings.html">NetworkProxySettings</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html#ab59e6bd5defd48871d722edc8af954bc">GetProxySettings</a> () const</td></tr>
 <tr class="memdesc:ab59e6bd5defd48871d722edc8af954bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the proxy settings.  <a href="classolp_1_1http_1_1NetworkSettings.html#ab59e6bd5defd48871d722edc8af954bc">More...</a><br /></td></tr>
 <tr class="separator:ab59e6bd5defd48871d722edc8af954bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -109,14 +127,14 @@ Public Member Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Contains a configuration for the network. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="a738d962726efdb7c97174a0ca78dce6c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a738d962726efdb7c97174a0ca78dce6c">&#9670;&nbsp;</a></span>GetConnectionTimeout()</h2>
+<a id="a54a024e2598b3eed8a390043a2cd326a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a54a024e2598b3eed8a390043a2cd326a">&#9670;&nbsp;</a></span>GetConnectionTimeoutDuration()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int olp::http::NetworkSettings::GetConnectionTimeout </td>
+          <td class="memname">std::chrono::milliseconds olp::http::NetworkSettings::GetConnectionTimeoutDuration </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -124,8 +142,28 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Gets the connection timeout in seconds. </p>
-<dl class="section return"><dt>Returns</dt><dd>The connection timeout in seconds. </dd></dl>
+<p>Gets the connection timeout. </p>
+<dl class="section return"><dt>Returns</dt><dd>The connection timeout. </dd></dl>
+
+</div>
+</div>
+<a id="a5e900bb264b00741f9b056a89b2dd6ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e900bb264b00741f9b056a89b2dd6ce">&#9670;&nbsp;</a></span>GetMaxConnectionLifetime()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::chrono::seconds olp::http::NetworkSettings::GetMaxConnectionLifetime </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets max lifetime (since creation) allowed for reusing a connection. </p>
+<dl class="section return"><dt>Returns</dt><dd>The lifetime. </dd></dl>
 
 </div>
 </div>
@@ -169,14 +207,14 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a08dcf83a7a52f79f03b77d68f7257e92"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a08dcf83a7a52f79f03b77d68f7257e92">&#9670;&nbsp;</a></span>GetTransferTimeout()</h2>
+<a id="a23a1770d404e16e400bcb434052a942b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a23a1770d404e16e400bcb434052a942b">&#9670;&nbsp;</a></span>GetTransferTimeoutDuration()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int olp::http::NetworkSettings::GetTransferTimeout </td>
+          <td class="memname">std::chrono::milliseconds olp::http::NetworkSettings::GetTransferTimeoutDuration </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -184,23 +222,33 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Gets the transfer timeout in seconds. </p>
-<dl class="section return"><dt>Returns</dt><dd>The transfer timeout in seconds. </dd></dl>
+<p>Gets the transfer timeout. </p>
+<dl class="section return"><dt>Returns</dt><dd>The transfer timeout. </dd></dl>
 
 </div>
 </div>
-<a id="ab595c95c6614326e764148ab9ee12993"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab595c95c6614326e764148ab9ee12993">&#9670;&nbsp;</a></span>WithConnectionTimeout()</h2>
+<a id="adc459ed117c71e873a218d4613c6d832"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc459ed117c71e873a218d4613c6d832">&#9670;&nbsp;</a></span>OLP_SDK_DEPRECATED() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; olp::http::NetworkSettings::WithConnectionTimeout </td>
+          <td class="memname">olp::http::NetworkSettings::OLP_SDK_DEPRECATED </td>
           <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>timeout</em></td><td>)</td>
+          <td class="paramtype">&quot;Will be removed by 04.&#160;</td>
+          <td class="paramname"><em>2024</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">use &quot; &quot;<a class="el" href="classolp_1_1http_1_1NetworkSettings.html#aaffbe52e579428f0ff871522ec860f33">WithConnectionTimeout</a>(std::chrono::milliseconds) instead&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> &amp;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -212,6 +260,153 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to *this. </dd></dl>
+
+</div>
+</div>
+<a id="ae3dade49fed118438328efed59c4496b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae3dade49fed118438328efed59c4496b">&#9670;&nbsp;</a></span>OLP_SDK_DEPRECATED() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">olp::http::NetworkSettings::OLP_SDK_DEPRECATED </td>
+          <td>(</td>
+          <td class="paramtype">&quot;Will be removed by 04.&#160;</td>
+          <td class="paramname"><em>2024</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">use &quot; &quot;<a class="el" href="classolp_1_1http_1_1NetworkSettings.html#ad0c299f69c02fcb7907e63663f6248fe">WithTransferTimeout</a>(std::chrono::milliseconds) instead&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> &amp;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the transfer timeout in seconds. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">timeout</td><td>The transfer timeout in seconds.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to *this. </dd></dl>
+
+</div>
+</div>
+<a id="ae9773fa803f2964e003f005c1e4f0926"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae9773fa803f2964e003f005c1e4f0926">&#9670;&nbsp;</a></span>OLP_SDK_DEPRECATED() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">olp::http::NetworkSettings::OLP_SDK_DEPRECATED </td>
+          <td>(</td>
+          <td class="paramtype">&quot;Will be removed by 04.&#160;</td>
+          <td class="paramname"><em>2024</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">use <a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a54a024e2598b3eed8a390043a2cd326a">GetConnectionTimeoutDuration</a>() instead&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the connection timeout in seconds. </p>
+<dl class="section return"><dt>Returns</dt><dd>The connection timeout in seconds. </dd></dl>
+
+</div>
+</div>
+<a id="a17b09c2e49b8b19261a5767cfd8fd96a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17b09c2e49b8b19261a5767cfd8fd96a">&#9670;&nbsp;</a></span>OLP_SDK_DEPRECATED() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">olp::http::NetworkSettings::OLP_SDK_DEPRECATED </td>
+          <td>(</td>
+          <td class="paramtype">&quot;Will be removed by 04.&#160;</td>
+          <td class="paramname"><em>2024</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">use <a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a23a1770d404e16e400bcb434052a942b">GetTransferTimeoutDuration</a>() instead&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the transfer timeout in seconds. </p>
+<dl class="section return"><dt>Returns</dt><dd>The transfer timeout in seconds. </dd></dl>
+
+</div>
+</div>
+<a id="aaffbe52e579428f0ff871522ec860f33"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaffbe52e579428f0ff871522ec860f33">&#9670;&nbsp;</a></span>WithConnectionTimeout()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; olp::http::NetworkSettings::WithConnectionTimeout </td>
+          <td>(</td>
+          <td class="paramtype">std::chrono::milliseconds&#160;</td>
+          <td class="paramname"><em>timeout</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the connection timeout. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">timeout</td><td>The connection timeout.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to *this. </dd></dl>
+
+</div>
+</div>
+<a id="ac221bd4b5ab05318ad8a40844d4d70f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac221bd4b5ab05318ad8a40844d4d70f7">&#9670;&nbsp;</a></span>WithMaxConnectionLifetime()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; olp::http::NetworkSettings::WithMaxConnectionLifetime </td>
+          <td>(</td>
+          <td class="paramtype">std::chrono::seconds&#160;</td>
+          <td class="paramname"><em>lifetime</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets max lifetime (since creation) allowed for reusing a connection. Supported only for CURL implementation. If set to 0, this behavior is disabled: all connections are eligible for reuse. </p>
 <dl class="section return"><dt>Returns</dt><dd>A reference to *this. </dd></dl>
 
 </div>
@@ -270,8 +465,8 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a8cda8e589cd9418f353f197324d046d0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8cda8e589cd9418f353f197324d046d0">&#9670;&nbsp;</a></span>WithTransferTimeout()</h2>
+<a id="ad0c299f69c02fcb7907e63663f6248fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad0c299f69c02fcb7907e63663f6248fe">&#9670;&nbsp;</a></span>WithTransferTimeout()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -279,17 +474,17 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname"><a class="el" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; olp::http::NetworkSettings::WithTransferTimeout </td>
           <td>(</td>
-          <td class="paramtype">int&#160;</td>
+          <td class="paramtype">std::chrono::milliseconds&#160;</td>
           <td class="paramname"><em>timeout</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Sets the transfer timeout in seconds. </p>
+<p>Sets the transfer timeout. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">timeout</td><td>The transfer timeout in seconds.</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">timeout</td><td>The transfer timeout.</td></tr>
   </table>
   </dd>
 </dl>

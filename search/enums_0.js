@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['cachetype_2604',['CacheType',['../classolp_1_1cache_1_1DefaultCache.html#a103a09b4dec53cbefc6ee9415089c90c',1,'olp::cache::DefaultCache']]]
+  ['cachetype_2613',['CacheType',['../classolp_1_1cache_1_1DefaultCache.html#a103a09b4dec53cbefc6ee9415089c90c',1,'olp::cache::DefaultCache']]]
 ];

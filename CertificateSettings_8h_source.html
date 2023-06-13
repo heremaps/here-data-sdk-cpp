@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>olp-cpp-sdk: olp-cpp-sdk-authentication/include/olp/authentication/AuthenticationError.h Source File</title>
+<title>olp-cpp-sdk: olp-cpp-sdk-core/include/olp/core/http/CertificateSettings.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.4</span>
+   &#160;<span id="projectnumber">1.16.0</span>
    </div>
   </td>
  </tr>
@@ -62,16 +62,16 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_46117144ad69d691323cd3259d7c22c2.html">olp-cpp-sdk-authentication</a></li><li class="navelem"><a class="el" href="dir_546504629be45232cee8455594c6d929.html">include</a></li><li class="navelem"><a class="el" href="dir_589ceb2806b57784e8ec3ff0ce2c2efb.html">olp</a></li><li class="navelem"><a class="el" href="dir_8325845a36fb09c80a9406e62e86f62e.html">authentication</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_9fc9713f4ce2c6067a6cacf5dd5d302f.html">olp-cpp-sdk-core</a></li><li class="navelem"><a class="el" href="dir_eddf02539d9acca7be04066e1e237a51.html">include</a></li><li class="navelem"><a class="el" href="dir_c8cc34cd4367a6d63bdd18b53d5124c1.html">olp</a></li><li class="navelem"><a class="el" href="dir_2106655329d4e3fc92bde41a87a439bf.html">core</a></li><li class="navelem"><a class="el" href="dir_7021e160eabe5fc67e44a1f26f9641f7.html">http</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
   <div class="headertitle">
-<div class="title">AuthenticationError.h</div>  </div>
+<div class="title">CertificateSettings.h</div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/*</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2021 HERE Europe B.V.</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2023 HERE Europe B.V.</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment"> * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment"> * you may not use this file except in compliance with the License.</span></div>
@@ -93,18 +93,26 @@ $(function() {
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160; </div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160; </div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="preprocessor">#include &lt;olp/core/client/ApiError.h&gt;</span></div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="preprocessor">#include &quot;AuthenticationApi.h&quot;</span></div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160; </div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="keyword">namespace </span>authentication {</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160; </div>
-<div class="line"><a name="l00038"></a><span class="lineno"><a class="line" href="namespaceolp_1_1authentication.html#afb24d860895afbae310414d2e129c4b8">   38</a></span>&#160;<span class="keyword">using</span> <a class="code" href="classolp_1_1client_1_1ApiError.html">AuthenticationError</a> = <a class="code" href="classolp_1_1client_1_1ApiError.html">client::ApiError</a>;</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160; </div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;}  <span class="comment">// namespace authentication</span></div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;}  <span class="comment">// namespace olp</span></div>
-<div class="ttc" id="aclassolp_1_1client_1_1ApiError_html"><div class="ttname"><a href="classolp_1_1client_1_1ApiError.html">olp::client::ApiError</a></div><div class="ttdoc">A wrapper around an internal error or HTTP status code.</div><div class="ttdef"><b>Definition:</b> ApiError.h:37</div></div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="preprocessor">#include &quot;olp/core/CoreApi.h&quot;</span></div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160; </div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="keyword">namespace </span>http {</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160; </div>
+<div class="line"><a name="l00032"></a><span class="lineno"><a class="line" href="structolp_1_1http_1_1CertificateSettings.html">   32</a></span>&#160;<span class="keyword">struct </span>CORE_API <a class="code" href="structolp_1_1http_1_1CertificateSettings.html">CertificateSettings</a> {</div>
+<div class="line"><a name="l00036"></a><span class="lineno"><a class="line" href="structolp_1_1http_1_1CertificateSettings.html#a7a3e5abe54441d2e8c41f8f1f45f8793">   36</a></span>&#160;  std::string <a class="code" href="structolp_1_1http_1_1CertificateSettings.html#a7a3e5abe54441d2e8c41f8f1f45f8793">client_cert_file_blob</a>;</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160; </div>
+<div class="line"><a name="l00041"></a><span class="lineno"><a class="line" href="structolp_1_1http_1_1CertificateSettings.html#ae5afa3008ea99626ea3ae1dfccd74b3c">   41</a></span>&#160;  std::string <a class="code" href="structolp_1_1http_1_1CertificateSettings.html#ae5afa3008ea99626ea3ae1dfccd74b3c">client_key_file_blob</a>;</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160; </div>
+<div class="line"><a name="l00046"></a><span class="lineno"><a class="line" href="structolp_1_1http_1_1CertificateSettings.html#af8c59bc92bd058bff887e8f49a455f4a">   46</a></span>&#160;  std::string <a class="code" href="structolp_1_1http_1_1CertificateSettings.html#af8c59bc92bd058bff887e8f49a455f4a">cert_file_blob</a>;</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;};</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160; </div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;}  <span class="comment">// namespace http</span></div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;}  <span class="comment">// namespace olp</span></div>
 <div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">Rules all the other namespaces.</div><div class="ttdef"><b>Definition:</b> AppleSignInProperties.h:24</div></div>
+<div class="ttc" id="astructolp_1_1http_1_1CertificateSettings_html"><div class="ttname"><a href="structolp_1_1http_1_1CertificateSettings.html">olp::http::CertificateSettings</a></div><div class="ttdoc">Settings for custom network certificate.</div><div class="ttdef"><b>Definition:</b> CertificateSettings.h:32</div></div>
+<div class="ttc" id="astructolp_1_1http_1_1CertificateSettings_html_a7a3e5abe54441d2e8c41f8f1f45f8793"><div class="ttname"><a href="structolp_1_1http_1_1CertificateSettings.html#a7a3e5abe54441d2e8c41f8f1f45f8793">olp::http::CertificateSettings::client_cert_file_blob</a></div><div class="ttdeci">std::string client_cert_file_blob</div><div class="ttdoc">The client certificate file as blob.</div><div class="ttdef"><b>Definition:</b> CertificateSettings.h:36</div></div>
+<div class="ttc" id="astructolp_1_1http_1_1CertificateSettings_html_ae5afa3008ea99626ea3ae1dfccd74b3c"><div class="ttname"><a href="structolp_1_1http_1_1CertificateSettings.html#ae5afa3008ea99626ea3ae1dfccd74b3c">olp::http::CertificateSettings::client_key_file_blob</a></div><div class="ttdeci">std::string client_key_file_blob</div><div class="ttdoc">The client key file as blob.</div><div class="ttdef"><b>Definition:</b> CertificateSettings.h:41</div></div>
+<div class="ttc" id="astructolp_1_1http_1_1CertificateSettings_html_af8c59bc92bd058bff887e8f49a455f4a"><div class="ttname"><a href="structolp_1_1http_1_1CertificateSettings.html#af8c59bc92bd058bff887e8f49a455f4a">olp::http::CertificateSettings::cert_file_blob</a></div><div class="ttdeci">std::string cert_file_blob</div><div class="ttdoc">The CA file as blob.</div><div class="ttdef"><b>Definition:</b> CertificateSettings.h:46</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

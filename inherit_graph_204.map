@@ -1,3 +1,3 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classstd_1_1shared__lock.html" title="A shared mutex wrapper that supports timed lock operations and non&#45;exclusive sharing by multiple thre..." alt="" coords="5,5,204,32"/>
+<area shape="rect" id="node1" href="$classstd_1_1detail_1_1shared__mutex__cv.html" title="A shared mutex type implemented using std::condition_variable." alt="" coords="5,5,132,47"/>
 </map>

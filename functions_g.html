@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.4</span>
+   &#160;<span id="projectnumber">1.16.0</span>
    </div>
   </td>
  </tr>
@@ -235,8 +235,8 @@ $(function() {
 <li>getConfiguration()
 : <a class="el" href="classolp_1_1logging_1_1Log.html#a93e1a6524ae93fa70065999f4e1be95a">olp::logging::Log</a>
 </li>
-<li>GetConnectionTimeout()
-: <a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a738d962726efdb7c97174a0ca78dce6c">olp::http::NetworkSettings</a>
+<li>GetConnectionTimeoutDuration()
+: <a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a54a024e2598b3eed8a390043a2cd326a">olp::http::NetworkSettings</a>
 </li>
 <li>GetConsumerId()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1SubscribeRequest.html#a1b14078d84977be5b94eb7e8f53abf0c">olp::dataservice::read::SubscribeRequest</a>
@@ -383,6 +383,7 @@ $(function() {
 , <a class="el" href="classolp_1_1authentication_1_1SignInResult.html#a1e61394b9e9a70b68f75fd72c39e2b4b">olp::authentication::SignInResult</a>
 , <a class="el" href="classolp_1_1authentication_1_1SignOutResult.html#a808964b185639dd07ad1f693096c8893">olp::authentication::SignOutResult</a>
 , <a class="el" href="classolp_1_1authentication_1_1SignUpResult.html#a0a87be55c0ad3fe81529eba210c323d8">olp::authentication::SignUpResult</a>
+, <a class="el" href="classolp_1_1authentication_1_1TokenProvider.html#adf203c0138ebd0c7844b73f5625901ba">olp::authentication::TokenProvider&lt; MinimumValidity &gt;</a>
 </li>
 <li>GetExecutionContext()
 : <a class="el" href="classolp_1_1thread_1_1internal_1_1ContinuationImpl.html#ad76f5970df14bf6d9c01a8bd9b7c3982">olp::thread::internal::ContinuationImpl</a>
@@ -459,6 +460,7 @@ $(function() {
 </li>
 <li>GetHttpStatusCode()
 : <a class="el" href="classolp_1_1authentication_1_1internal_1_1TokenProviderImpl.html#a90d84e0710f328492f7d9e51afd507ca">olp::authentication::internal::TokenProviderImpl</a>
+, <a class="el" href="classolp_1_1authentication_1_1TokenProvider.html#a3f2e8943bf95f82698b67d2ddedf809b">olp::authentication::TokenProvider&lt; MinimumValidity &gt;</a>
 , <a class="el" href="classolp_1_1client_1_1ApiError.html#a830a535871884d57daade87889353e93">olp::client::ApiError</a>
 </li>
 <li>GetId()
@@ -560,6 +562,9 @@ $(function() {
 </li>
 <li>GetMarketingEnabled()
 : <a class="el" href="classolp_1_1authentication_1_1model_1_1UserAccountInfoResponse.html#a038ac708b7047cffd75d20d7e66a36e2">olp::authentication::model::UserAccountInfoResponse</a>
+</li>
+<li>GetMaxConnectionLifetime()
+: <a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a5e900bb264b00741f9b056a89b2dd6ce">olp::http::NetworkSettings</a>
 </li>
 <li>GetMaxLevel()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1PrefetchTilesRequest.html#a7bcbe155cb990071d7f378de23bbf09c">olp::dataservice::read::PrefetchTilesRequest</a>
@@ -899,8 +904,8 @@ $(function() {
 <li>GetPartitions()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1Partitions.html#a07906e97b1d7764c472cf656a9b3779c">olp::dataservice::read::model::Partitions</a>
 , <a class="el" href="classolp_1_1dataservice_1_1read_1_1PrefetchPartitionsResult.html#afb87a3984106b7342423210a5d3a621d">olp::dataservice::read::PrefetchPartitionsResult</a>
-, <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#aff231c033335efaa0210490a8562c21e">olp::dataservice::read::VersionedLayerClient</a>
-, <a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#a96054f14c90644e8065700dbd6a2bdb5">olp::dataservice::read::VolatileLayerClient</a>
+, <a class="el" href="classolp_1_1dataservice_1_1read_1_1VersionedLayerClient.html#aa03f42fc70e94e445121204898a38ade">olp::dataservice::read::VersionedLayerClient</a>
+, <a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#aa41d345daabeb25836e073de8d5f8400">olp::dataservice::read::VolatileLayerClient</a>
 </li>
 <li>GetPassword()
 : <a class="el" href="classolp_1_1http_1_1NetworkProxySettings.html#ad47b3632c00bf9aef51d3e204cfedcfe">olp::http::NetworkProxySettings</a>
@@ -974,7 +979,7 @@ $(function() {
 </li>
 <li>GetResponse()
 : <a class="el" href="classolp_1_1authentication_1_1internal_1_1TokenProviderImpl.html#a2c5e3e5b7452989193e44295bafb503a">olp::authentication::internal::TokenProviderImpl</a>
-, <a class="el" href="classolp_1_1client_1_1HttpResponse.html#a509ddb748bda08f9fd3d08013e92c451">olp::client::HttpResponse</a>
+, <a class="el" href="classolp_1_1client_1_1HttpResponse.html#a65d0960cab3104acb5d92ed67919aec4">olp::client::HttpResponse</a>
 </li>
 <li>GetResponseTypes()
 : <a class="el" href="classolp_1_1authentication_1_1IntrospectAppResult.html#aab33cedd2b9d99a52b10bcad3ec631d1">olp::authentication::IntrospectAppResult</a>
@@ -1123,8 +1128,8 @@ $(function() {
 : <a class="el" href="classolp_1_1dataservice_1_1write_1_1model_1_1ResponseOk.html#ad7d3f3da0b1ffa4bb297aabb1edeeeee">olp::dataservice::write::model::ResponseOk</a>
 , <a class="el" href="classolp_1_1dataservice_1_1write_1_1model_1_1ResponseOkSingle.html#a808e4b0eee3068557d674f4bba714a17">olp::dataservice::write::model::ResponseOkSingle</a>
 </li>
-<li>GetTransferTimeout()
-: <a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a08dcf83a7a52f79f03b77d68f7257e92">olp::http::NetworkSettings</a>
+<li>GetTransferTimeoutDuration()
+: <a class="el" href="classolp_1_1http_1_1NetworkSettings.html#a23a1770d404e16e400bcb434052a942b">olp::http::NetworkSettings</a>
 </li>
 <li>GetTtl()
 : <a class="el" href="classolp_1_1dataservice_1_1read_1_1model_1_1IndexProperties.html#abf2f9968d7f23c9c54ccab8283e5509a">olp::dataservice::read::model::IndexProperties</a>

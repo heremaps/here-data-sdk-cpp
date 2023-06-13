@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.15.4</span>
+   &#160;<span id="projectnumber">1.16.0</span>
    </div>
   </td>
  </tr>
@@ -140,27 +140,24 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:afb24d860895afbae310414d2e129c4b8"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1authentication.html#afb24d860895afbae310414d2e129c4b8">AuthenticationError</a> = <a class="el" href="classolp_1_1client_1_1ApiError.html">client::ApiError</a></td></tr>
-<tr class="memdesc:afb24d860895afbae310414d2e129c4b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains information on the authentication error.  <a href="namespaceolp_1_1authentication.html#afb24d860895afbae310414d2e129c4b8">More...</a><br /></td></tr>
-<tr class="separator:afb24d860895afbae310414d2e129c4b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aee1f6de5b659eb659c18eeb171dc4a02"><td class="memItemLeft" align="right" valign="top"><a id="aee1f6de5b659eb659c18eeb171dc4a02"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1authentication.html#aee1f6de5b659eb659c18eeb171dc4a02">ErrorFields</a> = std::list&lt; <a class="el" href="structolp_1_1authentication_1_1ErrorField.html">ErrorField</a> &gt;</td></tr>
 <tr class="memdesc:aee1f6de5b659eb659c18eeb171dc4a02"><td class="mdescLeft">&#160;</td><td class="mdescRight">The list of the <code><a class="el" href="structolp_1_1authentication_1_1ErrorField.html" title="An input field error.">ErrorField</a></code> objects. <br /></td></tr>
 <tr class="separator:aee1f6de5b659eb659c18eeb171dc4a02"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:add9e77c777aa9984099a62d7ca94ba5c"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1authentication.html#add9e77c777aa9984099a62d7ca94ba5c">TokenProviderDefault</a> = <a class="el" href="classolp_1_1authentication_1_1TokenProvider.html">TokenProvider</a>&lt; kDefaultMinimumValidity &gt;</td></tr>
 <tr class="separator:add9e77c777aa9984099a62d7ca94ba5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ace1e8c385111244d29539e15a9660b43"><td class="memTemplParams" colspan="2"><a id="ace1e8c385111244d29539e15a9660b43"></a>
+<tr class="memitem:a819f0f43099044c4df61cc38d3cb3b1b"><td class="memTemplParams" colspan="2"><a id="a819f0f43099044c4df61cc38d3cb3b1b"></a>
 template&lt;typename ResultType &gt; </td></tr>
-<tr class="memitem:ace1e8c385111244d29539e15a9660b43"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1authentication.html#ace1e8c385111244d29539e15a9660b43">Response</a> = <a class="el" href="classolp_1_1client_1_1ApiResponse.html">client::ApiResponse</a>&lt; ResultType, <a class="el" href="namespaceolp_1_1authentication.html#afb24d860895afbae310414d2e129c4b8">AuthenticationError</a> &gt;</td></tr>
-<tr class="memdesc:ace1e8c385111244d29539e15a9660b43"><td class="mdescLeft">&#160;</td><td class="mdescRight">The response template type. <br /></td></tr>
-<tr class="separator:ace1e8c385111244d29539e15a9660b43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a819f0f43099044c4df61cc38d3cb3b1b"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1authentication.html#a819f0f43099044c4df61cc38d3cb3b1b">Response</a> = <a class="el" href="classolp_1_1client_1_1ApiResponse.html">client::ApiResponse</a>&lt; ResultType, <a class="el" href="classolp_1_1client_1_1ApiError.html">client::ApiError</a> &gt;</td></tr>
+<tr class="memdesc:a819f0f43099044c4df61cc38d3cb3b1b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The response template type. <br /></td></tr>
+<tr class="separator:a819f0f43099044c4df61cc38d3cb3b1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b9db631a1ce64eb5ec3ed8756c1e65f"><td class="memTemplParams" colspan="2"><a id="a9b9db631a1ce64eb5ec3ed8756c1e65f"></a>
 template&lt;typename ResultType &gt; </td></tr>
-<tr class="memitem:a9b9db631a1ce64eb5ec3ed8756c1e65f"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1authentication.html#a9b9db631a1ce64eb5ec3ed8756c1e65f">Callback</a> = std::function&lt; void(<a class="el" href="namespaceolp_1_1authentication.html#ace1e8c385111244d29539e15a9660b43">Response</a>&lt; ResultType &gt;)&gt;</td></tr>
+<tr class="memitem:a9b9db631a1ce64eb5ec3ed8756c1e65f"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1authentication.html#a9b9db631a1ce64eb5ec3ed8756c1e65f">Callback</a> = std::function&lt; void(<a class="el" href="namespaceolp_1_1authentication.html#a819f0f43099044c4df61cc38d3cb3b1b">Response</a>&lt; ResultType &gt;)&gt;</td></tr>
 <tr class="memdesc:a9b9db631a1ce64eb5ec3ed8756c1e65f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The callback template type. <br /></td></tr>
 <tr class="separator:a9b9db631a1ce64eb5ec3ed8756c1e65f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1f826381104695d4e76a01adf057ca66"><td class="memItemLeft" align="right" valign="top"><a id="a1f826381104695d4e76a01adf057ca66"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1authentication.html#a1f826381104695d4e76a01adf057ca66">IntrospectAppResponse</a> = <a class="el" href="namespaceolp_1_1authentication.html#ace1e8c385111244d29539e15a9660b43">Response</a>&lt; <a class="el" href="classolp_1_1authentication_1_1IntrospectAppResult.html">IntrospectAppResult</a> &gt;</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1authentication.html#a1f826381104695d4e76a01adf057ca66">IntrospectAppResponse</a> = <a class="el" href="namespaceolp_1_1authentication.html#a819f0f43099044c4df61cc38d3cb3b1b">Response</a>&lt; <a class="el" href="classolp_1_1authentication_1_1IntrospectAppResult.html">IntrospectAppResult</a> &gt;</td></tr>
 <tr class="memdesc:a1f826381104695d4e76a01adf057ca66"><td class="mdescLeft">&#160;</td><td class="mdescRight">Defines the callback signature when the user request is completed. <br /></td></tr>
 <tr class="separator:a1f826381104695d4e76a01adf057ca66"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a41d51d80040d6fecf9e3fa1f64203e53"><td class="memItemLeft" align="right" valign="top"><a id="a41d51d80040d6fecf9e3fa1f64203e53"></a>
@@ -168,7 +165,7 @@ using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="nam
 <tr class="memdesc:a41d51d80040d6fecf9e3fa1f64203e53"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called when the user introspect app request is completed. <br /></td></tr>
 <tr class="separator:a41d51d80040d6fecf9e3fa1f64203e53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa03e4e1736bf3e21f3181cc79ce5ff6c"><td class="memItemLeft" align="right" valign="top"><a id="aa03e4e1736bf3e21f3181cc79ce5ff6c"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1authentication.html#aa03e4e1736bf3e21f3181cc79ce5ff6c">AuthorizeResponse</a> = <a class="el" href="namespaceolp_1_1authentication.html#ace1e8c385111244d29539e15a9660b43">Response</a>&lt; <a class="el" href="classolp_1_1authentication_1_1AuthorizeResult.html">AuthorizeResult</a> &gt;</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1authentication.html#aa03e4e1736bf3e21f3181cc79ce5ff6c">AuthorizeResponse</a> = <a class="el" href="namespaceolp_1_1authentication.html#a819f0f43099044c4df61cc38d3cb3b1b">Response</a>&lt; <a class="el" href="classolp_1_1authentication_1_1AuthorizeResult.html">AuthorizeResult</a> &gt;</td></tr>
 <tr class="memdesc:aa03e4e1736bf3e21f3181cc79ce5ff6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The decision API response alias. <br /></td></tr>
 <tr class="separator:aa03e4e1736bf3e21f3181cc79ce5ff6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a304e4d17625e6c62c8a92072d4045da7"><td class="memItemLeft" align="right" valign="top"><a id="a304e4d17625e6c62c8a92072d4045da7"></a>
@@ -176,7 +173,7 @@ using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="nam
 <tr class="memdesc:a304e4d17625e6c62c8a92072d4045da7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called when the user decision request is completed. <br /></td></tr>
 <tr class="separator:a304e4d17625e6c62c8a92072d4045da7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a59139f5f6420f72916d98deb8840f3a6"><td class="memItemLeft" align="right" valign="top"><a id="a59139f5f6420f72916d98deb8840f3a6"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1authentication.html#a59139f5f6420f72916d98deb8840f3a6">UserAccountInfoResponse</a> = <a class="el" href="namespaceolp_1_1authentication.html#ace1e8c385111244d29539e15a9660b43">Response</a>&lt; <a class="el" href="classolp_1_1authentication_1_1model_1_1UserAccountInfoResponse.html">model::UserAccountInfoResponse</a> &gt;</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1authentication.html#a59139f5f6420f72916d98deb8840f3a6">UserAccountInfoResponse</a> = <a class="el" href="namespaceolp_1_1authentication.html#a819f0f43099044c4df61cc38d3cb3b1b">Response</a>&lt; <a class="el" href="classolp_1_1authentication_1_1model_1_1UserAccountInfoResponse.html">model::UserAccountInfoResponse</a> &gt;</td></tr>
 <tr class="memdesc:a59139f5f6420f72916d98deb8840f3a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The UserAccountInfoResponse response alias. <br /></td></tr>
 <tr class="separator:a59139f5f6420f72916d98deb8840f3a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a332d0dff23054e56482b32cc66aa6e22"><td class="memItemLeft" align="right" valign="top"><a id="a332d0dff23054e56482b32cc66aa6e22"></a>
@@ -184,7 +181,7 @@ using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="nam
 <tr class="memdesc:a332d0dff23054e56482b32cc66aa6e22"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called when the get user account request is completed. <br /></td></tr>
 <tr class="separator:a332d0dff23054e56482b32cc66aa6e22"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab69ba9ea52c409390b8f28831788298f"><td class="memItemLeft" align="right" valign="top"><a id="ab69ba9ea52c409390b8f28831788298f"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1authentication.html#ab69ba9ea52c409390b8f28831788298f">TokenResponse</a> = <a class="el" href="namespaceolp_1_1authentication.html#ace1e8c385111244d29539e15a9660b43">Response</a>&lt; <a class="el" href="classolp_1_1authentication_1_1TokenResult.html">TokenResult</a> &gt;</td></tr>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceolp_1_1authentication.html#ab69ba9ea52c409390b8f28831788298f">TokenResponse</a> = <a class="el" href="namespaceolp_1_1authentication.html#a819f0f43099044c4df61cc38d3cb3b1b">Response</a>&lt; <a class="el" href="classolp_1_1authentication_1_1TokenResult.html">TokenResult</a> &gt;</td></tr>
 <tr class="memdesc:ab69ba9ea52c409390b8f28831788298f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The access token response type. <br /></td></tr>
 <tr class="separator:ab69ba9ea52c409390b8f28831788298f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -199,24 +196,6 @@ Enumerations</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Holds all authentication-related classes. </p>
 </div><h2 class="groupheader">Typedef Documentation</h2>
-<a id="afb24d860895afbae310414d2e129c4b8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afb24d860895afbae310414d2e129c4b8">&#9670;&nbsp;</a></span>AuthenticationError</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="namespaceolp_1_1authentication.html#afb24d860895afbae310414d2e129c4b8">olp::authentication::AuthenticationError</a> = typedef <a class="el" href="classolp_1_1client_1_1ApiError.html">client::ApiError</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Contains information on the authentication error. </p>
-<p>You can get the following information on the authentication error: the error code (<code>GetErrorCode</code>) and error message (<code>GetMessage</code>).</p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000002">Deprecated:</a></b></dt><dd>Will be removed by 12.2020. Use <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">client::ApiError</a></code> instead. </dd></dl>
-
-</div>
-</div>
 <a id="add9e77c777aa9984099a62d7ca94ba5c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#add9e77c777aa9984099a62d7ca94ba5c">&#9670;&nbsp;</a></span>TokenProviderDefault</h2>
 
