@@ -1,3 +1,27 @@
+## v1.16.0 (13/06/2023)
+
+**Common**
+* Added `olp::http::CertificateSettings` struct to store custom certificate settings.
+* Added `olp::http::NetworkInitializationSettings` struct containing `olp::http::CertificateSettings` to be passed to `olp::http::CreateDefaultNetwork(..)`.
+* Deprecated `olp::http::CreateDefaultNetwork()`.  It will be removed by 05.2024. Use added `olp::http::CreateDefaultNetwork(..)` that take `olp::http::NetworkInitializationSettings` instead.
+* Added `olp::client::CreateDefaultNetworkRequestHandler(..)` that take `olp::http::NetworkInitializationSettings` as an argument.
+* Extended `olp::cache::CacheSettings` with `extend_permissions` option.
+* Extended `olp::http::NetworkSettings` with `GetMaxConnectionLifetime()` and `WithMaxConnectionLifetime(..)`.
+* Deprecated `GetRetries()` and `WithRetries(..)` in `olp::http::NetworkSettings`. They will be removed by 04.2024.
+* Extended `olp::http::NetworkSettings` with `GetConnectionTimeoutDuration()`, `WithConnectionTimeout(std::chrono::milliseconds timeout)`, `GetTransferTimeoutDuration()` and `WithTransferTimeout(std::chrono::milliseconds timeout)`.
+* Deprecated `GetConnectionTimeout()`, `WithConnectionTimeout(int timeout)`, `GetTransferTimeout()` and `WithTransferTimeout(int timeout)` in `olp::http::NetworkSettings`. They will be removed by 04.2024. Use methods that accept `std::chrono::milliseconds` instead.
+* Required TLS 1.2 or later for network connection.
+* Fixed CMake configuration failure when CMAKE_BUILD_TYPE CMake parameter is not set.
+
+**olp-cpp-sdk-authentication**
+* Removed deprecated `olp::authentication::AuthenticationError`. Use `client::ApiError` instead.
+* Removed deprecated `olp::authentication::AuthenticationClient::SignInGoogle`.
+* Removed deprecated `std::string olp::authentication::TokenProvider::operator()()`. Use the operator with `CancellationContext` instead.
+* Removed deprecated `olp::authentication::TokenResult::GetHttpStatus()`. Use `TokenResponse::GetError().GetHttpStatusCode()` instead.
+* Removed deprecated `olp::authentication::TokenResult::GetErrorResponse()`. Use `TokenResponse::GetError().GetMessage()` instead.
+* Removed deprecated `provider` and `cancel` from `olp::authentication::AuthenticationSettings`. Use `token_provider` instead.
+* Used thread safe time formatting functions in AutoRefreshingToken.
+
 ## v1.15.4 (13/03/2023)
 
 **Common**
