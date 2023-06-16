@@ -381,28 +381,25 @@ constexpr auto kLogTag = "OLPHttpClient";
     if (proxyName.length) {
       proxyDict = [[NSMutableDictionary alloc] init];
       NSUInteger port = (NSUInteger)proxySettings.GetPort();
-      NSString* proxyType = (__bridge NSString*)kCFProxyTypeHTTPS;
-      BOOL httpProxy = YES;
-      if (olp::http::NetworkProxySettings::Type::SOCKS4 ==
-              proxySettings.GetType() ||
-          olp::http::NetworkProxySettings::Type::SOCKS5 ==
-              proxySettings.GetType() ||
-          olp::http::NetworkProxySettings::Type::SOCKS5_HOSTNAME ==
-              proxySettings.GetType()) {
-        proxyType = (__bridge NSString*)kCFProxyTypeSOCKS;
-        httpProxy = NO;
-      }
-      if (httpProxy) {
-        proxyDict[(__bridge NSString*)kCFNetworkProxiesHTTPEnable] = @(1);
-        proxyDict[(__bridge NSString*)kCFNetworkProxiesHTTPProxy] = proxyName;
-        proxyDict[(__bridge NSString*)kCFNetworkProxiesHTTPPort] = @(port);
 
-        proxyDict[@"HTTPSEnable"] = @(1);
-        proxyDict[@"HTTPSProxy"] = proxyName;
-        proxyDict[@"HTTPSPort"] = @(port);
-      } else {
-        proxyDict[(__bridge NSString*)kCFProxyTypeKey] = proxyType;
+      const auto requestedProxyType = proxySettings.GetType();
+
+      using ProxyType = olp::http::NetworkProxySettings::Type;
+
+      if (ProxyType::SOCKS4 == requestedProxyType ||
+          ProxyType::SOCKS5 == requestedProxyType ||
+          ProxyType::SOCKS5_HOSTNAME == requestedProxyType) {
+          proxyDict[(__bridge NSString*)kCFProxyTypeKey] = (__bridge NSString*)kCFProxyTypeSOCKS;
+      } else if (ProxyType::HTTP == requestedProxyType) {
+          proxyDict[(__bridge NSString*)kCFNetworkProxiesHTTPEnable] = @(1);
+          proxyDict[(__bridge NSString*)kCFNetworkProxiesHTTPProxy] = proxyName;
+          proxyDict[(__bridge NSString*)kCFNetworkProxiesHTTPPort] = @(port);
+      } else if (ProxyType::HTTPS == requestedProxyType) {
+          proxyDict[@"HTTPSEnable"] = @(1);
+          proxyDict[@"HTTPSProxy"] = proxyName;
+          proxyDict[@"HTTPSPort"] = @(port);
       }
+
       proxyDict[(__bridge NSString*)kCFProxyHostNameKey] = proxyName;
       proxyDict[(__bridge NSString*)kCFProxyPortNumberKey] = @(port);
       NSString* userName =
