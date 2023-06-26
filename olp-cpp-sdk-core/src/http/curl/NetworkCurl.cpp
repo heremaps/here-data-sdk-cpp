@@ -513,7 +513,7 @@ ErrorCode NetworkCurl::SendImplementation(
     return ErrorCode::NETWORK_OVERLOAD_ERROR;
   }
 
-  OLP_SDK_LOG_DEBUG(
+  OLP_SDK_LOG_TRACE(
       kLogTag, "Send request with url=" << request.GetUrl() << ", id=" << id);
 
   handle->ignore_offset = false;  // request.IgnoreOffset();
@@ -687,7 +687,7 @@ void NetworkCurl::Cancel(RequestId id) {
       handle.cancelled = true;
       AddEvent(EventInfo::Type::CANCEL_EVENT, &handle);
 
-      OLP_SDK_LOG_DEBUG(kLogTag, "Cancel request with id=" << id);
+      OLP_SDK_LOG_TRACE(kLogTag, "Cancel request with id=" << id);
       return;
     }
   }
