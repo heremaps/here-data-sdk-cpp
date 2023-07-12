@@ -758,12 +758,14 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
   return nullptr;
 }
 
-void NetworkCurl::ReleaseHandle(RequestHandle* handle) {
+void NetworkCurl::ReleaseHandle(RequestHandle* handle,
+                                bool cleanup_easy_handle) {
   std::lock_guard<std::mutex> lock(event_mutex_);
-  ReleaseHandleUnlocked(handle);
+  ReleaseHandleUnlocked(handle, cleanup_easy_handle);
 }
 
-void NetworkCurl::ReleaseHandleUnlocked(RequestHandle* handle) {
+void NetworkCurl::ReleaseHandleUnlocked(RequestHandle* handle,
+                                        bool cleanup_easy_handle) {
   curl_easy_reset(handle->handle);
   if (handle->chunk) {
     curl_slist_free_all(handle->chunk);
@@ -775,6 +777,23 @@ void NetworkCurl::ReleaseHandleUnlocked(RequestHandle* handle) {
   handle->data_callback = nullptr;
   handle->payload.reset();
   handle->body.reset();
+
+  // When using C-Ares on Android, DNS parameters are calculated in
+  // curl_easy_init(). Those parameters are not reset in curl_easy_reset(...),
+  // and persist in subsequent usages of easy_handle. Problem arises, if
+  // curl_easy_init() was called when no good network was available, eg when
+  // "Flight mode" is On. In such case, bad DNS params are stuck in the handle
+  // and will persist. Http requests will continue to fail after good networks
+  // become available. When such error is encountered, perform cleanup of easy
+  // handle to force curl_easy_init() on next easy handle use.
+
+#if defined(ANDROID)
+  if (cleanup_easy_handle) {
+    curl_easy_cleanup(handle->handle);
+    handle->handle = nullptr;
+  }
+#endif
+  OLP_SDK_CORE_UNUSED(cleanup_easy_handle);
 }
 
 size_t NetworkCurl::RxFunction(void* ptr, size_t size, size_t nmemb,
@@ -871,6 +890,9 @@ size_t NetworkCurl::HeaderFunction(char* ptr, size_t size, size_t nitems,
 void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
   std::unique_lock<std::mutex> lock(event_mutex_);
 
+  const bool cleanup_easy_handle = (result == CURLE_COULDNT_RESOLVE_PROXY ||
+                                    result == CURLE_COULDNT_RESOLVE_HOST);
+
   int index = GetHandleIndex(handle);
   if (index >= 0 && index < static_cast<int>(handles_.size())) {
     RequestHandle& rhandle = handles_[index];
@@ -880,7 +902,7 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
       OLP_SDK_LOG_WARNING(
           kLogTag,
           "CompleteMessage - message without callback, id=" << rhandle.id);
-      ReleaseHandleUnlocked(&rhandle);
+      ReleaseHandleUnlocked(&rhandle, cleanup_easy_handle);
       return;
     }
 
@@ -896,7 +918,7 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
     if (rhandle.cancelled) {
       response.WithStatus(static_cast<int>(ErrorCode::CANCELLED_ERROR))
           .WithError("Cancelled");
-      ReleaseHandleUnlocked(&rhandle);
+      ReleaseHandleUnlocked(&rhandle, cleanup_easy_handle);
 
       lock.unlock();
       callback(response);
@@ -943,7 +965,7 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
                           << "ms, bytes=" << download_bytes + upload_bytes);
 
     response.WithStatus(status).WithError(error);
-    ReleaseHandleUnlocked(&rhandle);
+    ReleaseHandleUnlocked(&rhandle, cleanup_easy_handle);
 
     lock.unlock();
     callback(response);
@@ -1082,7 +1104,8 @@ void NetworkCurl::Run() {
             }
 
             curl_multi_remove_handle(curl_, rhandle.handle);
-            ReleaseHandleUnlocked(&rhandle);
+            const bool cleanup_easy_handle = true;
+            ReleaseHandleUnlocked(&rhandle, cleanup_easy_handle);
           } else {
             OLP_SDK_LOG_ERROR(kLogTag, "Unknown handle completed");
           }

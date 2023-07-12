@@ -250,18 +250,24 @@ class NetworkCurl : public olp::http::Network,
                            NetworkRequest::RequestBodyType body);
 
   /**
-   * @brief Release handle after network request is done.
+   * @brief Reset handle after network request is done.
    * This method handles synchronization between caller's thread and worker
    * thread.
    * @param[in] handle Request handle.
+   * @param[in] cleanup_handle If true then handle is completelly release.
+   * Otherwise handle is reset, which preserves DNS cache, Session ID cache,
+   * cookies and so on.
    */
-  void ReleaseHandle(RequestHandle* handle);
+  void ReleaseHandle(RequestHandle* handle, bool cleanup_handle);
 
   /**
-   * @brief Release handle after network request is done.
+   * @brief Reset handle after network request is done.
    * @param[in] handle Request handle.
+   * @param[in] cleanup_handle If true then handle is completelly release.
+   * Otherwise handle is reset, which preserves DNS cache, Session ID cache,
+   * cookies and so on.
    */
-  void ReleaseHandleUnlocked(RequestHandle* handle);
+  void ReleaseHandleUnlocked(RequestHandle* handle, bool cleanup_handle);
 
   /**
    * @brief Routine that is called when the last bit of response is received.
