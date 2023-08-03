@@ -80,6 +80,7 @@ jobs:
         sudo apt-get install clang-7 ccache libcurl4-openssl-dev -y --no-install-recommends --fix-missing
         echo "##vso[task.prependpath]/usr/lib/ccache"
         echo week_$(date +%W) > week_number.txt
+        env
     displayName: 'Install dependencies'
   - task: Cache@2
     inputs:
