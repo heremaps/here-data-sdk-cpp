@@ -70,3 +70,72 @@ jobs:
     - name: Compile project without cache
       run: ./scripts/linux/psv/build_psv_no_cache.sh
       shell: bash
+
+  psv-linux-20-04-clang-build:
+    name: PSV.Linux.20.04.clang
+    runs-on: ubuntu-20.04
+    env:
+      LD_PRELOAD: /lib/x86_64-linux-gnu/libSegFault.so
+      BUILD_TYPE: RelWithDebInfo
+      CC: clang-7
+      CXX: clang++-7
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+    - name: Install Ubuntu dependencies
+      run: sudo apt-get update -y && sudo apt-get install clang-7 ccache libcurl4-openssl-dev -y --no-install-recommends --fix-missing
+      shell: bash
+    - name: Compile project on Clang
+      run: scripts/linux/psv/build_psv.sh
+      shell: bash
+
+  psv-android-20-04-build:
+    name: PSV.Linux.Android.20.04
+    runs-on: ubuntu-20.04
+    env:
+      LD_PRELOAD: /lib/x86_64-linux-gnu/libSegFault.so
+      BUILD_TYPE: RelWithDebInfo
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+    - name: Verification of prerequisites
+      run: env && ls -la $ANDROID_HOME
+      shell: bash
+    - name: Android build and Examples
+      run: scripts/android/build.sh
+      shell: bash
+
+  psv-macos-11-xcode-13-build:
+    name: PSV.MacOS11.Xcode13
+    runs-on: macOS-11
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+    - name: MacOS Build
+      run: scripts/macos/psv/azure_macos_build_psv.sh
+      shell: bash
+
+  psv-ios-xcode-11-build:
+    name: PSV.iOS.MacOS11.Xcode11.7
+    runs-on: macOS-11
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+    - name: iOS Xcode 11-7 Build
+      run: scripts/ios/azure_ios_build_psv.sh
+      shell: bash
+
+  psv-commit-checker:
+    name: PSV.Commit.Checker
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Set tags env variables.
+      run: |
+        # Get your last commit message, not the merge commit.
+        text=$(git log -1 --no-merges --pretty=%B)
+    - name: Commit checker script. Verify commit text
+      run: scripts/misc/commit_checker.sh
+      shell: bash

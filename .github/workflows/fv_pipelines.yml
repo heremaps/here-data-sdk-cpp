@@ -24,3 +24,18 @@ jobs:
       - name: Test FV Network
         run: ./scripts/ios/fv/gh-actions-functional-network-test.sh
         shell: bash
+
+  fv-android-amulator-build-test:
+    name: MV.Android.Emulator.Build.Test.API21.ABIx86_64.NDK-Latest.
+    runs-on: ubuntu-20.04
+    env:
+      ANDROID_NDK_HOME: $(ANDROID_HOME)/ndk-bundle
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+    - name: Verification of cmake script
+      run: ls -la $(ANDROID_NDK_HOME)/build/cmake/android.toolchain.cmake
+      shell: bash
+    - name: Android Emulator Test
+      run: ANDROID_NDK_HOME=$(ANDROID_NDK_HOME) && scripts/android/build-test-emulator.sh
+      shell: bash
