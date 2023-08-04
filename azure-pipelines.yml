@@ -13,7 +13,19 @@ variables:
   BUILD_TYPE: "RelWithDebInfo"
 
 jobs:
+- job: Approval_job
+  pool: server
+  condition: eq(variables['Build.Reason'], 'PullRequest')
+  steps:
+    - task: ManualValidation@0
+      timeoutInMinutes: 1440
+      inputs:
+        notifyUsers: |
+          OLP_EDGE_CI@here.com
+        instructions: 'Approve running Azure Ci jobs?'
+
 - job: Commit_checker
+  dependsOn: Approval_job
   pool:
     vmImage: 'ubuntu-20.04'
   condition: eq(variables['Build.Reason'], 'PullRequest')
@@ -21,6 +33,7 @@ jobs:
     - bash: scripts/misc/commit_checker.sh
       displayName: 'Commit checker script'
 - job: Windows_build
+  dependsOn: Approval_job
   pool:
     vmImage: 'windows-2019'
   steps:
@@ -28,6 +41,7 @@ jobs:
     displayName: 'Windows Build'
 
 - job: MacOS_build
+  dependsOn: Approval_job
   pool:
     vmImage: 'macOS-11'
   steps:
@@ -35,6 +49,7 @@ jobs:
     displayName: 'MacOS Build'
 
 - job: iOS_build
+  dependsOn: Approval_job
   pool:
     vmImage: 'macOS-11'
   steps:
@@ -42,6 +57,7 @@ jobs:
     displayName: 'iOS Build'
 
 - job: Android_build
+  dependsOn: Approval_job
   pool:
     vmImage: 'ubuntu-20.04'
   variables:
@@ -54,6 +70,7 @@ jobs:
       displayName: 'Android build and Examples'
 
 - job: Android_Emulator
+  dependsOn: Approval_job
   pool:
     vmImage: 'macOS-11'
   condition: eq(variables['Build.Reason'], 'Manual')
@@ -66,6 +83,7 @@ jobs:
       displayName: 'Android Test'
 
 - job: Linux_build_clang
+  dependsOn: Approval_job
   pool:
     vmImage: 'ubuntu-20.04'
   variables:
