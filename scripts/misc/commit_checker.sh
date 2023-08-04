@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (C) 2020-2021 HERE Europe B.V.
+# Copyright (C) 2020-2023 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,7 +23,10 @@
 # Requirements can be find in scripts/misc/commit_message_recom.txt
 
 # Saving whole commit message into file for reading below
-echo "`git log --pretty=format:'%B' -2 | sed '1d' | sed '1d' `" >> commit.log
+git log -1 --no-merges --pretty=%B > commit.log
+echo "----------------------------------------------"
+cat commit.log || true
+echo "----------------------------------------------"
 
 # Counting number of lines in file
 num_lines=`wc -l commit.log | cut -d'c' -f1`
