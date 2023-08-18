@@ -53,6 +53,10 @@ const NetworkProxySettings& NetworkSettings::GetProxySettings() const {
   return proxy_settings_;
 }
 
+const std::vector<std::string>& NetworkSettings::GetDNSServers() const {
+  return dns_servers_;
+}
+
 NetworkSettings& NetworkSettings::WithRetries(std::size_t retries) {
   retries_ = retries;
   return *this;
@@ -87,6 +91,12 @@ NetworkSettings& NetworkSettings::WithMaxConnectionLifetime(
 NetworkSettings& NetworkSettings::WithProxySettings(
     NetworkProxySettings settings) {
   proxy_settings_ = std::move(settings);
+  return *this;
+}
+
+NetworkSettings& NetworkSettings::WithDNSServers(
+    std::vector<std::string> dns_servers) {
+  dns_servers_ = std::move(dns_servers);
   return *this;
 }
 
