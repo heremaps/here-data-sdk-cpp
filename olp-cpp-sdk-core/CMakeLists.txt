@@ -414,11 +414,22 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
 
     # Depends on RapidJSON revision, could be one of the following
-    $<BUILD_INTERFACE:${RapidJSON_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${RAPIDJSON_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${EXTERNAL_BINARY_INSTALL_DIR}/include>
 
     $<INSTALL_INTERFACE:include>)
 
+get_cmake_property(_variableNames VARIABLES)
+list (SORT _variableNames)
+foreach (_variableName ${_variableNames})
+    message(STATUS "${_variableName}=${${_variableName}}")
+endforeach()
+
+get_target_property(LIB_INCLUDES ${PROJECT_NAME} INCLUDE_DIRECTORIES)
+
+foreach(dir ${LIB_INCLUDES})
+    message(STATUS "Include dir = ${dir}")
+endforeach()
+    
 if (ANDROID)
     set(ADDITIONAL_LIBRARIES log)
 else()
