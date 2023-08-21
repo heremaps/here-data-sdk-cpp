@@ -414,8 +414,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
 
     # Depends on RapidJSON revision, could be one of the following
-    $<BUILD_INTERFACE:${RapidJSON_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${RAPIDJSON_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${EXTERNAL_BINARY_INSTALL_DIR}/include>
 
     $<INSTALL_INTERFACE:include>)
 
