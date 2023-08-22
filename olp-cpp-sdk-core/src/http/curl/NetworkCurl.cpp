@@ -256,6 +256,19 @@ int64_t GetElapsedTime(std::chrono::steady_clock::time_point start) {
              std::chrono::steady_clock::now() - start)
       .count();
 }
+
+std::string ConcatenateDnsAddresses(
+    const std::vector<std::string>& dns_servers) {
+  std::string result;
+
+  const char* delimiter = "";
+  for (const auto& dns_server : dns_servers) {
+    result.append(delimiter).append(dns_server);
+    delimiter = ",";
+  }
+
+  return result;
+}
 }  // anonymous namespace
 
 NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
@@ -598,6 +611,16 @@ ErrorCode NetworkCurl::SendImplementation(
                        proxy.GetPassword().c_str());
     }
   }
+
+#if CURL_AT_LEAST_VERSION(7, 24, 0)
+  const auto& dns_servers = config.GetDNSServers();
+  if (!dns_servers.empty()) {
+    const std::string& dns_list = dns_servers.size() == 1
+                                      ? dns_servers.front()
+                                      : ConcatenateDnsAddresses(dns_servers);
+    curl_easy_setopt(handle->handle, CURLOPT_DNS_SERVERS, dns_list.c_str());
+  }
+#endif
 
   if (handle->chunk) {
     curl_easy_setopt(handle->handle, CURLOPT_HTTPHEADER, handle->chunk);

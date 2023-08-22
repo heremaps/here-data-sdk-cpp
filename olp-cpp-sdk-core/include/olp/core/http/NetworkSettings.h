@@ -22,6 +22,7 @@
 #include <chrono>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include <olp/core/CoreApi.h>
 #include <olp/core/http/NetworkProxySettings.h>
@@ -160,6 +161,26 @@ class CORE_API NetworkSettings final {
    */
   NetworkSettings& WithProxySettings(NetworkProxySettings settings);
 
+  /**
+   * @brief Gets the DNS list.
+   *
+   * @return The DNS list.
+   */
+  const std::vector<std::string>& GetDNSServers() const;
+
+  /**
+   * @brief Sets the DNS servers to use. Works only with CURL implementation.
+   * The order is important.To reduce response time make sure that most probably
+   * servers are at the beginning.
+   *
+   * Note: This list replaces any other mechanism to retrieve DNS list.
+   *
+   * @param[in] dns_servers The DNS list.
+   *
+   * @return A reference to *this.
+   */
+  NetworkSettings& WithDNSServers(std::vector<std::string> dns_servers);
+
  private:
   /// The maximum number of retries for the HTTP request.
   std::size_t retries_{3};
@@ -171,6 +192,8 @@ class CORE_API NetworkSettings final {
   std::chrono::seconds connection_lifetime_{0};
   /// The network proxy settings.
   NetworkProxySettings proxy_settings_;
+  /// The additional DNS servers
+  std::vector<std::string> dns_servers_;
 };
 
 }  // namespace http

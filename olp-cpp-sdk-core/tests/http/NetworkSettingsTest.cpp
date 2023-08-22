@@ -77,6 +77,12 @@ TEST(NetworkSettingsTest, WithMaxConnectionLifetime) {
   EXPECT_EQ(settings.GetMaxConnectionLifetime(), std::chrono::seconds(15));
 }
 
+TEST(NetworkSettingsTest, WithDNSServers) {
+  const std::vector<std::string> expected = {"1.1.1.1", "1.1.1.2"};
+  const auto settings = olp::http::NetworkSettings().WithDNSServers(expected);
+  EXPECT_EQ(settings.GetDNSServers(), expected);
+}
+
 }  // namespace
 
 PORTING_POP_WARNINGS()
