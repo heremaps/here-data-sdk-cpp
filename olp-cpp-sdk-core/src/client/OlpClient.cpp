@@ -254,6 +254,7 @@ http::NetworkRequest::HttpVerb GetHttpVerb(const std::string& verb) {
 }
 
 HttpResponse SendRequest(const http::NetworkRequest& request,
+                         const http::Network::DataCallback& data_callback,
                          const olp::client::OlpClientSettings& settings,
                          const olp::client::RetrySettings& retry_settings,
                          client::CancellationContext context) {
@@ -264,7 +265,11 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
   };
 
   auto response_data = std::make_shared<ResponseData>();
-  auto response_body = std::make_shared<std::stringstream>();
+
+  // We dont need a response body in case we want a stream
+  auto response_body =
+      data_callback ? nullptr : std::make_shared<std::stringstream>();
+
   http::SendOutcome outcome{http::ErrorCode::CANCELLED_ERROR};
   const auto timeout = std::chrono::seconds(retry_settings.timeout);
 
@@ -279,7 +284,8 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
             [response_data](std::string key, std::string value) {
               response_data->headers.emplace_back(std::move(key),
                                                   std::move(value));
-            });
+            },
+            data_callback);
 
         if (!outcome.IsSuccessful()) {
           OLP_SDK_LOG_WARNING_F(kLogTag,
@@ -321,8 +327,11 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
     const auto status = response_data->response.GetStatus();
     if (status < 0) {
       return HttpResponse{status, response_data->response.GetError()};
-    } else {
+    } else if (response_body) {
       return HttpResponse{status, std::move(*response_body),
+                          std::move(response_data->headers)};
+    } else {
+      return HttpResponse{status, std::stringstream(),
                           std::move(response_data->headers)};
     }
   }();
@@ -362,7 +371,8 @@ class OlpClient::OlpClientImpl {
 
   HttpResponse CallApi(std::string path, std::string method,
                        ParametersType query_params,
-                       ParametersType header_params, ParametersType form_params,
+                       ParametersType header_params,
+                       http::Network::DataCallback data_callback,
                        RequestBodyType post_body, std::string content_type,
                        CancellationContext context) const;
 
@@ -595,7 +605,7 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
     std::string path, std::string method,
     OlpClient::ParametersType query_params,
     OlpClient::ParametersType header_params,
-    OlpClient::ParametersType /*forms_params*/,
+    http::Network::DataCallback data_callback,
     OlpClient::RequestBodyType post_body, std::string content_type,
     CancellationContext context) const {
   if (!settings_.network_request_handler) {
@@ -663,8 +673,8 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
     return {status, optional_error->GetMessage()};
   }
 
-  auto response =
-      SendRequest(network_request, settings_, retry_settings, context);
+  auto response = SendRequest(network_request, data_callback, settings_,
+                              retry_settings, context);
 
   NetworkStatistics accumulated_statistics = response.GetNetworkStatistics();
 
@@ -697,7 +707,8 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
     }
 
     backdown_period = CalculateNextWaitTime(retry_settings, i);
-    response = SendRequest(network_request, settings_, retry_settings, context);
+    response = SendRequest(network_request, data_callback, settings_,
+                           retry_settings, context);
 
     // In case we retry, accumulate the stats
     accumulated_statistics += response.GetNetworkStatistics();
@@ -744,13 +755,26 @@ CancellationToken OlpClient::CallApi(
 HttpResponse OlpClient::CallApi(std::string path, std::string method,
                                 ParametersType query_params,
                                 ParametersType header_params,
-                                ParametersType form_params,
+                                ParametersType /*form_params*/,
                                 RequestBodyType post_body,
                                 std::string content_type,
                                 CancellationContext context) const {
   return impl_->CallApi(std::move(path), std::move(method),
                         std::move(query_params), std::move(header_params),
-                        std::move(form_params), std::move(post_body),
+                        nullptr, std::move(post_body), std::move(content_type),
+                        std::move(context));
+}
+
+HttpResponse OlpClient::CallApiStream(std::string path, std::string method,
+                                      ParametersType query_params,
+                                      ParametersType header_params,
+                                      http::Network::DataCallback data_callback,
+                                      RequestBodyType post_body,
+                                      std::string content_type,
+                                      CancellationContext context) const {
+  return impl_->CallApi(std::move(path), std::move(method),
+                        std::move(query_params), std::move(header_params),
+                        std::move(data_callback), std::move(post_body),
                         std::move(content_type), std::move(context));
 }
 

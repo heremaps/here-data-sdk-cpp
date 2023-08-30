@@ -35,6 +35,8 @@
 #include "olp/dataservice/read/PartitionsRequest.h"
 #include "olp/dataservice/read/TileRequest.h"
 
+#include "PartitionsSaxHandler.h"
+
 namespace {
 namespace client = olp::client;
 namespace read = olp::dataservice::read;
@@ -622,6 +624,77 @@ PartitionsRepository::QueryPartitionsInBatches(
 
   return QueryApi::PartitionsExtendedResponse(std::move(result_partitions),
                                               aggregated_network_statistics);
+}
+
+client::ApiNoResponse PartitionsRepository::ParsePartitionsStream(
+    std::shared_ptr<AsyncJsonStream> async_stream,
+    PartitionsStreamCallback partition_callback,
+    client::CancellationContext context) {
+  rapidjson::ParseResult parse_result;
+
+  // Retry to parse the stream until it's closed.
+  while (!async_stream->IsClosed()) {
+    rapidjson::Reader reader;
+    auto partitions_handler =
+        std::make_shared<repository::PartitionsSaxHandler>(partition_callback);
+
+    auto reader_cancellation_token =
+        client::CancellationToken([=]() { partitions_handler->Abort(); });
+
+    if (!context.ExecuteOrCancelled(
+            [=]() { return reader_cancellation_token; })) {
+      return client::ApiError::Cancelled();
+    }
+
+    auto json_stream = async_stream->GetCurrentStream();
+
+    parse_result = reader.Parse<rapidjson::kParseIterativeFlag>(
+        *json_stream, *partitions_handler);
+  }
+
+  if (parse_result != rapidjson::kParseErrorNone) {
+    return client::ApiError(parse_result.Code(), "Parsing error");
+  }
+
+  auto error = async_stream->GetError();
+
+  return error ? client::ApiNoResponse(*error) : client::ApiNoResult{};
+}
+
+void PartitionsRepository::StreamPartitions(
+    std::shared_ptr<AsyncJsonStream> async_stream, std::int64_t version,
+    const std::vector<std::string>& additional_fields,
+    boost::optional<std::string> billing_tag,
+    client::CancellationContext context) {
+  auto metadata_api = lookup_client_.LookupApi(
+      "metadata", "v1", client::FetchOptions::OnlineIfNotFound, context);
+
+  if (!metadata_api.IsSuccessful()) {
+    return async_stream->CloseStream(metadata_api.GetError());
+  }
+
+  auto data_callback = [=](const std::uint8_t* data, std::uint64_t offset,
+                           std::size_t length) mutable {
+    const char* json_chunk = reinterpret_cast<const char*>(data);
+    if (!offset) {
+      // TODO: we can use ranges to avoid reseting the stream, instead continue
+      // download from the last offset + length.
+      async_stream->ResetStream(json_chunk, length);
+    } else {
+      async_stream->AppendContent(json_chunk, length);
+    }
+  };
+
+  auto http_response = MetadataApi::GetPartitionsStream(
+      metadata_api.GetResult(), layer_id_, version, additional_fields,
+      boost::none, billing_tag, data_callback, context);
+
+  auto error =
+      http_response.status != olp::http::HttpStatusCode::OK
+          ? boost::make_optional(client::ApiError(http_response.status))
+          : boost::none;
+
+  async_stream->CloseStream(error);
 }
 
 }  // namespace repository

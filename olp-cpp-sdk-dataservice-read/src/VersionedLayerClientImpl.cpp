@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,9 @@
 #include "repositories/DataRepository.h"
 #include "repositories/PartitionsRepository.h"
 #include "repositories/PrefetchTilesRepository.h"
+
+#include "repositories/AsyncJsonStream.h"
+#include "repositories/PartitionsSaxHandler.h"
 
 namespace olp {
 namespace dataservice {
@@ -108,6 +111,53 @@ client::CancellationToken VersionedLayerClientImpl::GetPartitions(
   return task_sink_.AddTask(
       std::bind(partitions_task, std::move(request), std::placeholders::_1),
       std::move(callback), thread::NORMAL);
+}
+
+client::CancellationToken VersionedLayerClientImpl::StreamLayerPartitions(
+    PartitionsRequest request,
+    PartitionsStreamCallback partition_stream_callback,
+    CallbackNoResult callback) {
+  auto async_stream = std::make_shared<repository::AsyncJsonStream>();
+
+  auto request_task =
+      [=](client::CancellationContext context) -> client::ApiNoResponse {
+    auto version_response =
+        GetVersion(boost::none, FetchOptions::OnlineIfNotFound, context);
+    if (!version_response.IsSuccessful()) {
+      return version_response.GetError();
+    }
+
+    const auto version = version_response.GetResult().GetVersion();
+
+    repository::PartitionsRepository repository(catalog_, layer_id_, settings_,
+                                                lookup_client_, mutex_storage_);
+
+    repository.StreamPartitions(async_stream, version,
+                                request.GetAdditionalFields(),
+                                request.GetBillingTag(), context);
+
+    return client::ApiNoResult{};
+  };
+
+  auto request_task_token = task_sink_.AddTask(
+      std::bind(request_task, std::placeholders::_1), nullptr, thread::NORMAL);
+
+  auto parse_task = [=](client::CancellationContext context) {
+    repository::PartitionsRepository repository(catalog_, layer_id_, settings_,
+                                                lookup_client_, mutex_storage_);
+
+    return repository.ParsePartitionsStream(async_stream,
+                                            partition_stream_callback, context);
+  };
+
+  auto parse_task_token =
+      task_sink_.AddTask(std::bind(parse_task, std::placeholders::_1),
+                         std::move(callback), thread::NORMAL);
+
+  return client::CancellationToken([request_task_token, parse_task_token]() {
+    request_task_token.Cancel();
+    parse_task_token.Cancel();
+  });
 }
 
 client::CancellableFuture<PartitionsResponse>

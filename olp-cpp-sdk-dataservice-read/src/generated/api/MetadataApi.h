@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/http/Network.h>
 #include <boost/optional.hpp>
 #include "ExtendedApiResponse.h"
 #include "generated/model/LayerVersions.h"
@@ -83,7 +84,7 @@ class MetadataApi {
   /**
    * @brief Retrieves metadata for all partitions in a specified layer.
    * @param client Instance of OlpClient used to make REST request.
-   * @param layerId Layer id.
+   * @param layer_id Layer id.
    * @param version Specify the version for a versioned layer. Doesn't apply for
    * other layer types.
    * @param additional_fields Additional fields - dataSize, checksum,
@@ -104,11 +105,44 @@ class MetadataApi {
    * object with \c model::Partitions as a result.
    */
   static PartitionsExtendedResponse GetPartitions(
-      const client::OlpClient& client, const std::string& layerId,
+      const client::OlpClient& client, const std::string& layer_id,
       boost::optional<int64_t> version,
       const std::vector<std::string>& additional_fields,
       boost::optional<std::string> range,
       boost::optional<std::string> billing_tag,
+      const client::CancellationContext& context);
+
+  /**
+   * @brief Stream metadata for all partitions in a specified layer.
+   * @param client Instance of OlpClient used to make REST request.
+   * @param layer_id Layer id.
+   * @param version Specify the version for a versioned layer. Doesn't apply for
+   * other layer types.
+   * @param additional_fields Additional fields - dataSize, checksum,
+   * compressedDataSize.
+   * @param range Use this parameter to resume download of a large response for
+   * versioned layers when there is a connection issue between the client and
+   * server. Specify a single byte range offset like this: Range: bytes=10-.
+   * This parameter is compliant with RFC 7233, but note that this parameter
+   * only supports a single byte range. The range parameter can also be
+   * specified as a query parameter, i.e. range=bytes=10-. For volatile layers
+   * use the pagination links returned in the response body.
+   * @param billing_tag An optional free-form tag which is used for grouping
+   * billing records together. If supplied, it must be between 4 - 16
+   * characters, contain only alpha/numeric ASCII characters  [A-Za-z0-9].
+   * @param data_callback A data callback that is passed to the network.
+   * @param context A CancellationContext, which can be used to cancel request.
+   *
+   * @return  The result of this operation as an extended client::ApiResponse
+   * object with \c model::Partitions as a result.
+   */
+  static client::HttpResponse GetPartitionsStream(
+      const client::OlpClient& client, const std::string& layer_id,
+      boost::optional<int64_t> version,
+      const std::vector<std::string>& additional_fields,
+      boost::optional<std::string> range,
+      boost::optional<std::string> billing_tag,
+      http::Network::DataCallback data_callback,
       const client::CancellationContext& context);
 
   /**

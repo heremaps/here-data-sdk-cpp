@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ class CORE_API OlpClient {
 
   /**
    * @brief Creates the `OlpClient` instance.
-   * 
+   *
    * @param settings The `OlpClientSettings` instance.
    * @param base_url The base URL to be used for all outgoing requests.
    */
@@ -159,6 +159,33 @@ class CORE_API OlpClient {
                        ParametersType header_params, ParametersType form_params,
                        RequestBodyType post_body, std::string content_type,
                        CancellationContext context) const;
+
+  /**
+   * @brief Executes the HTTP request through the network stack in a blocking
+   * way. The response content is consumed via data callback.
+   *
+   * @param path The path that is appended to the base URL.
+   * @param method Select one of the following methods: `GET`, `POST`, `DELETE`,
+   * or `PUT`.
+   * @param query_params The parameters that are appended to the URL path.
+   * @param header_params The headers used to customize the request.
+   * @param data_callback The network data callback to retrieve content.
+   * @param post_body For the `POST` request, populate `form_params` or
+   * `post_body`, but not both. This data must not be modified until
+   * the request is completed.
+   * @param content_type The content type for the `post_body` or `form_params`.
+   * @param context The `CancellationContext` instance that is used to cancel
+   * the request.
+   *
+   * @return The `HttpResponse` instance.
+   */
+  HttpResponse CallApiStream(std::string path, std::string method,
+                             ParametersType query_params,
+                             ParametersType header_params,
+                             http::Network::DataCallback data_callback,
+                             RequestBodyType post_body,
+                             std::string content_type,
+                             CancellationContext context) const;
 
  private:
   class OlpClientImpl;

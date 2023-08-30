@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -281,6 +281,28 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    */
   client::CancellationToken GetPartitions(PartitionsRequest partitions_request,
                                           PartitionsResponseCallback callback);
+
+  /**
+   * @brief Fetches a list of partitions of the given generic layer
+   * asynchronously. Client does not cache the partitions, instead every
+   * partition is passed to the provided callback.
+   * 
+   * @note API is considered experimental and a subject to change.
+   *
+   * @param partitions_request The `PartitionsRequest` instance that contains
+   * a complete set of request parameters.
+   * @note Fetch option and partition list are not supported.
+   * @param partition_stream_callback The `PartitionsStreamCallback` that
+   * receives every fetched partition.
+   * @param callback The `CallbackNoResult` object that is invoked when
+   * operation is complete or an error is encountered.
+   *
+   * @return A token that can be used to cancel this request.
+   */
+  client::CancellationToken StreamLayerPartitions(
+      PartitionsRequest partitions_request,
+      PartitionsStreamCallback partition_stream_callback,
+      CallbackNoResult callback);
 
   /**
    * @brief Fetches a list of partitions of the given generic layer

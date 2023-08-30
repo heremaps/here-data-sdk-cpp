@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,11 @@ class VersionedLayerClientImpl {
 
   virtual client::CancellationToken GetPartitions(
       PartitionsRequest request, PartitionsResponseCallback callback);
+
+  virtual client::CancellationToken StreamLayerPartitions(
+      PartitionsRequest request,
+      PartitionsStreamCallback partition_stream_callback,
+      CallbackNoResult callback);
 
   virtual client::CancellableFuture<PartitionsResponse> GetPartitions(
       PartitionsRequest partitions_request);

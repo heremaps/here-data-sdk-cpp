@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,6 +152,12 @@ using CompatibleVersionsCallback = Callback<CompatibleVersionsResult>;
 
 /// The list of tile keys.
 using TileKeys = std::vector<geo::TileKey>;
+
+/// A callback type for partitions stream.
+using PartitionsStreamCallback = std::function<void(model::Partition)>;
+
+/// A type of callback that has no result, or an error.
+using CallbackNoResult = Callback<client::ApiNoResult>;
 
 }  // namespace read
 }  // namespace dataservice
