@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -625,8 +625,8 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
     request.WithPartitionIds({kPartitionId, kInvalidPartitionId});
     request.WithFetchOption(read::CacheOnly);
 
-    auto response =
-        repository.GetVersionedPartitions(request, kVersion, context);
+    auto response = repository.GetVersionedPartitionsExtendedResponse(
+        request, kVersion, context);
 
     ASSERT_FALSE(response.IsSuccessful());
     EXPECT_TRUE(response.GetResult().GetPartitions().empty());
@@ -658,8 +658,8 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
     read::PartitionsRequest request;
     request.WithPartitionIds({kPartitionId});
 
-    auto response =
-        repository.GetVersionedPartitions(request, kVersion, context);
+    auto response = repository.GetVersionedPartitionsExtendedResponse(
+        request, kVersion, context);
 
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
     EXPECT_EQ(response.GetResult().GetPartitions().size(), 1);
@@ -690,15 +690,16 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
                                                 settings, lookup_client);
     read::PartitionsRequest request;
 
-    auto response =
-        repository.GetVersionedPartitions(request, kVersion, context);
+    auto response = repository.GetVersionedPartitionsExtendedResponse(
+        request, kVersion, context);
 
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
     EXPECT_TRUE(response.GetResult().GetPartitions().empty());
 
     request.WithFetchOption(read::CacheOnly);
 
-    response = repository.GetVersionedPartitions(request, kVersion, context);
+    response = repository.GetVersionedPartitionsExtendedResponse(
+        request, kVersion, context);
 
     ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
     EXPECT_TRUE(response.GetResult().GetPartitions().empty());
@@ -817,7 +818,8 @@ TEST_F(PartitionsRepositoryTest, AdditionalFields) {
                                 read::PartitionsRequest::kCrc,
                                 read::PartitionsRequest::kDataSize});
 
-  auto response = repository.GetVersionedPartitions(request, kVersion, context);
+  auto response = repository.GetVersionedPartitionsExtendedResponse(
+      request, kVersion, context);
 
   ASSERT_TRUE(response.IsSuccessful());
   auto result = response.GetResult();
@@ -830,8 +832,8 @@ TEST_F(PartitionsRepositoryTest, AdditionalFields) {
 
   request.WithFetchOption(read::CacheOnly);
 
-  auto response_2 =
-      repository.GetVersionedPartitions(request, kVersion, context);
+  auto response_2 = repository.GetVersionedPartitionsExtendedResponse(
+      request, kVersion, context);
 
   ASSERT_TRUE(response_2.IsSuccessful());
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,10 +57,6 @@ class PartitionsRepository {
                        client::ApiLookupClient client,
                        NamedMutexStorage storage = NamedMutexStorage());
 
-  PartitionsResponse GetVersionedPartitions(
-      const read::PartitionsRequest& request, std::int64_t version,
-      client::CancellationContext context);
-
   PartitionsResponse GetVolatilePartitions(
       const read::PartitionsRequest& request,
       client::CancellationContext context);
@@ -93,18 +89,20 @@ class PartitionsRepository {
       boost::optional<std::vector<std::string>> additional_fields =
           boost::none);
 
-  PartitionsResponse GetPartitions(
-      const read::PartitionsRequest& request,
-      boost::optional<std::int64_t> version,
-      client::CancellationContext context,
-      boost::optional<time_t> expiry = boost::none);
-
   QueryApi::PartitionsExtendedResponse GetPartitionsExtendedResponse(
       const read::PartitionsRequest& request,
       boost::optional<std::int64_t> version,
       client::CancellationContext context,
       boost::optional<time_t> expiry = boost::none,
       bool fail_on_cache_error = false);
+
+  QueryApi::PartitionsExtendedResponse QueryPartitionsInBatches(
+      const client::OlpClient& client,
+      const PartitionsRequest::PartitionIds& partitions,
+      boost::optional<std::int64_t> version,
+      const PartitionsRequest::AdditionalFields& additional_fields,
+      boost::optional<std::string> billing_tag,
+      client::CancellationContext context);
 
   const client::HRN catalog_;
   const std::string layer_id_;

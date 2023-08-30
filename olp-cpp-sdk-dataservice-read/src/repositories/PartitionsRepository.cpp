@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ namespace repository = olp::dataservice::read::repository;
 
 constexpr auto kLogTag = "PartitionsRepository";
 constexpr auto kAggregateQuadTreeDepth = 4;
+constexpr auto kQueryRequestLimit = 100;
 
 using LayerVersionReponse = client::ApiResponse<int64_t, client::ApiError>;
 using LayerVersionCallback = std::function<void(LayerVersionReponse)>;
@@ -195,12 +196,6 @@ PartitionsRepository::GetVersionedPartitionsExtendedResponse(
                                        boost::none, fail_on_cache_error);
 }
 
-PartitionsResponse PartitionsRepository::GetVersionedPartitions(
-    const PartitionsRequest& request, int64_t version,
-    client::CancellationContext context) {
-  return GetPartitions(request, version, std::move(context));
-}
-
 PartitionsResponse PartitionsRepository::GetVolatilePartitions(
     const PartitionsRequest& request, client::CancellationContext context) {
   auto catalog_request = CatalogRequest()
@@ -220,8 +215,8 @@ PartitionsResponse PartitionsRepository::GetVolatilePartitions(
     return expiry_response.GetError();
   }
 
-  return GetPartitions(request, boost::none, context,
-                       expiry_response.MoveResult());
+  return GetPartitionsExtendedResponse(request, boost::none, context,
+                                       expiry_response.MoveResult());
 }
 
 QueryApi::PartitionsExtendedResponse
@@ -291,9 +286,15 @@ PartitionsRepository::GetPartitionsExtendedResponse(
       return query_api.GetError();
     }
 
-    response = QueryApi::GetPartitionsbyId(
-        query_api.GetResult(), layer_id_, partition_ids, version,
-        request.GetAdditionalFields(), request.GetBillingTag(), context);
+    if (partition_ids.size() <= kQueryRequestLimit) {
+      response = QueryApi::GetPartitionsbyId(
+          query_api.GetResult(), layer_id_, partition_ids, version,
+          request.GetAdditionalFields(), request.GetBillingTag(), context);
+    } else {
+      response = QueryPartitionsInBatches(
+          query_api.GetResult(), partition_ids, version,
+          request.GetAdditionalFields(), request.GetBillingTag(), context);
+    }
   }
   // Save all partitions only when downloaded via metadata API
   const bool is_layer_metadata = partition_ids.empty();
@@ -322,13 +323,6 @@ PartitionsRepository::GetPartitionsExtendedResponse(
   }
 
   return response;
-}
-
-PartitionsResponse PartitionsRepository::GetPartitions(
-    const PartitionsRequest& request, boost::optional<std::int64_t> version,
-    client::CancellationContext context, boost::optional<time_t> expiry) {
-  return GetPartitionsExtendedResponse(request, std::move(version),
-                                       std::move(context), std::move(expiry));
 }
 
 PartitionsResponse PartitionsRepository::GetPartitionById(
@@ -582,6 +576,52 @@ PartitionResponse PartitionsRepository::GetTile(
   }
   return PartitionResponse(std::move(*partition),
                            quad_tree_response.GetPayload());
+}
+
+QueryApi::PartitionsExtendedResponse
+PartitionsRepository::QueryPartitionsInBatches(
+    const client::OlpClient& client,
+    const PartitionsRequest::PartitionIds& partitions,
+    boost::optional<std::int64_t> version,
+    const PartitionsRequest::AdditionalFields& additional_fields,
+    boost::optional<std::string> billing_tag,
+    client::CancellationContext context) {
+  std::vector<model::Partition> aggregated_partitions;
+  aggregated_partitions.reserve(partitions.size());
+
+  client::NetworkStatistics aggregated_network_statistics;
+
+  PartitionsRequest::PartitionIds batch;
+  batch.reserve(kQueryRequestLimit);
+
+  for (size_t i = 0; i < partitions.size(); i += kQueryRequestLimit) {
+    batch.clear();
+
+    std::copy(partitions.begin() + i,
+              partitions.begin() +
+                  std::min(partitions.size(), i + kQueryRequestLimit),
+              std::back_inserter(batch));
+
+    auto query_response =
+        QueryApi::GetPartitionsbyId(client, layer_id_, batch, version,
+                                    additional_fields, billing_tag, context);
+    if (!query_response) {
+      return query_response.GetError();
+    }
+
+    auto partitions = query_response.MoveResult();
+    auto& mutable_partitions = partitions.GetMutablePartitions();
+    std::move(mutable_partitions.begin(), mutable_partitions.end(),
+              std::back_inserter(aggregated_partitions));
+
+    aggregated_network_statistics += query_response.GetPayload();
+  }
+
+  model::Partitions result_partitions;
+  result_partitions.GetMutablePartitions().swap(aggregated_partitions);
+
+  return QueryApi::PartitionsExtendedResponse(std::move(result_partitions),
+                                              aggregated_network_statistics);
 }
 
 }  // namespace repository
