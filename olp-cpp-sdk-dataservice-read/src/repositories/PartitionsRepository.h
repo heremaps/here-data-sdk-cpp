@@ -35,6 +35,7 @@
 #include "olp/dataservice/read/PartitionsRequest.h"
 #include "olp/dataservice/read/Types.h"
 
+#include "AsyncJsonStream.h"
 #include "NamedMutex.h"
 #include "PartitionsCacheRepository.h"
 
@@ -48,7 +49,8 @@ namespace repository {
 
 /// The partition metadata response type.
 using PartitionResponse = Response<model::Partition, client::NetworkStatistics>;
-using QuadTreeIndexResponse = Response<QuadTreeIndex, client::NetworkStatistics>;
+using QuadTreeIndexResponse =
+    Response<QuadTreeIndex, client::NetworkStatistics>;
 
 class PartitionsRepository {
  public:
@@ -81,6 +83,17 @@ class PartitionsRepository {
                             client::CancellationContext context,
                             boost::optional<std::vector<std::string>>
                                 additional_fields = boost::none);
+
+  client::ApiNoResponse ParsePartitionsStream(
+      std::shared_ptr<AsyncJsonStream> async_stream,
+      PartitionsStreamCallback partition_callback,
+      client::CancellationContext context);
+
+  void StreamPartitions(std::shared_ptr<AsyncJsonStream> async_stream,
+                        std::int64_t version,
+                        const std::vector<std::string>& additional_fields,
+                        boost::optional<std::string> billing_tag,
+                        client::CancellationContext context);
 
  private:
   QuadTreeIndexResponse GetQuadTreeIndexForTile(

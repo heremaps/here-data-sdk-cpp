@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,8 +73,9 @@ MetadataApi::LayerVersionsResponse MetadataApi::GetLayerVersions(
 
   std::string metadataUri = "/layerVersions";
 
-  auto api_response = client.CallApi(metadataUri, "GET", query_params,
-                                     header_params, {}, nullptr, "", context);
+  auto api_response =
+      client.CallApi(std::move(metadataUri), "GET", query_params, header_params,
+                     {}, nullptr, "", context);
 
   if (api_response.status != http::HttpStatusCode::OK) {
     return client::ApiError(api_response.status, api_response.response.str());
@@ -110,8 +111,9 @@ MetadataApi::PartitionsExtendedResponse MetadataApi::GetPartitions(
 
   std::string metadataUri = "/layers/" + layer_id + "/partitions";
 
-  auto http_response = client.CallApi(metadataUri, "GET", query_params,
-                                      header_params, {}, nullptr, "", context);
+  auto http_response =
+      client.CallApi(std::move(metadataUri), "GET", query_params, header_params,
+                     {}, nullptr, "", context);
 
   if (http_response.status != olp::http::HttpStatusCode::OK) {
     return PartitionsExtendedResponse(
@@ -134,6 +136,39 @@ MetadataApi::PartitionsExtendedResponse MetadataApi::GetPartitions(
                                     http_response.GetNetworkStatistics());
 }
 
+client::HttpResponse MetadataApi::GetPartitionsStream(
+    const client::OlpClient& client, const std::string& layer_id,
+    boost::optional<int64_t> version,
+    const std::vector<std::string>& additional_fields,
+    boost::optional<std::string> range,
+    boost::optional<std::string> billing_tag,
+    http::Network::DataCallback data_callback,
+    const client::CancellationContext& context) {
+  std::multimap<std::string, std::string> header_params;
+  header_params.emplace("Accept", "application/json");
+  if (range) {
+    header_params.emplace("Range", *range);
+  }
+
+  std::multimap<std::string, std::string> query_params;
+  if (!additional_fields.empty()) {
+    query_params.emplace("additionalFields",
+                         concatStringArray(additional_fields, ","));
+  }
+  if (billing_tag) {
+    query_params.emplace("billingTag", *billing_tag);
+  }
+  if (version) {
+    query_params.emplace("version", std::to_string(*version));
+  }
+
+  std::string metadataUri = "/layers/" + layer_id + "/partitions";
+
+  return client.CallApiStream(std::move(metadataUri), "GET", query_params,
+                              header_params, std::move(data_callback), nullptr,
+                              "", context);
+}
+
 MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
     const client::OlpClient& client, std::int64_t startVersion,
     boost::optional<std::string> billing_tag,
@@ -149,8 +184,9 @@ MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
 
   std::string metadata_uri = "/versions/latest";
 
-  auto api_response = client.CallApi(metadata_uri, "GET", query_params,
-                                     header_params, {}, nullptr, "", context);
+  auto api_response =
+      client.CallApi(std::move(metadata_uri), "GET", query_params,
+                     header_params, {}, nullptr, "", context);
 
   if (api_response.status != http::HttpStatusCode::OK) {
     return {{api_response.status, api_response.response.str()}};

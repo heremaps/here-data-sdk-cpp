@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,15 @@ client::CancellationToken VersionedLayerClient::GetPartitions(
     PartitionsRequest partitions_request, PartitionsResponseCallback callback) {
   return impl_->GetPartitions(std::move(partitions_request),
                               std::move(callback));
+}
+
+client::CancellationToken VersionedLayerClient::StreamLayerPartitions(
+    PartitionsRequest partitions_request,
+    PartitionsStreamCallback partition_stream_callback,
+    CallbackNoResult callback) {
+  return impl_->StreamLayerPartitions(std::move(partitions_request),
+                                      std::move(partition_stream_callback),
+                                      std::move(callback));
 }
 
 client::CancellableFuture<PartitionsResponse>

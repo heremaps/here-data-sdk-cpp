@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2021 HERE Europe B.V.
+# Copyright (C) 2019-2023 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 
 set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     ApiClientLookupTest.cpp
+    AsyncJsonStreamTest.cpp
     CatalogCacheRepositoryTest.cpp
     CatalogClientTest.cpp
     CatalogRepositoryTest.cpp
@@ -28,6 +29,7 @@ set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     ParserTest.cpp
     PartitionsCacheRepositoryTest.cpp
     PartitionsRepositoryTest.cpp
+    PartitionsSaxHandlerTest.cpp
     PrefetchRepositoryTest.cpp
     PrefetchTilesRequestTest.cpp
     QuadTreeIndexTest.cpp
