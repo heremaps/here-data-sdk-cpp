@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -198,6 +198,10 @@ bool PendingUrlRequests::CancelAll() {
   // is taking care of the Network callback.
   std::lock_guard<std::mutex> lock(mutex_);
 
+  if (pending_requests_.empty()) {
+    return true;
+  }
+
   OLP_SDK_LOG_DEBUG_F(kLogTag,
                       "CancelAll, pending_requests=%zu, current_thread_id=%s",
                       pending_requests_.size(), GetCurrentThreadId().c_str());
@@ -218,15 +222,15 @@ bool PendingUrlRequests::CancelAllAndWait() const {
     // will not work
     std::lock_guard<std::mutex> lock(mutex_);
 
+    if (pending_requests_.empty() && cancelled_requests_.empty()) {
+      return true;
+    }
+
     OLP_SDK_LOG_DEBUG_F(kLogTag,
                         "CancelAllAndWait, pending_requests=%zu, "
                         "cancelled_requests=%zu, current_thread_id=%s",
                         pending_requests_.size(), cancelled_requests_.size(),
                         GetCurrentThreadId().c_str());
-
-    if (pending_requests_.empty() && cancelled_requests_.empty()) {
-      return true;
-    }
 
     pending_requests = pending_requests_;
     cancelled_requests = cancelled_requests_;
