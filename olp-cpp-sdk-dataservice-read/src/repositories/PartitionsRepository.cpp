@@ -652,7 +652,7 @@ client::ApiNoResponse PartitionsRepository::ParsePartitionsStream(
         *json_stream, *partitions_handler);
   }
 
-  if (parse_result != rapidjson::kParseErrorNone) {
+  if (!parse_result) {
     return client::ApiError(parse_result.Code(), "Parsing error");
   }
 
