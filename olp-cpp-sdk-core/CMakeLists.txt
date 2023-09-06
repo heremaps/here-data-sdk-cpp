@@ -19,7 +19,7 @@
 project(olp-cpp-sdk-core VERSION 1.16.0)
 set(DESCRIPTION "Core network and utility library for the HERE OLP SDK C++")
 
-find_package(RapidJSON 1.1.0 REQUIRED CMAKE_FIND_ROOT_PATH_BOTH)
+find_package(RapidJSON 1.1.0 REQUIRED)
 find_package(Boost REQUIRED)
 find_package(Threads REQUIRED)
 
@@ -411,9 +411,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-    $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${Boost_INCLUDE_DIR}>
 
-    # Depends on RapidJSON revision, could be one of the following
     $<BUILD_INTERFACE:${EXTERNAL_BINARY_INSTALL_DIR}/include>
 
     $<INSTALL_INTERFACE:include>)
