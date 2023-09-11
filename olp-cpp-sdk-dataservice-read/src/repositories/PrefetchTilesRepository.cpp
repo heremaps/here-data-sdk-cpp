@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -417,8 +417,9 @@ PrefetchTilesRepository::DownloadVersionedQuadTree(
 
   if (quad_tree.status != olp::http::HttpStatusCode::OK) {
     OLP_SDK_LOG_WARNING_F(kLogTag,
-                          "GetSubQuads failed(%s, %" PRId64 ", %" PRId32 ")",
-                          tile_key.c_str(), version, depth);
+                          "GetSubQuads failed(%s, %" PRId64 ", %" PRId32
+                          "), status_code='%d'",
+                          tile_key.c_str(), version, depth, quad_tree.status);
     return QuadTreeResponse(
         client::ApiError(quad_tree.status, quad_tree.response.str()),
         quad_tree.GetNetworkStatistics());

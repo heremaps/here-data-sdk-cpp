@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,11 +142,11 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     {
       std::lock_guard<std::mutex> lock(mutex_);
       if (http_client_.activeTasks.count >= max_requests_count_) {
-        OLP_SDK_LOG_DEBUG_F(kLogTag,
-                            "Send failed - reached max requests "
-                            "count=%lu/%lu, url=%s",
-                            http_client_.activeTasks.count, max_requests_count_,
-                            request.GetUrl().c_str());
+        OLP_SDK_LOG_WARNING_F(kLogTag,
+                              "Send failed - reached max requests "
+                              "count=%lu/%lu, url=%s",
+                              http_client_.activeTasks.count, max_requests_count_,
+                              request.GetUrl().c_str());
         return SendOutcome(ErrorCode::NETWORK_OVERLOAD_ERROR);
       }
 
