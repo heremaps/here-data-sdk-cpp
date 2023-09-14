@@ -124,6 +124,7 @@ client::CancellationToken VersionedLayerClientImpl::StreamLayerPartitions(
     auto version_response =
         GetVersion(boost::none, FetchOptions::OnlineIfNotFound, context);
     if (!version_response.IsSuccessful()) {
+      async_stream->CloseStream(version_response.GetError());
       return version_response.GetError();
     }
 
