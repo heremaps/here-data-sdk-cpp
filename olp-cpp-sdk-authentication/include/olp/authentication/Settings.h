@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,8 +53,7 @@ struct AUTHENTICATION_API Settings {
    *
    * @param credentials Your access credentials to the HERE platform.
    */
-  Settings(AuthenticationCredentials credentials)
-      : credentials(std::move(credentials)) {}
+  explicit Settings(AuthenticationCredentials credentials);
 
   /**
    * @brief The access key ID and access key secret that you got from the HERE
@@ -86,7 +85,7 @@ struct AUTHENTICATION_API Settings {
    * @note Only standard OAuth2 Token URLs (those ending in `oauth2/token`) are
    * supported.
    */
-  std::string token_endpoint_url{kHereAccountProductionTokenUrl};
+  std::string token_endpoint_url;
 
   /**
    * @brief Uses system system time in authentication requests rather than
