@@ -482,4 +482,68 @@ TEST_F(TokenProviderTest, CancellableProvider) {
   }
 }
 
+TEST_F(TokenProviderTest, CustomEndpoint) {
+  const std::string kCustomTokenEndpoint{
+      "https://custom.token.endpoint/oauth2/token"};
+  const std::string kAnotherCustomTokenEndpoint{
+      "https://another.custom.token.endpoint/oauth2/token"};
+  const int kOkStatusCode = http::HttpStatusCode::OK;
+  authentication::Settings token_provider_settings(
+      {"fake.key.id", "fake.key.secret", kCustomTokenEndpoint});
+  token_provider_settings.task_scheduler = settings_.task_scheduler;
+  token_provider_settings.network_request_handler =
+      settings_.network_request_handler;
+  token_provider_settings.use_system_time = true;
+  token_provider_settings.retry_settings.max_attempts = 1;  // Disable retries
+
+  {
+    SCOPED_TRACE("Use URL from credentials");
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsPostRequest(kCustomTokenEndpoint), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(GetResponse(kOkStatusCode), kResponseValidJson));
+
+    const authentication::TokenProviderDefault token_provider(
+        token_provider_settings);
+
+    client::CancellationContext context;
+    const auto token_response = token_provider(context);
+    ASSERT_TRUE(token_response);
+    EXPECT_EQ(token_response.GetResult().GetAccessToken(), kResponseToken);
+
+    EXPECT_TRUE(token_provider);
+    EXPECT_EQ(token_provider.GetHttpStatusCode(), kOkStatusCode);
+
+    EXPECT_EQ(token_provider.GetErrorResponse().code, 0);
+
+    testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+
+  {
+    SCOPED_TRACE("Override URL");
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsPostRequest(kAnotherCustomTokenEndpoint), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(GetResponse(kOkStatusCode), kResponseValidJson));
+
+    token_provider_settings.token_endpoint_url = kAnotherCustomTokenEndpoint;
+    const authentication::TokenProviderDefault token_provider(
+        token_provider_settings);
+
+    client::CancellationContext context;
+    const auto token_response = token_provider(context);
+    ASSERT_TRUE(token_response);
+    EXPECT_EQ(token_response.GetResult().GetAccessToken(), kResponseToken);
+
+    EXPECT_TRUE(token_provider);
+    EXPECT_EQ(token_provider.GetHttpStatusCode(), kOkStatusCode);
+
+    EXPECT_EQ(token_provider.GetErrorResponse().code, 0);
+
+    testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+}
+
 }  // namespace
