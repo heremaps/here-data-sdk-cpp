@@ -32,6 +32,7 @@
 #include "olp/core/http/NetworkUtils.h"
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
+#include "olp/core/utils/Credentials.h"
 
 namespace {
 
@@ -410,7 +411,8 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
                        payload, request);
     if (handle == nullptr) {
       OLP_SDK_LOG_DEBUG(kLogTag,
-                        "All handles are in use, url=" << request.GetUrl());
+                        "All handles are in use, url="
+                            << utils::CensorCredentialsInUrl(request.GetUrl()));
       return SendOutcome(ErrorCode::NETWORK_OVERLOAD_ERROR);
     }
   }
@@ -591,8 +593,10 @@ SendOutcome NetworkWinHttp::Send(NetworkRequest request,
 
   handle->result_data->bytes_uploaded += content_length + headers.size();
 
-  OLP_SDK_LOG_DEBUG(kLogTag,
-                    "Send request, url=" << request.GetUrl() << ", id=" << id);
+  OLP_SDK_LOG_DEBUG(
+      kLogTag,
+      "Send request, url=" << utils::CensorCredentialsInUrl(request.GetUrl())
+                           << ", id=" << id);
 
   return SendOutcome(id);
 }
