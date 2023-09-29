@@ -135,6 +135,7 @@ set(OLP_SDK_PORTING_HEADERS
 set(OLP_SDK_UTILS_HEADERS
     ./include/olp/core/utils/Base64.h
     ./include/olp/core/utils/Config.h
+    ./include/olp/core/utils/Credentials.h
     ./include/olp/core/utils/Dir.h
     ./include/olp/core/utils/LruCache.h
     ./include/olp/core/utils/Url.h
@@ -334,6 +335,7 @@ set(OLP_SDK_PLATFORM_SOURCES
 set(OLP_SDK_UTILS_SOURCES
     ./src/utils/Base64.cpp
     ./src/utils/BoostExceptionHandle.cpp
+    ./src/utils/Credentials.cpp
     ./src/utils/Dir.cpp
     ./src/utils/Url.cpp
 )

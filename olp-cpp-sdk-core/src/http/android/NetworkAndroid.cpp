@@ -24,12 +24,14 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "olp/core/context/Context.h"
 #include "olp/core/http/HttpStatusCode.h"
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
+#include "olp/core/utils/Credentials.h"
 
 #include "utils/JNIScopedLocalReference.h"
 #include "utils/JNIThreadBinder.h"
@@ -384,15 +386,20 @@ bool NetworkAndroid::Initialize() {
   if (!natives_registered) {
     JNINativeMethod methods[] = {
         {"headersCallback", "(J[Ljava/lang/String;)V",
-         (void*)&Java_com_here_olp_network_HttpClient_headersCallback},
+         reinterpret_cast<void*>(
+             &Java_com_here_olp_network_HttpClient_headersCallback)},
         {"dateAndOffsetCallback", "(JJJ)V",
-         (void*)&Java_com_here_olp_network_HttpClient_dateAndOffsetCallback},
+         reinterpret_cast<void*>(
+             &Java_com_here_olp_network_HttpClient_dateAndOffsetCallback)},
         {"dataCallback", "(J[BI)V",
-         (void*)&Java_com_here_olp_network_HttpClient_dataCallback},
+         reinterpret_cast<void*>(
+             &Java_com_here_olp_network_HttpClient_dataCallback)},
         {"completeRequest", "(JIIILjava/lang/String;Ljava/lang/String;)V",
-         (void*)&Java_com_here_olp_network_HttpClient_completeRequest},
+         reinterpret_cast<void*>(
+             &Java_com_here_olp_network_HttpClient_completeRequest)},
         {"resetRequest", "(J)V",
-         (void*)&Java_com_here_olp_network_HttpClient_resetRequest}};
+         reinterpret_cast<void*>(
+             &Java_com_here_olp_network_HttpClient_resetRequest)}};
 
     env->RegisterNatives(java_self_class_, methods,
                          sizeof(methods) / sizeof(methods[0]));
@@ -670,8 +677,9 @@ void NetworkAndroid::CompleteRequest(JNIEnv* env, RequestId request_id,
   OLP_SDK_LOG_DEBUG(
       kLogTag, "CompleteRequest, request_id="
                    << request_id << ",  uploaded_bytes=" << uploaded_bytes
-                   << ",  downloaded_bytes=" << downloaded_bytes
-                   << ", url=" << request_data->url << ", status=" << status);
+                   << ",  downloaded_bytes=" << downloaded_bytes << ", url="
+                   << olp::utils::CensorCredentialsInUrl(request_data->url)
+                   << ", status=" << status);
   // We don't need the object anymore
   env->DeleteGlobalRef(request_data->obj);
   request_data->obj = nullptr;
@@ -917,7 +925,8 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
       env.GetEnv()->ExceptionClear();
       return SendOutcome(ErrorCode::IO_ERROR);
     }
-    env.GetEnv()->SetByteArrayRegion(jbody, 0, size, (jbyte*)body_data);
+    env.GetEnv()->SetByteArrayRegion(jbody, 0, size,
+                                     reinterpret_cast<const jbyte*>(body_data));
   }
   utils::JNIScopedLocalReference body_ref(env.GetEnv(), jbody);
 

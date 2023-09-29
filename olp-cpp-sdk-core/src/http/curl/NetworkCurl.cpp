@@ -45,6 +45,7 @@
 #include "olp/core/http/NetworkInitializationSettings.h"
 #include "olp/core/http/NetworkUtils.h"
 #include "olp/core/logging/Log.h"
+#include "olp/core/utils/Credentials.h"
 
 namespace olp {
 namespace http {
@@ -526,8 +527,10 @@ ErrorCode NetworkCurl::SendImplementation(
     return ErrorCode::NETWORK_OVERLOAD_ERROR;
   }
 
-  OLP_SDK_LOG_DEBUG(
-      kLogTag, "Send request with url=" << request.GetUrl() << ", id=" << id);
+  OLP_SDK_LOG_DEBUG(kLogTag,
+                    "Send request with url="
+                        << utils::CensorCredentialsInUrl(request.GetUrl())
+                        << ", id=" << id);
 
   handle->ignore_offset = false;  // request.IgnoreOffset();
   handle->skip_content = false;   // config->SkipContentWhenError();
@@ -982,7 +985,8 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
 
     OLP_SDK_LOG_DEBUG(kLogTag,
                       "Message completed, id="
-                          << rhandle.id << ", url='" << url << "', status=("
+                          << rhandle.id << ", url='"
+                          << utils::CensorCredentialsInUrl(url) << "', status=("
                           << status << ") " << error
                           << ", time=" << GetElapsedTime(rhandle.send_time)
                           << "ms, bytes=" << download_bytes + upload_bytes);
