@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,11 @@ class DATASERVICE_WRITE_API DeleteIndexDataRequest {
  public:
   /// A default constructor.
   DeleteIndexDataRequest() = default;
+  DeleteIndexDataRequest(const DeleteIndexDataRequest&) = default;
+  DeleteIndexDataRequest(DeleteIndexDataRequest&&) = default;
+  DeleteIndexDataRequest& operator=(const DeleteIndexDataRequest&) = default;
+  DeleteIndexDataRequest& operator=(DeleteIndexDataRequest&&) = default;
+  virtual ~DeleteIndexDataRequest() = default;
 
   /**
    * @brief Gets the layer ID to which the data blob belongs.

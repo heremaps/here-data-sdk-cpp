@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@
 #include <olp/dataservice/write/generated/model/Details.h>
 #include <olp/dataservice/write/generated/model/VersionDependency.h>
 
-
 namespace olp {
 namespace dataservice {
 namespace write {
@@ -38,6 +37,10 @@ namespace model {
 class DATASERVICE_WRITE_API Publication {
  public:
   Publication() = default;
+  Publication(const Publication&) = default;
+  Publication(Publication&&) = default;
+  Publication& operator=(const Publication&) = default;
+  Publication& operator=(Publication&&) = default;
   virtual ~Publication() = default;
 
  private:
@@ -100,7 +103,8 @@ class DATASERVICE_WRITE_API Publication {
   }
 
   /**
-   * @brief Gets a mutable reference to the ID of the layer that should be published.
+   * @brief Gets a mutable reference to the ID of the layer that should be
+   * published.
    *
    * @return The mutable reference to the layer ID.
    */
@@ -127,9 +131,11 @@ class DATASERVICE_WRITE_API Publication {
   }
 
   /**
-   * @brief Gets a mutable reference to the version of the catalog to be published.
+   * @brief Gets a mutable reference to the version of the catalog to be
+   * published.
    *
-   * @return The mutable reference to the version of the catalog to be published.
+   * @return The mutable reference to the version of the catalog to be
+   * published.
    */
   boost::optional<int64_t>& GetMutableCatalogVersion() {
     return catalog_version_;

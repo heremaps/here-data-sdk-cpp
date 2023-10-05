@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,10 @@ namespace model {
 class DATASERVICE_READ_API VersionResponse {
  public:
   VersionResponse() = default;
+  VersionResponse(const VersionResponse&) = default;
+  VersionResponse(VersionResponse&&) = default;
+  VersionResponse& operator=(const VersionResponse&) = default;
+  VersionResponse& operator=(VersionResponse&&) = default;
   virtual ~VersionResponse() = default;
 
  private:

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,10 @@ namespace model {
 class LayerVersion {
  public:
   LayerVersion() = default;
+  LayerVersion(const LayerVersion&) = default;
+  LayerVersion(LayerVersion&&) = default;
+  LayerVersion& operator=(const LayerVersion&) = default;
+  LayerVersion& operator=(LayerVersion&&) = default;
   virtual ~LayerVersion() = default;
 
  private:
@@ -60,6 +64,10 @@ class LayerVersion {
 class LayerVersions {
  public:
   LayerVersions() = default;
+  LayerVersions(const LayerVersions&) = default;
+  LayerVersions(LayerVersions&&) = default;
+  LayerVersions& operator=(const LayerVersions&) = default;
+  LayerVersions& operator=(LayerVersions&&) = default;
   virtual ~LayerVersions() = default;
 
  private:

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,10 @@ namespace model {
 class PublishPartitions {
  public:
   PublishPartitions() = default;
+  PublishPartitions(const PublishPartitions&) = default;
+  PublishPartitions(PublishPartitions&&) = default;
+  PublishPartitions& operator=(const PublishPartitions&) = default;
+  PublishPartitions& operator=(PublishPartitions&&) = default;
   virtual ~PublishPartitions() = default;
 
  private:

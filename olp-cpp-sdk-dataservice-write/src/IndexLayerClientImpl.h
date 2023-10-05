@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,8 @@
 #include <memory>
 
 #include <olp/dataservice/write/IndexLayerClient.h>
-#include "generated/model/Catalog.h"
 #include "CatalogSettings.h"
+#include "generated/model/Catalog.h"
 
 namespace olp {
 namespace dataservice {
@@ -45,12 +45,11 @@ class PublishDataRequest;
 using InitApiClientsCallback =
     std::function<void(boost::optional<client::ApiError>)>;
 
-class IndexLayerClientImpl
+class IndexLayerClientImpl final
     : public std::enable_shared_from_this<IndexLayerClientImpl> {
  public:
   IndexLayerClientImpl(client::HRN catalog, client::OlpClientSettings settings);
-
-  virtual ~IndexLayerClientImpl();
+  ~IndexLayerClientImpl();
 
   void CancelAll();
 

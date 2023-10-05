@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,10 @@ namespace model {
 class DATASERVICE_READ_API Coverage {
  public:
   Coverage() = default;
+  Coverage(const Coverage&) = default;
+  Coverage(Coverage&&) = default;
+  Coverage& operator=(const Coverage&) = default;
+  Coverage& operator=(Coverage&&) = default;
   virtual ~Coverage() = default;
 
  private:
@@ -78,6 +82,10 @@ class DATASERVICE_READ_API Coverage {
 class DATASERVICE_READ_API IndexDefinition {
  public:
   IndexDefinition() = default;
+  IndexDefinition(const IndexDefinition&) = default;
+  IndexDefinition(IndexDefinition&&) = default;
+  IndexDefinition& operator=(const IndexDefinition&) = default;
+  IndexDefinition& operator=(IndexDefinition&&) = default;
   virtual ~IndexDefinition() = default;
 
  private:
@@ -183,6 +191,10 @@ class DATASERVICE_READ_API IndexDefinition {
 class DATASERVICE_READ_API IndexProperties {
  public:
   IndexProperties() = default;
+  IndexProperties(const IndexProperties&) = default;
+  IndexProperties(IndexProperties&&) = default;
+  IndexProperties& operator=(const IndexProperties&) = default;
+  IndexProperties& operator=(IndexProperties&&) = default;
   virtual ~IndexProperties() = default;
 
  private:
@@ -250,6 +262,10 @@ class DATASERVICE_READ_API IndexProperties {
 class DATASERVICE_READ_API Creator {
  public:
   Creator() = default;
+  Creator(const Creator&) = default;
+  Creator(Creator&&) = default;
+  Creator& operator=(const Creator&) = default;
+  Creator& operator=(Creator&&) = default;
   virtual ~Creator() = default;
 
  private:
@@ -289,6 +305,10 @@ class DATASERVICE_READ_API Creator {
 class DATASERVICE_READ_API Owner {
  public:
   Owner() = default;
+  Owner(const Owner&) = default;
+  Owner(Owner&&) = default;
+  Owner& operator=(const Owner&) = default;
+  Owner& operator=(Owner&&) = default;
   virtual ~Owner() = default;
 
  private:
@@ -346,6 +366,10 @@ class DATASERVICE_READ_API Owner {
 class DATASERVICE_READ_API Partitioning {
  public:
   Partitioning() = default;
+  Partitioning(const Partitioning&) = default;
+  Partitioning(Partitioning&&) = default;
+  Partitioning& operator=(const Partitioning&) = default;
+  Partitioning& operator=(Partitioning&&) = default;
   virtual ~Partitioning() = default;
 
  private:
@@ -425,6 +449,10 @@ class DATASERVICE_READ_API Partitioning {
 class DATASERVICE_READ_API Schema {
  public:
   Schema() = default;
+  Schema(const Schema&) = default;
+  Schema(Schema&&) = default;
+  Schema& operator=(const Schema&) = default;
+  Schema& operator=(Schema&&) = default;
   virtual ~Schema() = default;
 
  private:
@@ -457,6 +485,10 @@ class DATASERVICE_READ_API Schema {
 class DATASERVICE_READ_API StreamProperties {
  public:
   StreamProperties() = default;
+  StreamProperties(const StreamProperties&) = default;
+  StreamProperties(StreamProperties&&) = default;
+  StreamProperties& operator=(const StreamProperties&) = default;
+  StreamProperties& operator=(StreamProperties&&) = default;
   virtual ~StreamProperties() = default;
 
  private:
@@ -544,6 +576,10 @@ class DATASERVICE_READ_API StreamProperties {
 class DATASERVICE_READ_API Encryption {
  public:
   Encryption() = default;
+  Encryption(const Encryption&) = default;
+  Encryption(Encryption&&) = default;
+  Encryption& operator=(const Encryption&) = default;
+  Encryption& operator=(Encryption&&) = default;
   virtual ~Encryption() = default;
 
  private:
@@ -576,6 +612,10 @@ class DATASERVICE_READ_API Encryption {
 class DATASERVICE_READ_API Volume {
  public:
   Volume() = default;
+  Volume(const Volume&) = default;
+  Volume(Volume&&) = default;
+  Volume& operator=(const Volume&) = default;
+  Volume& operator=(Volume&&) = default;
   virtual ~Volume() = default;
 
  private:
@@ -675,6 +715,10 @@ class DATASERVICE_READ_API Volume {
 class DATASERVICE_READ_API Layer {
  public:
   Layer() = default;
+  Layer(const Layer&) = default;
+  Layer(Layer&&) = default;
+  Layer& operator=(const Layer&) = default;
+  Layer& operator=(Layer&&) = default;
   virtual ~Layer() = default;
 
  private:
@@ -1117,6 +1161,10 @@ class DATASERVICE_READ_API Layer {
 class DATASERVICE_READ_API Notifications {
  public:
   Notifications() = default;
+  Notifications(const Notifications&) = default;
+  Notifications(Notifications&&) = default;
+  Notifications& operator=(const Notifications&) = default;
+  Notifications& operator=(Notifications&&) = default;
   virtual ~Notifications() = default;
 
  private:
@@ -1155,6 +1203,10 @@ class DATASERVICE_READ_API Notifications {
 class DATASERVICE_READ_API Catalog {
  public:
   Catalog() = default;
+  Catalog(const Catalog&) = default;
+  Catalog(Catalog&&) = default;
+  Catalog& operator=(const Catalog&) = default;
+  Catalog& operator=(Catalog&&) = default;
   virtual ~Catalog() = default;
 
  private:

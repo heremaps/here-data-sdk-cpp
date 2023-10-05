@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,10 @@ namespace model {
 class ParentQuad {
  public:
   ParentQuad() = default;
+  ParentQuad(const ParentQuad&) = default;
+  ParentQuad(ParentQuad&&) = default;
+  ParentQuad& operator=(const ParentQuad&) = default;
+  ParentQuad& operator=(ParentQuad&&) = default;
   virtual ~ParentQuad() = default;
 
  private:
@@ -119,6 +123,10 @@ class ParentQuad {
 class SubQuad {
  public:
   SubQuad() = default;
+  SubQuad(const SubQuad&) = default;
+  SubQuad(SubQuad&&) = default;
+  SubQuad& operator=(const SubQuad&) = default;
+  SubQuad& operator=(SubQuad&&) = default;
   virtual ~SubQuad() = default;
 
  private:
@@ -220,6 +228,10 @@ class SubQuad {
 class Index {
  public:
   Index() = default;
+  Index(const Index&) = default;
+  Index(Index&&) = default;
+  Index& operator=(const Index&) = default;
+  Index& operator=(Index&&) = default;
   virtual ~Index() = default;
 
  private:

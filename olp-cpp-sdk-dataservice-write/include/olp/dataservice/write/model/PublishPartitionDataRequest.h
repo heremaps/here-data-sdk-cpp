@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include <boost/optional.hpp>
 
@@ -36,6 +36,13 @@ namespace model {
 class DATASERVICE_WRITE_API PublishPartitionDataRequest {
  public:
   PublishPartitionDataRequest() = default;
+  PublishPartitionDataRequest(const PublishPartitionDataRequest&) = default;
+  PublishPartitionDataRequest(PublishPartitionDataRequest&&) = default;
+  PublishPartitionDataRequest& operator=(const PublishPartitionDataRequest&) =
+      default;
+  PublishPartitionDataRequest& operator=(PublishPartitionDataRequest&&) =
+      default;
+  virtual ~PublishPartitionDataRequest() = default;
 
   /**
    * @brief Gets the data to be published to the HERE platform.
@@ -123,13 +130,13 @@ class DATASERVICE_WRITE_API PublishPartitionDataRequest {
   }
 
   /**
-    * @brief Sets the ID of the partition to which you want to publish data.
-    *
-    * @param partition_id A key that specifies the partition to which
+   * @brief Sets the ID of the partition to which you want to publish data.
+   *
+   * @param partition_id A key that specifies the partition to which
    * the content is related. If the layer partitioning scheme is set to
    * HERE tile, the partition key is the tile key. The maximum length of
    * the partition key is 500 characters.
-    */
+   */
   inline PublishPartitionDataRequest& WithPartitionId(
       std::string&& partition_id) {
     partition_id_ = std::move(partition_id);
