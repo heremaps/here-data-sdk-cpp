@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,11 @@ namespace model {
 class DATASERVICE_WRITE_API StartBatchRequest {
  public:
   StartBatchRequest() = default;
+  StartBatchRequest(const StartBatchRequest&) = default;
+  StartBatchRequest(StartBatchRequest&&) = default;
+  StartBatchRequest& operator=(const StartBatchRequest&) = default;
+  StartBatchRequest& operator=(StartBatchRequest&&) = default;
+  virtual ~StartBatchRequest() = default;
 
   /**
    * @brief Sets the layers used in the batch operation.
@@ -59,7 +64,7 @@ class DATASERVICE_WRITE_API StartBatchRequest {
 
   /**
    * @brief Sets the version dependencies used in the batch operation.
-   * 
+   *
    * @param versionDependencies The version dependencies.
    */
   inline StartBatchRequest& WithVersionDependencies(

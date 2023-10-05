@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,11 @@ namespace model {
 class DATASERVICE_WRITE_API FlushRequest {
  public:
   FlushRequest() = default;
+  FlushRequest(const FlushRequest&) = default;
+  FlushRequest(FlushRequest&&) = default;
+  FlushRequest& operator=(const FlushRequest&) = default;
+  FlushRequest& operator=(FlushRequest&&) = default;
+  virtual ~FlushRequest() = default;
 
   /**
    * @brief Gets the number of partitions (`PublishDataRequest`) to be flushed.
@@ -41,7 +46,6 @@ class DATASERVICE_WRITE_API FlushRequest {
   inline int GetNumberOfRequestsToFlush() const {
     return num_requests_per_flush_;
   }
-
 
   /**
    * @brief Sets the number of partitions (`PublishDataRequest`) to be flushed.

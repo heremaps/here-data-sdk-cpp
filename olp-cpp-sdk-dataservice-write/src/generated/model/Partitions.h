@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,10 @@ namespace model {
 class Partition {
  public:
   Partition() = default;
+  Partition(const Partition&) = default;
+  Partition(Partition&&) = default;
+  Partition& operator=(const Partition&) = default;
+  Partition& operator=(Partition&&) = default;
   virtual ~Partition() = default;
 
  private:
@@ -89,6 +93,10 @@ class Partition {
 class Partitions {
  public:
   Partitions() = default;
+  Partitions(const Partitions&) = default;
+  Partitions(Partitions&&) = default;
+  Partitions& operator=(const Partitions&) = default;
+  Partitions& operator=(Partitions&&) = default;
   virtual ~Partitions() = default;
 
  private:

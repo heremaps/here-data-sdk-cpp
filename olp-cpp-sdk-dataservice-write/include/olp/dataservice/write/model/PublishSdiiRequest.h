@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include <boost/optional.hpp>
 
@@ -45,6 +45,11 @@ namespace model {
 class DATASERVICE_WRITE_API PublishSdiiRequest {
  public:
   PublishSdiiRequest() = default;
+  PublishSdiiRequest(const PublishSdiiRequest&) = default;
+  PublishSdiiRequest(PublishSdiiRequest&&) = default;
+  PublishSdiiRequest& operator=(const PublishSdiiRequest&) = default;
+  PublishSdiiRequest& operator=(PublishSdiiRequest&&) = default;
+  virtual ~PublishSdiiRequest() = default;
 
   /**
    * @brief Gets the SDII Message List data.

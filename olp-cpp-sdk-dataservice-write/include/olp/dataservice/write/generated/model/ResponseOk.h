@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,10 @@ namespace model {
 class DATASERVICE_WRITE_API TraceID {
  public:
   TraceID() = default;
+  TraceID(const TraceID&) = default;
+  TraceID(TraceID&&) = default;
+  TraceID& operator=(const TraceID&) = default;
+  TraceID& operator=(TraceID&&) = default;
   virtual ~TraceID() = default;
 
  private:
@@ -75,7 +79,8 @@ class DATASERVICE_WRITE_API TraceID {
   /**
    * @brief Gets the generated list of unique message IDs.
    *
-   * You can use this ID to track your request and identify the message in the catalog.
+   * You can use this ID to track your request and identify the message in the
+   * catalog.
    *
    * @return The generated list of unique message IDs.
    */
@@ -84,9 +89,11 @@ class DATASERVICE_WRITE_API TraceID {
   }
 
   /**
-   * @brief Gets a mutable reference to the generated list of unique message IDs.
+   * @brief Gets a mutable reference to the generated list of unique message
+   * IDs.
    *
-   * You can use this ID to track your request and identify the message in the catalog.
+   * You can use this ID to track your request and identify the message in the
+   * catalog.
    *
    * @return The mutable reference to the generated list of unique message IDs.
    */
@@ -106,6 +113,10 @@ class DATASERVICE_WRITE_API TraceID {
 class DATASERVICE_WRITE_API ResponseOk {
  public:
   ResponseOk() = default;
+  ResponseOk(const ResponseOk&) = default;
+  ResponseOk(ResponseOk&&) = default;
+  ResponseOk& operator=(const ResponseOk&) = default;
+  ResponseOk& operator=(ResponseOk&&) = default;
   virtual ~ResponseOk() = default;
 
  private:

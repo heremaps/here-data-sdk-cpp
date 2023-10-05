@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,11 @@ namespace model {
 class DATASERVICE_WRITE_API PublishIndexRequest {
  public:
   PublishIndexRequest() = default;
+  PublishIndexRequest(const PublishIndexRequest&) = default;
+  PublishIndexRequest(PublishIndexRequest&&) = default;
+  PublishIndexRequest& operator=(const PublishIndexRequest&) = default;
+  PublishIndexRequest& operator=(PublishIndexRequest&&) = default;
+  virtual ~PublishIndexRequest() = default;
 
   /**
    * @brief Gets the data to be published to the HERE platform.
@@ -188,7 +193,7 @@ class DATASERVICE_WRITE_API PublishIndexRequest {
    *
    * @see `Index` for more information.
    *
-   * @return The `Index` object. 
+   * @return The `Index` object.
    */
   inline const Index& GetIndex() const { return index_; }
 

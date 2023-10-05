@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,6 @@ class DATASERVICE_WRITE_API IndexValue {
    * @param type The`IndexType` instance.
    */
   explicit IndexValue(IndexType type) : indexType_(type) {}
-  virtual ~IndexValue() = default;
 
   /// A default copy constructor.
   IndexValue(const IndexValue&) = default;
@@ -87,6 +86,9 @@ class DATASERVICE_WRITE_API IndexValue {
 
   /// A default copy assignment operator.
   IndexValue& operator=(const IndexValue&) = default;
+
+  /// A default virtual destructor.
+  virtual ~IndexValue() = default;
 
   /**
    * @brief Gets the index value type.
@@ -152,8 +154,6 @@ class DATASERVICE_WRITE_API IntIndexValue final : public IndexValue {
   int64_t intValue_{0};
 
  public:
-  virtual ~IntIndexValue() = default;
-
   /**
    * @brief Creates the `IntIndexValue` instance.
    *
@@ -191,8 +191,6 @@ class DATASERVICE_WRITE_API StringIndexValue final : public IndexValue {
   std::string stringValue_;
 
  public:
-  virtual ~StringIndexValue() = default;
-
   /**
    * @brief Creates the `StringIndexValue` instance.
    *
@@ -229,8 +227,6 @@ class DATASERVICE_WRITE_API TimeWindowIndexValue final : public IndexValue {
   int64_t timeWindowValue_{0};
 
  public:
-  virtual ~TimeWindowIndexValue() = default;
-
   /**
    * @brief Creates the `TimeWindowIndexValue` instance.
    *
@@ -316,7 +312,6 @@ class DATASERVICE_WRITE_API Index final {
  public:
   /// A default constructor.
   Index() = default;
-  virtual ~Index() = default;
 
   /**
    * @brief Creates the `Index` insatnce.

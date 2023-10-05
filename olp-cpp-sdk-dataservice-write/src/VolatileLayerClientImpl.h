@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,13 +49,12 @@ using DataHandleMapResponse =
     client::ApiResponse<DataHandleMap, client::ApiError>;
 using DataHandleMapCallback = std::function<void(DataHandleMapResponse)>;
 
-class VolatileLayerClientImpl
+class VolatileLayerClientImpl final
     : public std::enable_shared_from_this<VolatileLayerClientImpl> {
  public:
   VolatileLayerClientImpl(client::HRN catalog,
                           client::OlpClientSettings settings);
-
-  virtual ~VolatileLayerClientImpl();
+  ~VolatileLayerClientImpl();
 
   olp::client::CancellableFuture<GetBaseVersionResponse> GetBaseVersion();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,10 @@ namespace model {
 class Api {
  public:
   Api() = default;
+  Api(const Api&) = default;
+  Api(Api&&) = default;
+  Api& operator=(const Api&) = default;
+  Api& operator=(Api&&) = default;
   virtual ~Api() = default;
 
  private:
