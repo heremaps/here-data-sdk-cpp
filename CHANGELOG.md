@@ -1,3 +1,28 @@
+## v1.17.0 (11/10/2023)
+
+**Common**
+* Improved support of HTTP proxy on iOS.
+* Cleaned up DNS cache on error in cURL (Android).
+* Updated `olp-cpp-sdk-core/CMakeLists.txt` to include the externals include directory.
+* Added the possibility to specify DNS using `WithDNSServers` to the `olp::http::NetworkSettings` API.
+* Improved logging in `olp::client::PendingUrlRequests`.
+* Added `CallApiStream` to the `olp::client::OlpClient` API that uses the `SAX` parser and `JSON` byte stream to parse the layer partitions while they are downloading.
+* Fixed the `boost` and `rapidjson` includes path resolution in `olp-cpp-sdk-core/CMakeLists.txt`.
+* Changed the log level to `WARNING` for the error message when the max number of `HTTP` requests has been reached in `olp::http::OLPNetworkIOS::Send`.
+* Added a status code for failed `HTTP` requests in `olp::dataservice::read::repository::PrefetchTilesRepository`.
+* Censored credentials in log messages for the network logs on the `DEBUG` log level.
+* Fixed the `rapidjson` include directory.
+
+**olp-cpp-sdk-authentication**
+* Added the ability to use a custom token endpoint URL from credentials in `olp::authentication::Settings`.
+
+**olp-cpp-sdk-dataservice-read**
+* Added support of requests with more than 100 partitions in the `olp::dataservice::read::repository::PartitionsRepository` API.
+* Added default copy and move constructors and operators to the `model` namespace classes.
+
+**olp-cpp-sdk-dataservice-write**
+* Added default copy and move constructors and operators to the `model` namespace classes.
+
 ## v1.16.0 (13/06/2023)
 
 **Common**
