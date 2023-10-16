@@ -52,7 +52,7 @@ do
     source ${FV_HOME}/olp-cpp-sdk-${test_group_name}-test.variables
 
     test_command="$REPO_HOME/build/tests/${test_group_name}/olp-cpp-sdk-${test_group_name}-tests --gtest_output=xml:${REPO_HOME}/reports/olp-cpp-sdk-${test_group_name}-test-report.xml ${EXCEPTION} ${FLAKY_CHECK}"
-    valgrind_command="valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all --num-callers=500 --xml=yes"
+    valgrind_command="valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all --num-callers=500 --xml=yes --suppressions=${FV_HOME}/tsan_suppression.txt"
 
     if [[ ! -z "$misc_folder_path" ]]; then
         valgrind_result_file_path="${REPO_HOME}/${misc_folder_path}/${test_group_name}_memcheck.xml"

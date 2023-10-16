@@ -186,7 +186,8 @@ class PosixRandomAccessFile final : public leveldb::RandomAccessFile {
 class PosixWritableFile final : public leveldb::WritableFile {
  public:
   PosixWritableFile(std::string filename, int fd)
-      : pos_(0),
+      : buf_{},
+        pos_(0),
         fd_(fd),
         is_manifest_(IsManifest(filename)),
         filename_(std::move(filename)),
@@ -195,7 +196,7 @@ class PosixWritableFile final : public leveldb::WritableFile {
   ~PosixWritableFile() override {
     if (fd_ >= 0) {
       // Ignoring any potential errors
-      Close();
+      CloseImpl();
     }
   }
 
@@ -229,6 +230,10 @@ class PosixWritableFile final : public leveldb::WritableFile {
   }
 
   leveldb::Status Close() override {
+    return CloseImpl();
+  }
+
+  leveldb::Status CloseImpl() {
     leveldb::Status status = FlushBuffer();
     const int close_result = ::close(fd_);
     if (close_result < 0 && status.ok()) {
