@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,12 @@ constexpr auto valid_credentials =
     "here.client.id = 123\n"
     "here.access.key.id = 234\n"
     "here.access.key.secret = 345\n"
+    "here.token.endpoint.url = https://account.api.here.com/oauth2/token";
+constexpr auto valid_credentials_crlf =
+    "here.user.id = HERE-111\r\n"
+    "here.client.id = 123\r\n"
+    "here.access.key.id = 234\r\n"
+    "here.access.key.secret = 345\r\n"
     "here.token.endpoint.url = https://account.api.here.com/oauth2/token";
 constexpr auto invalid_credentials =
     "here.user.id = HERE-111\n"
@@ -79,7 +85,34 @@ TEST(AuthenticationCredentialsTest, ReadFromFile) {
         auth::AuthenticationCredentials::ReadFromFile(valid_file_path);
 
     EXPECT_TRUE(credentials);
-    EXPECT_NE(credentials.value().GetEndpointUrl(), "");
+
+    if (credentials) {
+      EXPECT_EQ(credentials->GetKey(), "234");
+      EXPECT_EQ(credentials->GetSecret(), "345");
+      EXPECT_NE(credentials.value().GetEndpointUrl(), "");
+    }
+
+    // Remove the file.
+    remove(valid_file_path);
+  }
+  {
+    SCOPED_TRACE("Credentials file successfuly parsed crlf");
+
+    // Create a file with a valid structure.
+    std::ofstream stream(valid_file_path);
+    stream << valid_credentials_crlf;
+    stream.close();
+
+    const auto credentials =
+        auth::AuthenticationCredentials::ReadFromFile(valid_file_path);
+
+    EXPECT_TRUE(credentials);
+
+    if (credentials) {
+      EXPECT_EQ(credentials->GetKey(), "234");
+      EXPECT_EQ(credentials->GetSecret(), "345");
+      EXPECT_NE(credentials.value().GetEndpointUrl(), "");
+    }
 
     // Remove the file.
     remove(valid_file_path);

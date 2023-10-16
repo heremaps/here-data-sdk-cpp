@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,9 @@ AuthenticationCredentials::ReadFromStream(std::istream& stream) {
   std::string line;
 
   while (std::getline(stream, line)) {
+    // Handle both CRLF and LF line endings
+    line.erase(std::remove_if(line.begin(), line.end(), ::isspace), line.end());
+
     const std::vector<std::string> token{
         std::sregex_token_iterator(line.begin(), line.end(), kRegex, -1),
         std::sregex_token_iterator()};
