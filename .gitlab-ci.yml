@@ -33,7 +33,8 @@ weekly_perf_reports:
       - schedules
     variables:
       - $PERFORMANCE
-  script:
+  script: 
+    - whoami
     - mkdir -p reports .public
     - $CI_PROJECT_DIR/scripts/linux/weekly/gitlab_build_perf_tests.sh
     - $CI_PROJECT_DIR/scripts/linux/weekly/gitlab_run_perf_test_metrics.sh
