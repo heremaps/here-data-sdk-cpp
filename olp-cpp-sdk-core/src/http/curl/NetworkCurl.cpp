@@ -352,6 +352,18 @@ bool NetworkCurl::Initialize() {
     return false;
   }
 
+  // Multi handle uses the cache of connections to reuse hot ones. The size of
+  // this cache is four times the number of added easy handles. Due to
+  // dynamic nature of implementation, number of added easy handles changes a
+  // lot, which results in the connection cache thrashing. Connection cache
+  // thrashing may result in hard to debug errors, when system returns connected
+  // socket with fd > 1024, which then cannot be used in the select due to
+  // limitations of FS_SET structure. Use speculatively high number for
+  // connection cache size, to accommodate for fluctuations in number of added
+  // easy handles.
+  const auto connects_cache_size = handles_.size() * 4;
+  curl_multi_setopt(curl_, CURLMOPT_MAXCONNECTS, connects_cache_size);
+
   // handles setup
   std::shared_ptr<NetworkCurl> that = shared_from_this();
   for (auto& handle : handles_) {
