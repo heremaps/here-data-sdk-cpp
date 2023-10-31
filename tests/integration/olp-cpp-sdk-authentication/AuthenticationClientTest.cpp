@@ -1831,7 +1831,11 @@ TEST_F(AuthenticationClientTest, RetrySettings) {
   settings.task_scheduler = task_scheduler_;
   settings.use_system_time = true;
   settings.retry_settings.max_attempts = kMaxRetryAttempts;
-  settings.retry_settings.timeout = kRetryTimeout;
+  settings.retry_settings.timeout = kRetryTimeout * 2;
+  settings.retry_settings.connection_timeout =
+      std::chrono::seconds(kRetryTimeout);
+  settings.retry_settings.transfer_timeout =
+      std::chrono::seconds(kRetryTimeout);
 
   const auto retry_predicate = testing::Property(
       &http::NetworkRequest::GetSettings,

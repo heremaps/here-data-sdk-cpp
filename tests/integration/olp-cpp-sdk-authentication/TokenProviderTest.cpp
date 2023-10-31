@@ -297,7 +297,11 @@ TEST_F(TokenProviderTest, RetrySettings) {
       settings_.network_request_handler;
   token_provider_settings.use_system_time = true;
   token_provider_settings.retry_settings.max_attempts = kMaxRetryAttempts;
-  token_provider_settings.retry_settings.timeout = kMinTimeout;
+  token_provider_settings.retry_settings.timeout = kMinTimeout * 2;
+  token_provider_settings.retry_settings.connection_timeout =
+      std::chrono::seconds(kMinTimeout);
+  token_provider_settings.retry_settings.transfer_timeout =
+      std::chrono::seconds(kMinTimeout);
 
   const auto retry_predicate = testing::Property(
       &http::NetworkRequest::GetSettings,
@@ -339,7 +343,7 @@ TEST_F(TokenProviderTest, RetrySettings) {
         .WillOnce(testing::WithArg<2>([&](http::Network::Callback callback) {
           async_finish_future = std::async(std::launch::async, [=]() {
             // Oversleep the timeout period.
-            std::this_thread::sleep_for(std::chrono::seconds(kMinTimeout * 2));
+            std::this_thread::sleep_for(std::chrono::seconds(kMinTimeout * 4));
 
             callback(http::NetworkResponse()
                          .WithStatus(http::HttpStatusCode::OK)
