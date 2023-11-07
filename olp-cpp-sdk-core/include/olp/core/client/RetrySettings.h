@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 HERE Europe B.V.
+ * Copyright (C) 2021-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,9 +67,34 @@ struct CORE_API RetrySettings {
   int max_attempts = 3;
 
   /**
-   * @brief The connection timeout limit (in seconds).
+   * @brief Maximum time for request to complete (in seconds).
+   *
+   * The default value is 60.
+   *
+   * @note Connection or data transfer will be interrupted after specified
+   * period of time ignoring `connection_timeout` and `transfer_timeout` values.
    */
   int timeout = 60;
+
+  /**
+   * @brief Time allowed to wait for connection to establish (in milliseconds).
+   *
+   * The default value is 30 seconds.
+   *
+   * @note The value should be smaller than `timeout`, @see `timeout` for more
+   * details.
+   */
+  std::chrono::milliseconds connection_timeout = std::chrono::seconds(30);
+
+  /**
+   * @brief Time allowed to wait without data transfer (in milliseconds).
+   *
+   * The default value is 30 seconds.
+   *
+   * @note The value should be smaller than `timeout`, @see `timeout` for more
+   * details.
+   */
+  std::chrono::milliseconds transfer_timeout = std::chrono::seconds(30);
 
   /**
    * @brief The period between the error and the first retry attempt (in

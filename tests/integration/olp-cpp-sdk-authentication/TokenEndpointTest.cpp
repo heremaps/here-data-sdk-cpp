@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 HERE Europe B.V.
+ * Copyright (C) 2022-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -633,7 +633,11 @@ TEST_F(TokenEndpointTest, UniqueNonce) {
 
 TEST_F(TokenEndpointTest, RetrySettings) {
   settings_.retry_settings.max_attempts = kMaxRetryAttempts;
-  settings_.retry_settings.timeout = kRetryTimeout;
+  settings_.retry_settings.timeout = kRetryTimeout * 2;
+  settings_.retry_settings.connection_timeout =
+      std::chrono::seconds(kRetryTimeout);
+  settings_.retry_settings.transfer_timeout =
+      std::chrono::seconds(kRetryTimeout);
   PrepareEndpoint();
 
   const auto retry_predicate = testing::Property(

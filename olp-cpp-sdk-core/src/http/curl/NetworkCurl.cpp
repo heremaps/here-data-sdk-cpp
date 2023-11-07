@@ -673,8 +673,8 @@ ErrorCode NetworkCurl::SendImplementation(
   curl_easy_setopt(handle->handle, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt(handle->handle, CURLOPT_CONNECTTIMEOUT_MS,
                    config.GetConnectionTimeoutDuration().count());
-  curl_easy_setopt(handle->handle, CURLOPT_TIMEOUT_MS,
-                   config.GetTransferTimeoutDuration().count());
+  curl_easy_setopt(handle->handle, CURLOPT_SERVER_RESPONSE_TIMEOUT,
+                   std::chrono::duration_cast<std::chrono::seconds>(config.GetTransferTimeoutDuration()).count());
   curl_easy_setopt(handle->handle, CURLOPT_WRITEFUNCTION,
                    &NetworkCurl::RxFunction);
   curl_easy_setopt(handle->handle, CURLOPT_WRITEDATA, handle);

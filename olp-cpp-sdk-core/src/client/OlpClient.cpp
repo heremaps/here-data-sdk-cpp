@@ -586,8 +586,8 @@ CancellationToken OlpClient::OlpClientImpl::CallApi(
   auto proxy = settings_.proxy_settings.value_or(http::NetworkProxySettings());
   network_request->WithSettings(
       http::NetworkSettings()
-          .WithConnectionTimeout(std::chrono::seconds(retry_settings.timeout))
-          .WithTransferTimeout(std::chrono::seconds(retry_settings.timeout))
+          .WithConnectionTimeout(retry_settings.connection_timeout)
+          .WithTransferTimeout(retry_settings.transfer_timeout)
           .WithProxySettings(std::move(proxy)));
 
   auto network = settings_.network_request_handler;
@@ -622,8 +622,8 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
   const auto& retry_settings = settings_.retry_settings;
   auto network_settings =
       http::NetworkSettings()
-          .WithTransferTimeout(std::chrono::seconds(retry_settings.timeout))
-          .WithConnectionTimeout(std::chrono::seconds(retry_settings.timeout))
+          .WithTransferTimeout(retry_settings.transfer_timeout)
+          .WithConnectionTimeout(retry_settings.connection_timeout)
           .WithProxySettings(
               settings_.proxy_settings.value_or(http::NetworkProxySettings()));
 
