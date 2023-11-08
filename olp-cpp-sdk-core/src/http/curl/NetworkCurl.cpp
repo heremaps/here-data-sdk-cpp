@@ -674,7 +674,9 @@ ErrorCode NetworkCurl::SendImplementation(
   curl_easy_setopt(handle->handle, CURLOPT_CONNECTTIMEOUT_MS,
                    config.GetConnectionTimeoutDuration().count());
   curl_easy_setopt(handle->handle, CURLOPT_SERVER_RESPONSE_TIMEOUT,
-                   std::chrono::duration_cast<std::chrono::seconds>(config.GetTransferTimeoutDuration()).count());
+                   std::chrono::duration_cast<std::chrono::seconds>(
+                       config.GetTransferTimeoutDuration())
+                       .count());
   curl_easy_setopt(handle->handle, CURLOPT_WRITEFUNCTION,
                    &NetworkCurl::RxFunction);
   curl_easy_setopt(handle->handle, CURLOPT_WRITEDATA, handle);
@@ -928,8 +930,12 @@ size_t NetworkCurl::HeaderFunction(char* ptr, size_t size, size_t nitems,
 void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
   std::unique_lock<std::mutex> lock(event_mutex_);
 
-  const bool cleanup_easy_handle = (result == CURLE_COULDNT_RESOLVE_PROXY ||
-                                    result == CURLE_COULDNT_RESOLVE_HOST);
+  // When curl returns an error of the handle, it is possible that error
+  // originates from reuse of easy_handle, eg after network switch on the
+  // Android.
+  // To be on the safe side, do not reuse handle and caches attached to the
+  // handle.
+  const bool cleanup_easy_handle = result != CURLE_OK;
 
   int index = GetHandleIndex(handle);
   if (index >= 0 && index < static_cast<int>(handles_.size())) {
