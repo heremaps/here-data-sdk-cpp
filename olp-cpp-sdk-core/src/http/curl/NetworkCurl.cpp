@@ -270,6 +270,15 @@ std::string ConcatenateDnsAddresses(
 
   return result;
 }
+
+// Returns an integer value of the duration in specified representation.
+// Casts to long, as long is a type expected by `curl_easy_setopt`
+template <typename ToDuration, typename Duration>
+long CountIn(Duration&& duration) {
+  const auto count = std::chrono::duration_cast<ToDuration>(duration).count();
+  return static_cast<long>(count);
+}
+
 }  // anonymous namespace
 
 NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
@@ -671,12 +680,19 @@ ErrorCode NetworkCurl::SendImplementation(
 #endif
 
   curl_easy_setopt(handle->handle, CURLOPT_FOLLOWLOCATION, 1L);
+
+  // `::count` is defined on all duration types, to be on the safe side
+  // regarding durations on NetworkConfig. Refactoring of NetworkConfig to
+  // return different types will be handled gracefully here. Force specific type
+  // of the representation & type expected by curl.
+  const long connect_timeout_ms =
+      CountIn<std::chrono::milliseconds>(config.GetConnectionTimeoutDuration());
+  const long timeout_ms =
+      CountIn<std::chrono::milliseconds>(config.GetTransferTimeoutDuration());
+
   curl_easy_setopt(handle->handle, CURLOPT_CONNECTTIMEOUT_MS,
-                   config.GetConnectionTimeoutDuration().count());
-  curl_easy_setopt(handle->handle, CURLOPT_SERVER_RESPONSE_TIMEOUT,
-                   std::chrono::duration_cast<std::chrono::seconds>(
-                       config.GetTransferTimeoutDuration())
-                       .count());
+                   connect_timeout_ms);
+  curl_easy_setopt(handle->handle, CURLOPT_TIMEOUT_MS, timeout_ms);
   curl_easy_setopt(handle->handle, CURLOPT_WRITEFUNCTION,
                    &NetworkCurl::RxFunction);
   curl_easy_setopt(handle->handle, CURLOPT_WRITEDATA, handle);
