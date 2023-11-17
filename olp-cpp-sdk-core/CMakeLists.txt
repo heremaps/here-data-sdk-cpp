@@ -293,6 +293,12 @@ set(OLP_SDK_HTTP_SOURCES
     ./src/http/NetworkUtils.cpp
 )
 
+set(OLP_SDK_PLATFORM_SOURCES
+    ./src/context/Context.cpp
+    ./src/context/ContextInternal.cpp
+    ./src/context/ContextInternal.h
+)
+
 if (ANDROID)
     # http network Android implementation:
     set(OLP_SDK_HTTP_ANDROID_SOURCES
@@ -314,6 +320,8 @@ endif()
 
 if (IOS)
     set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_IOS_SOURCES})
+    set(OLP_SDK_PLATFORM_HEADERS ${OLP_SDK_PLATFORM_HEADERS} ${OLP_SDK_PLATFORM_IOS_HEADERS})
+    set(OLP_SDK_PLATFORM_SOURCES ${OLP_SDK_PLATFORM_SOURCES} ${OLP_SDK_PLATFORM_IOS_SOURCES})
 
     set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_IOS)
 endif()
@@ -327,10 +335,6 @@ if (WIN32)
         set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_WINHTTP)
     endif()
 endif()
-
-set(OLP_SDK_PLATFORM_SOURCES
-    ./src/context/Context.cpp
-)
 
 set(OLP_SDK_UTILS_SOURCES
     ./src/utils/Base64.cpp

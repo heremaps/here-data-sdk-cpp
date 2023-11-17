@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2022 HERE Europe B.V.
+# Copyright (C) 2019-2023 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./client/OlpClientTest.cpp
     ./client/PendingUrlRequestsTest.cpp
     ./client/TaskContextTest.cpp
+
+    ./context/ContextTest.cpp
 
     ./geo/coordinates/GeoCoordinates3dTest.cpp
     ./geo/coordinates/GeoCoordinatesTest.cpp
