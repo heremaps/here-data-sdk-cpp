@@ -19,6 +19,9 @@
 
 #pragma once
 
+#include <string>
+#include <utility>
+
 #include <gmock/gmock.h>
 
 #include <olp/core/http/NetworkConstants.h>
@@ -91,6 +94,16 @@ MATCHER_P(BodyEq, expected_body, "") {
 }
 
 MATCHER_P(HeadersContain, expected_header, "") {
+  const auto& headers = arg.GetHeaders();
+  return std::find(headers.begin(), headers.end(), expected_header) !=
+         headers.end();
+}
+
+MATCHER_P(HeadersContainOptional, expected_optional, "") {
+  if (!expected_optional.has_value()) {
+    return true;
+  }
+  const auto& expected_header = expected_optional.value();
   const auto& headers = arg.GetHeaders();
   return std::find(headers.begin(), headers.end(), expected_header) !=
          headers.end();

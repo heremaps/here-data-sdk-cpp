@@ -32,9 +32,12 @@ TEST(AsyncJsonStreamTest, NormalFlow) {
 
   stream.AppendContent("123", 3);
 
+  EXPECT_EQ(current_stream->Tell(), 0u);
   EXPECT_EQ(current_stream->Peek(), '1');
+  EXPECT_EQ(current_stream->Tell(), 0u);
   EXPECT_EQ(current_stream->Take(), '1');
   EXPECT_EQ(current_stream->Take(), '2');
+  EXPECT_EQ(current_stream->Tell(), 2u);
   EXPECT_EQ(current_stream->Take(), '3');
 
   stream.ResetStream("234", 3);
@@ -65,6 +68,16 @@ TEST(AsyncJsonStreamTest, NormalFlow) {
   auto error = stream.GetError();
   EXPECT_TRUE(error &&
               error->GetErrorCode() == olp::client::ErrorCode::Cancelled);
+
+  stream.CloseStream(olp::client::ApiError::NetworkConnection());
+  EXPECT_TRUE(stream.GetError()->GetErrorCode() ==
+              olp::client::ErrorCode::Cancelled);
+
+  EXPECT_TRUE(new_current_stream->Empty());
+  stream.AppendContent("17", 2);
+  EXPECT_TRUE(new_current_stream->Empty());
+  stream.ResetStream("4", 1);
+  EXPECT_TRUE(new_current_stream->Empty());
 }
 
 }  // namespace

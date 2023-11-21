@@ -21,6 +21,10 @@
 
 #include <chrono>
 #include <future>
+#include <memory>
+#include <string>
+#include <tuple>
+#include <utility>
 
 #include <gmock/gmock.h>
 #include <olp/core/http/Network.h>
@@ -105,6 +109,25 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
 NetworkCallback ReturnHttpResponse(
     olp::http::NetworkResponse response, const std::string& response_body,
     const olp::http::Headers& headers = {},
+    std::chrono::nanoseconds delay = std::chrono::milliseconds(50),
+    olp::http::RequestId request_id = 5);
+
+/**
+ * @brief Helper function creates Network::Send mock function that returns a
+ * specified response, body, headers after specified delay from a different
+ * thread.
+ *
+ * @param response Network response.
+ * @param response_body Response payload.
+ * @param offset Payload offset (optional).
+ * @param headers Response headers (optional).
+ * @param delay Response delay (optional).
+ *
+ * @return A function that mimics Network::Send method.
+ */
+NetworkCallback ReturnHttpResponseWithDataCallback(
+    olp::http::NetworkResponse response, const std::string& response_body,
+    std::uint64_t offset = 0, const olp::http::Headers& headers = {},
     std::chrono::nanoseconds delay = std::chrono::milliseconds(50),
     olp::http::RequestId request_id = 5);
 
