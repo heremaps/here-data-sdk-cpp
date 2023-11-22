@@ -632,8 +632,8 @@ client::ApiNoResponse PartitionsRepository::ParsePartitionsStream(
     client::CancellationContext context) {
   rapidjson::ParseResult parse_result;
 
-  // Retry to parse the stream until it's closed.
-  while (!async_stream->IsClosed()) {
+  // We must perform at least one attempt to parse.
+  do {
     rapidjson::Reader reader;
     auto partitions_handler =
         std::make_shared<repository::PartitionsSaxHandler>(partition_callback);
@@ -650,15 +650,18 @@ client::ApiNoResponse PartitionsRepository::ParsePartitionsStream(
 
     parse_result = reader.Parse<rapidjson::kParseIterativeFlag>(
         *json_stream, *partitions_handler);
-  }
-
-  if (!parse_result) {
-    return client::ApiError(parse_result.Code(), "Parsing error");
-  }
+    // Retry to parse the stream until it's closed.
+  } while (!async_stream->IsClosed());
 
   auto error = async_stream->GetError();
 
-  return error ? client::ApiNoResponse(*error) : client::ApiNoResult{};
+  if (error) {
+    return client::ApiNoResponse(*error);
+  } else if (!parse_result) {
+    return client::ApiError(parse_result.Code(), "Parsing error");
+  } else {
+    return client::ApiNoResult{};
+  }
 }
 
 void PartitionsRepository::StreamPartitions(
