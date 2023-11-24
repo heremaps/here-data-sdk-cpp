@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,6 +98,7 @@ constexpr auto kLogTag = "OLPHttpTask";
   @synchronized(self) {
     if (!self.isCancelled) {
       _dataTask = [_urlSession dataTaskWithRequest:request];
+      _dataTask.taskDescription = [self createTaskDescription];
     }
   }
 
@@ -224,6 +225,10 @@ constexpr auto kLogTag = "OLPHttpTask";
   if (dataHandler) {
     dataHandler(data);
   }
+}
+
+- (NSString*) createTaskDescription {
+  return [NSString stringWithFormat:@"%llu", self.requestId];
 }
 
 #pragma mark - Inquiry methods
