@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -127,10 +127,10 @@ constexpr auto kLogTag = "OLPHttpClient";
   return task;
 }
 
-- (OLPHttpTask*)taskWithTaskIdentifier:(NSUInteger)taskId {
+- (OLPHttpTask*)taskWithTaskDescription:(NSString*)taskDescription {
   OLPHttpTask* task = nil;
   @synchronized(_tasks) {
-    task = self.idTaskMap[@(taskId)];
+    task = [self.idTaskMap objectForKey:taskDescription];
   }
   return task;
 }
@@ -154,7 +154,7 @@ constexpr auto kLogTag = "OLPHttpClient";
     OLPHttpTask* task = _tasks[@(identifier)];
     if (task.dataTask) {
       [task.dataTask cancel];
-      [self.idTaskMap removeObjectForKey:@(task.dataTask.taskIdentifier)];
+      [self.idTaskMap removeObjectForKey:[task createTaskDescription]];
     }
     [_tasks removeObjectForKey:@(identifier)];
     [self.urlSessions removeObjectForKey:@(identifier)];
@@ -176,7 +176,7 @@ constexpr auto kLogTag = "OLPHttpClient";
   }
 
   @autoreleasepool {
-    OLPHttpTask* httpTask = [self taskWithTaskIdentifier:task.taskIdentifier];
+    OLPHttpTask* httpTask = [self taskWithTaskDescription:task.taskDescription];
     if ([httpTask isValid]) {
       [httpTask didCompleteWithError:error];
       [self removeTaskWithId:httpTask.requestId];
@@ -207,7 +207,7 @@ constexpr auto kLogTag = "OLPHttpClient";
 
   @autoreleasepool {
     OLPHttpTask* httpTask =
-        [self taskWithTaskIdentifier:dataTask.taskIdentifier];
+        [self taskWithTaskDescription:dataTask.taskDescription];
     if ([httpTask isValid] && ![httpTask isCancelled]) {
       [httpTask didReceiveResponse:response];
     } else {
@@ -236,7 +236,7 @@ constexpr auto kLogTag = "OLPHttpClient";
 
   @autoreleasepool {
     OLPHttpTask* httpTask =
-        [self taskWithTaskIdentifier:dataTask.taskIdentifier];
+        [self taskWithTaskDescription:dataTask.taskDescription];
     if ([httpTask isValid] && ![httpTask isCancelled]) {
       [httpTask didReceiveData:data];
     } else {
@@ -267,7 +267,7 @@ constexpr auto kLogTag = "OLPHttpClient";
             isEqualToString:NSURLAuthenticationMethodServerTrust]) {
       if (dataTask) {
         OLPHttpTask* httpTask =
-            [self taskWithTaskIdentifier:dataTask.taskIdentifier];
+            [self taskWithTaskDescription:dataTask.taskDescription];
         if (![httpTask isValid]) {
           return;
         }
@@ -429,9 +429,9 @@ constexpr auto kLogTag = "OLPHttpClient";
 
 - (void)registerDataTask:(NSURLSessionDataTask*)dataTask
              forHttpTask:(OLPHttpTask*)httpTask {
-  NSNumber* identifier = @(dataTask.taskIdentifier);
+  NSString* identifier = dataTask.taskDescription;
   @synchronized(_tasks) {
-    self.idTaskMap[identifier] = httpTask;
+    [self.idTaskMap setValue:httpTask forKey:identifier];
   }
 }
 
