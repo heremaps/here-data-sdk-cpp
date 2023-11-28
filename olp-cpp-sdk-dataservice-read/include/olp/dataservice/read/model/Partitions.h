@@ -82,8 +82,8 @@ class DATASERVICE_READ_API Partition {
    *
    * @param value The partition checksum.
    */
-  void SetChecksum(const boost::optional<std::string>& value) {
-    this->checksum_ = value;
+  void SetChecksum(boost::optional<std::string> value) {
+    this->checksum_ = std::move(value);
   }
 
   /**
@@ -120,7 +120,7 @@ class DATASERVICE_READ_API Partition {
    *
    * @param value The compressed size of the partition data.
    */
-  void SetCompressedDataSize(const boost::optional<int64_t>& value) {
+  void SetCompressedDataSize(boost::optional<int64_t> value) {
     this->compressed_data_size_ = value;
   }
 
@@ -151,7 +151,9 @@ class DATASERVICE_READ_API Partition {
    *
    * @param value The partition data handle.
    */
-  void SetDataHandle(const std::string& value) { this->data_handle_ = value; }
+  void SetDataHandle(std::string value) {
+    this->data_handle_ = std::move(value);
+  }
 
   /**
    * @brief (Optional) Gets the uncompressed size of the partition data in
@@ -184,9 +186,7 @@ class DATASERVICE_READ_API Partition {
    *
    * @param value The uncompressed size of the partition data.
    */
-  void SetDataSize(const boost::optional<int64_t>& value) {
-    this->data_size_ = value;
-  }
+  void SetDataSize(boost::optional<int64_t> value) { this->data_size_ = value; }
 
   /**
    * Optional value for the CRC of the partition data in bytes.
@@ -243,7 +243,7 @@ class DATASERVICE_READ_API Partition {
    *
    * @param value The partition key.
    */
-  void SetPartition(const std::string& value) { this->partition_ = value; }
+  void SetPartition(std::string value) { this->partition_ = std::move(value); }
 
   /**
    * @brief (Optional) Gets the version of the catalog when this partition was
@@ -274,9 +274,7 @@ class DATASERVICE_READ_API Partition {
    * @param value The version of the catalog when this partition was last
    * changed.
    */
-  void SetVersion(const boost::optional<int64_t>& value) {
-    this->version_ = value;
-  }
+  void SetVersion(boost::optional<int64_t> value) { this->version_ = value; }
 };
 
 /**
@@ -313,8 +311,8 @@ class Partitions {
    *
    * @param value The list of partitions for the given layer and layer version.
    */
-  void SetPartitions(const std::vector<Partition>& value) {
-    this->partitions_ = value;
+  void SetPartitions(std::vector<Partition> value) {
+    this->partitions_ = std::move(value);
   }
 };
 

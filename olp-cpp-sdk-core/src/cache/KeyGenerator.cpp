@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 HERE Europe B.V.
+ * Copyright (C) 2021-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,12 @@
 
 namespace olp {
 namespace cache {
+namespace {
+const std::string kColons = "::";
+const std::string kDataSuffix = "Data";
+const std::string kPartitionSuffix = "partition";
+}  // namespace
+
 std::string KeyGenerator::CreateApiKey(const std::string& hrn,
                                        const std::string& service,
                                        const std::string& version) {
@@ -38,8 +44,27 @@ std::string KeyGenerator::CreateLatestVersionKey(const std::string& hrn) {
 std::string KeyGenerator::CreatePartitionKey(
     const std::string& hrn, const std::string& layer_id,
     const std::string& partition_id, const boost::optional<int64_t>& version) {
-  return hrn + "::" + layer_id + "::" + partition_id +
-         "::" + (version ? std::to_string(*version) + "::" : "") + "partition";
+  // Key format: hrn::layer_id::partition_id::[version::]partition
+
+  std::string version_str =
+      version ? std::to_string(*version) + kColons : std::string();
+
+  std::string result;
+  result.reserve(hrn.size() + layer_id.size() + partition_id.size() +
+                 version_str.size() + kPartitionSuffix.size() +
+                 3 * kColons.size());
+
+  result.append(hrn);
+  result.append(kColons);
+  result.append(layer_id);
+  result.append(kColons);
+  result.append(partition_id);
+  result.append(kColons);
+  result.append(version_str);
+  // No need to append colons here, since they are already in version_str.
+  result.append(kPartitionSuffix);
+
+  return result;
 }
 
 std::string KeyGenerator::CreatePartitionsKey(
@@ -65,7 +90,21 @@ std::string KeyGenerator::CreateQuadTreeKey(
 std::string KeyGenerator::CreateDataHandleKey(const std::string& hrn,
                                               const std::string& layer_id,
                                               const std::string& data_handle) {
-  return hrn + "::" + layer_id + "::" + data_handle + "::Data";
+  // Key format: hrn::layer_id::data_handle::Data
+
+  std::string result;
+  result.reserve(hrn.size() + layer_id.size() + data_handle.size() +
+                 kDataSuffix.size() + 3 * kColons.size());
+
+  result.append(hrn);
+  result.append(kColons);
+  result.append(layer_id);
+  result.append(kColons);
+  result.append(data_handle);
+  result.append(kColons);
+  result.append(kDataSuffix);
+
+  return result;
 }
 
 }  // namespace cache

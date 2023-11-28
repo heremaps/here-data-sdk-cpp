@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2022 HERE Europe B.V.
+ * Copyright (C) 2020-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,12 +132,12 @@ boost::optional<client::ApiError> NamedMutexStorage::GetError(
   return impl_->GetError(resource);
 }
 
-NamedMutex::NamedMutex(NamedMutexStorage& storage, const std::string& name,
+NamedMutex::NamedMutex(NamedMutexStorage& storage, std::string name,
                        client::CancellationContext& context)
     : storage_{storage},
       context_{context},
       is_locked_{false},
-      name_{name},
+      name_{std::move(name)},
       mutex_{storage_.AcquireLock(name_)},
       lock_condition_{storage_.GetLockCondition(name_)},
       lock_mutex_{storage_.GetLockMutex(name_)},

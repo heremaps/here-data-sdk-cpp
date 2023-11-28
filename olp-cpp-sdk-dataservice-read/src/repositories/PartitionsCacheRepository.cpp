@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,10 +95,10 @@ client::ApiNoResponse PartitionsCacheRepository::Put(
         cache::KeyGenerator::CreatePartitionsKey(catalog_, layer_id_, version);
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
-    const auto put_result = cache_->Put(
-        key, partition_ids,
-        [&]() { return serializer::serialize(partition_ids); },
-        expiry.get_value_or(default_expiry_));
+    const auto put_result =
+        cache_->Put(key, partition_ids,
+                    [&]() { return serializer::serialize(partition_ids); },
+                    expiry.get_value_or(default_expiry_));
 
     if (!put_result) {
       OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to write -> '%s'", key.c_str());
@@ -128,7 +128,7 @@ model::Partitions PartitionsCacheRepository::Get(
 
     if (!cached_partition.empty()) {
       cached_partitions.emplace_back(
-          boost::any_cast<model::Partition>(cached_partition));
+          std::move(boost::any_cast<model::Partition&&>(cached_partition)));
     }
   }
 
@@ -175,9 +175,9 @@ void PartitionsCacheRepository::Put(
       cache::KeyGenerator::CreateLayerVersionsKey(catalog_, catalog_version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
-  cache_->Put(
-      key, layer_versions,
-      [&]() { return serializer::serialize(layer_versions); }, default_expiry_);
+  cache_->Put(key, layer_versions,
+              [&]() { return serializer::serialize(layer_versions); },
+              default_expiry_);
 }
 
 boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
@@ -195,7 +195,8 @@ boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
     return boost::none;
   }
 
-  return boost::any_cast<model::LayerVersions>(cached_layer_versions);
+  return std::move(
+      boost::any_cast<model::LayerVersions&&>(cached_layer_versions));
 }
 
 client::ApiNoResponse PartitionsCacheRepository::Put(
@@ -284,7 +285,8 @@ bool PartitionsCacheRepository::ClearPartitionMetadata(
     return true;
   }
 
-  out_partition = boost::any_cast<model::Partition>(cached_partition);
+  out_partition =
+      std::move(boost::any_cast<model::Partition&&>(cached_partition));
   return cache_->RemoveKeysWithPrefix(key);
 }
 
@@ -295,6 +297,7 @@ bool PartitionsCacheRepository::GetPartitionHandle(
       catalog_, layer_id_, partition_id, catalog_version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "IsPartitionCached -> '%s'", key.c_str());
 
+  // Memory cache may save whole boost::any so sometimes there are no parsing
   auto cached_partition =
       cache_->Get(key, [](const std::string& serialized_object) {
         return parser::parse<model::Partition>(serialized_object);
@@ -303,8 +306,8 @@ bool PartitionsCacheRepository::GetPartitionHandle(
   if (cached_partition.empty()) {
     return false;
   }
-  auto partition = boost::any_cast<model::Partition>(cached_partition);
-  data_handle = partition.GetDataHandle();
+  auto& partition = boost::any_cast<model::Partition&>(cached_partition);
+  data_handle = std::move(partition.GetMutableDataHandle());
   return true;
 }
 
