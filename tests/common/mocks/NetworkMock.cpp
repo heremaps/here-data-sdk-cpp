@@ -132,3 +132,30 @@ NetworkCallback ReturnHttpResponse(http::NetworkResponse response,
     return http::SendOutcome(request_id);
   };
 }
+
+NetworkCallback ReturnHttpResponseWithDataCallback(
+    olp::http::NetworkResponse response, const std::string& response_body,
+    std::uint64_t offset, const olp::http::Headers& headers,
+    std::chrono::nanoseconds delay, olp::http::RequestId request_id) {
+  response.WithRequestId(request_id);
+  return [=](http::NetworkRequest, http::Network::Payload,
+             http::Network::Callback callback,
+             http::Network::HeaderCallback header_callback,
+             http::Network::DataCallback data_callback) mutable {
+    std::thread([=]() {
+      std::this_thread::sleep_for(delay);
+
+      for (const auto& header : headers) {
+        header_callback(header.first, header.second);
+      }
+
+      data_callback(
+          reinterpret_cast<const unsigned char*>(response_body.c_str()), offset,
+          response_body.length());
+      callback(response);
+    })
+        .detach();
+
+    return http::SendOutcome(request_id);
+  };
+}

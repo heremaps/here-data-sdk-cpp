@@ -19,6 +19,10 @@
 
 #include "repositories/PartitionsRepository.h"
 
+#include <chrono>
+#include <future>
+#include <thread>
+
 #include <gmock/gmock.h>
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/CacheMock.h>
@@ -1502,4 +1506,407 @@ TEST_F(PartitionsRepositoryTest, GetTile) {
     testing::Mock::VerifyAndClearExpectations(mock_cache.get());
   }
 }
+
+TEST_F(PartitionsRepositoryTest, GetVersionedPartitionsBatch) {
+  using testing::Return;
+  using PartitionIds = read::PartitionsRequest::PartitionIds;
+
+  auto mock_network = std::make_shared<NetworkMock>();
+  const auto catalog = HRN::FromString(kCatalog);
+  const size_t kQueryRequestLimit = 100;
+
+  const auto appendVersion = [&](std::string input,
+                                 int version) -> std::string {
+    input.append(R"(&version=)" + std::to_string(version));
+    return input;
+  };
+
+  const auto appendPartitions =
+      [&](std::string input, const PartitionIds& partitions) -> std::string {
+    if (partitions.empty()) {
+      return input;
+    }
+
+    input.append("?partition=" + partitions.front());
+    if (partitions.size() == 1) {
+      return input;
+    }
+
+    std::for_each(partitions.cbegin() + 1, partitions.cend(),
+                  [&](const std::string& partition) {
+                    input.append("&partition=");
+                    input.append(partition);
+                  });
+
+    return input;
+  };
+
+  const auto createBatchedUrls = [&](const PartitionIds& partitions) {
+    std::vector<std::string> urls;
+
+    for (size_t i = 0; i < partitions.size(); i += kQueryRequestLimit) {
+      urls.push_back(appendVersion(
+          appendPartitions(
+              kOlpSdkUrlPartitionByIdBase,
+              {partitions.begin() + i,
+               partitions.begin() +
+                   std::min(partitions.size(), i + kQueryRequestLimit)}),
+          kVersion));
+    }
+
+    return urls;
+  };
+
+  {
+    SCOPED_TRACE("Successful fetch from network with a list of partitions");
+
+    OlpClientSettings settings;
+    settings.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
+    settings.network_request_handler = mock_network;
+    settings.retry_settings.timeout = 1;
+
+    EXPECT_CALL(*mock_network,
+                Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kOlpSdkHttpResponseLookupQuery));
+
+    const PartitionIds partitions{110, kPartitionId};
+    const auto batchedUrls = createBatchedUrls(partitions);
+
+    for (const std::string& url : batchedUrls) {
+      EXPECT_CALL(*mock_network, Send(IsGetRequest(url), _, _, _, _))
+          .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                           olp::http::HttpStatusCode::OK),
+                                       kOlpSdkHttpResponsePartitionById));
+    }
+
+    client::CancellationContext context;
+    ApiLookupClient lookup_client(catalog, settings);
+    repository::PartitionsRepository repository(catalog, kVersionedLayerId,
+                                                settings, lookup_client);
+    read::PartitionsRequest request;
+    request.WithPartitionIds(partitions);
+
+    auto response = repository.GetVersionedPartitionsExtendedResponse(
+        request, kVersion, context);
+
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    EXPECT_EQ(response.GetResult().GetPartitions().size(), batchedUrls.size());
+  }
+  {
+    SCOPED_TRACE("Failed fetch from network with a list of partitions");
+
+    OlpClientSettings settings;
+    settings.cache = client::OlpClientSettingsFactory::CreateDefaultCache({});
+    settings.network_request_handler = mock_network;
+    settings.retry_settings.timeout = 1;
+
+    EXPECT_CALL(*mock_network,
+                Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kOlpSdkHttpResponseLookupQuery));
+
+    const PartitionIds partitions{110, kPartitionId};
+    const auto batchedUrls = createBatchedUrls(partitions);
+    ASSERT_GT(batchedUrls.size(), 1);
+
+    std::for_each(
+        batchedUrls.cbegin(), batchedUrls.cend() - 1,
+        [&](const std::string& url) {
+          EXPECT_CALL(*mock_network, Send(IsGetRequest(url), _, _, _, _))
+              .WillOnce(
+                  ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kOlpSdkHttpResponsePartitionById));
+        });
+
+    EXPECT_CALL(*mock_network,
+                Send(IsGetRequest(batchedUrls.back()), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::BAD_REQUEST),
+                               kOlpSdkHttpResponsePartitionById));
+
+    client::CancellationContext context;
+    ApiLookupClient lookup_client(catalog, settings);
+    repository::PartitionsRepository repository(catalog, kVersionedLayerId,
+                                                settings, lookup_client);
+    read::PartitionsRequest request;
+    request.WithPartitionIds(partitions);
+
+    auto response = repository.GetVersionedPartitionsExtendedResponse(
+        request, kVersion, context);
+
+    ASSERT_FALSE(response.IsSuccessful());
+    EXPECT_TRUE(response.GetResult().GetPartitions().empty());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::BadRequest);
+  }
+}
+
+TEST_F(PartitionsRepositoryTest, ParsePartitionsStream) {
+  const auto kTimeout = std::chrono::seconds(5);
+  const auto catalog = HRN::FromString(kCatalog);
+  const std::string parsing_error_msg{"Parsing error"};
+
+  OlpClientSettings settings;
+  client::CancellationContext context;
+  ApiLookupClient lookup_client(catalog, settings);
+  repository::PartitionsRepository repository(catalog, kVersionedLayerId,
+                                              settings, lookup_client);
+
+  {
+    SCOPED_TRACE("Closed empty input stream");
+
+    auto async_stream = std::make_shared<repository::AsyncJsonStream>();
+    async_stream->CloseStream(boost::none);
+
+    const auto response =
+        repository.ParsePartitionsStream(async_stream, {}, context);
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::Unknown);
+    EXPECT_STREQ(parsing_error_msg.c_str(),
+                 response.GetError().GetMessage().c_str());
+  }
+
+  {
+    SCOPED_TRACE("Closed with error empty input stream");
+
+    auto async_stream = std::make_shared<repository::AsyncJsonStream>();
+    async_stream->CloseStream(olp::client::ApiError::PreconditionFailed());
+
+    const auto response =
+        repository.ParsePartitionsStream(async_stream, {}, context);
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::PreconditionFailed);
+  }
+
+  {
+    SCOPED_TRACE("Closed with error not empty input stream");
+
+    const std::string to_parse = "{}";
+    auto async_stream = std::make_shared<repository::AsyncJsonStream>();
+    async_stream->AppendContent(to_parse.c_str(), to_parse.length());
+    async_stream->CloseStream(olp::client::ApiError::InvalidArgument());
+
+    const auto response =
+        repository.ParsePartitionsStream(async_stream, {}, context);
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::InvalidArgument);
+  }
+
+  {
+    SCOPED_TRACE("Cancel context");
+
+    auto async_stream = std::make_shared<repository::AsyncJsonStream>();
+    client::ApiNoResponse response;
+    client::CancellationContext context_to_cancel;
+
+    std::future<void> parsing_future = std::async(std::launch::async, [&]() {
+      response =
+          repository.ParsePartitionsStream(async_stream, {}, context_to_cancel);
+    });
+
+    context_to_cancel.CancelOperation();
+
+    EXPECT_EQ(parsing_future.wait_for(kTimeout), std::future_status::ready);
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::Cancelled);
+
+    // prevent stuck if the cancelation failed
+    async_stream->CloseStream(boost::none);
+  }
+
+  {
+    SCOPED_TRACE("Minimal valid input. No callback");
+
+    const std::string to_parse = "{\"partitions\":[]}";
+    auto async_stream = std::make_shared<repository::AsyncJsonStream>();
+    async_stream->AppendContent(to_parse.c_str(), to_parse.length());
+    async_stream->CloseStream(boost::none);
+
+    size_t callback_counter{0u};
+    const auto callback = [&](model::Partition) -> void { ++callback_counter; };
+
+    const auto response =
+        repository.ParsePartitionsStream(async_stream, callback, context);
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_EQ(0u, callback_counter);
+  }
+
+  {
+    SCOPED_TRACE("Callback");
+
+    const std::string to_parse =
+        R"({"partitions":[{"version":731,"partition":"just-a-random-value","dataHandle":"another-value-to-check"}]})";
+    auto async_stream = std::make_shared<repository::AsyncJsonStream>();
+    async_stream->AppendContent(to_parse.c_str(), to_parse.length());
+    async_stream->CloseStream(boost::none);
+
+    std::vector<model::Partition> recieved_partitions;
+    const auto callback = [&](model::Partition partition) -> void {
+      recieved_partitions.push_back(partition);
+    };
+
+    const auto response =
+        repository.ParsePartitionsStream(async_stream, callback, context);
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_EQ(1, recieved_partitions.size());
+
+    const auto& partition = recieved_partitions.front();
+    EXPECT_EQ(731, partition.GetVersion().value_or(-1));
+    EXPECT_STREQ("just-a-random-value", partition.GetPartition().c_str());
+    EXPECT_STREQ("another-value-to-check", partition.GetDataHandle().c_str());
+  }
+}
+
+TEST_F(PartitionsRepositoryTest, StreamPartitions) {
+  using testing::Eq;
+  using testing::Mock;
+  using testing::Return;
+
+  const auto catalog = HRN::FromString(kCatalog);
+  const std::string cacheKeyMetadata = kCatalog + "::metadata::v1::api";
+
+  auto cache = std::make_shared<testing::StrictMock<CacheMock>>();
+  auto network = std::make_shared<testing::StrictMock<NetworkMock>>();
+
+  OlpClientSettings settings;
+  settings.cache = cache;
+  settings.network_request_handler = network;
+  settings.retry_settings.timeout = 1;
+
+  ApiLookupClient lookup_client(catalog, settings);
+  repository::PartitionsRepository repository(catalog, kVersionedLayerId,
+                                              settings, lookup_client);
+
+  const std::vector<std::string> additional_fields;
+  boost::optional<std::string> billing_tag;
+
+  {
+    SCOPED_TRACE("Failed to get metadata");
+
+    auto async_stream = std::make_shared<repository::AsyncJsonStream>();
+    client::CancellationContext context;
+
+    EXPECT_CALL(*cache, Get(_, _)).WillOnce(Return(boost::any()));
+    EXPECT_CALL(*network, Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::UNAUTHORIZED),
+                               "Inappropriate"));
+
+    repository.StreamPartitions(async_stream, kVersion, additional_fields,
+                                billing_tag, context);
+
+    EXPECT_TRUE(async_stream->IsClosed());
+    EXPECT_EQ(async_stream->GetError()->GetErrorCode(),
+              olp::client::ErrorCode::AccessDenied);
+  }
+
+  {
+    SCOPED_TRACE("Failed to get partitions stream");
+
+    const std::string erroneousResponseLookupMetadata =
+        R"jsonString([{"api":"metadata","version":"v1","baseURL":"erroneous-base-url","parameters":{}}])jsonString";
+    auto async_stream = std::make_shared<repository::AsyncJsonStream>();
+    client::CancellationContext context;
+
+    EXPECT_CALL(*cache, Get(_, _)).WillOnce(Return(boost::any()));
+    EXPECT_CALL(*network, Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     erroneousResponseLookupMetadata));
+    EXPECT_CALL(*cache, Put(Eq(cacheKeyMetadata), _, _, _))
+        .WillOnce(Return(true));
+
+    repository.StreamPartitions(async_stream, kVersion, additional_fields,
+                                billing_tag, context);
+
+    EXPECT_TRUE(async_stream->IsClosed());
+    EXPECT_EQ(async_stream->GetError()->GetErrorCode(),
+              olp::client::ErrorCode::ServiceUnavailable);
+  }
+
+  {
+    SCOPED_TRACE("Data is in the stream");
+
+    const auto get_stream_content =
+        [&](const repository::AsyncJsonStream& async_stream) -> std::string {
+      std::string result;
+      auto stream = async_stream.GetCurrentStream();
+      while (!stream->Empty()) {
+        result += stream->Take();
+      }
+      return result;
+    };
+
+    auto cache = std::make_shared<testing::StrictMock<CacheMock>>();
+    auto network = std::make_shared<testing::StrictMock<NetworkMock>>();
+
+    OlpClientSettings settings;
+    settings.cache = cache;
+    settings.network_request_handler = network;
+    settings.retry_settings.timeout = 1;
+
+    ApiLookupClient lookup_client(catalog, settings);
+    repository::PartitionsRepository repository(catalog, kVersionedLayerId,
+                                                settings, lookup_client);
+
+    auto async_stream = std::make_shared<repository::AsyncJsonStream>();
+    client::CancellationContext context;
+
+    EXPECT_CALL(*cache, Get(_, _)).WillOnce(Return(boost::any()));
+    EXPECT_CALL(*network, Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kOlpSdkHttpResponseLookupMetadata2));
+    EXPECT_CALL(*cache, Put(Eq(cacheKeyMetadata), _, _, _))
+        .WillOnce(Return(true));
+
+    const std::string ref_stream_data{"just a random value to verify"};
+    const std::string initial_value{"initial value;"};
+
+    EXPECT_CALL(*network,
+                Send(IsGetRequest(kOlpSdkUrlVersionedPartitions), _, _, _, _))
+        .WillOnce(ReturnHttpResponseWithDataCallback(
+            olp::http::NetworkResponse().WithStatus(
+                olp::http::HttpStatusCode::OK),
+            ref_stream_data, 0))
+        .WillOnce(ReturnHttpResponseWithDataCallback(
+            olp::http::NetworkResponse().WithStatus(
+                olp::http::HttpStatusCode::OK),
+            ref_stream_data, 10));
+
+    repository.StreamPartitions(async_stream, kVersion, additional_fields,
+                                billing_tag, context);
+    EXPECT_TRUE(async_stream->IsClosed());
+    EXPECT_FALSE(async_stream->GetError().has_value());
+    EXPECT_STREQ(ref_stream_data.c_str(),
+                 get_stream_content(*async_stream).c_str());
+
+    {
+      SCOPED_TRACE("Data with offset is in the stream");
+
+      auto second_stream = std::make_shared<repository::AsyncJsonStream>();
+      second_stream->AppendContent(initial_value.c_str(),
+                                   initial_value.length());
+
+      repository.StreamPartitions(second_stream, kVersion, additional_fields,
+                                  billing_tag, context);
+
+      EXPECT_TRUE(second_stream->IsClosed());
+      EXPECT_FALSE(second_stream->GetError().has_value());
+      EXPECT_STREQ((initial_value + ref_stream_data).c_str(),
+                   get_stream_content(*second_stream).c_str());
+    }
+  }
+}
+
 }  // namespace
