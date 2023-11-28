@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@
 #include <string>
 #include <vector>
 
-#include <boost/optional.hpp>
 #include <rapidjson/rapidjson.h>
+#include <boost/optional.hpp>
 
 namespace olp {
 namespace parser {
@@ -80,7 +80,7 @@ inline void from_json(const rapidjson::Value& value, std::vector<T>& results) {
        itr != value.End(); ++itr) {
     T result;
     from_json(*itr, result);
-    results.push_back(result);
+    results.emplace_back(std::move(result));
   }
 }
 

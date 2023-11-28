@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ class DataCacheRepository final {
   bool Clear(const std::string& layer_id, const std::string& data_handle);
 
  private:
-  client::HRN hrn_;
+  const std::string hrn_;
   std::shared_ptr<cache::KeyValueCache> cache_;
   time_t default_expiry_;
 };

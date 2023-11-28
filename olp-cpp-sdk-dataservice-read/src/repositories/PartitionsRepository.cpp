@@ -336,20 +336,15 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
   }
 
   auto fetch_option = request.GetFetchOption();
+  const auto key = request.CreateKey(layer_id_, version);
 
-  const auto request_key =
-      catalog_.ToString() + request.CreateKey(layer_id_, version);
-
-  NamedMutex mutex(storage_, request_key, context);
+  NamedMutex mutex(storage_, catalog_.ToString() + key, context);
   std::unique_lock<repository::NamedMutex> lock(mutex, std::defer_lock);
 
   // If we are not planning to go online or access the cache, do not lock.
   if (fetch_option != CacheOnly && fetch_option != OnlineOnly) {
     lock.lock();
   }
-
-  std::chrono::seconds timeout{settings_.retry_settings.timeout};
-  const auto key = request.CreateKey(layer_id_, version);
 
   const std::vector<std::string> partitions{partition_id.value()};
 
