@@ -49,7 +49,9 @@
 #endif
 #endif
 
-#if CURL_AT_LEAST_VERSION(7, 71, 0)
+// CURLOPT_CAINFO_BLOB has become available only in curl-7.77
+// cf. https://curl.se/libcurl/c/CURLOPT_CAINFO_BLOB.html,
+#if CURL_AT_LEAST_VERSION(7, 77, 0)
 #define OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
 #endif
 
