@@ -28,7 +28,16 @@ if(IOS)
         "${CMAKE_CURRENT_LIST_DIR}/../src/http/ios/OLPHttpClient.h"
     )
 
+    set(OLP_SDK_PLATFORM_IOS_HEADERS
+        "${CMAKE_CURRENT_LIST_DIR}/../include/olp/core/context/EnterBackgroundSubscriber.h"
+    )
+    set(OLP_SDK_PLATFORM_IOS_SOURCES
+        "${CMAKE_CURRENT_LIST_DIR}/../src/context/ios/ContextInternal.mm"
+    )
+
     add_definitions(-DOLP_SDK_NETWORK_HAS_IOS)
 else()
+    set(OLP_SDK_PLATFORM_IOS_HEADERS)
+    set(OLP_SDK_PLATFORM_IOS_SOURCES)
     set(OLP_SDK_HTTP_IOS_SOURCES)
 endif()

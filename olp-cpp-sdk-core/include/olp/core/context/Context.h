@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -170,7 +170,39 @@ class CORE_API Context {
    * @return The `android.content.Context` instance.
    */
   static jobject getAndroidContext();
-#endif
+#elif defined(__APPLE__)
+  /**
+   * @brief Inform subscribers to enter background mode.
+   *
+   * @note Use it only after you initialize the `Context` class.
+   */
+  static void EnterBackground();
+
+  /**
+   * @brief Inform subscribers to exit background mode.
+   *
+   * @note Use it only after you initialize the `Context` class.
+   */
+  static void ExitBackground();
+
+  /**
+   * @brief Store background sessions completion handler to call it
+   * when the session is done. Received from the OS by the application delegate.
+   * See iOS downloading files in the background documentation for more details.
+   *
+   * @param session_name Name of the background session to store completion
+   * handler for.
+   * @param completion_handler A completion handler recieved from iOS
+   * by the application delegate to be called when the background activity
+   * related to a session is done.
+   *
+   * @note Use it only after you initialize the `Context` class.
+   */
+  static void StoreBackgroundSessionCompletionHandler(
+      const std::string& session_name,
+      std::function<void(void)> completion_handler);
+
+#endif  // __APPLE__
 };
 
 }  // namespace context
