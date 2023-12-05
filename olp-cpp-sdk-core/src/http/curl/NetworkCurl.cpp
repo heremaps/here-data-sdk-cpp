@@ -301,7 +301,7 @@ NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
 #else
   OLP_SDK_LOG_INFO_F(
       kLogTag,
-      "CURL does not support SSL info with blobs, required 7.71.0, detected %s",
+      "CURL does not support SSL info with blobs, required 7.77.0, detected %s",
       LIBCURL_VERSION);
 #endif
 }
