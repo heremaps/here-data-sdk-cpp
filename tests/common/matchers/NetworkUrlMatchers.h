@@ -100,7 +100,7 @@ MATCHER_P(HeadersContain, expected_header, "") {
 }
 
 MATCHER_P(HeadersContainOptional, expected_optional, "") {
-  if (!expected_optional.has_value()) {
+  if (!expected_optional) {
     return true;
   }
   const auto& expected_header = expected_optional.value();
