@@ -32,3 +32,8 @@ SpaceInEmptyParentheses: false
 SpacesInAngles: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
+
+---
+Language: ObjC
+BasedOnStyle: Google
+ColumnLimit: 80

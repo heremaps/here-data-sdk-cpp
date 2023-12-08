@@ -42,8 +42,7 @@ class OLPNetworkIOS : public olp::http::Network {
   ~OLPNetworkIOS();
 
   olp::http::SendOutcome Send(
-      olp::http::NetworkRequest request,
-      std::shared_ptr<std::ostream> payload,
+      olp::http::NetworkRequest request, std::shared_ptr<std::ostream> payload,
       olp::http::Network::Callback callback,
       olp::http::Network::HeaderCallback header_callback = nullptr,
       olp::http::Network::DataCallback data_callback = nullptr) override;

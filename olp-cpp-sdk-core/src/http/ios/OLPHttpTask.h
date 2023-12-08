@@ -38,7 +38,9 @@ typedef NS_ENUM(NSUInteger, OLPHttpTaskStatus) {
 
 typedef void (^OLPHttpTaskReponseHandler)(NSHTTPURLResponse* response);
 typedef void (^OLPHttpTaskDataHandler)(NSData* data);
-typedef void (^OLPHttpTaskCompletionHandler)(NSError* error, uint64_t bytesDownloaded, uint64_t bytesUploadeds);
+typedef void (^OLPHttpTaskCompletionHandler)(NSError* error,
+                                             uint64_t bytesDownloaded,
+                                             uint64_t bytesUploadeds);
 
 /**
  * @brief This class holds the response data from OLPHttpTask request.

@@ -143,9 +143,8 @@ constexpr auto kLogTag = "OLPHttpTask";
 
 - (void)didCompleteWithError:(NSError*)error {
   int status = 0;
-  if (self.responseData)
-  {
-      status = self.responseData.status;
+  if (self.responseData) {
+    status = self.responseData.status;
   }
 
   OLP_SDK_LOG_DEBUG_F(kLogTag,
@@ -163,9 +162,11 @@ constexpr auto kLogTag = "OLPHttpTask";
   }
 
   if (completionHandler) {
-    completionHandler(error,
-                      _headersSizeReceived + (_contentLength ? _contentLength : _dataTask.countOfBytesReceived),
-                      _headersSizeSent + _dataTask.countOfBytesSent);
+    completionHandler(
+        error,
+        _headersSizeReceived +
+            (_contentLength ? _contentLength : _dataTask.countOfBytesReceived),
+        _headersSizeSent + _dataTask.countOfBytesSent);
   }
 
   @synchronized(self) {
@@ -192,11 +193,9 @@ constexpr auto kLogTag = "OLPHttpTask";
 
   if (responseHandler) {
     auto headers = ((NSHTTPURLResponse*)response).allHeaderFields;
-    for (NSString* key in headers)
-    {
+    for (NSString* key in headers) {
       NSString* value = headers[key];
-      if ([key isEqualToString:@"Content-Length"])
-      {
+      if ([key isEqualToString:@"Content-Length"]) {
         auto longLongValue = [value longLongValue];
         _contentLength = longLongValue < 0 ? 0 : longLongValue;
       }
@@ -227,7 +226,7 @@ constexpr auto kLogTag = "OLPHttpTask";
   }
 }
 
-- (NSString*) createTaskDescription {
+- (NSString*)createTaskDescription {
   return [NSString stringWithFormat:@"%llu", self.requestId];
 }
 

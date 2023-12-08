@@ -21,10 +21,10 @@
 
 #import <Foundation/Foundation.h>
 
-#include "olp/core/logging/Log.h"
 #include "olp/core/http/Network.h"
 #include "olp/core/http/NetworkTypes.h"
 #include "olp/core/http/NetworkUtils.h"
+#include "olp/core/logging/Log.h"
 
 #import "OLPHttpClient+Internal.h"
 #import "OLPHttpTask.h"
@@ -145,8 +145,8 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
         OLP_SDK_LOG_WARNING_F(kLogTag,
                               "Send failed - reached max requests "
                               "count=%lu/%lu, url=%s",
-                              http_client_.activeTasks.count, max_requests_count_,
-                              request.GetUrl().c_str());
+                              http_client_.activeTasks.count,
+                              max_requests_count_, request.GetUrl().c_str());
         return SendOutcome(ErrorCode::NETWORK_OVERLOAD_ERROR);
       }
 
@@ -165,8 +165,10 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     // Setup task request data:
     const NetworkSettings& settings = request.GetSettings();
 
-    const auto connectionTimeoutSeconds = std::chrono::duration_cast<std::chrono::seconds>(
-        settings.GetConnectionTimeoutDuration()).count();
+    const auto connectionTimeoutSeconds =
+        std::chrono::duration_cast<std::chrono::seconds>(
+            settings.GetConnectionTimeoutDuration())
+            .count();
 
     task.url = url;
     task.connectionTimeout = static_cast<int>(connectionTimeoutSeconds);
@@ -252,10 +254,9 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
         if (payload->tellp() != std::streampos(response_data.count)) {
           payload->seekp(response_data.count);
           if (payload->fail()) {
-            OLP_SDK_LOG_WARNING_F(kLogTag,
-                                  "Payload seekp() failed, request_id=%llu, url=%s",
-                                  strong_task.requestId,
-                                  [strong_task.url UTF8String]);
+            OLP_SDK_LOG_WARNING_F(
+                kLogTag, "Payload seekp() failed, request_id=%llu, url=%s",
+                strong_task.requestId, [strong_task.url UTF8String]);
             payload->clear();
           }
         }
@@ -267,7 +268,8 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     };
 
     // setup handler for NSURLSessionDataTask::didCompleteWithError callback
-    task.completionHandler = ^(NSError* error, uint64_t bytesDownloaded, uint64_t bytesUploaded) {
+    task.completionHandler = ^(NSError* error, uint64_t bytesDownloaded,
+                               uint64_t bytesUploaded) {
       if (!weak_task) {
         OLP_SDK_LOG_WARNING_F(
             kLogTag,
@@ -312,7 +314,6 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
                      .WithBytesDownloaded(bytesDownloaded)
                      .WithBytesUploaded(bytesUploaded));
       }
-
     };
 
     // Perform send request asycnrhonously in a NSURLSession's thread
