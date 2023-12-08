@@ -22,9 +22,9 @@
 #import <CommonCrypto/CommonDigest.h>
 #import <Security/Security.h>
 
-#include "olp/core/logging/Log.h"
 #include "olp/core/http/Network.h"
 #include "olp/core/http/NetworkProxySettings.h"
+#include "olp/core/logging/Log.h"
 
 #import "OLPHttpTask+Internal.h"
 
@@ -389,15 +389,16 @@ constexpr auto kLogTag = "OLPHttpClient";
       if (ProxyType::SOCKS4 == requestedProxyType ||
           ProxyType::SOCKS5 == requestedProxyType ||
           ProxyType::SOCKS5_HOSTNAME == requestedProxyType) {
-          proxyDict[(__bridge NSString*)kCFProxyTypeKey] = (__bridge NSString*)kCFProxyTypeSOCKS;
+        proxyDict[(__bridge NSString*)kCFProxyTypeKey] =
+            (__bridge NSString*)kCFProxyTypeSOCKS;
       } else if (ProxyType::HTTP == requestedProxyType) {
-          proxyDict[(__bridge NSString*)kCFNetworkProxiesHTTPEnable] = @(1);
-          proxyDict[(__bridge NSString*)kCFNetworkProxiesHTTPProxy] = proxyName;
-          proxyDict[(__bridge NSString*)kCFNetworkProxiesHTTPPort] = @(port);
+        proxyDict[(__bridge NSString*)kCFNetworkProxiesHTTPEnable] = @(1);
+        proxyDict[(__bridge NSString*)kCFNetworkProxiesHTTPProxy] = proxyName;
+        proxyDict[(__bridge NSString*)kCFNetworkProxiesHTTPPort] = @(port);
       } else if (ProxyType::HTTPS == requestedProxyType) {
-          proxyDict[@"HTTPSEnable"] = @(1);
-          proxyDict[@"HTTPSProxy"] = proxyName;
-          proxyDict[@"HTTPSPort"] = @(port);
+        proxyDict[@"HTTPSEnable"] = @(1);
+        proxyDict[@"HTTPSProxy"] = proxyName;
+        proxyDict[@"HTTPSPort"] = @(port);
       }
 
       proxyDict[(__bridge NSString*)kCFProxyHostNameKey] = proxyName;
