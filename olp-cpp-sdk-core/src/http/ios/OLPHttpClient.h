@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,10 @@ class NetworkProxySettings;
  * \brief Utility client to create and manage runnable tasks via NSURLSession.
  */
 @interface OLPHttpClient : NSObject
+
+@property(nonatomic) NSMutableDictionary *toIgnoreResponse;
+
+@property(nonatomic) bool inBackground;
 
 /// Creates a task with specific identifier with corresponding settings
 - (OLPHttpTask *)createTaskWithProxy:

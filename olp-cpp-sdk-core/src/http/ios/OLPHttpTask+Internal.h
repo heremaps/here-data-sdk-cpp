@@ -31,10 +31,14 @@
 
 - (void)didReceiveResponse:(NSURLResponse*)response;
 
-- (void)didReceiveData:(NSData*)data;
+- (void)didReceiveData:(NSData*)data withWholeData:(bool)wholeData;
 
 - (void)didCompleteWithError:(NSError*)error;
 
 - (NSString*)createTaskDescription;
+
+- (OLPHttpTaskStatus)restart;
+
+- (OLPHttpTaskStatus)restartInBackground:(NSURLSession*)session;
 
 @end

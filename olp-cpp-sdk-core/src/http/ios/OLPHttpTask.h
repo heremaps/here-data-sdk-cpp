@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ typedef NS_ENUM(NSUInteger, OLPHttpTaskStatus) {
 };
 
 typedef void (^OLPHttpTaskReponseHandler)(NSHTTPURLResponse* response);
-typedef void (^OLPHttpTaskDataHandler)(NSData* data);
+typedef void (^OLPHttpTaskDataHandler)(NSData* data, bool wholeData);
 typedef void (^OLPHttpTaskCompletionHandler)(NSError* error,
                                              uint64_t bytesDownloaded,
                                              uint64_t bytesUploadeds);
@@ -85,7 +85,7 @@ typedef void (^OLPHttpTaskCompletionHandler)(NSError* error,
 // Readonly
 @property(nonatomic, readonly) olp::http::RequestId requestId;
 
-@property(nonatomic, readonly) NSURLSessionDataTask* dataTask;
+@property(nonatomic, readonly) NSURLSessionTask* dataTask;
 
 // Callbacks
 @property(nonatomic) olp::http::Network::Callback callback;
@@ -113,5 +113,7 @@ typedef void (^OLPHttpTaskCompletionHandler)(NSError* error,
  * or task is not valid anymore, it will store nil.
  */
 @property(atomic) OLPHttpTaskResponseData* responseData;
+
+@property bool backgroundMode;
 
 @end

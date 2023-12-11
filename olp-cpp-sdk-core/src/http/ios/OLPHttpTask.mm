@@ -19,13 +19,15 @@
 
 #import "OLPHttpTask+Internal.h"
 
-#include "olp/core/logging/Log.h"
+#include <olp/core/http/HttpStatusCode.h>
+#include <olp/core/logging/Log.h>
 
 #import "OLPHttpClient+Internal.h"
 #import "OLPNetworkConstants.h"
 
 namespace {
 constexpr auto kLogTag = "OLPHttpTask";
+constexpr auto kBackgroundTimeoutMultiplicator = 100u;
 }  // namespace
 
 #pragma mark - OLPHttpTaskResponseData
@@ -81,9 +83,32 @@ constexpr auto kLogTag = "OLPHttpTask";
     return OLPHttpTaskStatusNotReady;
   }
 
+  return [self restart];
+}
+
+- (OLPHttpTaskStatus)restartInBackground:(NSURLSession*)session {
+  _urlSession = session;
+  self.backgroundMode = true;
+  return [self restart];
+}
+
+- (OLPHttpTaskStatus)restart {
+  if (!self.url) {
+    return OLPHttpTaskStatusNotReady;
+  }
+
+  if (_dataTask) {
+    _httpClient.toIgnoreResponse[_dataTask.taskDescription] = _dataTask;
+    [_dataTask cancel];
+    _dataTask = nil;
+  }
+
   NSMutableURLRequest* request =
       [NSMutableURLRequest requestWithURL:[NSURL URLWithString:self.url]];
   request.timeoutInterval = self.connectionTimeout;
+  if (self.backgroundMode) {
+    request.timeoutInterval *= kBackgroundTimeoutMultiplicator;
+  }
   request.HTTPMethod = self.HTTPMethod;
   if (self.body.length) {
     request.HTTPBody = self.body;
@@ -97,7 +122,9 @@ constexpr auto kLogTag = "OLPHttpTask";
 
   @synchronized(self) {
     if (!self.isCancelled) {
-      _dataTask = [_urlSession dataTaskWithRequest:request];
+      _dataTask = [_httpClient createSessionTask:_urlSession
+                                     withRequest:request
+                              withBackgroundMode:self.backgroundMode];
       _dataTask.taskDescription = [self createTaskDescription];
     }
   }
@@ -111,8 +138,11 @@ constexpr auto kLogTag = "OLPHttpTask";
 
   OLP_SDK_LOG_DEBUG_F(
       kLogTag,
-      "Run task, request_id=%llu, task_id=%lu, http_method=%s, url=%s)",
+      "Run task, session=%p, dataTask=%p, request_id=%llu, task_id=%lu, "
+      "task_description=%s, http_method=%s, url=%s)",
+      (__bridge void*)_urlSession, (__bridge void*)self.dataTask,
       self.requestId, (unsigned long)self.dataTask.taskIdentifier,
+      (char*)[self.dataTask.taskDescription UTF8String],
       [request.HTTPMethod UTF8String], [[self getDebugCurlString] UTF8String]);
 
   [_dataTask resume];
@@ -145,6 +175,10 @@ constexpr auto kLogTag = "OLPHttpTask";
   int status = 0;
   if (self.responseData) {
     status = self.responseData.status;
+  }
+  if (status == 0 && (!error || error == 0)) {
+    status = olp::http::HttpStatusCode::OK;
+    self.responseData.status = status;
   }
 
   OLP_SDK_LOG_DEBUG_F(kLogTag,
@@ -205,7 +239,7 @@ constexpr auto kLogTag = "OLPHttpTask";
   }
 }
 
-- (void)didReceiveData:(NSData*)data {
+- (void)didReceiveData:(NSData*)data withWholeData:(bool)wholeData {
   OLP_SDK_LOG_TRACE_F(kLogTag,
                       "didReceiveData, request_id=%llu, url=%s, "
                       "task_id=%u, data_length=%lu",
@@ -222,7 +256,7 @@ constexpr auto kLogTag = "OLPHttpTask";
   }
 
   if (dataHandler) {
-    dataHandler(data);
+    dataHandler(data, wholeData);
   }
 }
 

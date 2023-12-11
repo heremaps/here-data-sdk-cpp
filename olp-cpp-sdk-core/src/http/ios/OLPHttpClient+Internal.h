@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2023 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,9 @@
 
 #import "OLPHttpClient.h"
 
+#include <olp/core/http/NetworkProxySettings.h>
+#include <olp/core/http/NetworkTypes.h>
+
 /**
  * @brief Internal category, which extends OLPHttpClient with internal methods,
  * which shouldn't be exposed as public API.
@@ -29,11 +32,22 @@
 
 @property(nonatomic, readonly) NSArray* activeTasks;
 
-- (NSURLSession*)urlSessionWithProxy:
-                     (const olp::http::NetworkProxySettings&)proxySettings
-                          andHeaders:(NSDictionary*)headers;
+- (NSMutableDictionary*)toProxyDict:
+    (const olp::http::NetworkProxySettings&)proxySettings;
 
-- (void)registerDataTask:(NSURLSessionDataTask*)dataTask
+- (NSURLSession*)urlSessionWithProxy:(NSDictionary*)proxyDict
+                          andHeaders:(NSDictionary*)headers
+                     andBackgroundId:(NSString*)sessionBackgroundId;
+
+- (NSURLSession*)pickSession:(NSDictionary*)proxyDict;
+
+- (void)registerDataTask:(NSURLSessionTask*)dataTask
              forHttpTask:(OLPHttpTask*)httpTask;
+
+- (NSURLSessionTask*)createSessionTask:(NSURLSession*)session
+                           withRequest:(NSMutableURLRequest*)request
+                    withBackgroundMode:(bool)backgroundMode;
+
+- (void)restartCurrentTasks;
 
 @end
