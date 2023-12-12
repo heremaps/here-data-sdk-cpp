@@ -45,6 +45,7 @@ option(OLP_SDK_DISABLE_DEBUG_LOGGING "Disable debug and trace level logging" OFF
 option(OLP_SDK_ENABLE_DEFAULT_CACHE "Enable default cache implementation based on LevelDB" ON)
 option(OLP_SDK_ENABLE_DEFAULT_CACHE_LMDB "Enable default cache implementation based on LMDB" OFF)
 option(OLP_SDK_ENABLE_ANDROID_CURL "Enable curl based network layer for Android" OFF)
+option(OLP_SDK_ENABLE_IOS_BACKGROUND_DOWNLOAD "Enable iOS network layer downloading in background. Under testing." OFF)
 
 # C++ standard version. Minimum supported version is 11.
 set(CMAKE_CXX_STANDARD 11)

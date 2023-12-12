@@ -225,7 +225,7 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     };
 
     // setup handler for NSURLSessionDataTask::didReceiveData callback
-    task.dataHandler = ^(NSData* data) {
+    task.dataHandler = ^(NSData* data, bool wholeData) {
       if (!weak_task) {
         OLP_SDK_LOG_WARNING_F(
             kLogTag,
@@ -244,10 +244,15 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
         return;
       }
 
-      const size_t len = data.length;
+      // Background tasks are delivering whole piece of data. So restarting
+      // foreground task that downloaded some data already we should skip
+      // that portion from what the background task has downloaded.
+      const std::uint64_t offset = wholeData ? response_data.count : 0u;
+      const std::uint64_t len = data.length - offset;
       if (data_callback) {
-        data_callback(reinterpret_cast<uint8_t*>(const_cast<void*>(data.bytes)),
-                      response_data.offset + response_data.count, len);
+        data_callback(
+            reinterpret_cast<uint8_t*>(const_cast<void*>(data.bytes)) + offset,
+            response_data.offset + response_data.count, len);
       }
 
       if (auto payload = strong_task.payload) {
@@ -261,7 +266,8 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
           }
         }
 
-        const char* data_ptr = reinterpret_cast<const char*>(data.bytes);
+        const char* data_ptr =
+            reinterpret_cast<const char*>(data.bytes) + offset;
         payload->write(data_ptr, len);
       }
       response_data.count += len;
