@@ -1087,6 +1087,7 @@ void DefaultCacheImpl::SetEvictionPortion(uint64_t size) {
 }
 
 uint64_t DefaultCacheImpl::Size(CacheType type) const {
+  std::lock_guard<std::mutex> lock(cache_lock_);
   if (type == CacheType::kMutable) {
     return mutable_cache_data_size_;
   }
