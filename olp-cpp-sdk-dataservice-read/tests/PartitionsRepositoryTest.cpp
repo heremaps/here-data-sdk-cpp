@@ -1887,7 +1887,7 @@ TEST_F(PartitionsRepositoryTest, StreamPartitions) {
     repository.StreamPartitions(async_stream, kVersion, additional_fields,
                                 billing_tag, context);
     EXPECT_TRUE(async_stream->IsClosed());
-    EXPECT_FALSE(async_stream->GetError().has_value());
+    EXPECT_FALSE(async_stream->GetError());
     EXPECT_STREQ(ref_stream_data.c_str(),
                  get_stream_content(*async_stream).c_str());
 
@@ -1902,7 +1902,7 @@ TEST_F(PartitionsRepositoryTest, StreamPartitions) {
                                   billing_tag, context);
 
       EXPECT_TRUE(second_stream->IsClosed());
-      EXPECT_FALSE(second_stream->GetError().has_value());
+      EXPECT_FALSE(second_stream->GetError());
       EXPECT_STREQ((initial_value + ref_stream_data).c_str(),
                    get_stream_content(*second_stream).c_str());
     }

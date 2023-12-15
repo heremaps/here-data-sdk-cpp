@@ -162,7 +162,7 @@ TEST_P(MetadataApiParamTest, GetPartitionsStream) {
   const std::uint64_t offset{7};
 
   const auto range_header = [&]() -> boost::optional<olp::http::Header> {
-    if (test_params.range.has_value()) {
+    if (test_params.range) {
       return olp::http::Header{"Range", test_params.range.value()};
     }
     return boost::none;
@@ -184,7 +184,7 @@ TEST_P(MetadataApiParamTest, GetPartitionsStream) {
 
   EXPECT_EQ(response.GetStatus(), http::HttpStatusCode::OK);
   EXPECT_STREQ(ref_stream_data.c_str(), received_stream_data.c_str());
-  EXPECT_TRUE(received_offset.has_value());
+  EXPECT_TRUE(received_offset);
   EXPECT_EQ(received_offset.value_or(0), offset);
 }
 
