@@ -1706,15 +1706,18 @@ TEST_F(PartitionsRepositoryTest, ParsePartitionsStream) {
     auto async_stream = std::make_shared<repository::AsyncJsonStream>();
     client::ApiNoResponse response;
     client::CancellationContext context_to_cancel;
+    std::promise<void> parsing_promise;
 
-    std::future<void> parsing_future = std::async(std::launch::async, [&]() {
+    std::thread([&]() {
       response =
           repository.ParsePartitionsStream(async_stream, {}, context_to_cancel);
-    });
+      parsing_promise.set_value();
+    }).detach();
 
     context_to_cancel.CancelOperation();
 
-    EXPECT_EQ(parsing_future.wait_for(kTimeout), std::future_status::ready);
+    EXPECT_EQ(parsing_promise.get_future().wait_for(kTimeout),
+              std::future_status::ready);
     EXPECT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
               olp::client::ErrorCode::Cancelled);
