@@ -239,7 +239,7 @@ OpenResult DiskCache::Open(const std::string& data_path,
                                      << status.ToString());
   }
 
-  if (status.IsInvalidArgument() && is_read_only) {
+  if (status.IsInvalidArgument() && !is_read_only) {
     // Maybe folder with cache is an empty, so trying to create db and reopen it
     status = InitializeDB(settings, versioned_data_path);
     if (!status.ok()) {
