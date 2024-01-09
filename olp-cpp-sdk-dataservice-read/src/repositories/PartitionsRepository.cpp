@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -633,8 +633,10 @@ client::ApiNoResponse PartitionsRepository::ParsePartitionsStream(
     auto partitions_handler =
         std::make_shared<repository::PartitionsSaxHandler>(partition_callback);
 
-    auto reader_cancellation_token =
-        client::CancellationToken([=]() { partitions_handler->Abort(); });
+    auto reader_cancellation_token = client::CancellationToken([=]() {
+      partitions_handler->Abort();
+      async_stream->CloseStream(client::ApiError::Cancelled());
+    });
 
     if (!context.ExecuteOrCancelled(
             [=]() { return reader_cancellation_token; })) {
