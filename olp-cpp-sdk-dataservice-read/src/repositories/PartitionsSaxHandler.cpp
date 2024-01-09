@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 HERE Europe B.V.
+ * Copyright (C) 2023-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -149,7 +149,7 @@ bool PartitionsSaxHandler::EndArray(unsigned int) {
 
 bool PartitionsSaxHandler::Default() { return false; }
 
-void PartitionsSaxHandler::Abort() { continue_parsing_.store(true); }
+void PartitionsSaxHandler::Abort() { continue_parsing_.store(false); }
 
 PartitionsSaxHandler::State PartitionsSaxHandler::ProcessNextAttribute(
     const char* name, unsigned int /*length*/) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1714,6 +1714,8 @@ TEST_F(PartitionsRepositoryTest, ParsePartitionsStream) {
       parsing_promise.set_value();
     }).detach();
 
+    // give the parsing time to start
+    std::this_thread::sleep_for(std::chrono::milliseconds(100u));
     context_to_cancel.CancelOperation();
 
     EXPECT_EQ(parsing_promise.get_future().wait_for(kTimeout),
