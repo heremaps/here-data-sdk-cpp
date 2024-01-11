@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 #
-# Copyright (C) 2019-2021 HERE Europe B.V.
+# Copyright (C) 2019-2024 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,9 +25,10 @@
 
 # Install required NDK version (output disabled as it causes issues during page loading)
 env
-${ANDROID_HOME}/tools/bin/sdkmanager --list
-${ANDROID_HOME}/tools/bin/sdkmanager --install "ndk;21.3.6528147" --sdk_root=${ANDROID_HOME} >/dev/null
-${ANDROID_HOME}/tools/bin/sdkmanager --list
+${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --list
+${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --install "ndk;21.3.6528147" --sdk_root=${ANDROID_HOME} >/dev/null
+${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-28" >/dev/null
+${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --list
 export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/21.3.6528147
 env
 # Verify content of NDK directories
