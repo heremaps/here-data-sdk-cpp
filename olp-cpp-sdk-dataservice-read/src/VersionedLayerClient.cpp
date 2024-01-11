@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,11 +156,21 @@ bool VersionedLayerClient::Release(const TileKeys& tiles) {
 }
 
 bool VersionedLayerClient::Protect(const std::string& partition_id) {
-  return impl_->Protect(partition_id);
+  return impl_->Protect({partition_id});
 }
 
 bool VersionedLayerClient::Release(const std::string& partition_id) {
-  return impl_->Release(partition_id);
+  return impl_->Release({partition_id});
+}
+
+bool VersionedLayerClient::Protect(
+    const std::vector<std::string>& partition_ids) {
+  return impl_->Protect(partition_ids);
+}
+
+bool VersionedLayerClient::Release(
+    const std::vector<std::string>& partition_ids) {
+  return impl_->Release(partition_ids);
 }
 
 }  // namespace read

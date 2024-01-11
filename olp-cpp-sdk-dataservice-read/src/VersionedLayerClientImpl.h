@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,9 +119,9 @@ class VersionedLayerClientImpl {
 
   virtual bool Release(const TileKeys& tiles);
 
-  virtual bool Protect(const std::string& partition_id);
+  virtual bool Protect(const std::vector<std::string>& partition_ids);
 
-  virtual bool Release(const std::string& partition_id);
+  virtual bool Release(const std::vector<std::string>& partition_ids);
 
  private:
   CatalogVersionResponse GetVersion(boost::optional<std::string> billing_tag,

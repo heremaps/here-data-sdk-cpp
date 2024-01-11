@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -357,8 +357,18 @@ PartitionsCacheRepository::CreatePartitionKeys(
 }
 
 bool PartitionsCacheRepository::Protect(
-    const std::string& partition_id, const boost::optional<int64_t>& version) {
-  const auto keys = CreatePartitionKeys(partition_id, version);
+    const std::vector<std::string>& partition_ids,
+    const boost::optional<int64_t>& version) {
+  cache::KeyValueCache::KeyListType keys;
+  keys.reserve(partition_ids.size() * 2u);
+  std::for_each(partition_ids.cbegin(), partition_ids.cend(),
+                [&](const std::string& partition_id) {
+                  auto partition_keys =
+                      CreatePartitionKeys(partition_id, version);
+                  std::move(partition_keys.begin(), partition_keys.end(),
+                            std::back_inserter(keys));
+                });
+
   if (keys.empty()) {
     return false;
   }
@@ -367,8 +377,18 @@ bool PartitionsCacheRepository::Protect(
 }
 
 bool PartitionsCacheRepository::Release(
-    const std::string& partition_id, const boost::optional<int64_t>& version) {
-  const auto keys = CreatePartitionKeys(partition_id, version);
+    const std::vector<std::string>& partition_ids,
+    const boost::optional<int64_t>& version) {
+  cache::KeyValueCache::KeyListType keys;
+  keys.reserve(partition_ids.size() * 2u);
+  std::for_each(partition_ids.cbegin(), partition_ids.cend(),
+                [&](const std::string& partition_id) {
+                  auto partition_keys =
+                      CreatePartitionKeys(partition_id, version);
+                  std::move(partition_keys.begin(), partition_keys.end(),
+                            std::back_inserter(keys));
+                });
+
   if (keys.empty()) {
     return false;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,10 +92,10 @@ class PartitionsCacheRepository final {
   bool ContainsTree(geo::TileKey key, int32_t depth,
                     const boost::optional<int64_t>& version) const;
 
-  bool Protect(const std::string& partition_id,
+  bool Protect(const std::vector<std::string>& partition_ids,
                const boost::optional<int64_t>& version);
 
-  bool Release(const std::string& partition_id,
+  bool Release(const std::vector<std::string>& partition_ids,
                const boost::optional<int64_t>& version);
 
  private:

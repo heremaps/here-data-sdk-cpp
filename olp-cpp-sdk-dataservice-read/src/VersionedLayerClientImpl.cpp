@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -910,7 +910,8 @@ bool VersionedLayerClientImpl::Release(const TileKeys& tiles) {
   return settings_.cache->Release(keys_to_release);
 }
 
-bool VersionedLayerClientImpl::Protect(const std::string& partition_id) {
+bool VersionedLayerClientImpl::Protect(
+    const std::vector<std::string>& partition_ids) {
   if (!settings_.cache) {
     return {};
   }
@@ -925,10 +926,11 @@ bool VersionedLayerClientImpl::Protect(const std::string& partition_id) {
   repository::PartitionsCacheRepository repository(catalog_, layer_id_,
                                                    settings_.cache);
 
-  return repository.Protect(partition_id, version);
+  return repository.Protect(partition_ids, version);
 }
 
-bool VersionedLayerClientImpl::Release(const std::string& partition_id) {
+bool VersionedLayerClientImpl::Release(
+    const std::vector<std::string>& partition_ids) {
   if (!settings_.cache) {
     return {};
   }
@@ -943,7 +945,7 @@ bool VersionedLayerClientImpl::Release(const std::string& partition_id) {
   repository::PartitionsCacheRepository repository(catalog_, layer_id_,
                                                    settings_.cache);
 
-  return repository.Release(partition_id, version);
+  return repository.Release(partition_ids, version);
 }
 
 }  // namespace read
