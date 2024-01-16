@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -286,7 +286,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * @brief Fetches a list of partitions of the given generic layer
    * asynchronously. Client does not cache the partitions, instead every
    * partition is passed to the provided callback.
-   * 
+   *
    * @note API is considered experimental and a subject to change.
    *
    * @param partitions_request The `PartitionsRequest` instance that contains
@@ -550,6 +550,29 @@ class DATASERVICE_READ_API VersionedLayerClient final {
   bool Protect(const std::string& partition_id);
 
   /**
+   * @brief Protect partitions from eviction.
+   *
+   * Protecting partitions means that its data and metadata keys are added to
+   * the protected list and stored in the cache. These keys are removed from the
+   * LRU cache, so they could not be evicted. Also, they do not expire.
+   *
+   * @note Before calling the API, specify a catalog version. You can set it
+   * using the constructor or after the first online request.
+   *
+   * @note You can only protect partitions which data handles are present in the
+   * cache at the time of the call.
+   *
+   * @note Please do not call `Protect` while the `Release` call for the same
+   * catalog and layer is in progress.
+   *
+   * @param partition_ids Partition ids to be protected.
+   *
+   * @return True if partition keys were successfully added to the protected
+   * list; false otherwise.
+   */
+  bool Protect(const std::vector<std::string>& partition_ids);
+
+  /**
    * @brief Removes a list of tiles from protection.
    *
    * Releasing tile keys removes data and quadtree keys from the protected
@@ -590,6 +613,27 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * the protected list; false otherwise.
    */
   bool Release(const std::string& partition_id);
+
+  /**
+   * @brief Removes partitions from protection.
+   *
+   * Releasing partition ids removes data handle and metadata keys from the
+   * protected list. The keys are added to the LRU cache, so they could be
+   * evicted. Expiration value is restored, and related to partition keys can
+   * expire.
+   *
+   * @note Before calling the API, specify a catalog version. You can set it
+   * using the constructor or after the first online request.
+   *
+   * @note Please make sure that `Protect` will not be called for the same
+   * catalog and layer while the `Release` call is in progress.
+   *
+   * @param partition_ids Partition ids to be removed from protection.
+   *
+   * @return True if keys related to partitions were successfully removed from
+   * the protected list; false otherwise.
+   */
+  bool Release(const std::vector<std::string>& partition_ids);
 
  private:
   std::unique_ptr<VersionedLayerClientImpl> impl_;

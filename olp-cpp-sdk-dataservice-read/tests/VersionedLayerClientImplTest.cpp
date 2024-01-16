@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -385,11 +385,39 @@ TEST(VersionedLayerClientTest, ProtectThenReleasePartition) {
   }
 
   {
+    SCOPED_TRACE("Successful protect partitions");
+
+    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Protect(_)).WillOnce(partition_keys);
+    ASSERT_TRUE(client.Protect(std::vector<std::string>{kPartitionId}));
+  }
+
+  {
+    SCOPED_TRACE("Protect empty partitions");
+
+    ASSERT_FALSE(client.Protect(std::vector<std::string>{}));
+  }
+
+  {
     SCOPED_TRACE("Successful release partition");
 
     EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, Release(_)).WillOnce(partition_keys);
     ASSERT_TRUE(client.Release(kPartitionId));
+  }
+
+  {
+    SCOPED_TRACE("Successful release partitions");
+
+    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Release(_)).WillOnce(partition_keys);
+    ASSERT_TRUE(client.Release(std::vector<std::string>{kPartitionId}));
+  }
+
+  {
+    SCOPED_TRACE("Release empty partitions");
+
+    ASSERT_FALSE(client.Release(std::vector<std::string>{}));
   }
 
   {
