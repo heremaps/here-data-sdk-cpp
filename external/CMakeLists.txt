@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2021 HERE Europe B.V.
+# Copyright (C) 2019-2024 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ set(OLP_SDK_CPP_SNAPPY_URL "https://github.com/google/snappy.git")
 set(OLP_SDK_CPP_SNAPPY_TAG "1.1.7")
 
 set(OLP_SDK_CPP_LEVELDB_URL "https://github.com/google/leveldb.git")
-set(OLP_SDK_CPP_LEVELDB_TAG "1.21")
+set(OLP_SDK_CPP_LEVELDB_TAG "1.22")
 
 set(OLP_SDK_CPP_RAPIDJSON_URL "https://github.com/Tencent/rapidjson.git")
 set(OLP_SDK_CPP_RAPIDJSON_TAG "master")
