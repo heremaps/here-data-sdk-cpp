@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (C) 2019-2021 HERE Europe B.V.
+# Copyright (C) 2019-2024 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,10 +22,12 @@
 # Sometimes there is no boost and there is no need to fail in this case.
 brew uninstall --ignore-dependencies boost || true
 
-# Due to some bug which is cmake cannot detect compiler while called
-# from cmake itself when project is compiled with XCode 12.4 we must
-# switch to old XCode as a workaround.
-sudo xcode-select -s /Applications/Xcode_11.7.app
+if [[ ${USE_LATEST_XCODE} == 0 ]]; then
+  # Due to some bug which is cmake cannot detect compiler while called
+  # from cmake itself when project is compiled with XCode 12.4 we must
+  # switch to old XCode as a workaround.
+  sudo xcode-select -s /Applications/Xcode_11.7.app
+fi
 
 mkdir -p build && cd build
 cmake ../ -GXcode \
