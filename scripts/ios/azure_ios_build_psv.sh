@@ -17,6 +17,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
+# Getting rid of boost installed to the CI image (not clear when it appeared)
+# asciidoc and source-highlight are using it so dependencies are ignored
+brew uninstall --ignore-dependencies boost
+
 # Due to some bug which is cmake cannot detect compiler while called
 # from cmake itself when project is compiled with XCode 12.4 we must
 # switch to old XCode as a workaround.
