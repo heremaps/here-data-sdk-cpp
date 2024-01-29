@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -303,8 +303,15 @@ SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
                                                    subtile.ToHereTile()));
   }
 
-  // add to cache
-  cache_repository_.Put(partitions, boost::none, boost::none, false);
+  const auto put_result =
+      cache_repository_.Put(partitions, boost::none, boost::none, false);
+  if (!put_result.IsSuccessful()) {
+    OLP_SDK_LOG_ERROR_F(kLogTag,
+                        "GetVolatileSubQuads failed to write data to cache, "
+                        "hrn='%s', key='%s', error=%s",
+                        catalog_str_.c_str(), tile_key.c_str(),
+                        put_result.GetError().GetMessage().c_str());
+  }
 
   return result;
 }

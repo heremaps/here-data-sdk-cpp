@@ -59,7 +59,7 @@ class PartitionsCacheRepository final {
       const PartitionsRequest& request,
       const boost::optional<int64_t>& version);
 
-  void Put(int64_t catalog_version, const model::LayerVersions& layer_versions);
+  bool Put(int64_t catalog_version, const model::LayerVersions& layer_versions);
 
   boost::optional<model::LayerVersions> Get(int64_t catalog_version);
 
@@ -70,9 +70,9 @@ class PartitionsCacheRepository final {
   bool Get(geo::TileKey tile_key, int32_t depth,
            const boost::optional<int64_t>& version, QuadTreeIndex& tree);
 
-  void Clear();
+  bool Clear();
 
-  void ClearPartitions(const std::vector<std::string>& partition_ids,
+  bool ClearPartitions(const std::vector<std::string>& partition_ids,
                        const boost::optional<int64_t>& version);
 
   bool ClearQuadTree(geo::TileKey tile_key, int32_t depth,

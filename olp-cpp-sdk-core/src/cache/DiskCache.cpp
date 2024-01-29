@@ -364,9 +364,9 @@ bool DiskCache::Contains(const std::string& key) {
 }
 
 bool DiskCache::Remove(const std::string& key, uint64_t& removed_data_size) {
+  removed_data_size = 0u;
   if (!database_) {
     OLP_SDK_LOG_ERROR(kLogTag, "Remove: Database is not initialized");
-    removed_data_size = 0;
     return false;
   }
 

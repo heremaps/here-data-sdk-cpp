@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,12 @@ CatalogResponse CatalogRepository::GetCatalog(
       config_client, catalog_str, request.GetBillingTag(), context);
 
   if (catalog_response.IsSuccessful() && fetch_options != OnlineOnly) {
-    repository.Put(catalog_response.GetResult());
+    if (!repository.Put(catalog_response.GetResult())) {
+      OLP_SDK_LOG_WARNING_F(
+          kLogTag,
+          "GetCatalog failed to cache received results, hrn='%s',key='%s'",
+          catalog_str.c_str(), request_key.c_str());
+    }
   }
   if (!catalog_response.IsSuccessful()) {
     const auto& error = catalog_response.GetError();
@@ -163,7 +168,13 @@ CatalogVersionResponse CatalogRepository::GetLatestVersion(
     // Write or update the version in cache, updating happens only when the new
     // version is greater than cached.
     if (!cached_version || (*cached_version).GetVersion() < new_version) {
-      repository.PutVersion(version_response.GetResult());
+      if (!repository.PutVersion(version_response.GetResult())) {
+        OLP_SDK_LOG_WARNING_F(kLogTag,
+                              "GetLatestVersion failed to cache latest "
+                              "version, hrn='%s', version=%" PRId64,
+                              catalog_.ToCatalogHRNString().c_str(),
+                              new_version);
+      }
       if (fetch_option == CacheOnly) {
         OLP_SDK_LOG_DEBUG_F(
             kLogTag, "Latest user set version, hrn='%s', version=%" PRId64,

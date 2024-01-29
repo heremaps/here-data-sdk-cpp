@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,16 +72,28 @@ time_t GetRemainingExpiryTime(const std::string& key,
   return expiry;
 }
 
-void PurgeDiskItem(const std::string& key, olp::cache::DiskCache& disk_cache,
+bool PurgeDiskItem(const std::string& key, olp::cache::DiskCache& disk_cache,
                    uint64_t& removed_data_size) {
+  bool result = true;
   auto expiry_key = CreateExpiryKey(key);
   uint64_t data_size = 0u;
 
-  disk_cache.Remove(key, data_size);
+  if (!disk_cache.Remove(key, data_size)) {
+    OLP_SDK_LOG_ERROR_F(kLogTag, "PurgeDiskItem failed to remove key='%s'",
+                        key.c_str());
+    result = false;
+  }
   removed_data_size += data_size;
 
-  disk_cache.Remove(expiry_key, data_size);
+  if (!disk_cache.Remove(expiry_key, data_size)) {
+    OLP_SDK_LOG_ERROR_F(kLogTag,
+                        "PurgeDiskItem failed to remove expiry_key='%s'",
+                        expiry_key.c_str());
+    result = false;
+  }
   removed_data_size += data_size;
+
+  return result;
 }
 
 size_t StoreExpiry(const std::string& key, leveldb::WriteBatch& batch,
@@ -392,9 +404,14 @@ bool DefaultCacheImpl::Remove(const std::string& key) {
 
   if (mutable_cache_) {
     uint64_t removed_data_size = 0;
-    PurgeDiskItem(key, *mutable_cache_, removed_data_size);
-
+    bool purge_passed = PurgeDiskItem(key, *mutable_cache_, removed_data_size);
     mutable_cache_data_size_ -= removed_data_size;
+
+    if (!purge_passed) {
+      OLP_SDK_LOG_ERROR_F(kLogTag, "Remove() failed to purge item, key='%s'",
+                          key.c_str());
+      return false;
+    }
   }
 
   return true;
@@ -974,7 +991,11 @@ bool DefaultCacheImpl::GetFromDiskCache(const std::string& key,
 
     // Data expired in cache -> remove, but not protected keys
     uint64_t removed_data_size = 0u;
-    PurgeDiskItem(key, *mutable_cache_, removed_data_size);
+    if (!PurgeDiskItem(key, *mutable_cache_, removed_data_size)) {
+      OLP_SDK_LOG_ERROR_F(
+          kLogTag, "GetFromDiskCache failed to purge an expired item, key='%s'",
+          key.c_str());
+    }
     mutable_cache_data_size_ -= removed_data_size;
     RemoveKeyLru(key);
   }

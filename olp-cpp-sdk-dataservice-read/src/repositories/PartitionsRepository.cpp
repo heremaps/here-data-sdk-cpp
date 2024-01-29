@@ -320,7 +320,11 @@ PartitionsRepository::GetPartitionsExtendedResponse(
           kLogTag,
           "GetPartitions 403 received, remove from cache, hrn='%s', key='%s'",
           catalog_str.c_str(), key.c_str());
-      cache_.Clear();
+      if (!cache_.Clear()) {
+        OLP_SDK_LOG_ERROR_F(
+            kLogTag, "Failed to clear data from cache, hrn='%s', key='%s'",
+            catalog_.ToCatalogHRNString().c_str(), key.c_str());
+      }
     }
   }
 
@@ -381,7 +385,16 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
     OLP_SDK_LOG_DEBUG_F(kLogTag,
                         "GetPartitionById put to cache, hrn='%s', key='%s'",
                         catalog_.ToCatalogHRNString().c_str(), key.c_str());
-    cache_.Put(query_response.GetResult(), version, boost::none);
+    const auto put_result =
+        cache_.Put(query_response.GetResult(), version, boost::none);
+    if (!put_result.IsSuccessful()) {
+      OLP_SDK_LOG_ERROR_F(kLogTag,
+                          "GetPartitionById failed to write data to cache, "
+                          "hrn='%s', key='%s', error=%s",
+                          catalog_.ToCatalogHRNString().c_str(), key.c_str(),
+                          put_result.GetError().GetMessage().c_str());
+    }
+
   } else if (!query_response.IsSuccessful()) {
     const auto& error = query_response.GetError();
     if (error.GetHttpStatusCode() == http::HttpStatusCode::FORBIDDEN) {
@@ -390,7 +403,13 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
                             "hrn='%s', key='%s'",
                             catalog_.ToCatalogHRNString().c_str(), key.c_str());
       // Delete partitions only but not the layer
-      cache_.ClearPartitions(partitions, version);
+      if (!cache_.ClearPartitions(partitions, version)) {
+        OLP_SDK_LOG_ERROR_F(
+            kLogTag,
+            "GetPartitionById failed to clear partitions from cache, "
+            "hrn='%s', key='%s'",
+            catalog_.ToCatalogHRNString().c_str(), key.c_str());
+      }
     }
   }
 
@@ -507,7 +526,16 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
   }
 
   if (fetch_option != OnlineOnly) {
-    cache_.Put(root_tile_key, kAggregateQuadTreeDepth, tree, version);
+    const auto put_result =
+        cache_.Put(root_tile_key, kAggregateQuadTreeDepth, tree, version);
+    if (!put_result.IsSuccessful()) {
+      OLP_SDK_LOG_ERROR_F(kLogTag,
+                          "GetQuadTreeIndexForTile failed to cache data, "
+                          "hrn='%s', key='%s', error=%s",
+                          catalog_.ToCatalogHRNString().c_str(),
+                          root_tile_here.c_str(),
+                          put_result.GetError().GetMessage().c_str());
+    }
   }
 
   return QuadTreeIndexResponse(std::move(tree),

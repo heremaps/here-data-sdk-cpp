@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,10 +168,8 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyRequestWithMinVersion) {
       .WithStartVersion(kStartVersion);
 
   EXPECT_CALL(*cache_, Get(_, _))
-      .Times(1)
-      .WillOnce(testing::Return(boost::any{}));
-
-  EXPECT_CALL(*cache_, Put(_, _, _, _)).Times(1);
+      .Times(2)
+      .WillRepeatedly(testing::Return(boost::any{}));
 
   ON_CALL(*network_, Send(_, _, _, _, _))
       .WillByDefault([](olp::http::NetworkRequest, olp::http::Network::Payload,
@@ -184,10 +182,30 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyRequestWithMinVersion) {
 
   ApiLookupClient lookup_client(kHrn, settings_);
   repository::CatalogRepository repository(kHrn, settings_, lookup_client);
-  auto response = repository.GetLatestVersion(request, context);
 
-  EXPECT_TRUE(response.IsSuccessful());
-  EXPECT_EQ(response.GetResult().GetVersion(), kStartVersion);
+  {
+    SCOPED_TRACE("Put succeeded");
+
+    EXPECT_CALL(*cache_, Put(_, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Return(true));
+
+    auto response = repository.GetLatestVersion(request, context);
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_EQ(response.GetResult().GetVersion(), kStartVersion);
+  }
+
+  {
+    SCOPED_TRACE("Put failed");
+
+    EXPECT_CALL(*cache_, Put(_, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Return(false));
+
+    auto response = repository.GetLatestVersion(request, context);
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_EQ(response.GetResult().GetVersion(), kStartVersion);
+  }
 }
 
 TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyNotFound) {
@@ -396,10 +414,6 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyFound) {
         return boost::any{};
       });
 
-  EXPECT_CALL(*cache_, Put(testing::Eq(kCatalogCacheKey), _, _, _)).Times(0);
-
-  EXPECT_CALL(*cache_, Put(testing::Eq(kConfigCacheKey), _, _, _)).Times(0);
-
   ON_CALL(*network_, Send(IsGetRequest(kUrlLookupConfig), _, _, _, _))
       .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                             olp::http::HttpStatusCode::OK),
@@ -415,6 +429,61 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyFound) {
   auto response = repository.GetCatalog(request, context);
 
   ASSERT_TRUE(response.IsSuccessful());
+}
+
+TEST_F(CatalogRepositoryTest, GetCatalogOnlineIfNotFound) {
+  olp::client::CancellationContext context;
+
+  auto request = read::CatalogRequest();
+  request.WithFetchOption(read::OnlineIfNotFound);
+
+  EXPECT_CALL(*cache_, Get(_, _)).WillRepeatedly(testing::Return(boost::any{}));
+
+  EXPECT_CALL(*cache_,
+              Put(testing::Eq(kCatalog + "::config::v1::api"), _, _, _))
+      .WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(*cache_,
+              Put(testing::Eq(kCatalog + "::pipelines::v1::api"), _, _, _))
+      .WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(*cache_,
+              Put(testing::Eq(kCatalog + "::pipelines::v2::api"), _, _, _))
+      .WillRepeatedly(testing::Return(true));
+
+  ON_CALL(*network_, Send(IsGetRequest(kUrlLookupConfig), _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                            olp::http::HttpStatusCode::OK),
+                                        kResponseLookupConfig));
+
+  ON_CALL(*network_, Send(IsGetRequest(kUrlConfig), _, _, _, _))
+      .WillByDefault(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                            olp::http::HttpStatusCode::OK),
+                                        kResponseConfig));
+
+  {
+    SCOPED_TRACE("Put failed");
+
+    EXPECT_CALL(*cache_, Put(testing::Eq(kCatalogCacheKey), _, _, _))
+        .Times(1)
+        .WillOnce(testing::Return(false));
+
+    ApiLookupClient lookup_client(kHrn, settings_);
+    repository::CatalogRepository repository(kHrn, settings_, lookup_client);
+    auto response = repository.GetCatalog(request, context);
+    ASSERT_TRUE(response.IsSuccessful());
+  }
+
+  {
+    SCOPED_TRACE("Put succeeded");
+
+    EXPECT_CALL(*cache_, Put(testing::Eq(kCatalogCacheKey), _, _, _))
+        .Times(1)
+        .WillOnce(testing::Return(true));
+
+    ApiLookupClient lookup_client(kHrn, settings_);
+    repository::CatalogRepository repository(kHrn, settings_, lookup_client);
+    auto response = repository.GetCatalog(request, context);
+    ASSERT_TRUE(response.IsSuccessful());
+  }
 }
 
 TEST_F(CatalogRepositoryTest, GetCatalogCacheOnlyFound) {

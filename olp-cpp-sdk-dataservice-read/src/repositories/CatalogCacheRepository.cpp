@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,14 +54,14 @@ CatalogCacheRepository::CatalogCacheRepository(
     std::chrono::seconds default_expiry)
     : hrn_(hrn), cache_(cache), default_expiry_(ConvertTime(default_expiry)) {}
 
-void CatalogCacheRepository::Put(const model::Catalog& catalog) {
+bool CatalogCacheRepository::Put(const model::Catalog& catalog) {
   const std::string hrn(hrn_.ToCatalogHRNString());
   const auto key = cache::KeyGenerator::CreateCatalogKey(hrn);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
-  cache_->Put(key, catalog,
-              [&]() { return olp::serializer::serialize(catalog); },
-              default_expiry_);
+  return cache_->Put(key, catalog,
+                     [&]() { return olp::serializer::serialize(catalog); },
+                     default_expiry_);
 }
 
 boost::optional<model::Catalog> CatalogCacheRepository::Get() {
@@ -80,14 +80,14 @@ boost::optional<model::Catalog> CatalogCacheRepository::Get() {
   return boost::any_cast<model::Catalog>(cached_catalog);
 }
 
-void CatalogCacheRepository::PutVersion(const model::VersionResponse& version) {
+bool CatalogCacheRepository::PutVersion(const model::VersionResponse& version) {
   const std::string hrn(hrn_.ToCatalogHRNString());
   const auto key = cache::KeyGenerator::CreateLatestVersionKey(hrn);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "PutVersion -> '%s'", key.c_str());
 
-  cache_->Put(key, version,
-              [&]() { return olp::serializer::serialize(version); },
-              default_expiry_);
+  return cache_->Put(key, version,
+                     [&]() { return olp::serializer::serialize(version); },
+                     default_expiry_);
 }
 
 boost::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
@@ -105,12 +105,12 @@ boost::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
   return boost::any_cast<model::VersionResponse>(cached_version);
 }
 
-void CatalogCacheRepository::Clear() {
+bool CatalogCacheRepository::Clear() {
   const std::string hrn(hrn_.ToCatalogHRNString());
   const auto key = cache::KeyGenerator::CreateCatalogKey(hrn);
   OLP_SDK_LOG_INFO_F(kLogTag, "Clear -> '%s'", key.c_str());
 
-  cache_->RemoveKeysWithPrefix(hrn);
+  return cache_->RemoveKeysWithPrefix(hrn);
 }
 
 }  // namespace repository
