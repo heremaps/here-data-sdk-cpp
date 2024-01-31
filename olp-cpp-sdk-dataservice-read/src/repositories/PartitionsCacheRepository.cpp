@@ -169,15 +169,15 @@ boost::optional<model::Partitions> PartitionsCacheRepository::Get(
   return partitions;
 }
 
-void PartitionsCacheRepository::Put(
+bool PartitionsCacheRepository::Put(
     int64_t catalog_version, const model::LayerVersions& layer_versions) {
   const auto key =
       cache::KeyGenerator::CreateLayerVersionsKey(catalog_, catalog_version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
-  cache_->Put(key, layer_versions,
-              [&]() { return serializer::serialize(layer_versions); },
-              default_expiry_);
+  return cache_->Put(key, layer_versions,
+                     [&]() { return serializer::serialize(layer_versions); },
+                     default_expiry_);
 }
 
 boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
@@ -237,25 +237,30 @@ bool PartitionsCacheRepository::Get(geo::TileKey tile_key, int32_t depth,
   return false;
 }
 
-void PartitionsCacheRepository::Clear() {
+bool PartitionsCacheRepository::Clear() {
   auto key = catalog_ + "::" + layer_id_ + "::";
   OLP_SDK_LOG_INFO_F(kLogTag, "Clear -> '%s'", key.c_str());
-  cache_->RemoveKeysWithPrefix(key);
+  return cache_->RemoveKeysWithPrefix(key);
 }
 
-void PartitionsCacheRepository::ClearPartitions(
+bool PartitionsCacheRepository::ClearPartitions(
     const std::vector<std::string>& partition_ids,
     const boost::optional<int64_t>& version) {
   OLP_SDK_LOG_INFO_F(kLogTag, "ClearPartitions -> '%s'", catalog_.c_str());
   auto cached_partitions = Get(partition_ids, version);
+  bool passed = true;
 
   // Partitions not processed here are not cached to begin with.
   for (const auto& partition : cached_partitions.GetPartitions()) {
-    cache_->RemoveKeysWithPrefix(catalog_ + "::" + layer_id_ +
-                                 "::" + partition.GetDataHandle());
-    cache_->RemoveKeysWithPrefix(catalog_ + "::" + layer_id_ +
-                                 "::" + partition.GetPartition());
+    passed = cache_->RemoveKeysWithPrefix(catalog_ + "::" + layer_id_ +
+                                          "::" + partition.GetDataHandle()) &&
+             passed;
+    passed = cache_->RemoveKeysWithPrefix(catalog_ + "::" + layer_id_ +
+                                          "::" + partition.GetPartition()) &&
+             passed;
   }
+
+  return passed;
 }
 
 bool PartitionsCacheRepository::ClearQuadTree(

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -221,6 +221,72 @@ TEST(PartitionsCacheRepositoryTest, GetPartitionHandle) {
     std::string handle;
     EXPECT_FALSE(
         repository.GetPartitionHandle(kPartitionId, boost::none, handle));
+  }
+}
+
+TEST(PartitionsCacheRepositoryTest, ClearPartitions) {
+  const auto hrn = HRN::FromString(kCatalog);
+  const auto layer = "layer";
+
+  model::Partition some_partition;
+  some_partition.SetPartition(kPartitionId);
+  some_partition.SetDataHandle(kDataHandle);
+  model::Partitions partitions;
+  auto& partitions_vector = partitions.GetMutablePartitions();
+  partitions_vector.push_back(some_partition);
+
+  const std::string kPartitionDataHandle =
+      std::string(kCatalog) + "::" + layer + "::" + kDataHandle;
+  const std::string kPartition =
+      std::string(kCatalog) + "::" + layer + "::" + kPartitionId;
+  const std::string kPartitionKey = kPartition + "::partition";
+
+  auto cache = std::make_shared<testing::NaggyMock<CacheMock>>();
+
+  EXPECT_CALL(*cache, Put(testing::Eq(kPartitionKey), testing::_, testing::_,
+                          testing::_))
+      .WillRepeatedly(testing::Return(true));
+
+  EXPECT_CALL(*cache, Get(testing::Eq(kPartitionKey), testing::_))
+      .WillRepeatedly(testing::Return(some_partition));
+
+  {
+    SCOPED_TRACE("RemoveKeysWithPrefix data handle failed");
+
+    EXPECT_CALL(*cache, RemoveKeysWithPrefix(testing::Eq(kPartitionDataHandle)))
+        .WillOnce(testing::Return(false));
+    EXPECT_CALL(*cache, RemoveKeysWithPrefix(testing::Eq(kPartition)))
+        .WillOnce(testing::Return(true));
+
+    repository::PartitionsCacheRepository repository(hrn, layer, cache);
+    repository.Put(partitions, boost::none, true);
+    EXPECT_FALSE(repository.ClearPartitions({kPartitionId}, boost::none));
+  }
+
+  {
+    SCOPED_TRACE("RemoveKeysWithPrefix partition failed");
+
+    EXPECT_CALL(*cache, RemoveKeysWithPrefix(testing::Eq(kPartitionDataHandle)))
+        .WillOnce(testing::Return(true));
+    EXPECT_CALL(*cache, RemoveKeysWithPrefix(testing::Eq(kPartition)))
+        .WillOnce(testing::Return(false));
+
+    repository::PartitionsCacheRepository repository(hrn, layer, cache);
+    repository.Put(partitions, boost::none, true);
+    EXPECT_FALSE(repository.ClearPartitions({kPartitionId}, boost::none));
+  }
+
+  {
+    SCOPED_TRACE("RemoveKeysWithPrefix passed");
+
+    EXPECT_CALL(*cache, RemoveKeysWithPrefix(testing::Eq(kPartitionDataHandle)))
+        .WillOnce(testing::Return(true));
+    EXPECT_CALL(*cache, RemoveKeysWithPrefix(testing::Eq(kPartition)))
+        .WillOnce(testing::Return(true));
+
+    repository::PartitionsCacheRepository repository(hrn, layer, cache);
+    repository.Put(partitions, boost::none, true);
+    EXPECT_TRUE(repository.ClearPartitions({kPartitionId}, boost::none));
   }
 }
 
