@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2021 HERE Europe B.V.
+# Copyright (C) 2019-2024 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ option(OLP_SDK_ENABLE_DEFAULT_CACHE "Enable default cache implementation based o
 option(OLP_SDK_ENABLE_DEFAULT_CACHE_LMDB "Enable default cache implementation based on LMDB" OFF)
 option(OLP_SDK_ENABLE_ANDROID_CURL "Enable curl based network layer for Android" OFF)
 option(OLP_SDK_ENABLE_IOS_BACKGROUND_DOWNLOAD "Enable iOS network layer downloading in background. Under testing." OFF)
+option(OLP_SDK_ENABLE_OFFLINE_MODE "Enable offline mode. Network layer is excluded from the build and all network requests returned with error." OFF)
 
 # C++ standard version. Minimum supported version is 11.
 set(CMAKE_CXX_STANDARD 11)
