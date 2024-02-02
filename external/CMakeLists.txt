@@ -40,7 +40,7 @@ endif()
 
 # Setup versions for external project
 set(OLP_SDK_CPP_GOOGLETEST_URL "https://github.com/google/googletest.git")
-set(OLP_SDK_CPP_GOOGLETEST_TAG "release-1.10.0")
+set(OLP_SDK_CPP_GOOGLETEST_TAG "release-1.12.1")
 
 set(OLP_SDK_CPP_SNAPPY_URL "https://github.com/google/snappy.git")
 set(OLP_SDK_CPP_SNAPPY_TAG "1.1.7")
