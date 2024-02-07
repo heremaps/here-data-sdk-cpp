@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,25 @@
 namespace {
 namespace cache = olp::cache;
 using CacheType = cache::DefaultCache::CacheType;
+
+bool SetRights(const std::string& path, bool readonly) {
+#if !defined(_WIN32) || defined(__MINGW32__)
+  mode_t mode;
+  if (readonly) {
+    mode = S_IRUSR | S_IRGRP | S_IROTH;
+  } else {
+    mode = S_IRUSR | S_IWUSR | S_IXUSR;
+  }
+  mode = mode | S_IRGRP | S_IROTH;
+  return chmod(path.c_str(), mode) == 0;
+#else
+  DWORD attributes = GetFileAttributes(path.c_str());
+  attributes = readonly ? attributes | FILE_ATTRIBUTE_READONLY
+                        : attributes & ~FILE_ATTRIBUTE_READONLY;
+  BOOL result = SetFileAttributesA(path.c_str(), attributes);
+  return result != 0;
+#endif
+}
 
 class DefaultCacheImplTest : public ::testing::Test {
  public:
@@ -1332,4 +1351,65 @@ TEST_F(DefaultCacheImplTest, ProtectedCacheSize) {
 
   EXPECT_LT(std::fabs(diff_percentage), acceptable_diff_percentage);
 }
+
+struct OpenTestParameters {
+  olp::cache::DefaultCache::StorageOpenResult expected_result;
+  olp::cache::OpenOptions open_options;
+  boost::optional<std::string> disk_path_mutable;
+  boost::optional<std::string> disk_path_protected;
+};
+
+class DefaultCacheImplOpenTest
+    : public DefaultCacheImplTest,
+      public testing::WithParamInterface<OpenTestParameters> {};
+
+TEST_P(DefaultCacheImplOpenTest, ReadOnlyDir) {
+  const auto setup_dir = [&](const boost::optional<std::string>& cache_path) {
+    if (cache_path) {
+      if (olp::utils::Dir::Exists(*cache_path)) {
+        ASSERT_TRUE(olp::utils::Dir::Remove(*cache_path));
+      }
+      ASSERT_TRUE(olp::utils::Dir::Create(*cache_path));
+      ASSERT_TRUE(SetRights(*cache_path, true));
+    }
+  };
+
+  const auto reset_dir = [&](const boost::optional<std::string>& cache_path) {
+    if (cache_path) {
+      ASSERT_TRUE(olp::utils::Dir::Remove(*cache_path));
+    }
+  };
+
+  const OpenTestParameters test_params = GetParam();
+
+  ASSERT_NO_FATAL_FAILURE(setup_dir(test_params.disk_path_mutable));
+  ASSERT_NO_FATAL_FAILURE(setup_dir(test_params.disk_path_protected));
+
+  cache::CacheSettings settings;
+  settings.disk_path_mutable = test_params.disk_path_mutable;
+  settings.disk_path_protected = test_params.disk_path_protected;
+  settings.openOptions = test_params.open_options;
+  DefaultCacheImplHelper cache(settings);
+  EXPECT_EQ(test_params.expected_result, cache.Open());
+
+  ASSERT_NO_FATAL_FAILURE(reset_dir(test_params.disk_path_mutable));
+  ASSERT_NO_FATAL_FAILURE(reset_dir(test_params.disk_path_protected));
+}
+
+std::vector<OpenTestParameters> DefaultCacheImplOpenParams() {
+  const std::string cache_path =
+      olp::utils::Dir::TempDirectory() + "/unittest_readonly";
+  return {{olp::cache::DefaultCache::StorageOpenResult::Success,
+           olp::cache::OpenOptions::Default, boost::none, cache_path},
+          {olp::cache::DefaultCache::StorageOpenResult::Success,
+           olp::cache::OpenOptions::ReadOnly, boost::none, cache_path},
+          {olp::cache::DefaultCache::StorageOpenResult::OpenDiskPathFailure,
+           olp::cache::OpenOptions::Default, cache_path, boost::none},
+          {olp::cache::DefaultCache::StorageOpenResult::OpenDiskPathFailure,
+           olp::cache::OpenOptions::ReadOnly, cache_path, boost::none}};
+}
+
+INSTANTIATE_TEST_SUITE_P(, DefaultCacheImplOpenTest,
+                         testing::ValuesIn(DefaultCacheImplOpenParams()));
+
 }  // namespace

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -241,6 +241,15 @@ OpenResult DiskCache::Open(const std::string& data_path,
 
   if (status.IsInvalidArgument() && is_read_only) {
     // Maybe folder with cache is an empty, so trying to create db and reopen it
+    if (!repair_if_broken) {
+      OLP_SDK_LOG_WARNING_F(kLogTag,
+                            "Open: failed, initialize attempt postponed, "
+                            "cache_path='%s', error='%s'",
+                            versioned_data_path.c_str(),
+                            status.ToString().c_str());
+      return OpenResult::Postponed;
+    }
+
     status = InitializeDB(settings, versioned_data_path);
     if (!status.ok()) {
       return OpenResult::Fail;

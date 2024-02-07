@@ -144,6 +144,7 @@ olp::cache::DefaultCache::StorageOpenResult ToStorageOpenResult(
       return StorageOpenResult::ProtectedCacheCorrupted;
     case olp::cache::OpenResult::Repaired:
     case olp::cache::OpenResult::Success:
+    case olp::cache::OpenResult::Postponed:
       return StorageOpenResult::Success;
   }
 
