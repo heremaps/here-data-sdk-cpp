@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2023 HERE Europe B.V.
+# Copyright (C) 2019-2024 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ include(cmake/CompileChecks.cmake)
 
 porting_do_checks()
 
-if(IOS OR (WIN32 AND NOT MINGW))
+if(OLP_SDK_ENABLE_OFFLINE_MODE OR IOS OR (WIN32 AND NOT MINGW))
     set(NETWORK_NO_CURL ON)
 elseif(ANDROID)
     if(OLP_SDK_ENABLE_ANDROID_CURL)
@@ -56,10 +56,14 @@ endif()
 
 set(Network_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
-include(cmake/curl.cmake)
-include(cmake/winhttp.cmake)
-include(cmake/android.cmake)
-include(cmake/ios.cmake)
+if(OLP_SDK_ENABLE_OFFLINE_MODE)
+    include(cmake/offline.cmake)
+else()
+    include(cmake/curl.cmake)
+    include(cmake/winhttp.cmake)
+    include(cmake/android.cmake)
+    include(cmake/ios.cmake)
+endif()
 
 set(OLP_SDK_CACHE_HEADERS
     ./include/olp/core/cache/CacheSettings.h
@@ -299,41 +303,46 @@ set(OLP_SDK_PLATFORM_SOURCES
     ./src/context/ContextInternal.h
 )
 
-if (ANDROID)
-    # http network Android implementation:
-    set(OLP_SDK_HTTP_ANDROID_SOURCES
-        ./src/http/android/NetworkAndroid.h
-        ./src/http/android/NetworkAndroid.cpp
-        ./src/http/android/utils/JNIThreadBinder.h
-        ./src/http/android/utils/JNIScopedLocalReference.h
-    )
+if (NOT OLP_SDK_ENABLE_OFFLINE_MODE)
+    if (ANDROID)
+        # http network Android implementation:
+        set(OLP_SDK_HTTP_ANDROID_SOURCES
+            ./src/http/android/NetworkAndroid.h
+            ./src/http/android/NetworkAndroid.cpp
+            ./src/http/android/utils/JNIThreadBinder.h
+            ./src/http/android/utils/JNIScopedLocalReference.h
+        )
 
-    set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_ANDROID_SOURCES})
-    set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_ANDROID)
-endif()
-
-if (UNIX AND (NOT ANDROID OR OLP_SDK_ENABLE_ANDROID_CURL))
-    set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_CURL_SOURCES})
-
-    set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_CURL)
-endif()
-
-if (IOS)
-    set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_IOS_SOURCES})
-    set(OLP_SDK_PLATFORM_HEADERS ${OLP_SDK_PLATFORM_HEADERS} ${OLP_SDK_PLATFORM_IOS_HEADERS})
-    set(OLP_SDK_PLATFORM_SOURCES ${OLP_SDK_PLATFORM_SOURCES} ${OLP_SDK_PLATFORM_IOS_SOURCES})
-
-    set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_IOS)
-endif()
-
-if (WIN32)
-    if (MINGW)
-        set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_CURL_SOURCES})
-        set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_CURL)
-    else()
-        set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_WIN_SOURCES})
-        set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_WINHTTP)
+        set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_ANDROID_SOURCES})
+        set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_ANDROID)
     endif()
+
+    if (UNIX AND (NOT ANDROID OR OLP_SDK_ENABLE_ANDROID_CURL))
+        set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_CURL_SOURCES})
+
+        set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_CURL)
+    endif()
+
+    if (IOS)
+        set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_IOS_SOURCES})
+        set(OLP_SDK_PLATFORM_HEADERS ${OLP_SDK_PLATFORM_HEADERS} ${OLP_SDK_PLATFORM_IOS_HEADERS})
+        set(OLP_SDK_PLATFORM_SOURCES ${OLP_SDK_PLATFORM_SOURCES} ${OLP_SDK_PLATFORM_IOS_SOURCES})
+
+        set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_IOS)
+    endif()
+
+    if (WIN32)
+        if (MINGW)
+            set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_CURL_SOURCES})
+            set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_CURL)
+        else()
+            set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_WIN_SOURCES})
+            set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_HAS_WINHTTP)
+        endif()
+    endif()
+else()
+    set(OLP_SDK_HTTP_SOURCES ${OLP_SDK_HTTP_SOURCES} ${OLP_SDK_HTTP_OFFLINE_SOURCES})
+    set(OLP_SDK_DEFAULT_NETWORK_DEFINITION OLP_SDK_NETWORK_OFFLINE)
 endif()
 
 set(OLP_SDK_UTILS_SOURCES
@@ -509,7 +518,7 @@ if(IOS)
     target_link_libraries(${PROJECT_NAME} PRIVATE ${OLP_SDK_CORE_FOUNDATION_FRAMEWORK}
                                                   ${OLP_SDK_SECURITY_FRAMEWORK}
                                                   ${OLP_SDK_CFNETWORK_FRAMEWORK})
-elseif(ANDROID AND NOT OLP_SDK_ENABLE_ANDROID_CURL)
+elseif(ANDROID AND NOT OLP_SDK_ENABLE_ANDROID_CURL AND NOT OLP_SDK_ENABLE_OFFLINE_MODE)
     # Make sure that OlpHttpClient.jar is built before olp-cpp-sdk-core
     add_dependencies(${PROJECT_NAME} ${OLP_SDK_ANDROID_HTTP_CLIENT_JAR})
 endif()

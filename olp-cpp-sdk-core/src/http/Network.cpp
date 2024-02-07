@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@
 #include "http/DefaultNetwork.h"
 #include "olp/core/utils/WarningWorkarounds.h"
 
-#ifdef OLP_SDK_NETWORK_HAS_CURL
+#ifdef OLP_SDK_NETWORK_OFFLINE
+#include "offline/NetworkOffline.h"
+#elif OLP_SDK_NETWORK_HAS_CURL
 #include "curl/NetworkCurl.h"
 #elif OLP_SDK_NETWORK_HAS_ANDROID
 #include "android/NetworkAndroid.h"
@@ -39,7 +41,9 @@ namespace {
 std::shared_ptr<Network> CreateDefaultNetworkImpl(
     NetworkInitializationSettings settings) {
   OLP_SDK_CORE_UNUSED(settings);
-#ifdef OLP_SDK_NETWORK_HAS_CURL
+#ifdef OLP_SDK_NETWORK_OFFLINE
+  return std::make_shared<NetworkOffline>();
+#elif OLP_SDK_NETWORK_HAS_CURL
   return std::make_shared<NetworkCurl>(settings);
 #elif OLP_SDK_NETWORK_HAS_ANDROID
   return std::make_shared<NetworkAndroid>(settings.max_requests_count);
