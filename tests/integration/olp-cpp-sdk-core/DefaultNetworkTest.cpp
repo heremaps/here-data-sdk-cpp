@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ namespace {
 
 using testing::_;
 using testing::AllOf;
+using testing::DoAll;
 using testing::Mock;
 using testing::Return;
 using testing::SaveArg;

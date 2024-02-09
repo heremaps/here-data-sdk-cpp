@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@
 #include <olp/core/client/OlpClientFactory.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/utils/Url.h>
+#include <boost/optional/optional_io.hpp>
+#include "TypesToStream.h"
 #include "generated/api/MetadataApi.h"
 
 namespace {
