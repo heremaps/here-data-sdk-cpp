@@ -51,7 +51,7 @@ target_link_libraries(${PROJECT_NAME}
     ${SECURITY}
     "-Wl,-force_load"
     ${SVC_TEST_LIB}
-    "-Wl,-noall_load"
+    "-Wl"
     gtest
 )
 

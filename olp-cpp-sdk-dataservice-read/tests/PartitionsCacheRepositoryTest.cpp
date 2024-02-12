@@ -140,6 +140,7 @@ TEST(PartitionsCacheRepositoryTest, DefaultExpiry) {
 
 TEST(PartitionsCacheRepositoryTest, QuadTree) {
   using testing::_;
+  using testing::DoAll;
   using testing::Return;
   using testing::SaveArg;
 

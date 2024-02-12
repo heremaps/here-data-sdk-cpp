@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,14 @@
 
 #include <olp/core/logging/FilterGroup.h>
 #include <olp/core/logging/Log.h>
+#include <boost/optional/optional_io.hpp>
+#include "TypesToStream.h"
 
 namespace {
 
-using namespace olp::logging;
-using namespace testing;
+using olp::logging::FilterGroup;
+using olp::logging::Level;
+using olp::logging::Log;
 
 TEST(FilterGroupTest, DefaultLevel) {
   FilterGroup filter_group;

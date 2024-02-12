@@ -35,6 +35,7 @@
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/TileRequest.h>
 #include <olp/dataservice/read/model/Partitions.h>
+#include <boost/optional/optional_io.hpp>
 
 // clang-format off
 #include "generated/parser/PartitionsParser.h"

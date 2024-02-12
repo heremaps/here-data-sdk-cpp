@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,9 @@
 #include <olp/core/logging/ConsoleAppender.h>
 #include <olp/core/logging/FileAppender.h>
 #include <olp/core/logging/Log.h>
+#include <boost/optional/optional_io.hpp>
 #include "MockAppender.h"
+#include "TypesToStream.h"
 
 namespace {
 
