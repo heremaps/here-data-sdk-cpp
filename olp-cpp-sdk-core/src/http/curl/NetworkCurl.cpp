@@ -219,12 +219,21 @@ void GetTrafficData(CURL* handle, uint64_t& upload_bytes,
     download_bytes += headers_size;
   }
 
+#if CURL_AT_LEAST_VERSION(7, 55, 0)
+  off_t length_downloaded = 0;
+  if (curl_easy_getinfo(handle, CURLINFO_SIZE_DOWNLOAD_T, &length_downloaded) ==
+          CURLE_OK &&
+      length_downloaded > 0) {
+    download_bytes += length_downloaded;
+  }
+#else
   double length_downloaded;
   if (curl_easy_getinfo(handle, CURLINFO_SIZE_DOWNLOAD, &length_downloaded) ==
           CURLE_OK &&
       length_downloaded > 0.0) {
     download_bytes += length_downloaded;
   }
+#endif
 
   long length_upload;
   if (curl_easy_getinfo(handle, CURLINFO_REQUEST_SIZE, &length_upload) ==
@@ -564,40 +573,42 @@ ErrorCode NetworkCurl::SendImplementation(
     handle->chunk = curl_slist_append(handle->chunk, sstrm.str().c_str());
   }
 
+  CURL* curl_handle = handle->handle;
+
   if (verbose_) {
-    curl_easy_setopt(handle->handle, CURLOPT_VERBOSE, 1L);
+    curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
     if (stderr_ != nullptr) {
-      curl_easy_setopt(handle->handle, CURLOPT_STDERR, stderr_);
+      curl_easy_setopt(curl_handle, CURLOPT_STDERR, stderr_);
     }
   } else {
-    curl_easy_setopt(handle->handle, CURLOPT_VERBOSE, 0L);
+    curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 0L);
   }
 
-  curl_easy_setopt(handle->handle, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
+  curl_easy_setopt(curl_handle, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
 
   const std::string& url = request.GetUrl();
-  curl_easy_setopt(handle->handle, CURLOPT_URL, url.c_str());
+  curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
   auto verb = request.GetVerb();
   if (verb == NetworkRequest::HttpVerb::POST ||
       verb == NetworkRequest::HttpVerb::PUT ||
       verb == NetworkRequest::HttpVerb::PATCH) {
     if (verb == NetworkRequest::HttpVerb::POST) {
-      curl_easy_setopt(handle->handle, CURLOPT_POST, 1L);
+      curl_easy_setopt(curl_handle, CURLOPT_POST, 1L);
     } else if (verb == NetworkRequest::HttpVerb::PUT) {
       // http://stackoverflow.com/questions/7569826/send-string-in-put-request-with-libcurl
-      curl_easy_setopt(handle->handle, CURLOPT_CUSTOMREQUEST, "PUT");
+      curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, "PUT");
     } else if (verb == NetworkRequest::HttpVerb::PATCH) {
-      curl_easy_setopt(handle->handle, CURLOPT_CUSTOMREQUEST, "PATCH");
+      curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, "PATCH");
     }
   } else if (verb == NetworkRequest::HttpVerb::DEL) {
-    curl_easy_setopt(handle->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
+    curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, "DELETE");
   } else if (verb == NetworkRequest::HttpVerb::OPTIONS) {
-    curl_easy_setopt(handle->handle, CURLOPT_CUSTOMREQUEST, "OPTIONS");
+    curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, "OPTIONS");
   } else {  // GET or HEAD
-    curl_easy_setopt(handle->handle, CURLOPT_POST, 0L);
+    curl_easy_setopt(curl_handle, CURLOPT_POST, 0L);
 
     if (verb == NetworkRequest::HttpVerb::HEAD) {
-      curl_easy_setopt(handle->handle, CURLOPT_NOBODY, 1L);
+      curl_easy_setopt(curl_handle, CURLOPT_NOBODY, 1L);
     }
   }
 
@@ -606,32 +617,30 @@ ErrorCode NetworkCurl::SendImplementation(
     // These can also be used to add body data to a CURLOPT_CUSTOMREQUEST
     // such as delete.
     if (handle->body && !handle->body->empty()) {
-      curl_easy_setopt(handle->handle, CURLOPT_POSTFIELDSIZE,
+      curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE,
                        handle->body->size());
-      curl_easy_setopt(handle->handle, CURLOPT_POSTFIELDS,
-                       &handle->body->front());
+      curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, &handle->body->front());
     } else {
       // Some services (eg. Google) require the field size even if zero
-      curl_easy_setopt(handle->handle, CURLOPT_POSTFIELDSIZE, 0L);
+      curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, 0L);
     }
   }
 
   const auto& proxy = config.GetProxySettings();
   if (proxy.GetType() != NetworkProxySettings::Type::NONE) {
-    curl_easy_setopt(handle->handle, CURLOPT_PROXY,
-                     proxy.GetHostname().c_str());
-    curl_easy_setopt(handle->handle, CURLOPT_PROXYPORT, proxy.GetPort());
+    curl_easy_setopt(curl_handle, CURLOPT_PROXY, proxy.GetHostname().c_str());
+    curl_easy_setopt(curl_handle, CURLOPT_PROXYPORT, proxy.GetPort());
     const auto proxy_type = proxy.GetType();
     if (proxy_type != NetworkProxySettings::Type::HTTP) {
-      curl_easy_setopt(handle->handle, CURLOPT_PROXYTYPE,
+      curl_easy_setopt(curl_handle, CURLOPT_PROXYTYPE,
                        ToCurlProxyType(proxy_type));
     }
 
     // We expect that both fields are empty or filled
     if (!proxy.GetUsername().empty() && !proxy.GetPassword().empty()) {
-      curl_easy_setopt(handle->handle, CURLOPT_PROXYUSERNAME,
+      curl_easy_setopt(curl_handle, CURLOPT_PROXYUSERNAME,
                        proxy.GetUsername().c_str());
-      curl_easy_setopt(handle->handle, CURLOPT_PROXYPASSWORD,
+      curl_easy_setopt(curl_handle, CURLOPT_PROXYPASSWORD,
                        proxy.GetPassword().c_str());
     }
   }
@@ -642,26 +651,26 @@ ErrorCode NetworkCurl::SendImplementation(
     const std::string& dns_list = dns_servers.size() == 1
                                       ? dns_servers.front()
                                       : ConcatenateDnsAddresses(dns_servers);
-    curl_easy_setopt(handle->handle, CURLOPT_DNS_SERVERS, dns_list.c_str());
+    curl_easy_setopt(curl_handle, CURLOPT_DNS_SERVERS, dns_list.c_str());
   }
 #endif
 
   if (handle->chunk) {
-    curl_easy_setopt(handle->handle, CURLOPT_HTTPHEADER, handle->chunk);
+    curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, handle->chunk);
   }
 
 #ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
   if (ssl_certificates_blobs_) {
-    curl_easy_setopt(handle->handle, CURLOPT_SSLCERT_BLOB,
+    curl_easy_setopt(curl_handle, CURLOPT_SSLCERT_BLOB,
                      &ssl_certificates_blobs_->ssl_cert_blob);
-    curl_easy_setopt(handle->handle, CURLOPT_SSLKEY_BLOB,
+    curl_easy_setopt(curl_handle, CURLOPT_SSLKEY_BLOB,
                      &ssl_certificates_blobs_->ssl_key_blob);
-    curl_easy_setopt(handle->handle, CURLOPT_CAINFO_BLOB,
+    curl_easy_setopt(curl_handle, CURLOPT_CAINFO_BLOB,
                      &ssl_certificates_blobs_->ca_info_blob);
   } else
 #endif
   {
-    CURLcode error = SetCaBundlePaths(handle->handle);
+    CURLcode error = SetCaBundlePaths(curl_handle);
     if (CURLE_OK != error) {
       OLP_SDK_LOG_ERROR(kLogTag, "Send failed - set ca bundle path failed, url="
                                      << request.GetUrl() << ", error=" << error
@@ -670,16 +679,16 @@ ErrorCode NetworkCurl::SendImplementation(
     }
   }
 
-  curl_easy_setopt(handle->handle, CURLOPT_SSL_VERIFYPEER, 1L);
-  curl_easy_setopt(handle->handle, CURLOPT_SSL_VERIFYHOST, 2L);
+  curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 1L);
+  curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2L);
 
 #ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
-  curl_easy_setopt(handle->handle, CURLOPT_SSL_CTX_FUNCTION,
+  curl_easy_setopt(curl_handle, CURLOPT_SSL_CTX_FUNCTION,
                    &NetworkCurl::AddMd5LookupMethod);
-  curl_easy_setopt(handle->handle, CURLOPT_SSL_CTX_DATA, handle);
+  curl_easy_setopt(curl_handle, CURLOPT_SSL_CTX_DATA, handle);
 #endif
 
-  curl_easy_setopt(handle->handle, CURLOPT_FOLLOWLOCATION, 1L);
+  curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1L);
 
   // `::count` is defined on all duration types, to be on the safe side
   // regarding durations on NetworkConfig. Refactoring of NetworkConfig to
@@ -690,38 +699,37 @@ ErrorCode NetworkCurl::SendImplementation(
   const long timeout_ms =
       CountIn<std::chrono::milliseconds>(config.GetTransferTimeoutDuration());
 
-  curl_easy_setopt(handle->handle, CURLOPT_CONNECTTIMEOUT_MS,
-                   connect_timeout_ms);
-  curl_easy_setopt(handle->handle, CURLOPT_TIMEOUT_MS, timeout_ms);
-  curl_easy_setopt(handle->handle, CURLOPT_WRITEFUNCTION,
+  curl_easy_setopt(curl_handle, CURLOPT_CONNECTTIMEOUT_MS, connect_timeout_ms);
+  curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT_MS, timeout_ms);
+  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION,
                    &NetworkCurl::RxFunction);
-  curl_easy_setopt(handle->handle, CURLOPT_WRITEDATA, handle);
-  curl_easy_setopt(handle->handle, CURLOPT_HEADERFUNCTION,
+  curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, handle);
+  curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION,
                    &NetworkCurl::HeaderFunction);
-  curl_easy_setopt(handle->handle, CURLOPT_HEADERDATA, handle);
-  curl_easy_setopt(handle->handle, CURLOPT_FAILONERROR, 0L);
+  curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, handle);
+  curl_easy_setopt(curl_handle, CURLOPT_FAILONERROR, 0L);
   if (stderr_ == nullptr) {
-    curl_easy_setopt(handle->handle, CURLOPT_STDERR, 0L);
+    curl_easy_setopt(curl_handle, CURLOPT_STDERR, 0L);
   }
-  curl_easy_setopt(handle->handle, CURLOPT_ERRORBUFFER, handle->error_text);
+  curl_easy_setopt(curl_handle, CURLOPT_ERRORBUFFER, handle->error_text);
 
 #if CURL_AT_LEAST_VERSION(7, 21, 0)
-  curl_easy_setopt(handle->handle, CURLOPT_ACCEPT_ENCODING, "");
-  curl_easy_setopt(handle->handle, CURLOPT_TRANSFER_ENCODING, 1L);
+  curl_easy_setopt(curl_handle, CURLOPT_ACCEPT_ENCODING, "");
+  curl_easy_setopt(curl_handle, CURLOPT_TRANSFER_ENCODING, 1L);
 #endif
 
 #if CURL_AT_LEAST_VERSION(7, 25, 0)
   // Enable keep-alive (since Curl 7.25.0)
-  curl_easy_setopt(handle->handle, CURLOPT_TCP_KEEPALIVE, 1L);
-  curl_easy_setopt(handle->handle, CURLOPT_TCP_KEEPIDLE, 120L);
-  curl_easy_setopt(handle->handle, CURLOPT_TCP_KEEPINTVL, 60L);
+  curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPALIVE, 1L);
+  curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPIDLE, 120L);
+  curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPINTVL, 60L);
 #endif
 
 #if CURL_AT_LEAST_VERSION(7, 80, 0)
-  curl_easy_setopt(handle->handle, CURLOPT_MAXLIFETIME_CONN,
+  curl_easy_setopt(curl_handle, CURLOPT_MAXLIFETIME_CONN,
                    config.GetMaxConnectionLifetime().count());
 #else
-  curl_easy_setopt(handle->handle, CURLOPT_FORBID_REUSE,
+  curl_easy_setopt(curl_handle, CURLOPT_FORBID_REUSE,
                    config.GetMaxConnectionLifetime().count() ? 1L : 0L);
 #endif
 
@@ -919,6 +927,12 @@ size_t NetworkCurl::HeaderFunction(char* ptr, size_t size, size_t nitems,
   if (!that || !that->IsStarted() || handle->cancelled) {
     return len;
   }
+
+  if (!handle->header_callback) {
+    return len;
+  }
+
+  // Drop trailing '\r' and '\n'
   size_t count = len;
   while ((count > 1u) &&
          ((ptr[count - 1u] == '\n') || (ptr[count - 1u] == '\r')))
@@ -926,20 +940,22 @@ size_t NetworkCurl::HeaderFunction(char* ptr, size_t size, size_t nitems,
   if (count == 0u) {
     return len;
   }
+
   std::string str(ptr, count);
   std::size_t pos = str.find(':');
   if (pos == std::string::npos) {
     return len;
   }
-  std::string key = str.substr(0u, pos);
+
+  std::string key(str.substr(0u, pos));
   std::string value;
   if (pos + 2u < str.size()) {
     value = str.substr(pos + 2u);
   }
 
-  if (handle->header_callback) {
-    handle->header_callback(key, value);
-  }
+  // Callback with header key+value
+  handle->header_callback(key, value);
+
   return len;
 }
 
