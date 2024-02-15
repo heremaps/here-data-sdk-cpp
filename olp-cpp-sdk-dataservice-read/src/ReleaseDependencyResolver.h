@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 
 #include <map>
 #include <memory>
+#include <vector>
 #include <string>
 
 #include <olp/core/cache/KeyValueCache.h>
@@ -53,11 +54,12 @@ class ReleaseDependencyResolver {
 
   void ProcessTileKey(const geo::TileKey& tile_key);
 
-  TilesDataKeysType CheckProtectedTilesInQuad(const read::QuadTreeIndex& cached_tree,
-                                const geo::TileKey& tile,
-                                bool& add_data_handle_key);
+  TilesDataKeysType CheckProtectedTilesInQuad(
+      const read::QuadTreeIndex& cached_tree, const geo::TileKey& tile,
+      bool& add_data_handle_key);
 
-  void ProcessQuadTreeCache(const geo::TileKey& root_quad_key, const geo::TileKey& tile,
+  void ProcessQuadTreeCache(const geo::TileKey& root_quad_key,
+                            const geo::TileKey& tile,
                             bool& add_data_handle_key);
 
  private:
@@ -69,6 +71,7 @@ class ReleaseDependencyResolver {
   repository::PartitionsCacheRepository partitions_cache_repository_;
   QuadsType quad_trees_with_protected_tiles_;
   cache::KeyValueCache::KeyListType keys_to_release_;
+  std::vector<geo::TileKey> requested_tiles_;
 };
 
 }  // namespace read
