@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,7 +158,7 @@ class VersionedLayerClientImplPublishToBatchTest : public ::testing::Test {
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(status),
                                olp::serializer::serialize(apis)));
 
-    return std::move(service_api);
+    return service_api;
   }
 
   write::model::Apis CreateApiResponse(const std::string& service) {

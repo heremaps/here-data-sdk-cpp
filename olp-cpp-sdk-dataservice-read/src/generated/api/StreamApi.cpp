@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@
 #include "StreamApi.h"
 
 #include <map>
+#include <memory>
+#include <utility>
+#include <vector>
 
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/HttpResponse.h>
@@ -93,7 +96,7 @@ StreamApi::SubscribeApiResponse StreamApi::Subscribe(
 
   auto http_response = client.CallApi(
       metadata_uri, "POST", std::move(query_params), std::move(header_params),
-      {}, data, "application/json", std::move(context));
+      {}, data, "application/json", context);
   if (http_response.status != http::HttpStatusCode::CREATED) {
     return client::ApiError(http_response.status, http_response.response.str());
   }
@@ -127,7 +130,7 @@ StreamApi::ConsumeDataApiResponse StreamApi::ConsumeData(
 
   auto http_response = client.CallApi(
       metadata_uri, "GET", std::move(query_params), std::move(header_params),
-      {}, nullptr, std::string{}, std::move(context));
+      {}, nullptr, std::string{}, context);
   if (http_response.status != http::HttpStatusCode::OK) {
     return client::ApiError(http_response.status, http_response.response.str());
   }
@@ -178,7 +181,7 @@ StreamApi::UnsubscribeApiResponse StreamApi::DeleteSubscription(
 
   const auto http_response = client.CallApi(
       metadata_uri, "DELETE", std::move(query_params), std::move(header_params),
-      {}, nullptr, std::string{}, std::move(context));
+      {}, nullptr, std::string{}, context);
   if (http_response.status != http::HttpStatusCode::OK) {
     return client::ApiError(http_response.status, http_response.response.str());
   }
@@ -217,7 +220,7 @@ Response<int> StreamApi::HandleOffsets(
 
   const auto http_response = client.CallApi(
       metadata_uri, "PUT", std::move(query_params), std::move(header_params),
-      {}, data, "application/json", std::move(context));
+      {}, data, "application/json", context);
   if (http_response.status != http::HttpStatusCode::OK) {
     return client::ApiError(http_response.status, http_response.response.str());
   }

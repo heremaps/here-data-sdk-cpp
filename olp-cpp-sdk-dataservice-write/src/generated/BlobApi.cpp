@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,11 @@
 
 #include "BlobApi.h"
 
+#include <map>
 #include <memory>
 #include <sstream>
+#include <utility>
+#include <vector>
 
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/http/HttpStatusCode.h>
@@ -87,7 +90,7 @@ PutBlobResponse BlobApi::PutBlob(
   header_params.insert(std::make_pair("Accept", "application/json"));
 
   if (!content_encoding.empty()) {
-      header_params.insert(std::make_pair("Content-Encoding", content_encoding));
+    header_params.insert(std::make_pair("Content-Encoding", content_encoding));
   }
 
   if (billing_tag) {
@@ -99,8 +102,8 @@ PutBlobResponse BlobApi::PutBlob(
 
   auto http_response =
       client.CallApi(std::move(put_blob_uri), "PUT", std::move(query_params),
-                     std::move(header_params), std::move(form_params),
-                     std::move(data), std::move(content_type), cancel_context);
+                     std::move(header_params), std::move(form_params), data,
+                     content_type, cancel_context);
 
   if (http_response.status != olp::http::HttpStatusCode::OK &&
       http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {

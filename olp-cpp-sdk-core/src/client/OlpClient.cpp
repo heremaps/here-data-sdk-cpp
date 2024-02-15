@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -560,8 +560,7 @@ CancellationToken OlpClient::OlpClientImpl::CallApi(
 
   if (merge) {
     // Add callback and prepare CancellationToken
-    auto call_id =
-        pending_requests->Append(url, std::move(callback), request_ptr);
+    auto call_id = pending_requests->Append(url, callback, request_ptr);
     cancellation_token =
         CancellationToken([=] { pending_requests->Cancel(url, call_id); });
 
@@ -577,7 +576,7 @@ CancellationToken OlpClient::OlpClientImpl::CallApi(
     request_ptr = std::make_shared<PendingUrlRequest>();
 
     // Add callback and prepare CancellationToken
-    auto call_id = request_ptr->Append(std::move(callback));
+    auto call_id = request_ptr->Append(callback);
     cancellation_token =
         CancellationToken([=] { request_ptr->Cancel(call_id); });
   }
