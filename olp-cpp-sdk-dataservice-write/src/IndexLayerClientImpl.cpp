@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,8 @@
 #include "generated/IndexApi.h"
 
 #include <atomic>
+#include <string>
+#include <utility>
 
 namespace {
 std::string GenerateUuid() {
@@ -208,7 +210,7 @@ client::CancellationToken IndexLayerClientImpl::PublishIndex(
   };
 
   return AddTask(settings_.task_scheduler, pending_requests_,
-                 std::move(publish_task), std::move(callback));
+                 std::move(publish_task), callback);
 }
 
 client::CancellableFuture<DeleteIndexDataResponse>

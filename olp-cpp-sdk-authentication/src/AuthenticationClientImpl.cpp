@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2023 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,10 @@
 
 #include <chrono>
 #include <iomanip>
+#include <limits>
 #include <sstream>
 #include <thread>
+#include <utility>
 
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
@@ -590,7 +592,7 @@ client::CancellationToken AuthenticationClientImpl::SignUpHereUser(
   };
 
   return AddTask(settings_.task_scheduler, pending_requests_,
-                 std::move(signup_task), std::move(callback));
+                 std::move(signup_task), callback);
 }
 
 client::CancellationToken AuthenticationClientImpl::SignOut(
@@ -635,7 +637,7 @@ client::CancellationToken AuthenticationClientImpl::SignOut(
   };
 
   return AddTask(settings_.task_scheduler, pending_requests_,
-                 std::move(sign_out_task), std::move(callback));
+                 std::move(sign_out_task), callback);
 }
 
 client::CancellationToken AuthenticationClientImpl::IntrospectApp(
