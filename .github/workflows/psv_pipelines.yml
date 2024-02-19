@@ -71,6 +71,70 @@ jobs:
       run: ./scripts/linux/psv/build_psv_no_cache.sh
       shell: bash
 
+  psv-linux-22-04-gcc11-build:
+    name: PSV.Linux.22.04.gcc11
+    runs-on: ubuntu-22.04
+    env:
+      BUILD_TYPE: RelWithDebInfo
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Install Ubuntu dependencies
+        run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
+        shell: bash
+      - name: Compile project with cmake and ccache
+        run: gcc --version && ./scripts/linux/psv/build_psv.sh
+        shell: bash
+
+  psv-linux-22-04-gcc13-build-no-cache:
+    name: PSV.Linux.22.04.gcc13.OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
+    runs-on: ubuntu-22.04
+    env:
+      BUILD_TYPE: RelWithDebInfo
+      CC: gcc-13
+      CXX: g++-13
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+    - name: Install Ubuntu dependencies
+      run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-13 g++-13 --no-install-recommends
+      shell: bash
+    - name: Compile project without cache
+      run: ./scripts/linux/psv/build_psv_no_cache.sh
+      shell: bash
+
+  psv-linux-22-04-gcc13-build:
+    name: PSV.Linux.22.04.gcc13
+    runs-on: ubuntu-22.04
+    env:
+      BUILD_TYPE: RelWithDebInfo
+      CC: gcc-13
+      CXX: g++-13
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Install Ubuntu dependencies
+        run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
+        shell: bash
+      - name: Compile project with cmake and ccache
+        run: gcc --version && ./scripts/linux/psv/build_psv.sh
+        shell: bash
+
+  psv-linux-22-04-gcc11-build-no-cache:
+    name: PSV.Linux.22.04.gcc11.OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
+    runs-on: ubuntu-22.04
+    env:
+      BUILD_TYPE: RelWithDebInfo
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+    - name: Install Ubuntu dependencies
+      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev --no-install-recommends
+      shell: bash
+    - name: Compile project without cache
+      run: ./scripts/linux/psv/build_psv_no_cache.sh
+      shell: bash
+
   psv-linux-20-04-clang-build:
     name: PSV.Linux.20.04.clang
     runs-on: ubuntu-20.04
