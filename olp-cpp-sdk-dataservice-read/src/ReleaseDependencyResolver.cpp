@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,14 @@ ReleaseDependencyResolver::ReleaseDependencyResolver(
 const cache::KeyValueCache::KeyListType&
 ReleaseDependencyResolver::GetKeysToRelease(const TileKeys& tiles) {
   keys_to_release_.clear();
-  for (const auto& tile : tiles) {
+
+  requested_tiles_ = tiles;
+  std::sort(requested_tiles_.begin(), requested_tiles_.end());
+  requested_tiles_.erase(
+      std::unique(requested_tiles_.begin(), requested_tiles_.end()),
+      requested_tiles_.end());
+
+  for (const auto& tile : requested_tiles_) {
     ProcessTileKey(tile);
   }
   return keys_to_release_;
@@ -134,7 +141,15 @@ void ReleaseDependencyResolver::ProcessQuadTreeCache(
                                        cached_tree)) {
     TilesDataKeysType protected_keys =
         CheckProtectedTilesInQuad(cached_tree, tile, add_data_handle_key);
-    if (protected_keys.empty()) {
+
+    const bool all_keys_requested = std::all_of(
+        protected_keys.begin(), protected_keys.end(),
+        [&](const TilesDataKeysType::value_type& key) {
+          return std::binary_search(requested_tiles_.begin(),
+                                    requested_tiles_.end(), key.first);
+        });
+
+    if (protected_keys.empty() || all_keys_requested) {
       // no other tiles are protected, can add quad tree to release list
       keys_to_release_.emplace_back(cache::KeyGenerator::CreateQuadTreeKey(
           catalog_, layer_id_, root_quad_key, version_, kQuadTreeDepth));
