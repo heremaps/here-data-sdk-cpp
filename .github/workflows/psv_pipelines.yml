@@ -234,6 +234,7 @@ jobs:
   psv-commit-checker:
     name: PSV.Commit.Checker
     runs-on: ubuntu-20.04
+    if: github.ref_name != 'master'
     steps:
     - uses: actions/checkout@v3
       with:
