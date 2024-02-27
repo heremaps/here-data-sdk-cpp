@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -527,6 +527,80 @@ bool Dir::IsReadOnly(const std::string& path) {
   return false;
 #else
   return !(access(path.c_str(), W_OK) == 0 || errno == ENOENT);
+#endif
+}
+
+void Dir::ForEachDirectory(const std::string& path, PathCallback path_fn) {
+#if defined(_WIN32) && !defined(__MINGW32__)
+
+  WIN32_FIND_DATAA find_data;
+  std::string current_path = path + "\\*.*";
+
+  HANDLE handle = FindFirstFileA(current_path.c_str(), &find_data);
+
+  if (handle != INVALID_HANDLE_VALUE) {
+    do {
+      if (strcmp(find_data.cFileName, ".") == 0 ||
+          strcmp(find_data.cFileName, "..") == 0) {
+        continue;
+      }
+
+      if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+        current_path = path + "\\" + find_data.cFileName;
+        path_fn(current_path);
+        ForEachDirectory(current_path, path_fn);
+      }
+    } while (FindNextFileA(handle, &find_data) != 0);
+
+    FindClose(handle);
+  }
+
+#else
+
+  std::queue<std::string> recursive_queue;
+  recursive_queue.push(path);
+
+  auto iterate_directory = [&](const std::string& path) {
+    auto* dir = ::opendir(path.c_str());
+    if (dir == nullptr) {
+      return;
+    }
+
+    struct ::dirent* entry = nullptr;
+    while ((entry = ::readdir(dir)) != nullptr) {
+      const char* entry_name = entry->d_name;
+
+      if (strcmp(entry_name, ".") == 0 || strcmp(entry_name, "..") == 0) {
+        continue;
+      }
+
+      std::string full_path = path + "/" + entry_name;
+
+#ifdef __APPLE__
+      struct ::stat path_stat;
+      if (::lstat(full_path.c_str(), &path_stat) == 0) {
+#else
+      struct ::stat64 path_stat;
+      if (::lstat64(full_path.c_str(), &path_stat) == 0) {
+#endif
+        if (S_ISDIR(path_stat.st_mode)) {
+          path_fn(full_path);
+          recursive_queue.push(std::move(full_path));
+        }
+      } else if (errno != ENOENT) {
+        // Ignore ENOENT errors as its a common case, e.g. cache compaction.
+        break;
+      }
+    }
+
+    ::closedir(dir);
+  };
+
+  while (!recursive_queue.empty()) {
+    iterate_directory(recursive_queue.front());
+    recursive_queue.pop();
+  }
+
 #endif
 }
 
