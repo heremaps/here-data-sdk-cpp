@@ -204,6 +204,23 @@ OpenResult DiskCache::Open(const std::string& data_path,
     }
   }
 
+  // Check cache path for unexpected directories
+  const std::vector<std::string> expected_dirs = {disk_cache_path_ +
+                                                  kLevelDbLostFolder};
+  bool unexpected_dirs = false;
+  utils::Dir::ForEachDirectory(disk_cache_path_, [&](const std::string& dir) {
+    if (std::find(expected_dirs.begin(), expected_dirs.end(), dir) ==
+        expected_dirs.end()) {
+      OLP_SDK_LOG_WARNING_F(
+          kLogTag, "Open: unexpected directory found, path='%s'", dir.c_str());
+      unexpected_dirs = true;
+    }
+  });
+
+  if (unexpected_dirs) {
+    return OpenResult::Fail;
+  }
+
   enforce_immediate_flush_ = settings.enforce_immediate_flush;
 
   max_size_ = settings.max_disk_storage;

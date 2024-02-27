@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 #include <fstream>
 #include <string>
 #include <thread>
+#include <tuple>
 
 #include <gtest/gtest.h>
 
@@ -683,6 +684,54 @@ TEST(DefaultCacheTest, OpenTypeCache) {
 
     ASSERT_FALSE(cache.Contains(key1));
     ASSERT_FALSE(cache.Contains(key2));
+  }
+
+  {
+    SCOPED_TRACE("Additional directories");
+
+    constexpr auto kExpectedDirResult =
+        olp::cache::DefaultCache::StorageOpenResult::Success;
+    constexpr auto kUnexpectedDirResult =
+        olp::cache::DefaultCache::StorageOpenResult::OpenDiskPathFailure;
+
+    auto scenarios = {
+        std::make_tuple("/lost", kExpectedDirResult),
+        std::make_tuple("/lost/tmp", kUnexpectedDirResult),
+        std::make_tuple("/found", kUnexpectedDirResult),
+        std::make_tuple("/ARCHIVES", kUnexpectedDirResult),
+        std::make_tuple("/ARCHIVES/removed", kUnexpectedDirResult)};
+
+    for (auto& scenario : scenarios) {
+      {
+        SCOPED_TRACE("Mutable cache");
+
+        std::string dir_path = mutable_path + std::get<0>(scenario);
+        ASSERT_TRUE(olp::utils::Dir::Create(dir_path));
+
+        olp::cache::CacheSettings settings;
+        settings.disk_path_mutable = mutable_path;
+
+        olp::cache::DefaultCache cache(settings);
+        EXPECT_EQ(cache.Open(), std::get<1>(scenario));
+
+        olp::utils::Dir::Remove(dir_path);
+      }
+
+      {
+        SCOPED_TRACE("Protected cache");
+
+        std::string dir_path = protected_path + std::get<0>(scenario);
+        ASSERT_TRUE(olp::utils::Dir::Create(dir_path));
+
+        olp::cache::CacheSettings settings;
+        settings.disk_path_protected = protected_path;
+
+        olp::cache::DefaultCache cache(settings);
+        EXPECT_EQ(cache.Open(), std::get<1>(scenario));
+
+        olp::utils::Dir::Remove(dir_path);
+      }
+    }
   }
 }
 

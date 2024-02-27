@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,9 @@ class CORE_API Dir {
  public:
   /// An alias for the filter function.
   using FilterFunction = std::function<bool(const std::string&)>;
+
+  /// An alias for the path callback function.
+  using PathCallback = std::function<void(const std::string&)>;
 
   /**
    * @brief Checks whether a directory exists.
@@ -143,6 +146,15 @@ class CORE_API Dir {
    * path.
    */
   static bool IsReadOnly(const std::string& path);
+
+  /**
+   * @brief Iterates through all directories in the provided path and calls the
+   * provided callback function for each directory.
+   *
+   * @param path The path of the root directory.
+   * @param path_fn The callback function.
+   */
+  static void ForEachDirectory(const std::string& path, PathCallback path_fn);
 };
 
 }  // namespace utils
