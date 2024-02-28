@@ -57,8 +57,8 @@ set(OLP_SDK_CPP_BOOST_TAG "boost-1.72.0")
 set(OLP_SDK_CPP_LMDB_URL "https://github.com/LMDB/lmdb.git")
 set(OLP_SDK_CPP_LMDB_TAG "LMDB_0.9.29")
 
-set(OLP_SDK_CPP_ZLIB_URL "https://sdk.amazonaws.com/cpp/builds/zlib-1.2.11.tar.gz")
-set(OLP_SDK_CPP_ZLIB_HASH "SHA256=c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1")
+set(OLP_SDK_CPP_ZLIB_URL "https://www.zlib.net/zlib-1.3.1.tar.gz")
+set(OLP_SDK_CPP_ZLIB_HASH "SHA256=9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23")
 
 set(OLP_SDK_CPP_OPENSSL_URL "https://github.com/openssl/openssl.git")
 set(OLP_SDK_CPP_OPENSSL_TAG "OpenSSL_1_1_1g")
