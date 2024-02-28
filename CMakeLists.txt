@@ -44,7 +44,7 @@ option(OLP_SDK_MSVC_PARALLEL_BUILD_ENABLE "Enable parallel build on MSVC" ON)
 option(OLP_SDK_DISABLE_DEBUG_LOGGING "Disable debug and trace level logging" OFF)
 option(OLP_SDK_ENABLE_DEFAULT_CACHE "Enable default cache implementation based on LevelDB" ON)
 option(OLP_SDK_ENABLE_DEFAULT_CACHE_LMDB "Enable default cache implementation based on LMDB" OFF)
-option(OLP_SDK_ENABLE_ANDROID_CURL "Enable curl based network layer for Android" OFF)
+option(OLP_SDK_ENABLE_ANDROID_CURL "Enable curl based network layer for Android" ON)
 option(OLP_SDK_ENABLE_IOS_BACKGROUND_DOWNLOAD "Enable iOS network layer downloading in background. Under testing." OFF)
 option(OLP_SDK_ENABLE_OFFLINE_MODE "Enable offline mode. Network layer is excluded from the build and all network requests returned with error." OFF)
 
