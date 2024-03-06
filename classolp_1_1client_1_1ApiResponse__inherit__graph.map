@@ -1,4 +1,4 @@
 <map id="olp::client::ApiResponse&lt; Result, Error, Payload &gt;" name="olp::client::ApiResponse&lt; Result, Error, Payload &gt;">
-<area shape="rect" id="node1" title="Represents a request outcome." alt="" coords="19,95,194,136"/>
-<area shape="rect" id="node2" href="$classolp_1_1client_1_1ResponseExtension_3_01void_01_4.html" title="The ApiResponse extension class specialization without any payload." alt="" coords="5,5,208,47"/>
+<area shape="rect" id="node1" title="Represents a request outcome." alt="" coords="21,95,211,136"/>
+<area shape="rect" id="node2" href="$classolp_1_1client_1_1ResponseExtension_3_01void_01_4.html" title="The ApiResponse extension class specialization without any payload." alt="" coords="5,5,227,47"/>
 </map>

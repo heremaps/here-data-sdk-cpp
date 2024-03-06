@@ -1,4 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classolp_1_1geo_1_1ITilingScheme.html" title="Represents how data is tiled." alt="" coords="5,20,164,47"/>
-<area shape="rect" id="node2" href="$classolp_1_1geo_1_1TilingScheme.html" title="Represents how data is tiled." alt="" coords="212,5,373,61"/>
+<area shape="rect" id="node1" href="$classolp_1_1geo_1_1ISubdivisionScheme.html" title="An abstract tiling subdivision scheme." alt="" coords="5,46,219,73"/>
+<area shape="rect" id="node2" href="$classolp_1_1geo_1_1HalfQuadTreeSubdivisionScheme.html" title="A subdivision scheme used to represent half quadtrees." alt="" coords="267,5,512,47"/>
+<area shape="rect" id="node3" href="$classolp_1_1geo_1_1QuadTreeSubdivisionScheme.html" title="A quadtree subdivision scheme." alt="" coords="280,71,499,112"/>
 </map>

@@ -1,4 +1,4 @@
 <map id="olp::geo::GeoRectangle" name="olp::geo::GeoRectangle">
-<area shape="rect" id="node1" title="A rectangular area in the WGS84 Coordinate System." alt="" coords="11,109,170,136"/>
-<area shape="rect" id="node2" href="$classolp_1_1geo_1_1GeoCoordinates.html" title="A geographic location that uses the WGS84 Coordinate System." alt="" coords="5,5,176,32"/>
+<area shape="rect" id="node1" title="A rectangular area in the WGS84 Coordinate System." alt="" coords="12,109,185,136"/>
+<area shape="rect" id="node2" href="$classolp_1_1geo_1_1GeoCoordinates.html" title="A geographic location that uses the WGS84 Coordinate System." alt="" coords="5,5,192,32"/>
 </map>
