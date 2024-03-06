@@ -1,3 +1,27 @@
+## v1.18.0 (06/03/2024)
+**Common**
+* Updated the code to support the latest versions of popular compilers.
+* Updated `olp::http::NetworkCurl` class to use 4x more opened connections than requests to avoid issues with connection caching.
+* Extended `olp::client::RetrySettings` with `connection_timeout` and `transfer_timeout`.
+* Implemented performance improvements.
+* Updated the minimal required version of `cURL` for SSL blob support to 7.77.0.
+* Added support for background downloads for iOS.
+* Fixed possible data race in `olp::cache::DefaultCache` when the cache size is being checked.
+* Added `OLP_SDK_ENABLE_OFFLINE_MODE` CMake option to enforce full offline mode for the SDK.
+* Changed `olp::cache::DiskCache::Open` to return `olp::cache::OpenResult::Postponed` when the protected can't be initialized at the given moment due to restrictions like missing permissions.
+* Changed `olp::cache::DefaultCache::Open` to scan the cache path for unexpected directories and report them as errors.
+
+**olp-cpp-sdk-authentication**
+* The credentials file is parsed correctly when it has unexpected line endings which can occur when copying the file between different operating systems.
+
+**olp-cpp-sdk-dataservice-read**
+* Fixed possible crash in `olp::dataservice::read::PartitionsCacheRepository` that occurred when the stream closed before parsing started.
+* Changed the `olp::dataservice::read::repository::PartitionsSaxHandler` to be cancellable.
+* Extended `olp::dataservice::read::VersionedLayerClient` with `Protect(..)` and `Release(..)` methods to protect and release multiple partitions at once.
+* Added more checks for the results of cache-related operations.
+* Updated `olp::dataservice::read::VersionedLayerClient::Release` to take the list of tiles from the request into account and assume that they will be released.
+* Introduced performance improvements.
+
 ## v1.17.0 (11/10/2023)
 
 **Common**
