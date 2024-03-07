@@ -1,4 +1,10 @@
+## v1.18.1 (07/03/2024)
+
+**Common**
+* **Hotfix** Updated `olp::cache::DefaultCache::Open` to take into account various ways the cache path could be specified.
+
 ## v1.18.0 (06/03/2024)
+
 **Common**
 * Updated the code to support the latest versions of popular compilers.
 * Updated `olp::http::NetworkCurl` class to use 4x more opened connections than requests to avoid issues with connection caching.
