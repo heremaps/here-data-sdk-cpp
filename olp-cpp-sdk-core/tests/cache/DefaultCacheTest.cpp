@@ -686,20 +686,19 @@ TEST(DefaultCacheTest, OpenTypeCache) {
     ASSERT_FALSE(cache.Contains(key2));
   }
 
-  {
-    SCOPED_TRACE("Additional directories");
-
+  auto additional_dirs_test = [](const std::string& mutable_path,
+                                 const std::string& protected_path) {
     constexpr auto kExpectedDirResult =
         olp::cache::DefaultCache::StorageOpenResult::Success;
     constexpr auto kUnexpectedDirResult =
         olp::cache::DefaultCache::StorageOpenResult::OpenDiskPathFailure;
 
     auto scenarios = {
+        std::make_tuple("/lost/tmp", kExpectedDirResult),
         std::make_tuple("/lost", kExpectedDirResult),
-        std::make_tuple("/lost/tmp", kUnexpectedDirResult),
         std::make_tuple("/found", kUnexpectedDirResult),
-        std::make_tuple("/ARCHIVES", kUnexpectedDirResult),
-        std::make_tuple("/ARCHIVES/removed", kUnexpectedDirResult)};
+        std::make_tuple("/ARCHIVES/removed", kUnexpectedDirResult),
+        std::make_tuple("/ARCHIVES", kUnexpectedDirResult)};
 
     for (auto& scenario : scenarios) {
       {
@@ -732,6 +731,21 @@ TEST(DefaultCacheTest, OpenTypeCache) {
         olp::utils::Dir::Remove(dir_path);
       }
     }
+  };
+
+  {
+    SCOPED_TRACE("Additional directories");
+
+    additional_dirs_test(mutable_path, protected_path);
+  }
+
+  {
+    SCOPED_TRACE("Additional directories, relative paths");
+
+    std::string mutable_relative_path = mutable_path + "/../mutable_cache";
+    std::string protected_relative_path =
+        protected_path + "/../protected_cache";
+    additional_dirs_test(mutable_relative_path, protected_relative_path);
   }
 }
 

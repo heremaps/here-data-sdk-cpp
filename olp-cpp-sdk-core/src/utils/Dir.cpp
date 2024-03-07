@@ -546,9 +546,7 @@ void Dir::ForEachDirectory(const std::string& path, PathCallback path_fn) {
       }
 
       if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-        current_path = path + "\\" + find_data.cFileName;
-        path_fn(current_path);
-        ForEachDirectory(current_path, path_fn);
+        path_fn(find_data.cFileName);
       }
     } while (FindNextFileA(handle, &find_data) != 0);
 
@@ -557,49 +555,38 @@ void Dir::ForEachDirectory(const std::string& path, PathCallback path_fn) {
 
 #else
 
-  std::queue<std::string> recursive_queue;
-  recursive_queue.push(path);
+  auto* dir = ::opendir(path.c_str());
+  if (dir == nullptr) {
+    return;
+  }
 
-  auto iterate_directory = [&](const std::string& path) {
-    auto* dir = ::opendir(path.c_str());
-    if (dir == nullptr) {
-      return;
+  struct ::dirent* entry = nullptr;
+  while ((entry = ::readdir(dir)) != nullptr) {
+    const char* entry_name = entry->d_name;
+
+    if (strcmp(entry_name, ".") == 0 || strcmp(entry_name, "..") == 0) {
+      continue;
     }
 
-    struct ::dirent* entry = nullptr;
-    while ((entry = ::readdir(dir)) != nullptr) {
-      const char* entry_name = entry->d_name;
-
-      if (strcmp(entry_name, ".") == 0 || strcmp(entry_name, "..") == 0) {
-        continue;
-      }
-
-      std::string full_path = path + "/" + entry_name;
+    std::string full_path = path + "/" + entry_name;
 
 #ifdef __APPLE__
-      struct ::stat path_stat;
-      if (::lstat(full_path.c_str(), &path_stat) == 0) {
+    struct ::stat path_stat;
+    if (::lstat(full_path.c_str(), &path_stat) == 0) {
 #else
-      struct ::stat64 path_stat;
-      if (::lstat64(full_path.c_str(), &path_stat) == 0) {
+    struct ::stat64 path_stat;
+    if (::lstat64(full_path.c_str(), &path_stat) == 0) {
 #endif
-        if (S_ISDIR(path_stat.st_mode)) {
-          path_fn(full_path);
-          recursive_queue.push(std::move(full_path));
-        }
-      } else if (errno != ENOENT) {
-        // Ignore ENOENT errors as its a common case, e.g. cache compaction.
-        break;
+      if (S_ISDIR(path_stat.st_mode)) {
+        path_fn(entry_name);
       }
+    } else if (errno != ENOENT) {
+      // Ignore ENOENT errors as its a common case, e.g. cache compaction.
+      break;
     }
-
-    ::closedir(dir);
-  };
-
-  while (!recursive_queue.empty()) {
-    iterate_directory(recursive_queue.front());
-    recursive_queue.pop();
   }
+
+  ::closedir(dir);
 
 #endif
 }

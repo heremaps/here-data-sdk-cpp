@@ -42,7 +42,7 @@ namespace cache {
 
 namespace {
 constexpr auto kLogTag = "DiskCache";
-constexpr auto kLevelDbLostFolder = "/lost";
+constexpr auto kLevelDbLostFolder = "lost";
 constexpr auto kMaxL0Files = 4;
 
 leveldb::Slice ToLeveldbSlice(const std::string& slice) {
@@ -54,11 +54,11 @@ static bool RepairCache(const std::string& data_path) {
   auto status = leveldb::RepairDB(data_path, leveldb::Options());
   if (status.ok()) {
     OLP_SDK_LOG_INFO(kLogTag, "RepairCache: repaired - " << data_path);
-    const auto lost_folder_path = data_path + kLevelDbLostFolder;
+    const auto lost_folder_path = data_path + '/' + kLevelDbLostFolder;
     if (utils::Dir::Exists(lost_folder_path)) {
       OLP_SDK_LOG_INFO_F(
           kLogTag, "RepairCache: some data may have been lost - deleting '%s'",
-          kLevelDbLostFolder);
+          lost_folder_path.c_str());
       utils::Dir::Remove(lost_folder_path);
     }
     return true;
@@ -205,14 +205,14 @@ OpenResult DiskCache::Open(const std::string& data_path,
   }
 
   // Check cache path for unexpected directories
-  const std::vector<std::string> expected_dirs = {disk_cache_path_ +
-                                                  kLevelDbLostFolder};
+  const std::vector<std::string> expected_dirs = {kLevelDbLostFolder};
   bool unexpected_dirs = false;
   utils::Dir::ForEachDirectory(disk_cache_path_, [&](const std::string& dir) {
     if (std::find(expected_dirs.begin(), expected_dirs.end(), dir) ==
         expected_dirs.end()) {
-      OLP_SDK_LOG_WARNING_F(
-          kLogTag, "Open: unexpected directory found, path='%s'", dir.c_str());
+      OLP_SDK_LOG_WARNING_F(kLogTag,
+                            "Open: unexpected directory found, path='%s/%s'",
+                            disk_cache_path_.c_str(), dir.c_str());
       unexpected_dirs = true;
     }
   });
