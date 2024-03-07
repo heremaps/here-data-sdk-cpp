@@ -148,11 +148,11 @@ class CORE_API Dir {
   static bool IsReadOnly(const std::string& path);
 
   /**
-   * @brief Iterates through all directories in the provided path and calls the
-   * provided callback function for each directory.
+   * @brief Iterates through top-level directories in the provided path and
+   * calls the provided callback function for each directory.
    *
    * @param path The path of the root directory.
-   * @param path_fn The callback function.
+   * @param path_fn The callback function with a relative path.
    */
   static void ForEachDirectory(const std::string& path, PathCallback path_fn);
 };
