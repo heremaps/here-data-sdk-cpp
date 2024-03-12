@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.18.0</span>
+   &#160;<span id="projectnumber">1.18.1</span>
    </div>
   </td>
  </tr>
@@ -124,7 +124,7 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memdesc:a89c929d68f408896dd8345d9c681460f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the current application and user has a read only access to given path.  <a href="classolp_1_1utils_1_1Dir.html#a89c929d68f408896dd8345d9c681460f">More...</a><br /></td></tr>
 <tr class="separator:a89c929d68f408896dd8345d9c681460f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac42b5e8ac01468b9db5087634cc53bfb"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1utils_1_1Dir.html#ac42b5e8ac01468b9db5087634cc53bfb">ForEachDirectory</a> (const std::string &amp;path, <a class="el" href="classolp_1_1utils_1_1Dir.html#aa9b83187d2a19d04f193260f32396003">PathCallback</a> path_fn)</td></tr>
-<tr class="memdesc:ac42b5e8ac01468b9db5087634cc53bfb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Iterates through all directories in the provided path and calls the provided callback function for each directory.  <a href="classolp_1_1utils_1_1Dir.html#ac42b5e8ac01468b9db5087634cc53bfb">More...</a><br /></td></tr>
+<tr class="memdesc:ac42b5e8ac01468b9db5087634cc53bfb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Iterates through top-level directories in the provided path and calls the provided callback function for each directory.  <a href="classolp_1_1utils_1_1Dir.html#ac42b5e8ac01468b9db5087634cc53bfb">More...</a><br /></td></tr>
 <tr class="separator:ac42b5e8ac01468b9db5087634cc53bfb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -353,11 +353,11 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Iterates through all directories in the provided path and calls the provided callback function for each directory. </p>
+<p>Iterates through top-level directories in the provided path and calls the provided callback function for each directory. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td>The path of the root directory. </td></tr>
-    <tr><td class="paramname">path_fn</td><td>The callback function. </td></tr>
+    <tr><td class="paramname">path_fn</td><td>The callback function with a relative path. </td></tr>
   </table>
   </dd>
 </dl>
