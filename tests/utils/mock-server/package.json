@@ -18,6 +18,6 @@
         "HERE Technologies"
     ],
     "dependencies": {
-        "mockserver-node": "^5.12.0"
+        "mockserver-node": "^5.15.0"
     }
 }
