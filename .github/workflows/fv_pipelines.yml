@@ -1,41 +1,40 @@
 name: FV_Pipelines
 
 on:
-    schedule:
-    # temporary run job only once a month.
+  push:
+    branches:
+      - master
+  schedule:
+    # FV Android and iOS only once a month besides the master merges runs
     - cron: '* 5 1 * *'
-
-env:
-  LD_PRELOAD: /lib/x86_64-linux-gnu/libSegFault.so
-  SEGFAULT_SIGNALS: all
 
 jobs:
   fv-build-ios-network-test:
     name: FV / iOS clang / Network tests
-    runs-on: macos-10.15
+    runs-on: macos-latest
     env:
       BUILD_TYPE: RelWithDebInfo
     steps:
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Build with tests
         run: ./scripts/ios/fv/gh-actions-build-with-tests-fv.sh
         shell: bash
-      - name: Test FV Network
+      - name: Test iOS FV Network
         run: ./scripts/ios/fv/gh-actions-functional-network-test.sh
         shell: bash
 
-  fv-android-amulator-build-test:
-    name: MV.Android.Emulator.Build.Test.API21.ABIx86_64.NDK-Latest.
-    runs-on: ubuntu-20.04
+  fv-android-emulator-build-test:
+    name: FV.Android.Emulator.Build.Test.API21.ABIx86_64.NDK-22.
+    runs-on: ubuntu-latest
     env:
-      ANDROID_NDK_HOME: $(ANDROID_HOME)/ndk-bundle
+      SEGFAULT_SIGNALS: all
+      BUILD_TYPE: RelWithDebInfo
     steps:
     - name: Check out repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Verification of cmake script
-      run: ls -la $(ANDROID_NDK_HOME)/build/cmake/android.toolchain.cmake
-      shell: bash
+      run: ls -la ${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake  &&  ls -la ${ANDROID_NDK_HOME}/prebuilt &&  ls -la ${ANDROID_NDK_HOME}/ndk-build
     - name: Android Emulator Test
-      run: ANDROID_NDK_HOME=$(ANDROID_NDK_HOME) && scripts/android/build-test-emulator.sh
+      run: scripts/android/build-test-emulator.sh
       shell: bash

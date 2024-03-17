@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 #
-# Copyright (C) 2020-2021 HERE Europe B.V.
+# Copyright (C) 2020-2024 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,24 +17,37 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
+${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --list
+${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --install "ndk;22.1.7171670" --sdk_root=${ANDROID_HOME} >/dev/null
+${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-21"
+${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --install "platform-tools"
+${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --install "ndk-bundle"
+${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --list
+
 #
-# API and ABI are hardcoded there
+# API / ABI / NDK are hardcoded below
 #
-# Android Only Variables
+# Variables
 export ANDROID_ABI="x86_64"
 export ANDROID_API=21
-
-export NDK_ROOT=$ANDROID_HOME/ndk-bundle                            # This var is not exist on Azure MacOS image, step can be skipped on GitLab
+export ANDROID_NDK_ROOT="/usr/local/lib/android/sdk/ndk/22.1.7171670"
+export ANDROID_NDK="/usr/local/lib/android/sdk/ndk/22.1.7171670"
+export ANDROID_NDK_HOME="/usr/local/lib/android/sdk/ndk/22.1.7171670"
+ls -la android-ndk-r22b-linux || true
+ls -la /usr/local/lib/android/sdk/ndk/22.1.7171670 || true
+ls -la /usr/local/lib/android/sdk/ndk/22.1.7171670/android-ndk-r22b-linux || true
+export NDK_ROOT=$ANDROID_NDK_ROOT/ndk-bundle                        # This var is not exist on Azure MacOS image, step can be skipped on other CI
 echo "NDK_ROOT is ${NDK_ROOT} , ANDROID_HOME is ${ANDROID_HOME} "   # as we already set this var inside docker image.
 ls -la $ANDROID_HOME
-export PATH=$PATH:$ANDROID_HOME/tools/bin/:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools
+export PATH=$PATH:$ANDROID_HOME/tools/bin/:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin/
 
+# Start compilation
 mkdir -p build && cd build
 
 echo ""
 echo ""
 echo "*************** $VARIANT Build SDK for C++ ********** Start ***************"
-CMAKE_COMMAND="cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake \
+CMAKE_COMMAND="cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_TYPE=${BUILD_TYPE} -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake \
 -DANDROID_PLATFORM=android-$ANDROID_API -DANDROID_STL=c++_static -DANDROID_ABI=$ANDROID_ABI"
 BUILD_COMMAND="cmake --build . -- -j4"
 
@@ -51,16 +64,16 @@ echo " ---- Calling ${BUILD_COMMAND}"
 ${BUILD_COMMAND}
 cd -
 
-sdkmanager --list
+${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --list
 
 # Add emulator if not already added. Needed for docker.
-echo "y" | sdkmanager "emulator" "platforms;android-$ANDROID_API"
+echo "y" | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "emulator" "platforms;android-$ANDROID_API"
 
 # Install AVD files
-echo "y" | sdkmanager --install "system-images;android-$ANDROID_API;google_apis;$ANDROID_ABI"
+echo "y" | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --install "system-images;android-$ANDROID_API;google_apis;$ANDROID_ABI"
 
 # Create emulator
-echo "no" | avdmanager create avd -n android_emulator -k "system-images;android-$ANDROID_API;google_apis;$ANDROID_ABI" --force
+echo "no" | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/avdmanager create avd -n android_emulator -k "system-images;android-$ANDROID_API;google_apis;$ANDROID_ABI" --force
 echo "AVD created"
 emulator -list-avds
 

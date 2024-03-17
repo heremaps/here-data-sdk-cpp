@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (C) 2021 HERE Europe B.V.
+# Copyright (C) 2021-2024 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,19 +17,17 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-mkdir -p build && cd build
+# Getting rid of boost installed to the CI image (not clear when it appeared)
+# asciidoc and source-highlight are using it so dependencies are ignored.
+# Sometimes there is no boost and there is no need to fail in this case.
+brew uninstall --ignore-dependencies boost || true
 
-xcode-select -p
-if [[ ${GITHUB_RUN_ID} != "" ]]; then
-    # Run on GH Actions CI
-    # Using Xcode_11 pre-installed on node. Otherwise, compilation may fail.
-    sudo xcode-select -s /Applications/Xcode_11.2.1.app
-fi
-xcode-select -p
+mkdir -p build && cd build
 
 cmake ../ -GXcode \
     -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/iOS.cmake \
     -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+    -DBUILD_TYPE=${BUILD_TYPE} \
     -DPLATFORM=iphoneos \
     -DOLP_SDK_ENABLE_TESTING=ON \
     -DSIMULATOR=YES \
