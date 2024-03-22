@@ -63,7 +63,7 @@ else
       echo ">>> Installing mock server SSL certificate into OS... >>>"
       # Import and Make trusted
       sudo security import mock-server-cert.pem
-      sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain mock-server-cert.pem
+      sudo security authorizationdb write com.apple.trust-settings.admin allow; sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain mock-server-cert.pem ; sudo security authorizationdb remove com.apple.trust-settings.admin || true
       # Validate cert: if trusted - succeeded , if not trusted - fails
       sudo security verify-cert -c mock-server-cert.pem
       echo ">>> Starting Mock Server... >>>"
