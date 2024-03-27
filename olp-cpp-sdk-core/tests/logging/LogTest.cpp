@@ -33,7 +33,20 @@
 
 namespace {
 
-TEST(LogTest, Levels) {
+class LogTest : public ::testing::Test {
+ public:
+  void SetUp() override { backup_ = olp::logging::Log::getConfiguration(); }
+
+  void TearDown() override {
+    olp::logging::Log::configure(backup_);
+    olp::logging::Log::setLevel(olp::logging::Level::Debug);
+  }
+
+ protected:
+  olp::logging::Configuration backup_;
+};
+
+TEST_F(LogTest, Levels) {
   EXPECT_TRUE(olp::logging::Log::configure(
       olp::logging::Configuration::createDefault()));
 
@@ -82,7 +95,7 @@ TEST(LogTest, Levels) {
       olp::logging::Log::isEnabled(olp::logging::Level::Debug, "test1"));
 }
 
-TEST(LogTest, DifferentLevelsForDifferentAppenders) {
+TEST_F(LogTest, DifferentLevelsForDifferentAppenders) {
   auto appender1 = std::make_shared<testing::MockAppender>();
   auto appender2 = std::make_shared<testing::MockAppender>();
 
@@ -125,7 +138,7 @@ TEST(LogTest, DifferentLevelsForDifferentAppenders) {
   ASSERT_EQ(1U, appender2->messages_.size());
 }
 
-TEST(LogTest, DifferentLevelsForConsoleAndFileLogging) {
+TEST_F(LogTest, DifferentLevelsForConsoleAndFileLogging) {
   olp::logging::MessageFormatter formatter(
       {olp::logging::MessageFormatter::Element(
            olp::logging::MessageFormatter::ElementType::Level, "%s "),
@@ -225,7 +238,7 @@ TEST(LogTest, DifferentLevelsForConsoleAndFileLogging) {
   }
 }
 
-TEST(LogTest, LogToStream) {
+TEST_F(LogTest, LogToStream) {
   auto appender = std::make_shared<testing::MockAppender>();
   olp::logging::Configuration configuration;
   configuration.addAppender(appender);
@@ -320,7 +333,7 @@ TEST(LogTest, LogToStream) {
   ++index;
 }
 
-TEST(LogTest, LogFormat) {
+TEST_F(LogTest, LogFormat) {
   auto appender = std::make_shared<testing::MockAppender>();
   olp::logging::Configuration configuration;
   configuration.addAppender(appender);
@@ -409,7 +422,7 @@ TEST(LogTest, LogFormat) {
   ++index;
 }
 
-TEST(LogTest, LogLimits) {
+TEST_F(LogTest, LogLimits) {
   auto appender = std::make_shared<testing::MockAppender>();
   olp::logging::Configuration configuration;
   configuration.addAppender(appender);
@@ -473,7 +486,7 @@ TEST(LogTest, LogLimits) {
   ++index;
 }
 
-TEST(LogTest, LogOverrideLimits) {
+TEST_F(LogTest, LogOverrideLimits) {
   auto appender = std::make_shared<testing::MockAppender>();
   olp::logging::Configuration configuration;
   configuration.addAppender(appender);
@@ -557,7 +570,7 @@ TEST(LogTest, LogOverrideLimits) {
   olp::logging::Log::clearLevels();
 }
 
-TEST(LogTest, LogLevelOff) {
+TEST_F(LogTest, LogLevelOff) {
   auto appender = std::make_shared<testing::MockAppender>();
   olp::logging::Configuration configuration;
   configuration.addAppender(appender);
@@ -628,7 +641,7 @@ TEST(LogTest, LogLevelOff) {
   ++index;
 }
 
-TEST(LogTest, ReConfigure) {
+TEST_F(LogTest, ReConfigure) {
   auto appender1 = std::make_shared<testing::MockAppender>();
   auto appender2 = std::make_shared<testing::MockAppender>();
   {
