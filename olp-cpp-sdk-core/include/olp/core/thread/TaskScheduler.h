@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,6 +72,18 @@ class CORE_API TaskScheduler {
   }
 
   /**
+   * @brief Schedules the asynchronous cancellation task.
+   *
+   * @note Tasks added with this method has Priority::NORMAL priority.
+   *
+   * @param[in] func The callable target that should be added to the scheduling
+   * pipeline.
+   */
+  void ScheduleCancelTask(CallFuncType&& func) {
+    EnqueueCancelTask(std::move(func));
+  }
+
+  /**
    * @brief Schedules the asynchronous cancellable task.
    *
    * @param[in] func The callable target that should be added to the scheduling
@@ -134,6 +146,21 @@ class CORE_API TaskScheduler {
    */
   virtual void EnqueueTask(CallFuncType&& func, uint32_t priority) {
     OLP_SDK_CORE_UNUSED(priority);
+    EnqueueTask(std::forward<CallFuncType>(func));
+  }
+
+  /**
+   * @brief The enqueue cancellation task interface that is implemented by
+   * the subclass.
+   *
+   * Implement this method in the subclass that takes `TaskScheduler`
+   * as a base and provides a custom algorithm for scheduling tasks
+   * enqueued by the SDK.
+   *
+   * @note Tasks added trough this method should be scheduled with
+   * Priority::NORMAL priority.
+   */
+  virtual void EnqueueCancelTask(CallFuncType&& func) {
     EnqueueTask(std::forward<CallFuncType>(func));
   }
 };

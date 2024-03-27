@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/Condition.h>
+#include <olp/core/thread/TaskScheduler.h>
 
 namespace olp {
 namespace client {
@@ -88,6 +89,18 @@ class CORE_API TaskContext {
    * @return The `CancellationToken` instance.
    */
   client::CancellationToken CancelToken() const { return impl_->CancelToken(); }
+
+  /**
+   * @brief Provides a token which will schedule cancellation of the task.
+   *
+   * @param scheduler The task scheduler instance.
+   *
+   * @return The `CancellationToken` instance.
+   */
+  client::CancellationToken CancelToken(
+      const std::shared_ptr<thread::TaskScheduler>& scheduler) const {
+    return impl_->CancelToken(scheduler);
+  }
 
   /**
    * @brief Checks whether the values of the `TaskContext` parameter are
@@ -156,6 +169,19 @@ class CORE_API TaskContext {
      * @return The `CancellationToken` instance.
      */
     virtual client::CancellationToken CancelToken() = 0;
+
+    /**
+     * @brief Provides a token which will schedule cancellation of the task.
+     *
+     * @param scheduler The task scheduler instance.
+     *
+     * @return The `CancellationToken` instance.
+     */
+    virtual client::CancellationToken CancelToken(
+        const std::shared_ptr<thread::TaskScheduler>& scheduler) {
+      OLP_SDK_CORE_UNUSED(scheduler);
+      return CancelToken();
+    }
   };
 
   /**
@@ -164,10 +190,12 @@ class CORE_API TaskContext {
    * Erases the type of the `Result` object produced by the `ExecuteFunc`
    * function and passes it to the `UserCallback` instance.
    *
-   * @tparam T The result type.
+   * @tparam Response The result type.
    */
   template <typename Response>
-  class TaskContextImpl : public Impl {
+  class TaskContextImpl
+      : public Impl,
+        public std::enable_shared_from_this<TaskContextImpl<Response>> {
    public:
     /// The task that produces the `Response` instance.
     using ExecuteFunc = std::function<Response(client::CancellationContext)>;
@@ -189,7 +217,7 @@ class CORE_API TaskContext {
           context_(std::move(context)),
           state_{State::PENDING} {}
 
-    ~TaskContextImpl() override{};
+    ~TaskContextImpl() override = default;
 
     /**
      * @brief Checks for the cancellation, executes the task, and calls
@@ -213,8 +241,7 @@ class CORE_API TaskContext {
         callback = std::move(callback_);
       }
 
-      Response user_response =
-          client::ApiError(client::ErrorCode::Cancelled, "Cancelled");
+      Response user_response = client::ApiError::Cancelled();
 
       if (function && !context_.IsCancelled()) {
         auto response = function(context_);
@@ -234,7 +261,7 @@ class CORE_API TaskContext {
         callback(std::move(user_response));
       }
 
-      // Resources need to be released before the notification, else lambas
+      // Resources need to be released before the notification, else lambdas
       // would have captured resources like network or `TaskScheduler`.
       function = nullptr;
       callback = nullptr;
@@ -278,6 +305,53 @@ class CORE_API TaskContext {
       auto context = context_;
       return client::CancellationToken(
           [context]() mutable { context.CancelOperation(); });
+    }
+
+    /**
+     * @brief Provides a token which will schedule cancellation of the task.
+     *
+     * @param scheduler The task scheduler instance.
+     *
+     * @return The `CancellationToken` instance.
+     */
+    client::CancellationToken CancelToken(
+        const std::shared_ptr<thread::TaskScheduler>& scheduler) override {
+      auto task_context = this->shared_from_this();
+      return client::CancellationToken([scheduler, task_context]() mutable {
+        if (scheduler) {
+          scheduler->ScheduleCancelTask([=] { task_context->Cancel(); });
+        } else {
+          task_context->Cancel();
+        }
+      });
+    }
+
+    /**
+     * @brief Cancels the operation and calls the callback with a 'Cancelled'
+     * error.
+     */
+    void Cancel() {
+      context_.CancelOperation();
+
+      // Checks whether TaskContext has been executed
+      if (state_.load() == State::COMPLETED) {
+        return;
+      }
+
+      // If it hasn't -> mark as completed and proceed with user callback
+      state_.store(State::COMPLETED);
+
+      UserCallback callback{};
+
+      {
+        std::lock_guard<std::mutex> lock(mutex_);
+        callback = std::move(callback_);
+        execute_func_ = nullptr;
+      }
+
+      if (callback) {
+        callback(ApiError::Cancelled());
+      }
     }
 
     /**
