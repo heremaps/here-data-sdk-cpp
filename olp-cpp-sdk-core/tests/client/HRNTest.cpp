@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,10 +150,21 @@ TEST(HRNTest, CompareHRNs) {
 TEST(HRNTest, ToString) {
   EXPECT_EQ(HRN("hrn:here:data:::hereos-internal-test-v2").ToString(),
             "hrn:here:data:::hereos-internal-test-v2");
+  EXPECT_EQ(HRN("hrn:here:data:::hereos-internal-test-v2:rendering").ToString(),
+            "hrn:here:data:::hereos-internal-test-v2:rendering");
   EXPECT_EQ(HRN("hrn:here:schema:::group_id:artifact_id:version").ToString(),
             "hrn:here:schema:::group_id:artifact_id:version");
   EXPECT_EQ(HRN("hrn:here:data:::test_pipeline").ToString(),
             "hrn:here:data:::test_pipeline");
+  EXPECT_EQ(HRN("hrn:here:pipeline:US:test:test_pipeline").ToString(),
+            "hrn:here:pipeline:US:test:test_pipeline");
+}
+
+TEST(HRNTest, ToCatalogHRNString) {
+  EXPECT_EQ(HRN("hrn:here:pipeline:US:test:test_pipeline").ToCatalogHRNString(),
+            "");
+  EXPECT_EQ(HRN("hrn:here:data:::hereos-internal-test-v2").ToCatalogHRNString(),
+            "hrn:here:data:::hereos-internal-test-v2");
 }
 
 TEST(HRNTest, Parsing) {

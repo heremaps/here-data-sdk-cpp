@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
 #include "olp/core/client/HRN.h"
 
-#include <sstream>
+#include <cstring>
 
 #include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
@@ -38,45 +38,103 @@ namespace olp {
 namespace client {
 
 std::string HRN::ToString() const {
-  std::ostringstream ret;
-  const auto generic_part =
-      kSeparator + region_ + kSeparator + account_ + kSeparator;
-  ret << kHrnTag << partition_ << kSeparator;
+  std::string ret;
 
   switch (service_) {
     case ServiceType::Data: {
-      ret << kDataTag << generic_part << catalog_id_;
+      ret.reserve(std::strlen(kHrnTag) + std::strlen(kDataTag) +
+                  5 * sizeof(kSeparator) + partition_.size() + region_.size() +
+                  account_.size() + catalog_id_.size() + layer_id_.size());
+      ret.append(kHrnTag)
+          .append(partition_)
+          .append(1, kSeparator)
+          .append(kDataTag)
+          .append(1, kSeparator)
+          .append(region_)
+          .append(1, kSeparator)
+          .append(account_)
+          .append(1, kSeparator)
+          .append(catalog_id_);
       if (!layer_id_.empty()) {
-        ret << kSeparator << layer_id_;
+        ret.append(1, kSeparator).append(layer_id_);
       }
       break;
     }
     case ServiceType::Schema: {
-      ret << kSchemaTag << generic_part << group_id_ << kSeparator
-          << schema_name_ << kSeparator << version_;
+      ret.reserve(std::strlen(kHrnTag) + std::strlen(kSchemaTag) +
+                  6 * sizeof(kSeparator) + partition_.size() + region_.size() +
+                  account_.size() + group_id_.size() + schema_name_.size() +
+                  version_.size());
+      ret.append(kHrnTag)
+          .append(partition_)
+          .append(1, kSeparator)
+          .append(kSchemaTag)
+          .append(1, kSeparator)
+          .append(region_)
+          .append(1, kSeparator)
+          .append(account_)
+          .append(1, kSeparator)
+          .append(group_id_)
+          .append(1, kSeparator)
+          .append(schema_name_)
+          .append(1, kSeparator)
+          .append(version_);
       break;
     }
     case ServiceType::Pipeline: {
-      ret << kPipelineTag << generic_part << pipeline_id_;
+      ret.reserve(std::strlen(kHrnTag) + std::strlen(kPipelineTag) +
+                  4 * sizeof(kSeparator) + partition_.size() + region_.size() +
+                  account_.size() + pipeline_id_.size());
+      ret.append(kHrnTag)
+          .append(partition_)
+          .append(1, kSeparator)
+          .append(kPipelineTag)
+          .append(1, kSeparator)
+          .append(region_)
+          .append(1, kSeparator)
+          .append(account_)
+          .append(1, kSeparator)
+          .append(pipeline_id_);
       break;
     }
     default: {
-      ret << generic_part;
+      ret.reserve(std::strlen(kHrnTag) + 4 * sizeof(kSeparator) +
+                  partition_.size() + region_.size() + account_.size());
+      ret.append(kHrnTag)
+          .append(partition_)
+          .append(1, kSeparator)
+          .append(1, kSeparator)
+          .append(region_)
+          .append(1, kSeparator)
+          .append(account_)
+          .append(1, kSeparator);
       break;
     }
   }
 
-  return ret.str();
+  return ret;
 }
 
 std::string HRN::ToCatalogHRNString() const {
+  std::string ret;
   if (service_ != ServiceType::Data) {
     OLP_SDK_LOG_WARNING_F(kLogTag, "ToCatalogHRNString: ServiceType != Data");
-    return {};
+    return ret;
   }
-
-  return kHrnTag + partition_ + kSeparator + kDataTag + kSeparator + region_ +
-         kSeparator + account_ + kSeparator + catalog_id_;
+  ret.reserve(std::strlen(kHrnTag) + std::strlen(kDataTag) +
+              4 * sizeof(kSeparator) + partition_.size() + region_.size() +
+              account_.size() + catalog_id_.size());
+  ret.append(kHrnTag)
+      .append(partition_)
+      .append(1, kSeparator)
+      .append(kDataTag)
+      .append(1, kSeparator)
+      .append(region_)
+      .append(1, kSeparator)
+      .append(account_)
+      .append(1, kSeparator)
+      .append(catalog_id_);
+  return ret;
 }
 
 HRN::HRN(const std::string& input) {
