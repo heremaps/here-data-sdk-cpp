@@ -35,6 +35,7 @@ num_lines=`wc -l commit.log | cut -d'c' -f1`
 for (( line=1; line<=${num_lines}; line++ ))
 do
     current_line_len=`cat commit.log | sed -n ${line}p | tr -d '\n\r' | wc -m | sed 's/\ \ \ \ \ \ /''/g' `
+    current_line=`cat commit.log | sed -n ${line}p`
     if [ $line -eq 1 ] && [ ${current_line_len} -gt 50 ] ; then
         echo ""
         echo "ERROR: Title is ${current_line_len} length, so it's too long for title. Expect less than or equal to 50 chars !"
@@ -65,16 +66,31 @@ do
         cat scripts/misc/commit_message_recom.txt
         exit 4
     fi
-    if [ ${current_line_len} -gt 72 ] ; then
-        echo ""
-        echo "ERROR: ${current_line_len} chars in ${line}-th line is too long. Any line length must be less than or equal to 72 chars !"
-        echo ""
-        cat commit.log
-        echo "----------------------------------------------"
-        echo "Please read following rules:"
-        cat scripts/misc/commit_message_recom.txt
-        exit 3
+    if [[ ${current_line} == *"Signed-off-by"* ]]; then
+        echo " ${line}-th line is sign-off line."
+        if [ ${current_line_len} -gt 80 ]; then
+            echo ""
+            echo "ERROR: ${current_line_len} chars in ${line}-th line is too long. Any line length must be less than or equal to 80 chars !"
+            echo ""
+            cat commit.log
+            echo "----------------------------------------------"
+            echo "Please read following rules:"
+            cat scripts/misc/commit_message_recom.txt
+            exit 3
+        fi
+        echo " ${line}-th line is ${current_line_len} chars length . OK."
+        continue
     fi
+    if [ ${current_line_len} -gt 72 ] ; then
+         echo ""
+         echo "ERROR: ${current_line_len} chars in ${line}-th line is too long. Any line length must be less than or equal to 72 chars !"
+         echo ""
+         cat commit.log
+         echo "----------------------------------------------"
+         echo "Please read following rules:"
+         cat scripts/misc/commit_message_recom.txt
+         exit 2
+     fi
     echo " ${line}-th line is ${current_line_len} chars length . OK."
 done
 
