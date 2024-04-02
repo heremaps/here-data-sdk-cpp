@@ -66,8 +66,13 @@ int Md5LookupCtrl(X509_LOOKUP* ctx, int, const char*, long, char**) {
   return 1;
 }
 
+#if OPENSSL_VERSION_NUMBER >= 0x30100000L
 int Md5LookupGetBySubject(X509_LOOKUP* ctx, X509_LOOKUP_TYPE type,
                           const X509_NAME* name, X509_OBJECT* ret) {
+#else
+int Md5LookupGetBySubject(X509_LOOKUP* ctx, X509_LOOKUP_TYPE type,
+                          X509_NAME* name, X509_OBJECT* ret) {
+#endif
   if (type != X509_LU_X509) {
     OLP_SDK_LOG_ERROR_F(kLogTag, "Unsupported lookup type, type=%d", type);
     return 0;
