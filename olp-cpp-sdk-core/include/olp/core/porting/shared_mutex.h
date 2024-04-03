@@ -27,6 +27,7 @@
 
 #include <cassert>
 #include <condition_variable>
+#include <system_error>
 
 #if (defined(__USE_UNIX98) || defined(__USE_XOPEN2K))
 #define HAVE_PTHREAD_RWLOCK
