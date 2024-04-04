@@ -38,7 +38,7 @@ You need to create the `OlpClientSettings` object to get catalog and partition m
    retry_settings.retry_condition = [](const olp::client::HttpResponse& response) {
      return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
    };
-   retry_settings.backdown_strategy = ExponentialBackdownStrategy();
+   retry_settings.backdown_strategy = olp::client::ExponentialBackdownStrategy();
    retry_settings.max_attempts = 3;
    retry_settings.timeout = 60;
    retry_settings.initial_backdown_period = 200;
@@ -55,7 +55,7 @@ You need to create the `OlpClientSettings` object to get catalog and partition m
 
          ```cpp
          olp::cache::CacheSettings cache_settings;
-         //On iOS, the path is relative to the Application Data folder.
+         // On iOS, the path is relative to the Application Data folder.
          cache_settings.disk_path_mutable = "path to mutable cache";
          cache_settings.disk_path_protected = "path to protected cache";
          cache_settings.max_disk_storage = 1024ull * 1024ull * 32ull;

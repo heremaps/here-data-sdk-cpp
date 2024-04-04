@@ -15,7 +15,7 @@ For instructions, see the [OAuth tokens](https://developer.here.com/documentatio
 
    You get the `credentials.properties` file.
 
-2. Initialize the authentification settings using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `kKeyId` and `kKeySecret` respectively.
+2. Initialize the authentication settings using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `kKeyId` and `kKeySecret` respectively.
 
    > #### Note
    > You can also retrieve your credentials from the `credentials.properties` file using the `ReadFromFile` method. For more information, see the [related API documentation](https://developer.here.com/documentation/sdk-cpp/api_reference/classolp_1_1authentication_1_1_authentication_credentials.html#a6bfd8347ebe89e45713b966e621dccdd).
@@ -56,25 +56,28 @@ You can use the `AuthenticationSettings` object to create the `OlpClientSettings
 3. Create an authentication client.
 
    ```cpp
-   olp::authentication::AuthenticationSettings settings;
-   settings.task_scheduler = task_scheduler;
-   settings.network_request_handler = http_client;
-   authentication::AutnhentucationClient client(settings);
+   olp::authentication::AuthenticationSettings auth_client_settings;
+   auth_client_settings.task_scheduler = task_scheduler;
+   auth_client_settings.network_request_handler = http_client;
+   olp::authentication::AuthenticationClient client(auth_client_settings);
    ```
 
 4. Create the `SignInProperties` object with your project ID.
 
    ```cpp
-   authentication::SignInProperties signin_properties;
+   olp::authentication::AuthenticationClient::SignInProperties signin_properties;
    signin_properties.scope = "<project ID>";
    ```
 
-5. Create the `SignInClient` object.
+5. Call the `SignInClient` API on the previously created `client` object.
 
    ```cpp
-   authentication:: SignInClient(AuthenticationCredentials credentials,
-                                         SignInProperties properties,
-                                         SignInClientCallback callback);
+   client.SignInClient(
+       credentials, signin_properties,
+       [](olp::authentication::Response<olp::authentication::SignInResult>
+              response) {
+         // Handle the response
+       });
    ```
 
 You get an access token.
@@ -98,13 +101,12 @@ You can use the `AuthenticationSettings` object to create the `OlpClientSettings
    olp::authentication::AuthenticationCredentials credentials(kKeyId, kKeySecret);
    ```
 
-3. Create an authentication client.
+3. Create an authentication client's settings.
 
    ```cpp
-   olp::authentication::AuthenticationSettings settings;
-   settings.task_scheduler = task_scheduler;
-   settings.network_request_handler = http_client;
-   authentication::AutnhentucationClient client(settings);
+   olp::authentication::AuthenticationSettings auth_client_settings;
+   auth_client_settings.task_scheduler = task_scheduler;
+   auth_client_settings.network_request_handler = http_client;
    ```
 
 4. Get your federated (Facebook or ArcGIS) properties.
@@ -114,36 +116,53 @@ You can use the `AuthenticationSettings` object to create the `OlpClientSettings
 5. Initialize your federated properties.
 
    ```cpp
-   olp::authentication::AunthenticationClient::FederatedProperties properties;
+   olp::authentication::AuthenticationClient::FederatedProperties properties;
    properties.access_token = "your-access-token";
    ```
 
-6. Create the `SignInUserCallback` class.
-
-   For more information, see the [`AuthenticationClient` reference documentation](https://developer.here.com/documentation/sdk-cpp/api_reference/classolp_1_1authentication_1_1_authentication_client.html).
-
-7. Create your own token provider using the authentication client created in step 3, your federated credentials, and the `SignInUserCallback` class.
+6. Create your own token provider using the authentication client's settings created in step 3, your federated credentials.
 
    > #### Note
    > You can call your custom token provider form different threads.
 
    ```cpp
-   auto token = std::make_shared<std::string>();
+   auto token = std::make_shared<olp::client::OauthToken>();
 
-   settings.token_provider = [token](){
-   if (token->empty() || isExpired(token)) {
-   std::promise<AuthenticationClient::SignInUserResponse> token_promise;
+   olp::client::AuthenticationSettings auth_settings;
+   auth_settings.token_provider =
+       [token, auth_client_settings, credentials,
+        properties](olp::client::CancellationContext context)
+       -> olp::client::OauthTokenResponse {
+     if (context.IsCancelled()) {
+       return olp::client::ApiError::Cancelled();
+     }
 
-   auto callback = [&token_promise](AuthenticationClient::SignInUserResponse response)
-      { token_promise.set(response); };
-
-   authentication::AutnhentucationClient client(settings);
-   client.SignInFacebook(credentials, properties, callback);
-   auto response = token_promise.get_future().get();
-   (*token) = response.GetResult().GetAccessToken();
-   }
-   return *token;
-   }
+     if (!token->GetAccessToken().empty() &&
+         std::chrono::system_clock::to_time_t(
+             std::chrono::system_clock::now()) >= token->GetExpiryTime()) {
+       return *token;
+     }
+ 
+     std::promise<olp::authentication::AuthenticationClient::SignInUserResponse>
+         token_promise;
+ 
+     auto callback =
+         [&token_promise](
+             olp::authentication::AuthenticationClient::SignInUserResponse
+                 response) { token_promise.set_value(std::move(response)); };
+ 
+     olp::authentication::AuthenticationClient client(auth_client_settings);
+     client.SignInFacebook(credentials, properties, callback);
+     auto response = token_promise.get_future().get();
+     if (!response) {
+       return response.GetError();
+     }
+ 
+     (*token) = olp::client::OauthToken(response.GetResult().GetAccessToken(),
+                                        response.GetResult().GetExpiresIn());
+ 
+     return *token;
+   };
    ```
 
 You get an access token. By default, it expires in 24 hours. To continue working with the HERE platform after your token expires, generate a new access token.

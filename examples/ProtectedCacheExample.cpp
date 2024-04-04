@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ constexpr auto kLogTag = "protected-cache-example";
 #ifdef _WIN32
 constexpr auto kClientCacheDir = "\\catalog_client_example\\cache";
 #else
-constexpr auto kClientCacheDir = "/cata.log_client_example/cache";
+constexpr auto kClientCacheDir = "/catalog_client_example/cache";
 #endif
 
 std::string first_layer_id("versioned-world-layer");
