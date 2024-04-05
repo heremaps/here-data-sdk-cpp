@@ -499,11 +499,12 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
 
           const bool aggregation_enabled = request.GetDataAggregationEnabled();
 
-          auto filter = [=](repository::SubQuadsResult tiles) mutable {
+          auto filter = [=](repository::SubQuadsResult& tiles) {
             if (request_only_input_tiles) {
-              return repository.FilterTilesByList(request, std::move(tiles));
+              repository.FilterTilesByList(request, tiles);
+            } else {
+              repository.FilterTilesByLevel(request, tiles);
             }
-            return repository.FilterTilesByLevel(request, std::move(tiles));
           };
 
           auto query = [=](geo::TileKey root,
@@ -512,8 +513,13 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                 root, kQuadTreeDepth, version, inner_context);
 
             if (response.IsSuccessful() && aggregation_enabled) {
+              const auto& tiles = response.GetResult();
               auto network_stats = repository.LoadAggregatedSubQuads(
-                  root, filter(response.GetResult()), version, inner_context);
+                  root,
+                  request_only_input_tiles
+                      ? repository.FilterTileKeysByList(request, tiles)
+                      : repository.FilterTileKeysByLevel(request, tiles),
+                  version, inner_context);
 
               // append network statistics
               network_stats += GetNetworkStatistics(response);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1661,7 +1661,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   }
 }
 
-TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchAggregatedTile) {
+TEST_F(DataserviceReadVersionedLayerClientTest,
+       PrefetchAggregatedTile_FilterTileKeysByList) {
   constexpr auto kLayerId = "hype-test-prefetch";
 
   const auto requested_tile = geo::TileKey::FromHereTile("23618365");
@@ -1678,6 +1679,60 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchAggregatedTile) {
 
     auto request = read::PrefetchTilesRequest()
                        .WithTileKeys({requested_tile})
+                       .WithDataAggregationEnabled(true);
+
+    auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();
+    auto future = promise->get_future();
+    auto token = client.PrefetchTiles(
+        request, [promise](PrefetchTilesResponse response) {
+          promise->set_value(std::move(response));
+        });
+
+    ASSERT_NE(future.wait_for(kWaitTimeout), std::future_status::timeout);
+    PrefetchTilesResponse response = future.get();
+    ASSERT_TRUE(response.IsSuccessful()) << response.GetError().GetMessage();
+    ASSERT_FALSE(response.GetResult().empty());
+
+    const auto& result = response.GetResult();
+    ASSERT_EQ(result.size(), 1);
+
+    const auto& tile_response = result[0];
+    ASSERT_TRUE(tile_response->IsSuccessful());
+    ASSERT_TRUE(tile_response->tile_key_.IsParentOf(requested_tile));
+  }
+  {
+    SCOPED_TRACE("Check that the tile is available as aggregated");
+    EXPECT_TRUE(client.IsCached(requested_tile, true));
+    EXPECT_FALSE(client.IsCached(requested_tile));
+  }
+  {
+    SCOPED_TRACE("Check that the tile can be accesed with GetAggregatedData");
+    auto future = client.GetAggregatedData(
+        read::TileRequest().WithTileKey(requested_tile));
+    auto result = future.GetFuture().get();
+    EXPECT_TRUE(result.IsSuccessful());
+  }
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest,
+       PrefetchAggregatedTile_FilterTileKeysByLevel) {
+  constexpr auto kLayerId = "hype-test-prefetch";
+
+  const auto requested_tile = geo::TileKey::FromHereTile("23618365");
+
+  read::VersionedLayerClient client(kCatalog, kLayerId, boost::none, settings_);
+
+  {
+    SCOPED_TRACE("Prefetch aggregated tile");
+
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(URL_QUADKEYS_92259), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     HTTP_RESPONSE_QUADKEYS_92259_ROOT_ONLY));
+
+    auto request = read::PrefetchTilesRequest()
+                       .WithTileKeys({requested_tile})
+                       .WithMinLevel(11)
                        .WithDataAggregationEnabled(true);
 
     auto promise = std::make_shared<std::promise<PrefetchTilesResponse>>();

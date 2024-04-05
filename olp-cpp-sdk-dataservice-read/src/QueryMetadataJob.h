@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ using QueryItemsFunc =
     std::function<QueryResponseType(QueryType, client::CancellationContext)>;
 
 template <typename QueryResponseType>
-using FilterItemsFunc = std::function<QueryResponseType(QueryResponseType)>;
+using FilterItemsFunc = std::function<void(QueryResponseType&)>;
 
 using VectorOfTokens = std::vector<olp::client::CancellationToken>;
 
@@ -99,9 +99,13 @@ class QueryMetadataJob {
     accumulated_statistics_ += GetNetworkStatistics(response);
 
     if (response.IsSuccessful()) {
-      auto items = response.MoveResult();
-      std::move(items.begin(), items.end(),
-                std::inserter(query_result_, query_result_.begin()));
+      if (query_result_.empty()) {
+        query_result_ = response.MoveResult();
+      } else {
+        auto items = response.MoveResult();
+        std::move(items.begin(), items.end(),
+                  std::inserter(query_result_, query_result_.begin()));
+      }
     } else {
       const auto& error = response.GetError();
       if (error.GetErrorCode() == client::ErrorCode::Cancelled) {
@@ -125,7 +129,7 @@ class QueryMetadataJob {
       }
 
       if (filter_) {
-        query_result_ = filter_(std::move(query_result_));
+        filter_(query_result_);
       }
 
       if (query_result_.empty()) {
