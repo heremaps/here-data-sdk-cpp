@@ -51,12 +51,14 @@ After building and running the example project, you see the following informatio
 
 ```bash
 [INFO] protected-cache-example - Mutable cache path is "none"
-[INFO] protected-cache-example - Protected cache path is "/tmp/cata.log_client_example/cache"
+[INFO] protected-cache-example - Protected cache path is "/tmp/catalog_client_example/cache"
 [INFO] ThreadPoolTaskScheduler - Starting thread 'OLPSDKPOOL_0'
-[INFO] CatalogRepository - cache catalog '@0^0' found!
-[INFO] PartitionsCacheRepository - Get 'hrn:here:data::olp-here-test:edge-example-catalog::versioned-world-layer::1::0::partition'
-[INFO] PartitionsRepository - cache data 'versioned-world-layer[1]@0^0' found!
-[INFO] DataRepository - cache data 'versioned-world-layer[1]@0^0' found!
+[DEBUG] CatalogCacheRepository - GetVersion -> 'hrn:here:data::olp-here-test:edge-example-catalog::latestVersion'
+[DEBUG] CatalogRepository - Latest cached version, hrn='hrn:here:data::olp-here-test:edge-example-catalog', version=0
+[DEBUG] PartitionsCacheRepository - Get 'hrn:here:data::olp-here-test:edge-example-catalog::versioned-world-layer::1::0::partition'
+[DEBUG] PartitionsRepository - GetPartitionById found in cache, hrn='hrn:here:data::olp-here-test:edge-example-catalog', key='versioned-world-layer[1]@0^2'
+[DEBUG] DataCacheRepository - Get 'hrn:here:data::olp-here-test:edge-example-catalog::versioned-world-layer::8daa637d-7c81-4322-a600-063f4ae0ef98::Data'
+[DEBUG] DataRepository - GetBlobData found in cache, hrn='hrn:here:data::olp-here-test:edge-example-catalog', key='8daa637d-7c81-4322-a600-063f4ae0ef98'
 [INFO] protected-cache-example - Request partition data - Success, data size - 3375
 ```
 
@@ -101,7 +103,7 @@ You can get data from a [versioned layer](https://developer.here.com/documentati
    auto request = olp::dataservice::read::DataRequest()
                     .WithPartitionId(first_partition_id)
                     .WithBillingTag(boost::none)
-                    .WithFetchOption(FetchOptions::OnlineIfNotFound);
+                    .WithFetchOption(olp::dataservice::read::FetchOptions::OnlineIfNotFound);
    ```
 
 4. Call the `GetRequest` method with the `DataRequest` parameter.
@@ -113,8 +115,7 @@ You can get data from a [versioned layer](https://developer.here.com/documentati
 5. Wait for the `DataResponse` future.
 
    ```cpp
-   olp::dataservice::read::DataResponse data_response =
-   future.GetFuture().get();
+   olp::dataservice::read::DataResponse data_response = future.GetFuture().get();
    ```
 
 The `DataResponse` object holds details of the completed operation and is used to determine operation success and access resultant data:
@@ -136,5 +137,5 @@ if (data_response.IsSuccessful()) {
 The received data is stored in the cache. You can find the path to the cache in the log message.
 
    ```bash
-   [INFO] protected-cache-example - Mutable cache path is "/tmp/cata.log_client_example/cache"
+   [INFO] protected-cache-example - Mutable cache path is "/tmp/catalog_client_example/cache"
    ```

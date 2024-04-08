@@ -199,8 +199,7 @@ Catalog metadata contains a list of configurations that describe the catalog and
 3. Create the `CatalogRequest` object.
 
    ```cpp
-   auto request =
-   olp::dataservice::read::CatalogRequest();
+   auto request = olp::dataservice::read::CatalogRequest();
    ```
 
 4. (Optional) Set the needed parameters. For example, to set the billing tag, set the `WithBillingTag` parameter.
@@ -229,8 +228,7 @@ The `CatalogResponse` object holds details of the completed operation and is use
 
 ```cpp
 if (catalog_response.IsSuccessful()) {
-    auto response_result =
-        catalog_response.GetResult();
+    const auto& response_result = catalog_response.GetResult();
     // Handle success
 } else {
     auto api_error = catalog_response.GetError();
@@ -300,9 +298,10 @@ Partition metadata consists of the following information about the partition:
 
    ```cpp
    auto request =
-   olp::dataservice::read::PartitionsRequest()
-                           .WithBillingTag("MyBillingTag")
-                           .WithFetchOption(FetchOptions::OnlineIfNotFound);
+       olp::dataservice::read::PartitionsRequest()
+           .WithBillingTag("MyBillingTag")
+           .WithFetchOption(
+               olp::dataservice::read::FetchOptions::OnlineIfNotFound);
    ```
 
 4. Call `GetPartitions` method with the `PartitionRequest` parameter.
@@ -384,7 +383,7 @@ You can request any data version from a [versioned layer](https://developer.here
    auto request = olp::dataservice::read::DataRequest()
                       .WithPartitionId(partition_id)
                       .WithBillingTag("MyBillingTag")
-                      .WithFetchOption(FetchOptions::OnlineIfNotFound);
+                      .WithFetchOption(olp::dataservice::read::FetchOptions::OnlineIfNotFound);
    ```
 
 4. Call the `GetRequest` method with the `DataRequest` parameter.
@@ -396,8 +395,7 @@ You can request any data version from a [versioned layer](https://developer.here
 5. Wait for the `DataResponse` future.
 
    ```cpp
-   olp::dataservice::read::DataResponse data_response =
-   future.GetFuture().get();
+   olp::dataservice::read::DataResponse data_response = future.GetFuture().get();
    ```
 
 The `DataResponse` object holds details of the completed operation and is used to determine operation success and access resultant data:
@@ -408,7 +406,7 @@ The `DataResponse` object holds details of the completed operation and is used t
 
 ```cpp
 if (data_response.IsSuccessful()) {
-    auto response_result = data_response.GetResult();
+    const auto& response_result = data_response.GetResult();
     // Handle success
 } else {
     auto api_error = data_response.GetError();
