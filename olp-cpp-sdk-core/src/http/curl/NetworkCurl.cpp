@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -318,6 +318,33 @@ NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
       "CURL does not support SSL info with blobs, required 7.77.0, detected %s",
       LIBCURL_VERSION);
 #endif
+
+  std::string curl_ca_info;
+  std::string curl_ca_path;
+#if CURL_AT_LEAST_VERSION(7, 70, 0)
+  const auto* version_data = curl_version_info(CURLVERSION_NOW);
+  curl_ca_path = version_data->capath ? version_data->capath : "<empty>";
+  curl_ca_info = version_data->cainfo ? version_data->cainfo : "<empty>";
+#else
+  curl_ca_path = "<empty>";
+  curl_ca_info = "<empty>";
+#endif
+
+  std::string ca_bundle_path;
+#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
+  ca_bundle_path = CaBundlePath();
+  if (ca_bundle_path.empty()) {
+    ca_bundle_path = "<empty>";
+  }
+#else
+  ca_bundle_path = "<empty>";
+#endif
+
+  OLP_SDK_LOG_INFO_F(kLogTag,
+                     "Certificate options, curl_ca_path=%s, curl_ca_info=%s, "
+                     "ca_bundle_path=%s",
+                     curl_ca_path.c_str(), curl_ca_info.c_str(),
+                     ca_bundle_path.c_str());
 }
 
 NetworkCurl::~NetworkCurl() {
