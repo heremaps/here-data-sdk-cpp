@@ -92,6 +92,7 @@ build_test_linux_fv:
 
 build_test_nv:
   stage: build
+  image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_USER}:${DOCKER_IMAGE_USER_VERSION}
   tags:
   - docker-prod
   script:
