@@ -32,6 +32,7 @@
 #include "ResponseFromJsonBuilder.h"
 #include "olp/core/http/NetworkResponse.h"
 #include "olp/core/http/NetworkUtils.h"
+#include "olp/core/logging/Log.h"
 #include "olp/core/utils/Base64.h"
 #include "olp/core/utils/Url.h"
 
@@ -55,6 +56,7 @@ constexpr auto kOauthTimestamp = "oauth_timestamp";
 constexpr auto kOauthSignatureMethod = "oauth_signature_method";
 constexpr auto kVersion = "1.0";
 constexpr auto kHmac = "HMAC-SHA256";
+constexpr auto kLogTag = "AuthenticationClientUtils";
 
 std::string Base64Encode(const Crypto::Sha256Digest& digest) {
   std::string ret = olp::utils::Base64Encode(digest.data(), digest.size());
@@ -95,14 +97,37 @@ namespace client = olp::client;
 constexpr auto kDate = "date";
 
 #ifdef _WIN32
-#define timegm _mkgmtime
-#endif
-
-std::time_t ParseTime(const std::string& value) {
+// Windows does not have ::strptime and ::timegm
+std::time_t DoParseTime(const std::string& value) {
   std::tm tm = {};
   std::istringstream ss(value);
   ss >> std::get_time(&tm, "%a, %d %b %Y %H:%M:%S %z");
+  return _mkgmtime(&tm);
+}
+
+#else
+
+std::time_t DoParseTime(const std::string& value) {
+  std::tm tm = {};
+  const auto format = "%a, %d %b %Y %H:%M:%S %Z";
+  const auto parsed_until = ::strptime(value.c_str(), format, &tm);
+  if (parsed_until != value.c_str() + value.size()) {
+    OLP_SDK_LOG_WARNING(kLogTag, "Timestamp is not fully parsed" << value);
+  }
   return timegm(&tm);
+}
+
+#endif
+
+std::time_t GmtEpochOffset() {
+  const auto epoch_as_date_time = "Thu, 1 Jan 1970 0:00:00 GMT";
+  return DoParseTime(epoch_as_date_time);
+}
+
+std::time_t ParseTime(const std::string& value) {
+  const auto time = DoParseTime(value);
+  const auto offset = GmtEpochOffset();
+  return time - offset;
 }
 
 boost::optional<std::time_t> GetTimestampFromHeaders(
