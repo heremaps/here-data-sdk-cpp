@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiLookupClient.h>
@@ -79,11 +80,23 @@ class PrefetchTilesRepository {
    *
    * @param request Your request.
    * @param tiles The input tiles.
-   *
-   * @returns The modified tiles.
    */
-  SubQuadsResult FilterTilesByLevel(const PrefetchTilesRequest& request,
-                                    SubQuadsResult tiles);
+  void FilterTilesByLevel(const PrefetchTilesRequest& request,
+                          SubQuadsResult& tiles) const;
+
+  /**
+   * @brief Filters the input tiles according to the request.
+   *
+   * Removes tiles that do not belong to the minimum and maximum levels.
+   * Removes tiles that are not a child or a parent of the requested tiles.
+   *
+   * @param request Your request.
+   * @param tiles The input tiles.
+   *
+   * @returns Tile keys matching the request.
+   */
+  std::vector<geo::TileKey> FilterTileKeysByLevel(
+      const PrefetchTilesRequest& request, const SubQuadsResult& tiles) const;
 
   /**
    * @brief Filters the input tiles according to the request.
@@ -94,15 +107,28 @@ class PrefetchTilesRepository {
    *
    * @param request Your request.
    * @param tiles The input tiles.
-   *
-   * @returns The modified tiles.
    */
-  SubQuadsResult FilterTilesByList(const PrefetchTilesRequest& request,
-                                   SubQuadsResult tiles);
+  void FilterTilesByList(const PrefetchTilesRequest& request,
+                         SubQuadsResult& tiles) const;
+
+  /**
+   * @brief Filters the input tiles according to the request.
+   *
+   * Removes tile keys that are not requested.
+   * Adds tile keys that are missing (to notify you that they are not found).
+   * If aggregated tiles were requested, scans for parents.
+   *
+   * @param request Your request.
+   * @param tiles The input tiles.
+   *
+   * @returns Tile keys matching the request.
+   */
+  std::vector<geo::TileKey> FilterTileKeysByList(
+      const PrefetchTilesRequest& request, const SubQuadsResult& tiles) const;
 
   client::NetworkStatistics LoadAggregatedSubQuads(
-      geo::TileKey tile, const SubQuadsResult& tiles, std::int64_t version,
-      client::CancellationContext context);
+      geo::TileKey tile, const std::vector<geo::TileKey>& tiles,
+      std::int64_t version, client::CancellationContext context);
 
   SubQuadsResponse GetVersionedSubQuads(geo::TileKey tile, int32_t depth,
                                         std::int64_t version,

@@ -49,11 +49,14 @@ constexpr std::uint32_t kMaxQuadTreeIndexDepth = 4u;
 SubQuadsResult FlattenTree(const QuadTreeIndex& tree) {
   SubQuadsResult result;
   auto index_data = tree.GetIndexData();
-  std::transform(index_data.begin(), index_data.end(),
-                 std::inserter(result, result.end()),
-                 [](const QuadTreeIndex::IndexData& data) {
-                   return std::make_pair(data.tile_key, data.data_handle);
-                 });
+  for (auto& data : index_data) {
+    const auto it = result.lower_bound(data.tile_key);
+    if (it == result.end() || result.key_comp()(data.tile_key, it->first)) {
+      result.emplace_hint(it, std::piecewise_construct,
+                          std::forward_as_tuple(data.tile_key),
+                          std::forward_as_tuple(std::move(data.data_handle)));
+    }
+  }
   return result;
 }
 
@@ -173,8 +176,8 @@ RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
 }
 
 client::NetworkStatistics PrefetchTilesRepository::LoadAggregatedSubQuads(
-    geo::TileKey root, const SubQuadsResult& tiles, std::int64_t version,
-    client::CancellationContext context) {
+    geo::TileKey root, const std::vector<geo::TileKey>& tiles,
+    std::int64_t version, client::CancellationContext context) {
   // if quad tree isn't cached, no reason to download additional quads
   QuadTreeIndex quad_tree;
   client::NetworkStatistics network_stats;
@@ -191,7 +194,7 @@ client::NetworkStatistics PrefetchTilesRepository::LoadAggregatedSubQuads(
   // found in subtiles. In this way we make sure that all tiles within requested
   // tree have aggregated parent downloaded and cached. This may cause
   // additional or duplicate download request.
-  auto root_index = quad_tree.Find(highest_tile_it->first, true);
+  auto root_index = quad_tree.Find(*highest_tile_it, true);
   if (root_index) {
     const auto& aggregated_tile_key = root_index->tile_key;
 
@@ -316,70 +319,66 @@ SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
   return result;
 }
 
-SubQuadsResult PrefetchTilesRepository::FilterTilesByLevel(
-    const PrefetchTilesRequest& request, SubQuadsResult tiles) {
-  const auto& tile_keys = request.GetTileKeys();
+static bool skip_tile(const PrefetchTilesRequest& request,
+                      const geo::TileKey& tile_key) {
+  if (tile_key.Level() < request.GetMinLevel() ||
+      tile_key.Level() > request.GetMaxLevel()) {
+    return true;
+  }
+  for (const geo::TileKey& root_key : request.GetTileKeys()) {
+    if (root_key == tile_key || root_key.IsParentOf(tile_key) ||
+        tile_key.IsParentOf(root_key))
+      return false;
+  }
+  return true;
+}
 
-  auto skip_tile = [&](const geo::TileKey& tile_key) {
-    if (tile_key.Level() < request.GetMinLevel()) {
-      return true;
-    }
-
-    if (tile_key.Level() > request.GetMaxLevel()) {
-      return true;
-    }
-
-    return std::find_if(tile_keys.begin(), tile_keys.end(),
-                        [&tile_key](const geo::TileKey& root_key) {
-                          return (root_key.IsParentOf(tile_key) ||
-                                  tile_key.IsParentOf(root_key) ||
-                                  root_key == tile_key);
-                        }) == tile_keys.end();
-  };
-
+void PrefetchTilesRepository::FilterTilesByLevel(
+    const PrefetchTilesRequest& request, SubQuadsResult& tiles) const {
   for (auto sub_quad_it = tiles.begin(); sub_quad_it != tiles.end();) {
-    if (skip_tile(sub_quad_it->first)) {
+    if (skip_tile(request, sub_quad_it->first)) {
       sub_quad_it = tiles.erase(sub_quad_it);
     } else {
       ++sub_quad_it;
     }
   }
-
-  return tiles;
 }
 
-SubQuadsResult PrefetchTilesRepository::FilterTilesByList(
-    const PrefetchTilesRequest& request, SubQuadsResult tiles) {
-  const bool aggregation_enabled = request.GetDataAggregationEnabled();
+std::vector<geo::TileKey> PrefetchTilesRepository::FilterTileKeysByLevel(
+    const PrefetchTilesRequest& request, const SubQuadsResult& tiles) const {
+  std::vector<geo::TileKey> result;
+  for (const auto& tile : tiles) {
+    if (!skip_tile(request, tile.first)) {
+      result.emplace_back(tile.first);
+    }
+  }
+  return result;
+}
 
+void PrefetchTilesRepository::FilterTilesByList(
+    const PrefetchTilesRequest& request, SubQuadsResult& tiles) const {
+  SubQuadsResult result;
+
+  const bool aggregation_enabled = request.GetDataAggregationEnabled();
   const auto& tile_keys = request.GetTileKeys();
 
   if (!aggregation_enabled) {
-    for (auto it = tiles.begin(); it != tiles.end();) {
-      if (std::find(tile_keys.begin(), tile_keys.end(), it->first) ==
-          tile_keys.end()) {
-        it = tiles.erase(it);
-      } else {
-        ++it;
-      }
-    }
-
     for (const auto& tile : tile_keys) {
-      if (tiles.find(tile) == tiles.end()) {
-        tiles[tile] = "";
+      const auto it = tiles.find(tile);
+      auto& new_tile = result[tile];
+      if (it != tiles.end()) {
+        new_tile = std::move(it->second);
+        tiles.erase(it);
       }
     }
-
   } else {
-    SubQuadsResult result;
-
     auto append_tile = [&](const geo::TileKey& key) {
-      auto tile_it = tiles.find(key);
-      if (tile_it != tiles.end()) {
-        result[tile_it->first] = tile_it->second;
+      const auto it = tiles.find(key);
+      if (it != tiles.end()) {
+        result.emplace(key, std::move(it->second));
         return true;
       } else {
-        return false;
+        return result.find(key) != result.end();
       }
     };
 
@@ -391,14 +390,42 @@ SubQuadsResult PrefetchTilesRepository::FilterTilesByList(
       }
 
       if (!aggregated_tile.IsValid()) {
-        result[tile] = "";  // To generate Not Found error
+        result[tile].clear();  // To generate Not Found error
       }
     }
-
-    tiles.swap(result);
   }
+  tiles.swap(result);
+}
 
-  return tiles;
+std::vector<geo::TileKey> PrefetchTilesRepository::FilterTileKeysByList(
+    const PrefetchTilesRequest& request, const SubQuadsResult& tiles) const {
+  std::vector<geo::TileKey> result;
+
+  if (!request.GetDataAggregationEnabled()) {
+    result = request.GetTileKeys();
+  } else {
+    auto append_tile = [&tiles, &result](const geo::TileKey& key) {
+      if (tiles.count(key) == 1) {
+        result.emplace_back(key);
+        return true;
+      } else {
+        return std::find(result.begin(), result.end(), key) != result.end();
+      }
+    };
+
+    for (const auto& tile : request.GetTileKeys()) {
+      auto aggregated_tile = tile;
+
+      while (aggregated_tile.IsValid() && !append_tile(aggregated_tile)) {
+        aggregated_tile = aggregated_tile.Parent();
+      }
+
+      if (!aggregated_tile.IsValid()) {
+        result.emplace_back(tile);  // To generate Not Found error
+      }
+    }
+  }
+  return result;
 }
 
 PrefetchTilesRepository::QuadTreeResponse
