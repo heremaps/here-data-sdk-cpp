@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,9 @@ class DataCacheRepository final {
                                    const std::string& data_handle);
   bool IsCached(const std::string& layer_id,
                 const std::string& data_handle) const;
+
+  void PromoteInCache(const std::string& layer_id,
+                      const std::string& data_handle);
 
   bool Clear(const std::string& layer_id, const std::string& data_handle);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,11 +78,8 @@ boost::optional<model::Data> DataCacheRepository::Get(
 
 bool DataCacheRepository::IsCached(const std::string& layer_id,
                                    const std::string& data_handle) const {
-  const auto key =
-      cache::KeyGenerator::CreateDataHandleKey(hrn_, layer_id, data_handle);
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "IsCached key -> '%s'", key.c_str());
-
-  return cache_->Contains(key);
+  return cache_->Contains(
+      cache::KeyGenerator::CreateDataHandleKey(hrn_, layer_id, data_handle));
 }
 
 bool DataCacheRepository::Clear(const std::string& layer_id,
@@ -90,8 +87,12 @@ bool DataCacheRepository::Clear(const std::string& layer_id,
   const auto key =
       cache::KeyGenerator::CreateDataHandleKey(hrn_, layer_id, data_handle);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Clear -> '%s'", key.c_str());
-
   return cache_->RemoveKeysWithPrefix(key);
+}
+void DataCacheRepository::PromoteInCache(const std::string& layer_id,
+                                         const std::string& data_handle) {
+  cache_->Promote(
+      cache::KeyGenerator::CreateDataHandleKey(hrn_, layer_id, data_handle));
 }
 
 }  // namespace repository

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,22 +19,16 @@
 
 #include "DataRepository.h"
 
-#include <algorithm>
-#include <sstream>
 #include <string>
 #include <utility>
 
 #include <olp/core/client/Condition.h>
 #include <olp/core/logging/Log.h>
-#include "CatalogRepository.h"
 #include "DataCacheRepository.h"
-#include "PartitionsCacheRepository.h"
 #include "PartitionsRepository.h"
 #include "generated/api/BlobApi.h"
 #include "generated/api/VolatileBlobApi.h"
 #include "olp/dataservice/read/CatalogRequest.h"
-#include "olp/dataservice/read/CatalogVersionRequest.h"
-#include "olp/dataservice/read/PartitionsRequest.h"
 #include "olp/dataservice/read/TileRequest.h"
 
 namespace olp {

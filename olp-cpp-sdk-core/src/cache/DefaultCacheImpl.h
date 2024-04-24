@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ class DefaultCacheImpl {
   bool Protect(const DefaultCache::KeyListType& keys);
   bool Release(const DefaultCache::KeyListType& keys);
   bool IsProtected(const std::string& key) const;
+  void Promote(const std::string& key);
 
   uint64_t Size(DefaultCache::CacheType type) const;
   uint64_t Size(uint64_t new_size);
@@ -169,7 +170,8 @@ class DefaultCacheImpl {
   boost::optional<std::pair<std::string, time_t>> GetFromDiscCache(
       const std::string& key);
 
-  time_t GetExpiryForMemoryCache(const std::string& key, const time_t& expiry) const;
+  time_t GetExpiryForMemoryCache(const std::string& key,
+                                 const time_t& expiry) const;
 
   CacheSettings settings_;
   bool is_open_;

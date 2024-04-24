@@ -22,7 +22,7 @@ jobs:
       CXX: g++-7
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: "C++ Lint checker script"
         run: ./scripts/misc/cpplint_ci.sh
         shell: bash
@@ -42,9 +42,9 @@ jobs:
       CXX: g++-9
     steps:
     - name: Check out repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Install Ubuntu dependencies
-      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-9 g++-9 --no-install-recommends
+      run: sudo rm /etc/apt/sources.list.d/microsoft-prod.list && sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-9 g++-9 --no-install-recommends
       shell: bash
     - name: Compile project with cmake and ccache
       run: gcc --version && ./scripts/linux/psv/build_psv.sh
@@ -63,7 +63,7 @@ jobs:
       CXX: g++-7
     steps:
     - name: Check out repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Install Ubuntu dependencies
       run: sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-7 g++-7 --no-install-recommends
       shell: bash
@@ -78,9 +78,9 @@ jobs:
       BUILD_TYPE: RelWithDebInfo
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install Ubuntu dependencies
-        run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
+        run: sudo rm /etc/apt/sources.list.d/microsoft-prod.list && sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
         shell: bash
       - name: Compile project with cmake and ccache
         run: gcc --version && ./scripts/linux/psv/build_psv.sh
@@ -95,9 +95,9 @@ jobs:
       CXX: g++-13
     steps:
     - name: Check out repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Install Ubuntu dependencies
-      run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-13 g++-13 --no-install-recommends
+      run: sudo rm /etc/apt/sources.list.d/microsoft-prod.list && sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-13 g++-13 --no-install-recommends
       shell: bash
     - name: Compile project without cache
       run: ./scripts/linux/psv/build_psv_no_cache.sh
@@ -112,9 +112,9 @@ jobs:
       CXX: g++-13
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install Ubuntu dependencies
-        run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
+        run: sudo rm /etc/apt/sources.list.d/microsoft-prod.list && sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
         shell: bash
       - name: Compile project with cmake and ccache
         run: gcc --version && ./scripts/linux/psv/build_psv.sh
@@ -127,9 +127,9 @@ jobs:
       BUILD_TYPE: RelWithDebInfo
     steps:
     - name: Check out repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Install Ubuntu dependencies
-      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev --no-install-recommends
+      run: sudo rm /etc/apt/sources.list.d/microsoft-prod.list && sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev --no-install-recommends
       shell: bash
     - name: Compile project without cache
       run: ./scripts/linux/psv/build_psv_no_cache.sh
@@ -145,7 +145,7 @@ jobs:
       CXX: clang++-7
     steps:
     - name: Check out repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Install Ubuntu dependencies
       run: sudo apt-get update -y && sudo apt-get install clang-7 ccache libcurl4-openssl-dev -y --no-install-recommends --fix-missing
       shell: bash
@@ -161,7 +161,7 @@ jobs:
       BUILD_TYPE: RelWithDebInfo
     steps:
     - name: Check out repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Verification of prerequisites
       run: env && ls -la $ANDROID_HOME
       shell: bash
@@ -174,7 +174,7 @@ jobs:
     runs-on: macOS-11
     steps:
     - name: Check out repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: MacOS Build
       run: scripts/macos/psv/azure_macos_build_psv.sh
       shell: bash
@@ -184,7 +184,7 @@ jobs:
     runs-on: macOS-12
     steps:
     - name: Check out repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: MacOS Build
       run: scripts/macos/psv/azure_macos_build_psv.sh
       shell: bash
@@ -194,7 +194,7 @@ jobs:
     runs-on: macOS-11
     steps:
     - name: Check out repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: iOS Xcode 11-7 Build
       run: scripts/ios/azure_ios_build_psv.sh
       shell: bash
@@ -206,7 +206,7 @@ jobs:
     runs-on: macOS-12
     steps:
     - name: Check out repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: iOS Xcode 14-2 Build
       run: scripts/ios/azure_ios_build_psv.sh
       shell: bash
@@ -216,7 +216,7 @@ jobs:
     runs-on: macOS-13
     steps:
     - name: Check out repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: iOS Xcode 15 Build
       run: scripts/ios/azure_ios_build_psv.sh
       shell: bash
@@ -226,7 +226,7 @@ jobs:
     runs-on: macOS-14
     steps:
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: iOS Xcode 15 Build
         run: scripts/ios/azure_ios_build_psv.sh
         shell: bash
@@ -236,7 +236,7 @@ jobs:
     runs-on: ubuntu-20.04
     if: github.ref_name != 'master'
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Set tags env variables.
