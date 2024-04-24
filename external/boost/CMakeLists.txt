@@ -19,7 +19,11 @@
 # Download and unpack boost at configure time
 
 if (CMAKE_HOST_WIN32)
-    set(BOOTSTRAP_CMD bootstrap.bat)
+    if (MSVC)
+        set(BOOTSTRAP_CMD "bootstrap.bat msvc")
+    else()
+        set(BOOTSTRAP_CMD "bootstrap.bat")
+    endif(MSVC)
     set(B2_CMD b2.exe)
 else()
     # Reset the CXX (path to compiler) before running bootstrap since we can cross compile.

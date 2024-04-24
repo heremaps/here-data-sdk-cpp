@@ -61,3 +61,4 @@ CMakeSettings.json
 
 # CLion
 .idea/
+cmake-build-*
