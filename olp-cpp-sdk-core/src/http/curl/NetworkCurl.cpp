@@ -331,13 +331,13 @@ NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
 #endif
 
   std::string ca_bundle_path;
-#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
+#ifdef OLP_SDK_ENABLE_ANDROID_CURL
+  ca_bundle_path = kCurlAndroidCaBundleFolder;
+#elif OLP_SDK_NETWORK_HAS_OPENSSL
   ca_bundle_path = CaBundlePath();
   if (ca_bundle_path.empty()) {
     ca_bundle_path = "<empty>";
   }
-#else
-  ca_bundle_path = "<empty>";
 #endif
 
   OLP_SDK_LOG_INFO_F(kLogTag,
