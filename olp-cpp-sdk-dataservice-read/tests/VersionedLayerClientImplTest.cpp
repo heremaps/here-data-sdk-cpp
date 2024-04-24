@@ -1136,6 +1136,78 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsCancel) {
   Mock::VerifyAndClearExpectations(network_mock.get());
 }
 
+TEST(VersionedLayerClientTest, PrefetchPromotesExistingContent) {
+  std::shared_ptr<CacheMock> cache = std::make_shared<CacheMock>();
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+
+  olp::client::OlpClientSettings settings;
+  settings.network_request_handler = network_mock;
+  settings.cache = cache;
+
+  auto apis = ApiDefaultResponses::GenerateResourceApisResponse(kCatalog);
+  auto api_response = ResponseGenerator::ResourceApis(apis);
+  PlatformUrlsGenerator generator(apis, kLayerId);
+
+  const auto kVersion = 4u;
+  read::VersionedLayerClientImpl client(kHrn, kLayerId, kVersion, settings);
+
+  const auto kDepth = 4;
+  const auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
+  const auto root_tile_key = tile_key.ChangedLevelBy(-kDepth);
+
+  auto quad_tree_response = ReadDefaultResponses::GenerateQuadTreeResponse(
+      root_tile_key, kDepth, {9, 10, 11, 12});
+
+  EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   api_response));
+
+  auto quad_tree_path = generator.VersionedQuadTree("92259", kVersion, kDepth);
+  EXPECT_CALL(*network_mock, Send(IsGetRequest(quad_tree_path), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   quad_tree_response));
+
+  const std::vector<olp::geo::TileKey> tile_keys = {
+      olp::geo::TileKey::FromHereTile(kHereTile)};
+
+  EXPECT_CALL(*cache, Put(_, _, _)).WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(*cache, Put(_, _, _, _)).WillRepeatedly(testing::Return(true));
+
+  EXPECT_CALL(*cache, Get(_));
+  EXPECT_CALL(*cache, Get(_, _));
+
+  EXPECT_CALL(*cache, Contains(testing::HasSubstr("-data-handle")))
+      .Times(4)
+      .WillRepeatedly(testing::Return(true));
+
+  EXPECT_CALL(*cache, Promote(testing::HasSubstr("-data-handle"))).Times(4);
+
+  const auto request = read::PrefetchTilesRequest()
+                           .WithTileKeys(tile_keys)
+                           .WithMinLevel(8)
+                           .WithMaxLevel(12);
+
+  std::promise<read::PrefetchTilesResponse> promise;
+
+  auto token =
+      client.PrefetchTiles(request,
+                           [&promise](read::PrefetchTilesResponse response) {
+                             promise.set_value(std::move(response));
+                           },
+                           nullptr);
+
+  auto future = promise.get_future();
+  ASSERT_NE(future.wait_for(std::chrono::seconds(kTimeout)),
+            std::future_status::timeout);
+
+  auto response = future.get();
+  ASSERT_TRUE(response.IsSuccessful());
+
+  Mock::VerifyAndClearExpectations(network_mock.get());
+}
+
 TEST(VersionedLayerClientTest, CacheErrorsDuringPrefetch) {
   olp::utils::Dir::Remove(kMutableCachePath);
 
@@ -1234,12 +1306,12 @@ TEST(VersionedLayerClientTest, CacheErrorsDuringPrefetch) {
 
     std::promise<read::PrefetchTilesResponse> promise;
 
-    auto token = client.PrefetchTiles(
-        request,
-        [&promise](read::PrefetchTilesResponse response) {
-          promise.set_value(std::move(response));
-        },
-        nullptr);
+    auto token =
+        client.PrefetchTiles(request,
+                             [&promise](read::PrefetchTilesResponse response) {
+                               promise.set_value(std::move(response));
+                             },
+                             nullptr);
 
     auto future = promise.get_future();
     ASSERT_NE(future.wait_for(std::chrono::seconds(kTimeout)),

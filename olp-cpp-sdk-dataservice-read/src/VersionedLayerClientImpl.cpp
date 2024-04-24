@@ -29,7 +29,6 @@
 #include <olp/core/cache/DefaultCache.h>
 #include <olp/core/client/ApiNoResult.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
-#include <olp/core/client/PendingRequests.h>
 #include <olp/core/client/TaskContext.h>
 #include <olp/core/context/Context.h>
 #include <olp/core/logging/Log.h>
@@ -41,7 +40,6 @@
 #include "PrefetchTilesHelper.h"
 #include "ProtectDependencyResolver.h"
 #include "ReleaseDependencyResolver.h"
-#include "generated/api/QueryApi.h"
 #include "repositories/CatalogRepository.h"
 #include "repositories/DataCacheRepository.h"
 #include "repositories/DataRepository.h"
@@ -352,6 +350,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
       repository::DataCacheRepository data_cache_repository(catalog_,
                                                             settings_.cache);
       if (data_cache_repository.IsCached(layer_id_, data_handle)) {
+        data_cache_repository.PromoteInCache(layer_id_, data_handle);
         return BlobApi::DataResponse(nullptr);
       }
 
@@ -543,6 +542,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                                                       settings_.cache);
 
                 if (cache.IsCached(layer_id_, data_handle)) {
+                  cache.PromoteInCache(layer_id_, data_handle);
                   return BlobApi::DataResponse(nullptr);
                 }
 
@@ -683,9 +683,6 @@ client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
 
 bool VersionedLayerClientImpl::RemoveFromCache(
     const std::string& partition_id) {
-  repository::PartitionsCacheRepository partitions_cache_repository(
-      catalog_, layer_id_, settings_.cache);
-  boost::optional<model::Partition> partition;
   auto version = catalog_version_.load();
   if (version == kInvalidVersion) {
     OLP_SDK_LOG_WARNING(
@@ -693,6 +690,10 @@ bool VersionedLayerClientImpl::RemoveFromCache(
     return false;
   }
 
+  boost::optional<model::Partition> partition;
+
+  repository::PartitionsCacheRepository partitions_cache_repository(
+      catalog_, layer_id_, settings_.cache);
   if (!partitions_cache_repository.ClearPartitionMetadata(partition_id, version,
                                                           partition)) {
     return false;
@@ -719,28 +720,31 @@ bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
     return false;
   }
 
-  if (partitions_cache_repository.FindQuadTree(tile, version, cached_tree)) {
-    auto data = cached_tree.Find(tile, false);
-    if (!data) {
+  if (!partitions_cache_repository.FindQuadTree(tile, version, cached_tree)) {
+    return true;
+  }
+
+  auto data = cached_tree.Find(tile, false);
+  if (!data) {
+    return true;
+  }
+  repository::DataCacheRepository data_cache_repository(catalog_,
+                                                        settings_.cache);
+  auto result = data_cache_repository.Clear(layer_id_, data->data_handle);
+  if (!result) {
+    return false;
+  }
+
+  auto index_data = cached_tree.GetIndexData();
+  for (const auto& ind : index_data) {
+    if (ind.tile_key != tile &&
+        data_cache_repository.IsCached(layer_id_, ind.data_handle)) {
       return true;
     }
-    repository::DataCacheRepository data_cache_repository(catalog_,
-                                                          settings_.cache);
-    auto result = data_cache_repository.Clear(layer_id_, data->data_handle);
-    if (result) {
-      auto index_data = cached_tree.GetIndexData();
-      for (const auto& ind : index_data) {
-        if (ind.tile_key != tile &&
-            data_cache_repository.IsCached(layer_id_, ind.data_handle)) {
-          return true;
-        }
-      }
-      return partitions_cache_repository.ClearQuadTree(
-          cached_tree.GetRootTile(), kQuadTreeDepth, version);
-    }
-    return result;
   }
-  return true;
+
+  return partitions_cache_repository.ClearQuadTree(cached_tree.GetRootTile(),
+                                                   kQuadTreeDepth, version);
 }
 
 bool VersionedLayerClientImpl::IsCached(const std::string& partition_id) {
@@ -757,11 +761,12 @@ bool VersionedLayerClientImpl::IsCached(const std::string& partition_id) {
                                                         cache);
 
   std::string handle;
-  if (partitions_repo.GetPartitionHandle(partition_id, version, handle)) {
-    repository::DataCacheRepository data_repo(catalog_, cache);
-    return data_repo.IsCached(layer_id_, handle);
+  if (!partitions_repo.GetPartitionHandle(partition_id, version, handle)) {
+    return false;
   }
-  return false;
+
+  repository::DataCacheRepository data_repo(catalog_, cache);
+  return data_repo.IsCached(layer_id_, handle);
 }
 
 bool VersionedLayerClientImpl::IsCached(const geo::TileKey& tile,
@@ -780,14 +785,17 @@ bool VersionedLayerClientImpl::IsCached(const geo::TileKey& tile,
   repository::PartitionsCacheRepository partitions_repo(catalog_, layer_id_,
                                                         cache);
 
-  if (partitions_repo.FindQuadTree(tile, version, cached_tree)) {
-    auto data = cached_tree.Find(tile, aggregated);
-    if (data) {
-      repository::DataCacheRepository data_repo(catalog_, cache);
-      return data_repo.IsCached(layer_id_, data->data_handle);
-    }
+  if (!partitions_repo.FindQuadTree(tile, version, cached_tree)) {
+    return false;
   }
-  return false;
+
+  auto data = cached_tree.Find(tile, aggregated);
+  if (!data) {
+    return false;
+  }
+
+  repository::DataCacheRepository data_repo(catalog_, cache);
+  return data_repo.IsCached(layer_id_, data->data_handle);
 }
 
 client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(

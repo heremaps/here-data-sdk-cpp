@@ -27,6 +27,12 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#undef max
+#endif
+
 #include "Helpers.h"
 
 namespace {
@@ -251,9 +257,8 @@ TEST_F(DefaultCacheImplTest, LruCachePut) {
 
     cache.Open();
     cache.Clear();
-    cache.Put(
-        key, data_string, [=]() { return data_string; },
-        (std::numeric_limits<time_t>::max)());
+    cache.Put(key, data_string, [=]() { return data_string; },
+              (std::numeric_limits<time_t>::max)());
 
     EXPECT_TRUE(cache.ContainsLru(key));
   }
@@ -286,9 +291,8 @@ TEST_F(DefaultCacheImplTest, LruCacheGetPromote) {
 
   cache.Open();
   cache.Clear();
-  cache.Put(
-      key1, data_string, [=]() { return data_string; },
-      (std::numeric_limits<time_t>::max)());
+  cache.Put(key1, data_string, [=]() { return data_string; },
+            (std::numeric_limits<time_t>::max)());
   cache.Put(key2, std::make_shared<std::vector<unsigned char>>(binary_data),
             (std::numeric_limits<time_t>::max)());
 
@@ -296,18 +300,21 @@ TEST_F(DefaultCacheImplTest, LruCacheGetPromote) {
     SCOPED_TRACE("Get decode promote");
 
     cache.Get(key1, [=](const std::string&) { return data_string; });
-    auto it = cache.BeginLru();
-
-    EXPECT_EQ(key1, it->key());
+    EXPECT_EQ(key1, cache.BeginLru()->key());
   }
 
   {
     SCOPED_TRACE("Get binary promote");
 
     cache.Get(key2);
-    auto it = cache.BeginLru();
+    EXPECT_EQ(key2, cache.BeginLru()->key());
+  }
 
-    EXPECT_EQ(key2, it->key());
+  {
+    SCOPED_TRACE("Promote");
+
+    cache.Promote(key1);
+    EXPECT_EQ(key1, cache.BeginLru()->key());
   }
 }
 
@@ -355,9 +362,8 @@ TEST_F(DefaultCacheImplTest, LruCacheRemove) {
               (std::numeric_limits<time_t>::max)());
     cache.Put(key2, std::make_shared<std::vector<unsigned char>>(binary_data),
               (std::numeric_limits<time_t>::max)());
-    cache.Put(
-        key3, data_string, [=]() { return data_string; },
-        (std::numeric_limits<time_t>::max)());
+    cache.Put(key3, data_string, [=]() { return data_string; },
+              (std::numeric_limits<time_t>::max)());
 
     EXPECT_TRUE(cache.ContainsLru(key1));
     EXPECT_TRUE(cache.ContainsLru(key2));
@@ -401,8 +407,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheExpired) {
   cache1.Clear();
 
   cache1.Put(key1, data_ptr, expiry);
-  cache1.Put(
-      key2, data_string, [=]() { return data_string; }, expiry);
+  cache1.Put(key2, data_string, [=]() { return data_string; }, expiry);
   cache1.Close();
 
   cache::CacheSettings settings2;
@@ -444,8 +449,7 @@ TEST_F(DefaultCacheImplTest, ProtectedCacheExpired) {
   cache1.Clear();
 
   cache1.Put(key1, data_ptr, expiry);
-  cache1.Put(
-      key2, data_string, [=]() { return data_string; }, expiry);
+  cache1.Put(key2, data_string, [=]() { return data_string; }, expiry);
   cache1.Close();
 
   cache::CacheSettings settings2;
@@ -492,15 +496,13 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
     cache.Open();
     cache.Clear();
 
-    cache.Put(
-        key1, data_string, [=]() { return data_string; },
-        (std::numeric_limits<time_t>::max)());
+    cache.Put(key1, data_string, [=]() { return data_string; },
+              (std::numeric_limits<time_t>::max)());
     auto data_size = key1.size() + data_string.size();
 
     EXPECT_EQ(data_size, cache.Size(CacheType::kMutable));
 
-    cache.Put(
-        key2, data_string, [=]() { return data_string; }, expiry);
+    cache.Put(key2, data_string, [=]() { return data_string; }, expiry);
     data_size +=
         key2.size() + data_string.size() + cache.CalculateExpirySize(key2);
 
@@ -535,9 +537,8 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
     cache.Clear();
 
     cache.Put(key1, data_ptr, (std::numeric_limits<time_t>::max)());
-    cache.Put(
-        key2, data_string, [=]() { return data_string; },
-        (std::numeric_limits<time_t>::max)());
+    cache.Put(key2, data_string, [=]() { return data_string; },
+              (std::numeric_limits<time_t>::max)());
 
     cache.Remove(key1);
     cache.Remove(key2);
@@ -554,8 +555,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
     cache.Clear();
 
     cache.Put(key1, data_ptr, expiry);
-    cache.Put(
-        key2, data_string, [=]() { return data_string; }, expiry);
+    cache.Put(key2, data_string, [=]() { return data_string; }, expiry);
 
     cache.Remove(key1);
     cache.Remove(key2);
@@ -573,8 +573,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
 
     cache.Put(key1, data_ptr, (std::numeric_limits<time_t>::max)());
     cache.Put(key2, data_ptr, expiry);
-    cache.Put(
-        key3, data_string, [=]() { return data_string; }, expiry);
+    cache.Put(key3, data_string, [=]() { return data_string; }, expiry);
     const auto data_size =
         key3.size() + data_string.size() + cache.CalculateExpirySize(key3);
 
@@ -592,8 +591,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
     cache.Clear();
 
     cache.Put(key1, data_ptr, -1);
-    cache.Put(
-        key2, data_string, [=]() { return data_string; }, -1);
+    cache.Put(key2, data_string, [=]() { return data_string; }, -1);
 
     cache.Get(key1);
     cache.Get(key2, [](const std::string& value) { return value; });
@@ -612,9 +610,8 @@ TEST_F(DefaultCacheImplTest, MutableCacheSize) {
     cache.Open();
     cache.Clear();
 
-    cache.Put(
-        key, data_string, [=]() { return data_string; },
-        (std::numeric_limits<time_t>::max)());
+    cache.Put(key, data_string, [=]() { return data_string; },
+              (std::numeric_limits<time_t>::max)());
     cache.Close();
     EXPECT_EQ(0u, cache.Size(CacheType::kMutable));
 
@@ -760,7 +757,7 @@ TEST_F(DefaultCacheImplTest, LruCacheEviction) {
       ASSERT_TRUE(result);
 
       // promote the key so its not evicted.
-      cache.Get(promote_key);
+      cache.Promote(promote_key);
 
       EXPECT_TRUE(cache.ContainsMutableCache(key));
       EXPECT_TRUE(cache.ContainsMemoryCache(key));
@@ -856,24 +853,21 @@ TEST_F(DefaultCacheImplTest, ProtectTest) {
     DefaultCacheImplHelper cache(settings);
     ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
     ASSERT_TRUE(cache.Clear());
-    cache.Put(
-        key1, key1_data_string, [=]() { return key1_data_string; }, 2);
-    cache.Put(
-        other_key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; }, 2);
+    cache.Put(other_key1, key1_data_string, [=]() { return key1_data_string; },
+              2);
     ASSERT_TRUE(cache.Contains(key1));
     // protect single keys, and prefix
     ASSERT_TRUE(cache.Protect({key1, key2, "other"}));
     // Try to protect key already protected by prefix
     ASSERT_FALSE(cache.Protect({other_key1}));
     ASSERT_FALSE(cache.Contains(key2));
-    cache.Put(
-        key2, key2_data_string, [=]() { return key2_data_string; }, 2);
-    cache.Put(
-        key3, key3_data_string, [=]() { return key3_data_string; }, 2);
-    cache.Put(
-        other_key2, key2_data_string, [=]() { return key2_data_string; }, 2);
-    cache.Put(
-        other_key3, key3_data_string, [=]() { return key3_data_string; }, 2);
+    cache.Put(key2, key2_data_string, [=]() { return key2_data_string; }, 2);
+    cache.Put(key3, key3_data_string, [=]() { return key3_data_string; }, 2);
+    cache.Put(other_key2, key2_data_string, [=]() { return key2_data_string; },
+              2);
+    cache.Put(other_key3, key3_data_string, [=]() { return key3_data_string; },
+              2);
     ASSERT_TRUE(cache.Protect({key3}));
     ASSERT_TRUE(cache.Release({key1}));
     std::this_thread::sleep_for(std::chrono::seconds(3));
@@ -1003,9 +997,8 @@ TEST_F(DefaultCacheImplTest, ReadOnlyPartitionForProtectedCache) {
             cache1.Open());
   cache1.Clear();
 
-  cache1.Put(
-      key, data_string, [=]() { return data_string; },
-      std::numeric_limits<time_t>::max());
+  cache1.Put(key, data_string, [=]() { return data_string; },
+             std::numeric_limits<time_t>::max());
   cache1.Close();
 
   // Make readonly
@@ -1032,9 +1025,8 @@ TEST_F(DefaultCacheImplTest, ProtectTestWithoutMutableCache) {
     DefaultCacheImplHelper cache({});
     ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
     ASSERT_TRUE(cache.Clear());
-    cache.Put(
-        key1, key1_data_string, [=]() { return key1_data_string; },
-        std::numeric_limits<time_t>::max());
+    cache.Put(key1, key1_data_string, [=]() { return key1_data_string; },
+              std::numeric_limits<time_t>::max());
     ASSERT_TRUE(cache.Contains(key1));
     ASSERT_FALSE(cache.Protect({key1}));
 
@@ -1048,9 +1040,9 @@ TEST_F(DefaultCacheImplTest, ProtectTestWithoutMutableCache) {
     DefaultCacheImplHelper cache(settings);
     ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
     ASSERT_TRUE(cache.Clear());
-    ASSERT_TRUE(cache.Put(
-        key1, key1_data_string, [=]() { return key1_data_string; },
-        std::numeric_limits<time_t>::max()));
+    ASSERT_TRUE(cache.Put(key1, key1_data_string,
+                          [=]() { return key1_data_string; },
+                          std::numeric_limits<time_t>::max()));
     ASSERT_TRUE(cache.Protect({key1}));
     cache.Close();
   }

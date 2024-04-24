@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <time.h>
+#include <ctime>
 #include <functional>
 #include <limits>
 #include <memory>
@@ -174,6 +174,13 @@ class CORE_API KeyValueCache {
     OLP_SDK_CORE_UNUSED(key);
     return false;
   }
+
+  /**
+   * @brief Promotes a key in the cache LRU when applicable.
+   *
+   * @param key The key to promote in the cache LRU.
+   */
+  virtual void Promote(const std::string& key) { OLP_SDK_CORE_UNUSED(key); }
 };
 
 }  // namespace cache

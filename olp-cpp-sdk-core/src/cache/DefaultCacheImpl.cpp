@@ -508,7 +508,7 @@ bool DefaultCacheImpl::AddKeyLru(std::string key, const leveldb::Slice& value) {
       // end, this could cause exception in std::stoll. This is fixed by
       // constructing a string, (We rely on small string optimization here).
       std::string timestamp(value.data(), value.size());
-      props.expiry = std::stoll(timestamp.c_str());
+      props.expiry = std::stoll(timestamp);
     } else {
       props.size = value.size();
     }
@@ -1137,6 +1137,13 @@ uint64_t DefaultCacheImpl::Size(uint64_t new_size) {
   mutable_cache_data_size_ -= evicted;
   mutable_cache_->Compact();
   return evicted;
+}
+
+void DefaultCacheImpl::Promote(const std::string& key) {
+  std::lock_guard<std::mutex> lock(cache_lock_);
+  if (mutable_cache_lru_) {
+    mutable_cache_lru_->Find(key);
+  }
 }
 
 }  // namespace cache

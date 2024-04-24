@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,8 @@
  * License-Filename: LICENSE
  */
 
-#include "DefaultCacheImpl.h"
 #include "olp/core/cache/DefaultCache.h"
-#include "olp/core/porting/warning_disable.h"
+#include "DefaultCacheImpl.h"
 
 namespace olp {
 namespace cache {
@@ -88,6 +87,8 @@ uint64_t DefaultCache::Size(CacheType cache_type) const {
 }
 
 uint64_t DefaultCache::Size(uint64_t new_size) { return impl_->Size(new_size); }
+
+void DefaultCache::Promote(const std::string& key) { impl_->Promote(key); }
 
 }  // namespace cache
 }  // namespace olp

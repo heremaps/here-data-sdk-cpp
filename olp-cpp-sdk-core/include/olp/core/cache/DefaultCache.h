@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -253,6 +253,13 @@ class CORE_API DefaultCache : public KeyValueCache {
    * otherwise.
    */
   bool IsProtected(const std::string& key) const override;
+
+  /**
+   * @brief Promotes a key in the cache LRU when applicable.
+   *
+   * @param key The key to promote in the cache LRU.
+   */
+  void Promote(const std::string& key) override;
 
   /**
    * @brief Gets size of the corresponding cache.
