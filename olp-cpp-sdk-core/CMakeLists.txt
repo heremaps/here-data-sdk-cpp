@@ -156,6 +156,7 @@ set(OLP_SDK_LOGGING_HEADERS
     ./include/olp/core/logging/Format.h
     ./include/olp/core/logging/Level.h
     ./include/olp/core/logging/Log.h
+    ./include/olp/core/logging/LogContext.h
     ./include/olp/core/logging/LogMessage.h
     ./include/olp/core/logging/MessageFormatter.h
 )
@@ -361,6 +362,7 @@ set(OLP_SDK_LOGGING_SOURCES
     ./src/logging/FilterGroup.cpp
     ./src/logging/Format.cpp
     ./src/logging/Log.cpp
+    ./src/logging/LogContext.cpp
     ./src/logging/MessageFormatter.cpp
     ./src/logging/ThreadId.cpp
     ./src/logging/ThreadId.h

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@
  */
 
 #include <olp/core/logging/Format.h>
+#include <olp/core/logging/LogContext.h>
 #include <olp/core/logging/MessageFormatter.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cstring>
@@ -178,6 +180,11 @@ std::string MessageFormatter::format(const LogMessage& message) const {
       case ElementType::ThreadId:
         curElement =
             curElementBuffer.format(element.format.c_str(), message.threadId);
+        break;
+      case ElementType::ContextValue:
+        // 'format' is key to lookup
+        curElement = curElementBuffer.format(
+            "%s", GetContextValue(element.format).c_str());
         break;
       default:
         continue;
