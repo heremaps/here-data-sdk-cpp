@@ -457,10 +457,11 @@ TEST_F(AuthenticationClientTest, SignInClientData) {
                                    kResponseValidJson))
       .WillOnce(testing::WithArg<2>([&](http::Network::Callback callback) {
         http::RequestId request_id(6);
-        callback(http::NetworkResponse()
-                     .WithRequestId(request_id)
-                     .WithStatus(-1)
-                     .WithError(""));
+        callback(
+            http::NetworkResponse()
+                .WithRequestId(request_id)
+                .WithStatus(static_cast<int>(http::ErrorCode::UNKNOWN_ERROR))
+                .WithError(""));
 
         return http::SendOutcome(request_id);
       }));
@@ -2096,6 +2097,7 @@ TEST_F(AuthenticationClientTest, Timeout) {
   settings.token_endpoint_url = kTokenEndpointUrl;
   settings.task_scheduler = task_scheduler_;
   settings.use_system_time = true;
+  settings.retry_settings.max_attempts = 1;
   settings.retry_settings.timeout = kMinTimeout;
 
   const auth::AuthenticationCredentials credentials(key_, secret_);

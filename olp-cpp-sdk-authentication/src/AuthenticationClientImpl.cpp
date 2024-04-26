@@ -101,7 +101,7 @@ constexpr auto kErrorWrongTimestamp = 401204;
 constexpr auto kLogTag = "AuthenticationClient";
 const auto kMaxTime = std::numeric_limits<time_t>::max();
 
-bool HasWrongTimestamp(SignInResult& result) {
+bool HasWrongTimestamp(const SignInResult& result) {
   const auto& error_response = result.GetErrorResponse();
   const auto status = result.GetStatus();
   return status == http::HttpStatusCode::UNAUTHORIZED &&
@@ -309,7 +309,7 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
 
     const auto request_body = GenerateClientBody(properties);
 
-    SignInResult response;
+    SignInClientResponse response;
 
     const auto& retry_settings = settings_.retry_settings;
 
@@ -324,11 +324,11 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
 
       const auto status = auth_response.status;
       if (status < 0) {
-        return GetSignInResponse<SignInResult>(auth_response, context,
-                                               credentials.GetKey());
+        response = GetSignInResponse<SignInResult>(auth_response, context,
+                                                   credentials.GetKey());
+      } else {
+        response = ParseAuthResponse(status, auth_response.response);
       }
-
-      response = ParseAuthResponse(status, auth_response.response);
 
       if (retry_settings.retry_condition(auth_response)) {
         RetryDelay(retry_settings, retry);
@@ -337,7 +337,7 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
 
       // In case we can't authorize with system time, retry with the server
       // time from response headers (if available).
-      if (HasWrongTimestamp(response)) {
+      if (HasWrongTimestamp(response.GetResult())) {
         auto server_time = GetTimestampFromHeaders(auth_response.headers);
         if (server_time) {
           timer = RequestTimer(*server_time);
@@ -346,7 +346,7 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
       }
 
       if (status == http::HttpStatusCode::OK) {
-        StoreInCache(credentials.GetKey(), response);
+        StoreInCache(credentials.GetKey(), response.GetResult());
       }
 
       break;
