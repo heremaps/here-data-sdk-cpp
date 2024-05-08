@@ -6,7 +6,7 @@ On this page, find instructions on how to build and run the read example project
 
 1. On the [Apps & keys](https://platform.here.com/admin/apps) page, copy your application access key ID and access key secret.
 
-   For instructions on how to get the access key ID and access key secret, see [Register your application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
+   For instructions on how to get the access key ID and access key secret, see [Register your application](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/plat-token.html#step-1-register-your-application-and-get-credentials) section in the Identity & Access Management Developer Guide.
 
 2. In <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/examples/main.cpp" target="_blank">`examples/main.cpp`</a>, replace the placeholders with your access key ID, access key secret, and Here Resource Name (HRN) of the catalog.
 
@@ -64,22 +64,19 @@ After building and running the example project, you see the following informatio
 
 To integrate the Data SDK libraries in the Android example project:
 
-- [Set up prerequisites](#prerequisites-android)
-- [Build the Data SDK](#build-sdk-android)
-- [Build and run the APK](#build-and-run-android)
+- [Set up prerequisites](#prerequisites-for-android)
+- [Build the Data SDK](#build-the-data-sdk-on-android)
+- [Build and run the APK](#build-and-run-the-apk)
 
-### <a name="prerequisites-android"></a>Prerequisites
-
-**Before you integrate the Data SDK libraries in the Android example project:**
+### Prerequisites for Android
 
 1. Set up the Android environment.
 2. In <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/examples/android/app/src/main/cpp/MainActivityNative.cpp.in" target="_blank">`examples/android/app/src/main/cpp/MainActivityNative.cpp.in`</a>, replace the placeholders with your application access key ID, access key secret, and catalog HRN and specify that the example should run `RunExampleRead`.
 
-   For instructions on how to get the access key ID and access key secret, see [Register your application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
+> #### Note
+> To learn how to get the access key ID and access key secret, see the [Register your application](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/plat-token.html#step-1-register-your-application-and-get-credentials) section in the Identity & Access Management Developer Guide.
 
-### <a name="build-sdk-android"></a>Build the Data SDK
-
-**To build the Data SDK on Android:**
+### Build the Data SDK on Android
 
 1. Set `OLP_SDK_BUILD_EXAMPLES` to `ON`.
 2. (Optional) To disable tests, set `OLP_SDK_ENABLE_TESTING` to `OFF`.
@@ -101,9 +98,7 @@ To integrate the Data SDK libraries in the Android example project:
    (sudo) make install
    ```
 
-### <a name="build-and-run-android"></a>Build and run the APK
-
-**To build and run the APK:**
+### Build and run the APK
 
 1. In the Android Studio IDE, open the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/examples/android/build.gradle" target="_blank">`build/examples/android/build.gradle`</a> script.
 2. Provide your application access key ID, access key secret, and catalog HRN.
@@ -115,13 +110,11 @@ The main screen displays the following message: "Example has finished successful
 
 To integrate the Data SDK libraries in the iOS example project written in the Objective-C language:
 
-- [Set up prerequisites](#prerequisites-ios)
-- [Build the Data SDK](#build-sdk-ios)
-- [Build and run the application](#build-and-run-ios)
+- [Set up prerequisites](#prerequisites-for-ios)
+- [Build the Data SDK](#build-the-data-sdk-on-ios)
+- [Build and run the application](#build-and-run-the-application)
 
-### <a name="prerequisites-ios"></a>Prerequisites
-
-**Before you integrate the Data SDK libraries in the iOS example project:**
+### Prerequisites for iOS
 
 1. To set up the iOS development environment, install the Xcode and command-line tools.
 2. Install external dependencies.
@@ -130,11 +123,10 @@ To integrate the Data SDK libraries in the iOS example project written in the Ob
 
 3. In <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/examples/ios/ViewController.mm" target="_blank">`examples/ios/ViewController.mm`</a>, replace the placeholders with your application access key ID, access key secret, and catalog HRN and specify that the example should run `RunExampleRead`.
 
-   For instructions on how to get the access key ID and access key secret, see [Register your application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
+> #### Note
+> To learn how to get the access key ID and access key secret, see the [Register your application](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/plat-token.html#step-1-register-your-application-and-get-credentials) section in the Identity & Access Management Developer Guide.
 
-### <a name="build-sdk-ios"></a>Build the Data SDK
-
-**To build the Data SDK on iOS:**
+### Build the Data SDK on iOS
 
 1. Set `OLP_SDK_BUILD_EXAMPLES` to `ON`.
 2. (Optional) To disable tests, set `OLP_SDK_ENABLE_TESTING` to `OFF`.
@@ -150,9 +142,7 @@ cmake .. -GXcode  -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/iOS.cmake -DPLATFOR
 
 To configure Data SDK for a simulator, set the `SIMULATOR` CMake variable to `ON`.
 
-### <a name="build-and-run-ios"></a>Build and run the application
-
-**To build an run the example application on iOS:**
+### Build and run the application
 
 1. Open the generated Xcode project.
 
