@@ -1,3 +1,23 @@
+## v1.19.0 (13/05/2024)
+
+**Common**
+* Added `Promote` to the `olp::cache::KeyValueCache` API to explicitly promote the key in the LRU (Least Recently Used) cache.
+* Fixed the CMake configuration for MSVC build.
+* Updated code snippets and documentation to reflect recent changes in the API.
+
+**olp-cpp-sdk-authentication**
+* Changed `olp::authentication::AuthenticationClientImpl::SignInClient` to retry based on the configuration in `olp::client::RetrySettings` instead of returning an error immediately in case of transient errors.
+* Fixed parsing of server time returned in the response header when there are time zone differences.
+
+**olp-cpp-sdk-core**
+* Added `system_error` explicitly to `/olp/core/porting/shared_mutex.h` to support GCC 13.2.
+* Changed `olp::http::NetworkCurl` to log the location of the certificate used.
+* Changed `olp::client::HRN::ToString()` and `olp::client::HRN::ToCatalogHRNString()` implementations to avoid streams.
+* Changed the `olp::http::Md5LookupGetBySubject` signature to support OpenSSL v3.x.
+
+**olp-cpp-sdk-dataservice-read**
+* Decreased the number of memory reallocations for instances when only the tile keys are required by the caller.
+
 ## v1.18.1 (07/03/2024)
 
 **Common**
