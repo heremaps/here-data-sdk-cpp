@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 #
-# Copyright (C) 2021 HERE Europe B.V.
+# Copyright (C) 2021-2024 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -97,37 +97,45 @@ xcrun simctl list
 xcrun simctl list devices
 xcrun simctl list runtimes
 
-export CurrentDeviceUDID=$(xcrun simctl list devices | grep "iPhone 11 (" | grep -v "unavailable" | grep -v "com.apple.CoreSimulator.SimDeviceType" | cut -d'(' -f2 | cut -d')' -f1 | head -1)
+export CurrentDeviceUDID=$(xcrun simctl list devices | grep "iPhone 14 (" | grep -v "unavailable" | grep -v "com.apple.CoreSimulator.SimDeviceType" | cut -d'(' -f2 | cut -d')' -f1 | head -1)
 
 # Create new Simulator device
 
-xcrun simctl list devices | grep "iPhone 11"
-xcrun simctl boot "iPhone 11" || true
-xcrun simctl list devices | grep "iPhone 11"
-xcrun simctl create ${GITHUB_RUN_ID}_iphone11 "com.apple.CoreSimulator.SimDeviceType.iPhone-11"
-xcrun simctl list devices | grep "iPhone 11"
+xcrun simctl list devices | grep ${CurrentDeviceUDID}
+xcrun simctl boot ${CurrentDeviceUDID} || true
+xcrun simctl list devices | grep ${CurrentDeviceUDID}
+xcrun simctl create ${GITHUB_RUN_ID}_iphone14 "com.apple.CoreSimulator.SimDeviceType.iPhone-14"
+xcrun simctl list devices | grep ${CurrentDeviceUDID}
 echo "Simulator created"
 
-#/Applications/Xcode_11.2.1.app/Contents/Developer/Applications/Simulator.app/Contents/MacOS/Simulator -CurrentDeviceUDID ${CurrentDeviceUDID} & export SIMULATOR_PID=$! || /Applications/Xcode.app/Contents/Developer/Applications/Simulator.app/Contents/MacOS/Simulator -CurrentDeviceUDID ${CurrentDeviceUDID} & export SIMULATOR_PID=$!
-#echo "Simulator started device"
+/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app/Contents/MacOS/Simulator -CurrentDeviceUDID ${CurrentDeviceUDID} & export SIMULATOR_PID=$! || /Applications/Xcode_15.0.1.app/Contents/Developer/Applications/Simulator.app/Contents/MacOS/Simulator -CurrentDeviceUDID ${CurrentDeviceUDID} & export SIMULATOR_PID=$!
+echo "Simulator started device"
 #
-#xcrun simctl logverbose enable
-#xcrun simctl install ${CurrentDeviceUDID} ./build/tests/functional/network/ios/olp-cpp-sdk-functional-network-tests-tester/Debug-iphonesimulator/olp-ios-olp-cpp-sdk-functional-network-tests-lib-tester.app
-#echo "App installed"
-#xcrun simctl launch ${CurrentDeviceUDID} com.here.olp.olp-ios-olp-cpp-sdk-functional-network-tests-lib-tester
-# Need to find out how to parse `xcrun simctl spawn booted log stream` and catch finish of test-run. Otherwise it goes to infinite loop.
-# xcrun simctl spawn booted log stream | grep "olp-ios-olp-cpp-sdk-functional-network-tests-lib-tester:" | tee app.log
-#result=$?
-#echo "App launched"
-#xcrun simctl shutdown ${CurrentDeviceUDID}
-#echo "Simulator shutdown done"
+xcrun simctl logverbose enable
+xcrun simctl install ${CurrentDeviceUDID} ./build/tests/functional/network/ios/olp-cpp-sdk-functional-network-tests-tester/Debug-iphonesimulator/olp-ios-olp-cpp-sdk-functional-network-tests-lib-tester.app
+echo "App installed"
+xcrun simctl launch ${CurrentDeviceUDID} com.here.olp.olp-ios-olp-cpp-sdk-functional-network-tests-lib-tester
+# TODO: Need to find out how to parse `xcrun simctl spawn booted log stream` and catch finish of test-run. Otherwise it goes to infinite loop.
+#xcrun simctl spawn booted log stream | grep "olp-ios-olp-cpp-sdk-functional-network-tests-lib-tester:"
+# TODO: Need to find out how to fix issue with Mock Server: OLPEDGE-2543
+xcrun simctl spawn booted log stream | grep "error" &
+# collect log data
+xcrun simctl spawn booted log collect
+# open location
+cd `xcrun simctl getenv booted SIMULATOR_SHARED_RESOURCES_DIRECTORY`
+ls -la /Users/runner/Library/Logs/CoreSimulator/AC3F6347-30F3-40CA-948A-58390550C1D1/system_logs.logarchive || true
+tail /Users/runner/Library/Logs/CoreSimulator/AC3F6347-30F3-40CA-948A-58390550C1D1/system_logs.logarchive || true
+result=$?
+echo "App launched"
+xcrun simctl shutdown ${CurrentDeviceUDID}
+echo "Simulator shutdown done"
 
-#echo ">>> Finished network tests >>>"
+echo ">>> Finished network tests >>>"
 
 # Terminate the mock server
-#kill -TERM $SERVER_PID || true
-#kill -TERM $SIMULATOR_PID || true
+kill -TERM $SERVER_PID || true
+kill -TERM $SIMULATOR_PID || true
 
 #wait
 
-#exit ${result}
+exit ${result}
