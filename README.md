@@ -8,24 +8,25 @@ To learn how to install and use the Data SDK, see the <a href="https://github.co
 
 ## Health check
 
-### Build and test
+### Build and test pipelines
 
 | Linux GCC | Linux CLang | MacOS |
 | :-------- | :---------- | :---- |
-| [![Linux gcc build status][1]][2] | [![Linux Clang build status][3]][4] | [![MacOS build status][5]][4] |
+| [![Linux gcc build status][1]][1] | [![Linux Clang build status][1]][1] | [![MacOS build status][1]][1] |
 
 | iOS | Windows | Android |
 | :-- | :------ | :------ |
-| [![iOS build status][6]][4] | [![Windows build status][7]][4] | [![Android build status][8]][4] |
+| [![iOS build status][1]][1] | [![Windows build status][1]][1] | [![Android build status][1]][1] |
 
-[1]: https://github.com/heremaps/here-data-sdk-cpp/workflows/CI/badge.svg?branch=master
-[2]: https://github.com/heremaps/here-data-sdk-cpp/actions?query=workflow%3ACI+branch%3Amaster
-[3]: https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=Linux_build_clang
-[4]: https://dev.azure.com/heremaps/here-data-sdk/_build/latest?definitionId=3&branchName=master
-[5]: https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=MacOS_build
-[6]: https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=iOS_build
-[7]: https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=Windows_build
-[8]: https://dev.azure.com/heremaps/here-data-sdk/_apis/build/status/heremaps.here-data-sdk-cpp?branchName=master&jobName=Android_build
+[1]: https://github.com/heremaps/here-data-sdk-cpp/actions/workflows/psv_pipelines.yml/badge.svg
+
+### Full verification testing pipelines
+
+| iOS | Android |
+| :-- | :------ |
+| [![iOS test status][2]][2] | [![Android test status][2]][2] |
+
+[2]: https://github.com/heremaps/here-data-sdk-cpp/actions/workflows/fv_pipelines.yml/badge.svg 
 
 ### Test coverage
 
@@ -49,14 +50,14 @@ For more information on Data SDK for C++, see our <a href="https://developer.her
 
 The table below lists the platforms on which the Data SDK has been tested.
 
-| Platform                   | Minimum requirement     |
-| :------------------------- | :---------------------- |
-| Ubuntu Linux               | GCC 7.5 and Clang 7.0   |
-| Embedded Linux (32 bit)    | GCC 7.4 armhf           |
-| Windows                    | MSVC++ 2017             |
-| macOS                      | Apple Clang 11.0.0      |
-| iOS                        | Xcode 11.1, Swift 5.0   |
-| Android                    | API level 21            |
+| Platform                   | Minimum requirement   |
+| :------------------------- |:----------------------|
+| Ubuntu Linux               | GCC 7.5 and Clang 7.0 |
+| Embedded Linux (32 bit)    | GCC 7.4 armhf         |
+| Windows                    | MSVC++ 2017           |
+| macOS                      | Apple Clang 11.0.0    |
+| iOS                        | Xcode 11.7, Swift 5.0 |
+| Android                    | API level 21          |
 
 <h6 id="dependencies"></h6>
 
@@ -65,13 +66,14 @@ The table below lists the platforms on which the Data SDK has been tested.
 The table below lists the dependencies of the Data SDK.
 
 | Library              | Recommended version |
-| :------------------- |:--------------------|
-| libcurl              | 7.52.0              |
-| OpenSSL              | 1.1.1t              |
+|:---------------------|:--------------------|
+| Libcurl              | 7.52.1              |
+| OpenSSL              | 1.1.1w              |
 | Boost (headers only) | 1.72.0              |
 | LevelDB              | 1.21                |
 | Snappy               | 1.1.7               |
 | RapidJSON            | latest              |
+| Zlib                 | 1.3.1               |
 
 ### Linux dependencies
 
