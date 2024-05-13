@@ -1,4 +1,4 @@
 <map id="olp::authentication::SignInUserResult" name="olp::authentication::SignInUserResult">
-<area shape="rect" id="node1" title="A response to your sign&#45;in operation." alt="" coords="5,95,149,136"/>
-<area shape="rect" id="node2" href="$classolp_1_1authentication_1_1SignInResult.html" title="A response to a client or user sign&#45;in operation." alt="" coords="5,5,149,47"/>
+<area shape="rect" id="node1" title="A response to your sign&#45;in operation." alt="" coords="5,95,139,136"/>
+<area shape="rect" id="node2" href="$classolp_1_1authentication_1_1SignInResult.html" title="A response to a client or user sign&#45;in operation." alt="" coords="8,5,136,47"/>
 </map>

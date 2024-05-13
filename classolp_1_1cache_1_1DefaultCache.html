@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.18.1</span>
+   &#160;<span id="projectnumber">1.19.0</span>
    </div>
   </td>
  </tr>
@@ -84,8 +84,8 @@ Inheritance diagram for olp::cache::DefaultCache:</div>
 <div class="dyncontent">
 <div class="center"><img src="classolp_1_1cache_1_1DefaultCache__inherit__graph.png" border="0" usemap="#aolp_1_1cache_1_1DefaultCache_inherit__map" alt="Inheritance graph"/></div>
 <map name="aolp_1_1cache_1_1DefaultCache_inherit__map" id="aolp_1_1cache_1_1DefaultCache_inherit__map">
-<area shape="rect" title="A default cache that provides a memory LRU cache and persistence of cached key&#45;value pairs." alt="" coords="11,80,195,107"/>
-<area shape="rect" href="classolp_1_1cache_1_1KeyValueCache.html" title="An interface for a cache that expects a key&#45;value pair." alt="" coords="5,5,201,32"/>
+<area shape="rect" title="A default cache that provides a memory LRU cache and persistence of cached key&#45;value pairs." alt="" coords="12,80,183,107"/>
+<area shape="rect" href="classolp_1_1cache_1_1KeyValueCache.html" title="An interface for a cache that expects a key&#45;value pair." alt="" coords="5,5,189,32"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
@@ -93,8 +93,8 @@ Collaboration diagram for olp::cache::DefaultCache:</div>
 <div class="dyncontent">
 <div class="center"><img src="classolp_1_1cache_1_1DefaultCache__coll__graph.png" border="0" usemap="#aolp_1_1cache_1_1DefaultCache_coll__map" alt="Collaboration graph"/></div>
 <map name="aolp_1_1cache_1_1DefaultCache_coll__map" id="aolp_1_1cache_1_1DefaultCache_coll__map">
-<area shape="rect" title="A default cache that provides a memory LRU cache and persistence of cached key&#45;value pairs." alt="" coords="11,80,195,107"/>
-<area shape="rect" href="classolp_1_1cache_1_1KeyValueCache.html" title="An interface for a cache that expects a key&#45;value pair." alt="" coords="5,5,201,32"/>
+<area shape="rect" title="A default cache that provides a memory LRU cache and persistence of cached key&#45;value pairs." alt="" coords="12,80,183,107"/>
+<area shape="rect" href="classolp_1_1cache_1_1KeyValueCache.html" title="An interface for a cache that expects a key&#45;value pair." alt="" coords="5,5,189,32"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -180,6 +180,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memitem:a7c5f103266b76c947f2429822c391f45"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1cache_1_1DefaultCache.html#a7c5f103266b76c947f2429822c391f45">IsProtected</a> (const std::string &amp;key) const override</td></tr>
 <tr class="memdesc:a7c5f103266b76c947f2429822c391f45"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if key is protected.  <a href="classolp_1_1cache_1_1DefaultCache.html#a7c5f103266b76c947f2429822c391f45">More...</a><br /></td></tr>
 <tr class="separator:a7c5f103266b76c947f2429822c391f45"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ea0d4cac7e9e3d7579ca950c2c3a2f5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1cache_1_1DefaultCache.html#a4ea0d4cac7e9e3d7579ca950c2c3a2f5">Promote</a> (const std::string &amp;key) override</td></tr>
+<tr class="memdesc:a4ea0d4cac7e9e3d7579ca950c2c3a2f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Promotes a key in the cache LRU when applicable.  <a href="classolp_1_1cache_1_1DefaultCache.html#a4ea0d4cac7e9e3d7579ca950c2c3a2f5">More...</a><br /></td></tr>
+<tr class="separator:a4ea0d4cac7e9e3d7579ca950c2c3a2f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1a4cdea608562f2b98c416423f654902"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1cache_1_1DefaultCache.html#a1a4cdea608562f2b98c416423f654902">Size</a> (<a class="el" href="classolp_1_1cache_1_1DefaultCache.html#a103a09b4dec53cbefc6ee9415089c90c">CacheType</a> cache_type) const</td></tr>
 <tr class="memdesc:a1a4cdea608562f2b98c416423f654902"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets size of the corresponding cache.  <a href="classolp_1_1cache_1_1DefaultCache.html#a1a4cdea608562f2b98c416423f654902">More...</a><br /></td></tr>
 <tr class="separator:a1a4cdea608562f2b98c416423f654902"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -567,6 +570,42 @@ After the compaction is finished the cache is checked on level-0 file presence. 
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><code>Success</code> if the cache is created or already open, <code>NotReady</code> if <code><a class="el" href="classolp_1_1cache_1_1DefaultCache.html" title="A default cache that provides a memory LRU cache and persistence of cached key-value pairs.">DefaultCache</a></code> is closed, and <code>OpenDiskPathFailure</code> if there are problems opening the provided path on the disk.</dd></dl>
 <dl class="section note"><dt>Note</dt><dd>If the cache cannot be opened or repaired, it is deleted. </dd></dl>
+
+</div>
+</div>
+<a id="a4ea0d4cac7e9e3d7579ca950c2c3a2f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4ea0d4cac7e9e3d7579ca950c2c3a2f5">&#9670;&nbsp;</a></span>Promote()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void olp::cache::DefaultCache::Promote </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>key</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Promotes a key in the cache LRU when applicable. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>The key to promote in the cache LRU. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Reimplemented from <a class="el" href="classolp_1_1cache_1_1KeyValueCache.html#a6978747e11e949bd73f54a6fec7da846">olp::cache::KeyValueCache</a>.</p>
 
 </div>
 </div>

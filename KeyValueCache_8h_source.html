@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.18.1</span>
+   &#160;<span id="projectnumber">1.19.0</span>
    </div>
   </td>
  </tr>
@@ -71,7 +71,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/*</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2021 HERE Europe B.V.</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2024 HERE Europe B.V.</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment"> * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment"> * you may not use this file except in compliance with the License.</span></div>
@@ -91,7 +91,7 @@ $(function() {
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160; </div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="preprocessor">#pragma once</span></div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160; </div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="preprocessor">#include &lt;time.h&gt;</span></div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="preprocessor">#include &lt;ctime&gt;</span></div>
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="preprocessor">#include &lt;functional&gt;</span></div>
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="preprocessor">#include &lt;limits&gt;</span></div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="preprocessor">#include &lt;memory&gt;</span></div>
@@ -153,10 +153,12 @@ $(function() {
 <div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;    <a class="code" href="WarningWorkarounds_8h.html#a220776452311ca5dc8503da5187d7ec0">OLP_SDK_CORE_UNUSED</a>(key);</div>
 <div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
 <div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;  }</div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;};</div>
-<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160; </div>
-<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;}  <span class="comment">// namespace cache</span></div>
-<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160; </div>
+<div class="line"><a name="l00183"></a><span class="lineno"><a class="line" href="classolp_1_1cache_1_1KeyValueCache.html#a6978747e11e949bd73f54a6fec7da846">  183</a></span>&#160;  <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classolp_1_1cache_1_1KeyValueCache.html#a6978747e11e949bd73f54a6fec7da846">Promote</a>(<span class="keyword">const</span> std::string&amp; key) { <a class="code" href="WarningWorkarounds_8h.html#a220776452311ca5dc8503da5187d7ec0">OLP_SDK_CORE_UNUSED</a>(key); }</div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;};</div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160; </div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;}  <span class="comment">// namespace cache</span></div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;}  <span class="comment">// namespace olp</span></div>
 <div class="ttc" id="aWarningWorkarounds_8h_html"><div class="ttname"><a href="WarningWorkarounds_8h.html">WarningWorkarounds.h</a></div><div class="ttdoc">Contains utilities used to work around compiler warnings.</div></div>
 <div class="ttc" id="aWarningWorkarounds_8h_html_a220776452311ca5dc8503da5187d7ec0"><div class="ttname"><a href="WarningWorkarounds_8h.html#a220776452311ca5dc8503da5187d7ec0">OLP_SDK_CORE_UNUSED</a></div><div class="ttdeci">#define OLP_SDK_CORE_UNUSED(...)</div><div class="ttdoc">Arbitrarily marks many variables as unused to avoid compiler warnings.</div><div class="ttdef"><b>Definition:</b> WarningWorkarounds.h:28</div></div>
 <div class="ttc" id="aclassolp_1_1cache_1_1KeyValueCache_html"><div class="ttname"><a href="classolp_1_1cache_1_1KeyValueCache.html">olp::cache::KeyValueCache</a></div><div class="ttdoc">An interface for a cache that expects a key-value pair.</div><div class="ttdef"><b>Definition:</b> KeyValueCache.h:40</div></div>
@@ -167,6 +169,7 @@ $(function() {
 <div class="ttc" id="aclassolp_1_1cache_1_1KeyValueCache_html_a3400a61c3291c239e75e7fa52360330a"><div class="ttname"><a href="classolp_1_1cache_1_1KeyValueCache.html#a3400a61c3291c239e75e7fa52360330a">olp::cache::KeyValueCache::Get</a></div><div class="ttdeci">virtual boost::any Get(const std::string &amp;key, const Decoder &amp;encoder)=0</div><div class="ttdoc">Gets the key-value pair from the cache.</div></div>
 <div class="ttc" id="aclassolp_1_1cache_1_1KeyValueCache_html_a668f4c63e5ae1f723a89730b0a39d518"><div class="ttname"><a href="classolp_1_1cache_1_1KeyValueCache.html#a668f4c63e5ae1f723a89730b0a39d518">olp::cache::KeyValueCache::Put</a></div><div class="ttdeci">virtual bool Put(const std::string &amp;key, const ValueTypePtr value, time_t expiry=kDefaultExpiry)=0</div><div class="ttdoc">Stores the raw binary data as a value in the cache.</div></div>
 <div class="ttc" id="aclassolp_1_1cache_1_1KeyValueCache_html_a697030446468f24895b70fcbb2415e45"><div class="ttname"><a href="classolp_1_1cache_1_1KeyValueCache.html#a697030446468f24895b70fcbb2415e45">olp::cache::KeyValueCache::Remove</a></div><div class="ttdeci">virtual bool Remove(const std::string &amp;key)=0</div><div class="ttdoc">Removes the key-value pair from the cache.</div></div>
+<div class="ttc" id="aclassolp_1_1cache_1_1KeyValueCache_html_a6978747e11e949bd73f54a6fec7da846"><div class="ttname"><a href="classolp_1_1cache_1_1KeyValueCache.html#a6978747e11e949bd73f54a6fec7da846">olp::cache::KeyValueCache::Promote</a></div><div class="ttdeci">virtual void Promote(const std::string &amp;key)</div><div class="ttdoc">Promotes a key in the cache LRU when applicable.</div><div class="ttdef"><b>Definition:</b> KeyValueCache.h:183</div></div>
 <div class="ttc" id="aclassolp_1_1cache_1_1KeyValueCache_html_a7dd59cc35db4c607e9ead1be99be81c9"><div class="ttname"><a href="classolp_1_1cache_1_1KeyValueCache.html#a7dd59cc35db4c607e9ead1be99be81c9">olp::cache::KeyValueCache::Release</a></div><div class="ttdeci">virtual bool Release(const KeyListType &amp;keys)</div><div class="ttdoc">Removes a list of keys from protection.</div><div class="ttdef"><b>Definition:</b> KeyValueCache.h:160</div></div>
 <div class="ttc" id="aclassolp_1_1cache_1_1KeyValueCache_html_a9aae8dd20f3c530a1f99162ba6f189ad"><div class="ttname"><a href="classolp_1_1cache_1_1KeyValueCache.html#a9aae8dd20f3c530a1f99162ba6f189ad">olp::cache::KeyValueCache::Contains</a></div><div class="ttdeci">virtual bool Contains(const std::string &amp;key) const</div><div class="ttdoc">Checks if the key is in the cache.</div><div class="ttdef"><b>Definition:</b> KeyValueCache.h:130</div></div>
 <div class="ttc" id="aclassolp_1_1cache_1_1KeyValueCache_html_aa7d086a6ee415431480f4d85809b1fad"><div class="ttname"><a href="classolp_1_1cache_1_1KeyValueCache.html#aa7d086a6ee415431480f4d85809b1fad">olp::cache::KeyValueCache::RemoveKeysWithPrefix</a></div><div class="ttdeci">virtual bool RemoveKeysWithPrefix(const std::string &amp;prefix)=0</div><div class="ttdoc">Removes the values with the keys that match the given prefix from the cache.</div></div>
