@@ -844,6 +844,7 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
       handle.send_time = std::chrono::steady_clock::now();
       handle.error_text[0] = 0;
       handle.skip_content = false;
+      handle.log_context = logging::GetContext();
 
       return &handle;
     }
@@ -1004,8 +1005,9 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
   int index = GetHandleIndex(handle);
   if (index >= 0 && index < static_cast<int>(handles_.size())) {
     RequestHandle& rhandle = handles_[index];
-
+    logging::ScopedLogContext scopedLogContext(rhandle.log_context);
     auto callback = rhandle.callback;
+
     if (!callback) {
       OLP_SDK_LOG_WARNING(
           kLogTag,
@@ -1196,6 +1198,8 @@ void NetworkCurl::Run() {
           int handle_index = GetHandleIndex(handle);
           if (handle_index >= 0) {
             RequestHandle& rhandle = handles_[handle_index];
+            logging::ScopedLogContext scopedLogContext(rhandle.log_context);
+
             auto callback = rhandle.callback;
             if (!callback) {
               OLP_SDK_LOG_WARNING(
