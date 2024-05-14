@@ -1111,35 +1111,36 @@ void NetworkCurl::Run() {
         events_.pop_front();
 
         // Only handle handles that are actually used
-        if (!event.handle->in_use) {
+        auto* rhandle = event.handle;
+        if (!rhandle->in_use) {
           continue;
         }
 
         if (event.type == EventInfo::Type::SEND_EVENT) {
-          auto res = curl_multi_add_handle(curl_, event.handle->handle);
+          auto res = curl_multi_add_handle(curl_, rhandle->handle);
           if ((res != CURLM_OK) && (res != CURLM_CALL_MULTI_PERFORM)) {
-            OLP_SDK_LOG_ERROR(
-                kLogTag, "Send failed, id=" << event.handle->id << ", error="
-                                            << curl_multi_strerror(res));
+            OLP_SDK_LOG_ERROR(kLogTag,
+                              "Send failed, id=" << rhandle->id << ", error="
+                                                 << curl_multi_strerror(res));
 
             // Do not add the handle to msgs vector in case it is a duplicate
             // handle error as it will be reset in CompleteMessage handler,
             // and curl will crash in the next call of curl_multi_perform
             // function. In any other case, lets complete the message.
             if (res != CURLM_ADDED_ALREADY) {
-              msgs.push_back(event.handle->handle);
+              msgs.push_back(rhandle->handle);
             }
           }
         } else {
           // Request was cancelled, so lets remove it from curl
-          auto code = curl_multi_remove_handle(curl_, event.handle->handle);
+          auto code = curl_multi_remove_handle(curl_, rhandle->handle);
           if (code != CURLM_OK) {
             OLP_SDK_LOG_ERROR(kLogTag, "curl_multi_remove_handle failed, error="
                                            << curl_multi_strerror(code));
           }
 
           lock.unlock();
-          CompleteMessage(event.handle->handle, CURLE_OPERATION_TIMEDOUT);
+          CompleteMessage(rhandle->handle, CURLE_OPERATION_TIMEDOUT);
           lock.lock();
         }
       }
@@ -1195,7 +1196,8 @@ void NetworkCurl::Run() {
           int handle_index = GetHandleIndex(handle);
           if (handle_index >= 0) {
             RequestHandle& rhandle = handles_[handle_index];
-            if (!rhandle.callback) {
+            auto callback = rhandle.callback;
+            if (!callback) {
               OLP_SDK_LOG_WARNING(
                   kLogTag,
                   "Request completed without callback, id=" << rhandle.id);
@@ -1208,7 +1210,7 @@ void NetworkCurl::Run() {
                       .WithError("CURL error")
                       .WithBytesDownloaded(download_bytes)
                       .WithBytesUploaded(upload_bytes);
-              rhandle.callback(response);
+              callback(response);
               lock.lock();
             }
 
