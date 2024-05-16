@@ -1,4 +1,4 @@
-# Getting Started Guide
+# Get started
 
 In this guide, learn how to authenticate to and start working with the HERE platform using the Data SDK:
 
@@ -30,18 +30,18 @@ For the terms and conditions covering this documentation, see the [HERE Document
 
 To use HERE Data SDK for C++, you need to understand the following concepts related to the HERE platform:
 
-- [Catalogs](https://developer.here.com/documentation/data-api/data_dev_guide/rest/catalogs.html)
-- [Layers](https://developer.here.com/documentation/data-api/data_dev_guide/rest/layers.html)
-- [Partitions](https://developer.here.com/documentation/data-api/data_dev_guide/rest/partitions.html)
-- [HERE Resource Names (HRNs)](https://developer.here.com/documentation/data-api/data_dev_guide/rest/hrn.html)
+- [Catalogs](https://www.here.com/docs/bundle/data-api-developer-guide/page/rest/catalogs.html)
+- [Layers](https://www.here.com/docs/bundle/data-api-developer-guide/page/rest/layers.html)
+- [Partitions](https://www.here.com/docs/bundle/data-api-developer-guide/page/rest/partitions.html)
+- [HERE Resource Names (HRNs)](https://www.here.com/docs/bundle/data-api-developer-guide/page/rest/hrn.html)
 
-For more details, see the [Data User Guide](https://developer.here.com/documentation/data-user-guide/index.html).
+For more details, see the [Data API Developer Guide](https://www.here.com/docs/bundle/data-api-developer-guide/page/README.html).
 
 ## Get credentials
 
 To work with catalog or service requests to the HERE platform, you need to get authentication and authorization credentials.
 
-You can authenticate to the HERE platform within your application with the platform credentials available on the HERE Portal by means of Data SDK for C++ authentication library. For the available authentication options, see the [Identity & Access Management Developer Guide](https://developer.here.com/documentation/identity-access-management/dev_guide/index.html).
+You can authenticate to the HERE platform within your application with the platform credentials available on the HERE Portal by means of Data SDK for C++ authentication library. For the available authentication options, see the [Identity and Access Management Developer Guide](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/README.html).
 
 ## Install the SDK
 
@@ -165,7 +165,7 @@ target_link_libraries(example_app
 
 ## Reference documentation
 
-The API reference documentation for Data SDK for C++ is available on our [GitHub Pages](https://heremaps.github.io/here-data-sdk-cpp/).
+The API reference documentation for Data SDK for C++ is available on [GitHub Pages](https://heremaps.github.io/here-data-sdk-cpp/).
 
 ## Examples
 
