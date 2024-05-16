@@ -32,7 +32,7 @@
 #include <string>
 
 #include "olp/core/logging/Log.h"
-#include "olp/core/porting/make_unique.h"
+#include "olp/core/logging/LogContext.h"
 #include "olp/core/porting/platform.h"
 #include "olp/core/thread/SyncQueue.h"
 #include "olp/core/utils/WarningWorkarounds.h"
@@ -127,12 +127,32 @@ ThreadPoolTaskScheduler::~ThreadPoolTaskScheduler() {
 }
 
 void ThreadPoolTaskScheduler::EnqueueTask(TaskScheduler::CallFuncType&& func) {
-  queue_->Push({std::move(func), thread::NORMAL});
+  EnqueueTask(std::move(func), thread::NORMAL);
 }
 
 void ThreadPoolTaskScheduler::EnqueueTask(TaskScheduler::CallFuncType&& func,
                                           uint32_t priority) {
-  queue_->Push({std::move(func), priority});
+  auto logContext = logging::GetContext();
+
+#if __cplusplus >= 201402L
+  // At least C++14, use generalized lambda capture
+  auto funcWithCapturedLogContext = [logContext = std::move(logContext),
+                                     func = std::move(func)]() {
+    olp::logging::ScopedLogContext scopedContext(logContext);
+    func();
+  };
+#else
+  // C++11 does not support generalized lambda capture :(
+  auto funcWithCapturedLogContext = std::bind(
+      [](std::shared_ptr<const olp::logging::LogContext>& logContext,
+         TaskScheduler::CallFuncType& func) {
+        olp::logging::ScopedLogContext scopedContext(logContext);
+        func();
+      },
+      std::move(logContext), std::move(func));
+#endif
+
+  queue_->Push({std::move(funcWithCapturedLogContext), priority});
 }
 
 }  // namespace thread

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,8 +91,9 @@ class CORE_API MessageFormatter {
              ///  `strftime()`.
     TimeMs,  ///< The millisecond portion of the timestamp. It is formatted as
              ///< an unsigned integer.
-    ThreadId  ///< The thread ID of the thread that generated the message.
+    ThreadId, ///< The thread ID of the thread that generated the message.
               ///< It is formatted as an unsigned long.
+    ContextValue,  ///< A key/value literal from LogContext; 'format' is the key to look up.
   };
 
   /**

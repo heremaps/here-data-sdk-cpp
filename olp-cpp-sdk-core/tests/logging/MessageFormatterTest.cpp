@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,16 @@
 
 #include <gtest/gtest.h>
 
+#include <olp/core/logging/LogContext.h>
 #include <olp/core/logging/MessageFormatter.h>
+
+#include <future>
 
 namespace {
 
-using namespace olp::logging;
+using olp::logging::Level;
+using olp::logging::LogMessage;
+using olp::logging::MessageFormatter;
 
 TEST(MessageFormatterTest, ElementConstructors) {
   MessageFormatter::Element string_element(
@@ -268,6 +273,145 @@ TEST(MessageFormatterTest, Format) {
             formatter.format(message));
 }
 
+TEST(MessageFormatterTest, FormatContextValue) {
+  // No active context
+  EXPECT_TRUE(olp::logging::GetContextValue("foo").empty());
+
+  // Empty key
+  EXPECT_TRUE(olp::logging::GetContextValue("").empty());
+
+  // Set up message formatter to log
+  // "foo=" + value_of_key['foo'] + ",bar=" + value_of_key['bar']
+  std::vector<MessageFormatter::Element> elements = {
+      MessageFormatter::Element(MessageFormatter::ElementType::String, "foo="),
+      MessageFormatter::Element(MessageFormatter::ElementType::ContextValue,
+                                "foo"),
+      MessageFormatter::Element(MessageFormatter::ElementType::String, ",bar="),
+      MessageFormatter::Element(MessageFormatter::ElementType::ContextValue,
+                                "bar")};
+  MessageFormatter formatter(elements);
+
+  {
+    auto context = std::make_shared<olp::logging::LogContext>();
+    (*context)["foo"] = "baz";
+    olp::logging::ScopedLogContext scopedContext(context);
+    EXPECT_EQ("foo=baz,bar=", formatter.format({}));
+  }
+
+  {
+    auto context = std::make_shared<olp::logging::LogContext>();
+    (*context)["bar"] = "baz";
+    olp::logging::ScopedLogContext scopedContext(context);
+    EXPECT_EQ("foo=,bar=baz", formatter.format({}));
+  }
+
+  {
+    auto context = std::make_shared<olp::logging::LogContext>();
+    (*context)["foo"] = "baz";
+    (*context)["bar"] = "baz";
+    olp::logging::ScopedLogContext scopedContext(context);
+    EXPECT_EQ("foo=baz,bar=baz", formatter.format({}));
+  }
+}
+
+TEST(MessageFormatterTest, FormatContextValue_Threading) {
+  // Log "foo=" + value_of_key['foo']
+  std::vector<MessageFormatter::Element> elements = {
+      MessageFormatter::Element(MessageFormatter::ElementType::String, "foo="),
+      MessageFormatter::Element(MessageFormatter::ElementType::ContextValue,
+                                "foo")};
+  MessageFormatter formatter(elements);
+
+  auto testingTesting = [&formatter]() {
+    // Create context, but don't make it active yet
+    auto context = std::make_shared<olp::logging::LogContext>();
+    (*context)["foo"] = "bar";
+
+    // No active context
+    EXPECT_EQ("foo=", formatter.format({}));
+
+    {
+      // Push log context
+      olp::logging::ScopedLogContext scopedContext(context);
+      EXPECT_EQ("foo=bar", formatter.format({}));
+
+      {
+        // Push same log context again
+        olp::logging::ScopedLogContext scopedContext(context);
+        EXPECT_EQ("foo=bar", formatter.format({}));
+      }
+      {
+        // Push different context
+        auto context = std::make_shared<olp::logging::LogContext>();
+        (*context)["foo"] = "baz";
+
+        olp::logging::ScopedLogContext scopedContext(context);
+        EXPECT_EQ("foo=baz", formatter.format({}));
+      }
+      EXPECT_EQ("foo=bar", formatter.format({}));
+
+      {
+        // Push an empty log context
+        olp::logging::ScopedLogContext scopedContext(nullptr);
+        EXPECT_EQ("foo=", formatter.format({}));
+      }
+      EXPECT_EQ("foo=bar", formatter.format({}));
+    }
+    EXPECT_EQ("foo=", formatter.format({}));
+  };
+
+  testingTesting();
+
+  auto bazFut =
+      std::async(std::launch::async, [&testingTesting]() { testingTesting(); });
+  bazFut.wait();
+}
+
+TEST(MessageFormatterTest, FormatContextValue_SetterGetter) {
+  // Log "foo=" + value_of_key['foo']
+  std::vector<MessageFormatter::Element> elements = {
+      MessageFormatter::Element(MessageFormatter::ElementType::String, "foo="),
+      MessageFormatter::Element(MessageFormatter::ElementType::ContextValue,
+                                "foo")};
+  MessageFormatter formatter(elements);
+
+  auto ourLogContext = std::make_shared<const olp::logging::LogContext>();
+
+  uint32_t numGetterCalled = 0;
+  auto getter = [&ourLogContext, &numGetterCalled]() {
+    ++numGetterCalled;
+    return ourLogContext;
+  };
+
+  uint32_t numSetterCalled = 0;
+  auto setter =
+      [&ourLogContext, &numSetterCalled](
+          std::shared_ptr<const olp::logging::LogContext> logContext) {
+        ++numSetterCalled;
+        ourLogContext = logContext;
+      };
+  olp::logging::SetLogContextGetterSetter(getter, setter);
+
+  // No active context
+  EXPECT_EQ("foo=", formatter.format({}));
+  EXPECT_EQ(numGetterCalled, 1);  // 1x format
+  EXPECT_EQ(numSetterCalled, 0);
+
+  {
+    auto context = std::make_shared<olp::logging::LogContext>();
+    (*context)["foo"] = "baz";
+    olp::logging::ScopedLogContext scopedContext(context);
+    EXPECT_EQ("foo=baz", formatter.format({}));
+
+    EXPECT_EQ(numGetterCalled, 3);  // Previous + 1x SLC ctor + 1x format
+    EXPECT_EQ(numSetterCalled, 1);  // 1x SLC dtor
+  }
+
+  // Restore to defaults
+  olp::logging::SetLogContextGetterSetter(nullptr, nullptr);
+  EXPECT_EQ("foo=", formatter.format({}));  // Not set in default log context
+}
+
 TEST(MessageFormatterTest, ThreadId) {
   static const unsigned long kThreadId1 = 1;
   static const unsigned long kThreadId2 = 2;
@@ -288,8 +432,8 @@ TEST(MessageFormatterTest, ThreadId) {
   message.threadId = kThreadId2;
   std::string thread2_message = formatter.format(message);
 
-  EXPECT_EQ(format("%lu", kThreadId1), thread1_message);
-  EXPECT_EQ(format("%lu", kThreadId2), thread2_message);
+  EXPECT_EQ(olp::logging::format("%lu", kThreadId1), thread1_message);
+  EXPECT_EQ(olp::logging::format("%lu", kThreadId2), thread2_message);
 }
 
 TEST(MessageFormatterTest, TagLimits) {
