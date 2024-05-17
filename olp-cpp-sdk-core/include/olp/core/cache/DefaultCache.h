@@ -262,6 +262,47 @@ class CORE_API DefaultCache : public KeyValueCache {
   void Promote(const std::string& key) override;
 
   /**
+   * @brief Gets the binary data from the cache.
+   *
+   * @param key The key that is used to look for the binary data.
+   *
+   * @return The binary data or an error if the data could not be retrieved from
+   * the cache.
+   */
+  OperationOutcome<ValueTypePtr> Read(const std::string& key) override;
+
+  /**
+   * @brief Stores the raw binary data as a value in the cache.
+   *
+   * @param key The key for this value.
+   * @param value The binary data that should be stored.
+   * @param expiry The expiry time (in seconds) of the key-value pair.
+   *
+   * @return An error if the data could not be written to the cache.
+   */
+  OperationOutcomeEmpty Write(const std::string& key, const ValueTypePtr& value,
+                              time_t expiry) override;
+
+  /**
+   * @brief Removes the key-value pair from the cache.
+   *
+   * @param key The key for the value.
+   *
+   * @return An error if the data could not be removed from the cache.
+   */
+  OperationOutcomeEmpty Delete(const std::string& key) override;
+
+  /**
+   * @brief Removes the values with the keys that match the given
+   * prefix from the cache.
+   *
+   * @param prefix The prefix that matches the keys.
+   *
+   * @return An error if the data could not be removed from the cache.
+   */
+  OperationOutcomeEmpty DeleteByPrefix(const std::string& prefix) override;
+
+  /**
    * @brief Gets size of the corresponding cache.
    *
    * @param cache_type The type of a cache.

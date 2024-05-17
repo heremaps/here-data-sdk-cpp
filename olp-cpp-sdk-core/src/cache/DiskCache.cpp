@@ -120,7 +120,7 @@ client::ApiError GetApiError(const leveldb::Status& status) {
     code = client::ErrorCode::InvalidArgument;
   }
   if (status.IsCorruption() || status.IsIOError()) {
-    code = client::ErrorCode::InternalFailure;
+    code = client::ErrorCode::CacheIO;
   }
   if (status.IsNotSupportedError()) {
     code = client::ErrorCode::BadRequest;
@@ -338,28 +338,13 @@ bool DiskCache::Put(const std::string& key, leveldb::Slice slice) {
   return true;
 }
 
-boost::optional<std::string> DiskCache::Get(const std::string& key) {
+OperationOutcome<KeyValueCache::ValueTypePtr> DiskCache::Get(
+    const std::string& key) {
   if (!database_) {
     OLP_SDK_LOG_ERROR(kLogTag, "Get: Database is not initialized");
-    return boost::none;
+    return client::ApiError::PreconditionFailed();
   }
 
-  std::string res;
-  leveldb::ReadOptions options;
-  options.verify_checksums = check_crc_;
-  return database_->Get(options, ToLeveldbSlice(key), &res).ok()
-             ? boost::optional<std::string>(std::move(res))
-             : boost::none;
-}
-
-bool DiskCache::Get(const std::string& key,
-                    KeyValueCache::ValueTypePtr& value) {
-  if (!database_) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Get: Database is not initialized");
-    return false;
-  }
-
-  value = nullptr;
   leveldb::ReadOptions options;
   options.verify_checksums = check_crc_;
   auto iterator = NewIterator(options);
@@ -368,12 +353,12 @@ bool DiskCache::Get(const std::string& key,
   if (iterator->Valid() && iterator->key() == key) {
     auto slice_value = iterator->value();
     if (!slice_value.empty()) {
-      value = std::make_shared<KeyValueCache::ValueType>(
+      return std::make_shared<KeyValueCache::ValueType>(
           slice_value.data(), slice_value.data() + slice_value.size());
     }
   }
 
-  return true;
+  return client::ApiError::NotFound();
 }
 
 bool DiskCache::Contains(const std::string& key) {
@@ -389,11 +374,12 @@ bool DiskCache::Contains(const std::string& key) {
   return (iterator->Valid() && iterator->key() == key);
 }
 
-bool DiskCache::Remove(const std::string& key, uint64_t& removed_data_size) {
+DiskCache::OperationOutcome<> DiskCache::Remove(const std::string& key,
+                                                uint64_t& removed_data_size) {
   removed_data_size = 0u;
   if (!database_) {
     OLP_SDK_LOG_ERROR(kLogTag, "Remove: Database is not initialized");
-    return false;
+    return client::ApiError::PreconditionFailed();
   }
 
   uint64_t data_size = 0u;
@@ -406,12 +392,13 @@ bool DiskCache::Remove(const std::string& key, uint64_t& removed_data_size) {
   leveldb::WriteOptions write_options;
   write_options.sync = enforce_immediate_flush_;
 
-  auto result = database_->Delete(write_options, key).ok();
-  if (result) {
+  auto result = database_->Delete(write_options, key);
+  if (result.ok()) {
     removed_data_size = data_size;
+    return NoError{};
   }
 
-  return result;
+  return GetApiError(result);
 }
 
 std::unique_ptr<leveldb::Iterator> DiskCache::NewIterator(
@@ -423,7 +410,7 @@ std::unique_ptr<leveldb::Iterator> DiskCache::NewIterator(
   return std::unique_ptr<leveldb::Iterator>(database_->NewIterator(options));
 }
 
-DiskCache::OperationOutcome DiskCache::ApplyBatch(
+DiskCache::OperationOutcome<> DiskCache::ApplyBatch(
     std::unique_ptr<leveldb::WriteBatch> batch) {
   if (!database_) {
     OLP_SDK_LOG_ERROR(kLogTag, "ApplyBatch: Database is not initialized");
@@ -465,9 +452,9 @@ DiskCache::OperationOutcome DiskCache::ApplyBatch(
   return NoError{};
 }
 
-bool DiskCache::RemoveKeysWithPrefix(const std::string& prefix,
-                                     uint64_t& removed_data_size,
-                                     const RemoveFilterFunc& filter) {
+DiskCache::OperationOutcome<> DiskCache::RemoveKeysWithPrefix(
+    const std::string& prefix, uint64_t& removed_data_size,
+    const RemoveFilterFunc& filter) {
   uint64_t data_size = 0u;
   removed_data_size = 0u;
 
@@ -479,7 +466,7 @@ bool DiskCache::RemoveKeysWithPrefix(const std::string& prefix,
   if (!iterator) {
     OLP_SDK_LOG_WARNING(kLogTag,
                         "RemoveKeysWithPrefix: Database is uninitialized");
-    return false;
+    return client::ApiError::PreconditionFailed();
   }
 
   auto batch = std::make_unique<leveldb::WriteBatch>();
@@ -514,7 +501,7 @@ bool DiskCache::RemoveKeysWithPrefix(const std::string& prefix,
   }
 
   removed_data_size = data_size;
-  return result.IsSuccessful();
+  return result;
 }
 
 leveldb::Status DiskCache::InitializeDB(const StorageSettings& settings,
