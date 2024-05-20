@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -235,7 +235,10 @@ StreamLayerClientImpl::Unsubscribe() {
 
 client::CancellationToken StreamLayerClientImpl::GetData(
     const model::Message& message, DataResponseCallback callback) {
-  const auto& data_handle = message.GetMetaData().GetDataHandle();
+  const auto& metadata = message.GetMetaData();
+
+  const auto& data_handle = metadata.GetDataHandle();
+  const auto data_size = metadata.GetDataSize();
   auto get_data_task =
       [=](client::CancellationContext context) -> DataResponse {
     if (!data_handle) {
@@ -256,8 +259,12 @@ client::CancellationToken StreamLayerClientImpl::GetData(
       return blob_api.GetError();
     }
 
+    model::Partition partition;
+    partition.SetDataHandle(*data_handle);
+    partition.SetDataSize(data_size);
+
     const auto blob_response =
-        BlobApi::GetBlob(blob_api.GetResult(), layer_id_, data_handle.value(),
+        BlobApi::GetBlob(blob_api.GetResult(), layer_id_, partition,
                          boost::none, boost::none, context);
 
     OLP_SDK_LOG_INFO_F(kLogTag,

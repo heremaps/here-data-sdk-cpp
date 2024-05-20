@@ -84,11 +84,12 @@ struct MockedResponseInformation {
  * Cancel();
  */
 std::tuple<olp::http::RequestId, NetworkCallback, CancelCallback>
-GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
-                           std::shared_ptr<std::promise<void>> wait_for_signal,
-                           MockedResponseInformation response_information,
-                           std::shared_ptr<std::promise<void>> post_signal =
-                               std::make_shared<std::promise<void>>());
+GenerateNetworkMockActions(
+    const std::shared_ptr<std::promise<void>>& pre_signal,
+    const std::shared_ptr<std::promise<void>>& wait_for_signal,
+    const MockedResponseInformation& response_information,
+    const std::shared_ptr<std::promise<void>>& post_signal =
+        std::make_shared<std::promise<void>>());
 
 ///
 /// NetworkMock Actions
@@ -103,6 +104,7 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
  * @param response_body Response payload.
  * @param headers Response headers (optional).
  * @param delay Response delay (optional).
+ * @param offset Payload offset (optional).
  *
  * @return A function that mimics Network::Send method.
  */
@@ -110,26 +112,7 @@ NetworkCallback ReturnHttpResponse(
     olp::http::NetworkResponse response, const std::string& response_body,
     const olp::http::Headers& headers = {},
     std::chrono::nanoseconds delay = std::chrono::milliseconds(50),
-    olp::http::RequestId request_id = 5);
-
-/**
- * @brief Helper function creates Network::Send mock function that returns a
- * specified response, body, headers after specified delay from a different
- * thread.
- *
- * @param response Network response.
- * @param response_body Response payload.
- * @param offset Payload offset (optional).
- * @param headers Response headers (optional).
- * @param delay Response delay (optional).
- *
- * @return A function that mimics Network::Send method.
- */
-NetworkCallback ReturnHttpResponseWithDataCallback(
-    olp::http::NetworkResponse response, const std::string& response_body,
-    std::uint64_t offset = 0, const olp::http::Headers& headers = {},
-    std::chrono::nanoseconds delay = std::chrono::milliseconds(50),
-    olp::http::RequestId request_id = 5);
+    olp::http::RequestId request_id = 5, std::uint64_t offset = 0);
 
 inline olp::http::NetworkResponse GetResponse(int status,
                                               int bytes_downloaded = 0,

@@ -83,7 +83,7 @@ TEST_F(MetadataApiTest, GetListVersions) {
         olp::client::CancellationContext{});
 
     ASSERT_TRUE(index_response.IsSuccessful());
-    auto result = index_response.GetResult();
+    const auto& result = index_response.GetResult();
 
     ASSERT_EQ(1u, result.GetVersions().size());
     ASSERT_EQ(4, result.GetVersions().front().GetVersion());
@@ -106,7 +106,7 @@ TEST_F(MetadataApiTest, GetListVersions) {
         olp::client::CancellationContext{});
 
     ASSERT_TRUE(response.IsSuccessful());
-    auto result = response.GetResult();
+    const auto& result = response.GetResult();
 
     ASSERT_EQ(1u, result.GetVersions().size());
     ASSERT_EQ(4, result.GetVersions().front().GetVersion());
@@ -123,7 +123,7 @@ TEST_F(MetadataApiTest, GetListVersions) {
         *client_, kStartVersion, kEndVersion, boost::none, context);
 
     ASSERT_FALSE(index_response.IsSuccessful());
-    auto error = index_response.GetError();
+    const auto& error = index_response.GetError();
     ASSERT_EQ(olp::client::ErrorCode::Cancelled, error.GetErrorCode());
   }
 }
@@ -173,10 +173,10 @@ TEST_P(MetadataApiParamTest, GetPartitionsStream) {
   EXPECT_CALL(*network_mock_, Send(AllOf(IsGetRequest(test_params.url),
                                          HeadersContainOptional(range_header)),
                                    _, _, _, _))
-      .WillOnce(ReturnHttpResponseWithDataCallback(
-          olp::http::NetworkResponse().WithStatus(
-              olp::http::HttpStatusCode::OK),
-          ref_stream_data, offset));
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   ref_stream_data, {},
+                                   std::chrono::milliseconds(50), 5, offset));
 
   client::HttpResponse response =
       olp::dataservice::read::MetadataApi::GetPartitionsStream(

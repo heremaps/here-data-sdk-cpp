@@ -2052,14 +2052,14 @@ TEST_F(PartitionsRepositoryTest, StreamPartitions) {
 
     EXPECT_CALL(*network,
                 Send(IsGetRequest(kOlpSdkUrlVersionedPartitions), _, _, _, _))
-        .WillOnce(ReturnHttpResponseWithDataCallback(
-            olp::http::NetworkResponse().WithStatus(
-                olp::http::HttpStatusCode::OK),
-            ref_stream_data, 0))
-        .WillOnce(ReturnHttpResponseWithDataCallback(
-            olp::http::NetworkResponse().WithStatus(
-                olp::http::HttpStatusCode::OK),
-            ref_stream_data, 10));
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     ref_stream_data, {},
+                                     std::chrono::milliseconds(50), 5, 0))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     ref_stream_data, {},
+                                     std::chrono::milliseconds(50), 5, 10));
 
     repository.StreamPartitions(async_stream, kVersion, additional_fields,
                                 billing_tag, context);

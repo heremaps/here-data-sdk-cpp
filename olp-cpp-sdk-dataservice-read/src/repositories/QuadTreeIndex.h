@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2022 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ class QuadTreeIndex {
   };
 
   QuadTreeIndex() = default;
-  explicit QuadTreeIndex(cache::KeyValueCache::ValueTypePtr data);
+  explicit QuadTreeIndex(const cache::KeyValueCache::ValueTypePtr& data);
   QuadTreeIndex(const olp::geo::TileKey& root, int depth,
                 std::stringstream& json_stream);
 
@@ -67,7 +67,7 @@ class QuadTreeIndex {
   boost::optional<IndexData> Find(const olp::geo::TileKey& tile_key,
                                   bool aggregated) const;
 
-  inline const cache::KeyValueCache::ValueTypePtr GetRawData() const {
+  inline cache::KeyValueCache::ValueTypePtr GetRawData() const {
     return raw_data_;
   }
 

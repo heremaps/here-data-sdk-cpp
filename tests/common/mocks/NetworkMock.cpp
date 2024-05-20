@@ -28,10 +28,11 @@ NetworkMock::NetworkMock() = default;
 NetworkMock::~NetworkMock() = default;
 
 std::tuple<http::RequestId, NetworkCallback, CancelCallback>
-GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
-                           std::shared_ptr<std::promise<void>> wait_for_signal,
-                           MockedResponseInformation response_information,
-                           std::shared_ptr<std::promise<void>> post_signal) {
+GenerateNetworkMockActions(
+    const std::shared_ptr<std::promise<void>>& pre_signal,
+    const std::shared_ptr<std::promise<void>>& wait_for_signal,
+    const MockedResponseInformation& response_information,
+    const std::shared_ptr<std::promise<void>>& post_signal) {
   static std::atomic<http::RequestId> s_request_id{
       static_cast<http::RequestId>(http::RequestIdConstants::RequestIdMin)};
 
@@ -44,10 +45,11 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
   // with cancel mock.
   auto callback_placeholder = std::make_shared<http::Network::Callback>();
 
-  auto mocked_send = [=](http::NetworkRequest, http::Network::Payload payload,
-                         http::Network::Callback callback,
-                         http::Network::HeaderCallback header_callback,
-                         http::Network::DataCallback) {
+  auto mocked_send = [=](const http::NetworkRequest&,
+                         const http::Network::Payload& payload,
+                         const http::Network::Callback& callback,
+                         const http::Network::HeaderCallback& header_callback,
+                         const http::Network::DataCallback& data_callback) {
     *callback_placeholder = callback;
 
     auto mocked_network_block = [=]() {
@@ -63,7 +65,14 @@ GenerateNetworkMockActions(std::shared_ptr<std::promise<void>> pre_signal,
       // in the case request was not canceled return the expected payload
       if (!completed->exchange(true)) {
         const auto data_len = strlen(response_information.data);
-        payload->write(response_information.data, data_len);
+        if (payload) {
+          payload->write(response_information.data,
+                         static_cast<std::streamsize>(data_len));
+        } else if (data_callback) {
+          data_callback(
+              reinterpret_cast<const std::uint8_t*>(response_information.data),
+              0, data_len);
+        }
 
         for (const auto& header : response_information.headers) {
           header_callback(header.first, header.second);
@@ -109,12 +118,13 @@ NetworkCallback ReturnHttpResponse(http::NetworkResponse response,
                                    const std::string& response_body,
                                    const http::Headers& headers,
                                    std::chrono::nanoseconds delay,
-                                   http::RequestId request_id) {
+                                   http::RequestId request_id,
+                                   std::uint64_t offset) {
   response.WithRequestId(request_id);
-  return [=](http::NetworkRequest, http::Network::Payload payload,
-             http::Network::Callback callback,
-             http::Network::HeaderCallback header_callback,
-             http::Network::DataCallback) mutable {
+  return [=](const http::NetworkRequest&, const http::Network::Payload& payload,
+             const http::Network::Callback& callback,
+             const http::Network::HeaderCallback& header_callback,
+             const http::Network::DataCallback& data_callback) mutable {
     std::thread([=]() {
       std::this_thread::sleep_for(delay);
 
@@ -122,36 +132,16 @@ NetworkCallback ReturnHttpResponse(http::NetworkResponse response,
         header_callback(header.first, header.second);
       }
 
-      payload->seekp(0, std::ios_base::end);
-      payload->write(response_body.c_str(), response_body.size());
-      payload->seekp(0);
-      callback(response);
-    })
-        .detach();
-
-    return http::SendOutcome(request_id);
-  };
-}
-
-NetworkCallback ReturnHttpResponseWithDataCallback(
-    olp::http::NetworkResponse response, const std::string& response_body,
-    std::uint64_t offset, const olp::http::Headers& headers,
-    std::chrono::nanoseconds delay, olp::http::RequestId request_id) {
-  response.WithRequestId(request_id);
-  return [=](http::NetworkRequest, http::Network::Payload,
-             http::Network::Callback callback,
-             http::Network::HeaderCallback header_callback,
-             http::Network::DataCallback data_callback) mutable {
-    std::thread([=]() {
-      std::this_thread::sleep_for(delay);
-
-      for (const auto& header : headers) {
-        header_callback(header.first, header.second);
+      if (data_callback) {
+        data_callback(
+            reinterpret_cast<const unsigned char*>(response_body.c_str()),
+            offset, response_body.length());
+      } else {
+        payload->seekp(0, std::ios_base::end);
+        payload->write(response_body.c_str(), response_body.size());
+        payload->seekp(0);
       }
 
-      data_callback(
-          reinterpret_cast<const unsigned char*>(response_body.c_str()), offset,
-          response_body.length());
       callback(response);
     })
         .detach();

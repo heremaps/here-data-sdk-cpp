@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/NetworkMock.h>
 #include <olp/core/cache/CacheSettings.h>
-#include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/ApiLookupClient.h>
 #include <olp/core/client/OlpClientFactory.h>
 #include <olp/core/client/OlpClientSettings.h>
@@ -36,7 +35,6 @@
 #include <repositories/DataRepository.h>
 #include <repositories/NamedMutex.h>
 #include <repositories/PartitionsCacheRepository.h>
-#include <repositories/PartitionsRepository.h>
 
 constexpr auto kUrlLookup =
     R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis)";
@@ -78,7 +76,7 @@ class DataRepositoryTest : public ::testing::Test {
   void SetUp() override;
   void TearDown() override;
 
-  std::string GetTestCatalog();
+  static std::string GetTestCatalog();
 
   std::shared_ptr<olp::client::OlpClientSettings> settings_;
   std::shared_ptr<NetworkMock> network_mock_;
@@ -120,13 +118,16 @@ TEST_F(DataRepositoryTest, GetBlobData) {
 
   olp::client::CancellationContext context;
 
-  olp::dataservice::read::DataRequest request;
-  request.WithDataHandle(kUrlBlobDataHandle);
+  olp::dataservice::read::model::Partition partition;
+  partition.SetDataHandle(kUrlBlobDataHandle);
 
   olp::client::HRN hrn(GetTestCatalog());
   ApiLookupClient lookup_client(hrn, *settings_);
   DataRepository repository(hrn, *settings_, lookup_client);
-  auto response = repository.GetBlobData(kLayerId, kService, request, context);
+  auto response = repository.GetBlobData(
+      kLayerId, kService, partition,
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
+      context);
 
   ASSERT_TRUE(response.IsSuccessful());
 }
@@ -139,13 +140,16 @@ TEST_F(DataRepositoryTest, GetBlobDataApiLookupFailed403) {
 
   olp::client::CancellationContext context;
 
-  olp::dataservice::read::DataRequest request;
-  request.WithDataHandle(kUrlBlobDataHandle);
+  olp::dataservice::read::model::Partition partition;
+  partition.SetDataHandle(kUrlBlobDataHandle);
 
   olp::client::HRN hrn(GetTestCatalog());
   ApiLookupClient lookup_client(hrn, *settings_);
   DataRepository repository(hrn, *settings_, lookup_client);
-  auto response = repository.GetBlobData(kLayerId, kService, request, context);
+  auto response = repository.GetBlobData(
+      kLayerId, kService, partition,
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
+      context);
 
   ASSERT_FALSE(response.IsSuccessful());
 }
@@ -156,7 +160,11 @@ TEST_F(DataRepositoryTest, GetBlobDataNoDataHandle) {
   olp::client::HRN hrn(GetTestCatalog());
   ApiLookupClient lookup_client(hrn, *settings_);
   DataRepository repository(hrn, *settings_, lookup_client);
-  auto response = repository.GetBlobData(kLayerId, kService, request, context);
+
+  auto response = repository.GetBlobData(
+      kLayerId, kService, olp::dataservice::read::model::Partition(),
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
+      context);
 
   ASSERT_FALSE(response.IsSuccessful());
 }
@@ -174,13 +182,16 @@ TEST_F(DataRepositoryTest, GetBlobDataFailedDataFetch403) {
 
   olp::client::CancellationContext context;
 
-  olp::dataservice::read::DataRequest request;
-  request.WithDataHandle(kUrlBlobDataHandle);
+  olp::dataservice::read::model::Partition partition;
+  partition.SetDataHandle(kUrlBlobDataHandle);
 
   olp::client::HRN hrn(GetTestCatalog());
   ApiLookupClient lookup_client(hrn, *settings_);
   DataRepository repository(hrn, *settings_, lookup_client);
-  auto response = repository.GetBlobData(kLayerId, kService, request, context);
+  auto response = repository.GetBlobData(
+      kLayerId, kService, partition,
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
+      context);
 
   ASSERT_FALSE(response.IsSuccessful());
 }
@@ -198,21 +209,27 @@ TEST_F(DataRepositoryTest, GetBlobDataCache) {
 
   olp::client::CancellationContext context;
 
-  olp::dataservice::read::DataRequest request;
-  request.WithDataHandle(kUrlBlobDataHandle);
+  olp::dataservice::read::model::Partition partition;
+  partition.SetDataHandle(kUrlBlobDataHandle);
 
   olp::client::HRN hrn(GetTestCatalog());
 
   // This should download data from network and cache it
   ApiLookupClient lookup_client(hrn, *settings_);
   DataRepository repository(hrn, *settings_, lookup_client);
-  auto response = repository.GetBlobData(kLayerId, kService, request, context);
+  auto response = repository.GetBlobData(
+      kLayerId, kService, partition,
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
+      context);
 
   ASSERT_TRUE(response.IsSuccessful());
 
   // This call should not do any network calls and use already cached values
   // instead
-  response = repository.GetBlobData(kLayerId, kService, request, context);
+  response = repository.GetBlobData(
+      kLayerId, kService, partition,
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
+      context);
 
   ASSERT_TRUE(response.IsSuccessful());
 }
@@ -230,8 +247,8 @@ TEST_F(DataRepositoryTest, GetBlobDataImmediateCancel) {
 
   olp::client::CancellationContext context;
 
-  olp::dataservice::read::DataRequest request;
-  request.WithDataHandle(kUrlBlobDataHandle);
+  olp::dataservice::read::model::Partition partition;
+  partition.SetDataHandle(kUrlBlobDataHandle);
 
   olp::client::HRN hrn(GetTestCatalog());
 
@@ -240,7 +257,10 @@ TEST_F(DataRepositoryTest, GetBlobDataImmediateCancel) {
 
   ApiLookupClient lookup_client(hrn, *settings_);
   DataRepository repository(hrn, *settings_, lookup_client);
-  auto response = repository.GetBlobData(kLayerId, kService, request, context);
+  auto response = repository.GetBlobData(
+      kLayerId, kService, partition,
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
+      context);
 
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Cancelled);
@@ -265,14 +285,17 @@ TEST_F(DataRepositoryTest, GetBlobDataInProgressCancel) {
           });
   EXPECT_CALL(*network_mock_, Cancel(_)).WillOnce(testing::Return());
 
-  olp::dataservice::read::DataRequest request;
-  request.WithDataHandle(kUrlBlobDataHandle);
+  olp::dataservice::read::model::Partition partition;
+  partition.SetDataHandle(kUrlBlobDataHandle);
 
   olp::client::HRN hrn(GetTestCatalog());
 
   ApiLookupClient lookup_client(hrn, *settings_);
   DataRepository repository(hrn, *settings_, lookup_client);
-  auto response = repository.GetBlobData(kLayerId, kService, request, context);
+  auto response = repository.GetBlobData(
+      kLayerId, kService, partition,
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
+      context);
 
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Cancelled);
@@ -304,8 +327,8 @@ TEST_F(DataRepositoryTest, GetBlobDataSimultaniousFailedCalls) {
   olp::client::CancellationContext context;
   olp::dataservice::read::repository::NamedMutexStorage storage;
 
-  olp::dataservice::read::DataRequest request;
-  request.WithDataHandle(kUrlBlobDataHandle);
+  olp::dataservice::read::model::Partition partition;
+  partition.SetDataHandle(kUrlBlobDataHandle);
 
   olp::client::HRN hrn(GetTestCatalog());
   ApiLookupClient lookup_client(hrn, *settings_);
@@ -313,8 +336,10 @@ TEST_F(DataRepositoryTest, GetBlobDataSimultaniousFailedCalls) {
 
   // Start first request in a separate thread
   std::thread first_request_thread([&]() {
-    auto response =
-        repository.GetBlobData(kLayerId, kService, request, context);
+    auto response = repository.GetBlobData(
+        kLayerId, kService, partition,
+        olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
+        context);
     EXPECT_FALSE(response.IsSuccessful());
   });
 
@@ -329,8 +354,10 @@ TEST_F(DataRepositoryTest, GetBlobDataSimultaniousFailedCalls) {
 
   // Start second request in a separate thread
   std::thread second_request_thread([&]() {
-    auto response =
-        repository.GetBlobData(kLayerId, kService, request, context);
+    auto response = repository.GetBlobData(
+        kLayerId, kService, partition,
+        olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
+        context);
     EXPECT_FALSE(response.IsSuccessful());
   });
 
@@ -548,8 +575,8 @@ TEST_F(DataRepositoryTest, GetBlobDataCancelParralellRequest) {
   olp::client::CancellationContext context;
   olp::dataservice::read::repository::NamedMutexStorage storage;
 
-  olp::dataservice::read::DataRequest request;
-  request.WithDataHandle(kUrlBlobDataHandle);
+  olp::dataservice::read::model::Partition partition;
+  partition.SetDataHandle(kUrlBlobDataHandle);
 
   olp::client::HRN hrn(GetTestCatalog());
   ApiLookupClient lookup_client(hrn, *settings_);
@@ -560,8 +587,10 @@ TEST_F(DataRepositoryTest, GetBlobDataCancelParralellRequest) {
 
   // Start first request in a separate thread
   std::thread first_request_thread([&]() {
-    auto response =
-        repository.GetBlobData(kLayerId, kService, request, context);
+    auto response = repository.GetBlobData(
+        kLayerId, kService, partition,
+        olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
+        context);
 
     EXPECT_FALSE(response);
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -572,8 +601,10 @@ TEST_F(DataRepositoryTest, GetBlobDataCancelParralellRequest) {
 
   // Start second request in a separate thread
   std::thread second_request_thread([&]() {
-    auto response =
-        repository.GetBlobData(kLayerId, kService, request, context);
+    auto response = repository.GetBlobData(
+        kLayerId, kService, partition,
+        olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
+        context);
 
     EXPECT_FALSE(response);
     EXPECT_EQ(response.GetError().GetErrorCode(),

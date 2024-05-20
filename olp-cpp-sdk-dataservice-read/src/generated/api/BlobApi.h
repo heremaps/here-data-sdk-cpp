@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@
 #include <boost/optional.hpp>
 #include "ExtendedApiResponse.h"
 #include "olp/dataservice/read/model/Data.h"
+#include "olp/dataservice/read/model/Partitions.h"
 
 namespace olp {
 namespace client {
@@ -48,7 +49,7 @@ class BlobApi {
    * @brief Retrieves a data blob for specified handle.
    * @param client Instance of OlpClient used to make REST request.
    * @param layer_id Layer id.
-   * @param data_handle Indentifies a specific blob.
+   * @param partition The blob metadata.
    * @param billing_tag An optional free-form tag which is used for grouping
    * billing records together. If supplied, it must be between 4 - 16
    * characters, contain only alpha/numeric ASCII characters  [A-Za-z0-9].
@@ -66,7 +67,7 @@ class BlobApi {
    */
   static DataResponse GetBlob(const client::OlpClient& client,
                               const std::string& layer_id,
-                              const std::string& data_handle,
+                              const model::Partition& partition,
                               boost::optional<std::string> billing_tag,
                               boost::optional<std::string> range,
                               const client::CancellationContext& context);

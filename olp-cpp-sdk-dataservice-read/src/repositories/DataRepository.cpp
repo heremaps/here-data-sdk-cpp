@@ -71,12 +71,10 @@ DataResponse DataRepository::GetVersionedTile(
 
   // Get the data using a data handle for requested tile
   const auto& partition = response.GetResult();
-  const auto data_request = DataRequest()
-                                .WithDataHandle(partition.GetDataHandle())
-                                .WithFetchOption(request.GetFetchOption());
 
   auto data_response =
-      GetBlobData(layer_id, kBlobService, data_request, std::move(context));
+      GetBlobData(layer_id, kBlobService, partition, request.GetFetchOption(),
+                  request.GetBillingTag(), std::move(context));
   network_statistics += data_response.GetPayload();
 
   if (data_response) {
@@ -94,10 +92,13 @@ BlobApi::DataResponse DataRepository::GetVersionedData(
         "Both data handle and partition id specified");
   }
 
-  auto blob_request = request;
   client::NetworkStatistics network_statistics;
 
-  if (!request.GetDataHandle()) {
+  model::Partition partition;
+
+  if (request.GetDataHandle()) {
+    partition.SetDataHandle(*request.GetDataHandle());
+  } else {
     // get data handle for a partition to be queried
     PartitionsRepository repository(catalog_, layer_id, settings_,
                                     lookup_client_, storage_);
@@ -110,7 +111,8 @@ BlobApi::DataResponse DataRepository::GetVersionedData(
       return DataResponse(partitions_response.GetError(), network_statistics);
     }
 
-    const auto& partitions = partitions_response.GetResult().GetPartitions();
+    auto partitions_result = partitions_response.MoveResult();
+    auto& partitions = partitions_result.GetMutablePartitions();
     if (partitions.empty()) {
       OLP_SDK_LOG_INFO_F(
           kLogTag,
@@ -124,13 +126,13 @@ BlobApi::DataResponse DataRepository::GetVersionedData(
                           network_statistics);
     }
 
-    blob_request.WithDataHandle(partitions.front().GetDataHandle());
+    partition = std::move(partitions.front());
   }
 
   // finally get the data using a data handle
-  auto data_response = repository::DataRepository::GetBlobData(
-      layer_id, kBlobService, blob_request, std::move(context),
-      fail_on_cache_error);
+  auto data_response = GetBlobData(
+      layer_id, kBlobService, partition, request.GetFetchOption(),
+      request.GetBillingTag(), std::move(context), fail_on_cache_error);
 
   network_statistics += data_response.GetPayload();
 
@@ -143,16 +145,16 @@ BlobApi::DataResponse DataRepository::GetVersionedData(
 
 BlobApi::DataResponse DataRepository::GetBlobData(
     const std::string& layer, const std::string& service,
-    const DataRequest& request, client::CancellationContext context,
-    const bool fail_on_cache_error) {
-  auto fetch_option = request.GetFetchOption();
-  const auto& data_handle = request.GetDataHandle();
-
-  if (!data_handle) {
+    const model::Partition& partition, FetchOptions fetch_option,
+    const boost::optional<std::string>& billing_tag,
+    client::CancellationContext context, const bool fail_on_cache_error) {
+  const auto& data_handle = partition.GetDataHandle();
+  if (data_handle.empty()) {
     return client::ApiError::PreconditionFailed("Data handle is missing");
   }
 
-  NamedMutex mutex(storage_, catalog_.ToString() + layer + *data_handle,
+  NamedMutex mutex(storage_,
+                   catalog_.ToString() + layer + partition.GetDataHandle(),
                    context);
   std::unique_lock<NamedMutex> lock(mutex, std::defer_lock);
 
@@ -165,16 +167,16 @@ BlobApi::DataResponse DataRepository::GetBlobData(
       catalog_, settings_.cache, settings_.default_cache_expiration);
 
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
-    auto cached_data = repository.Get(layer, data_handle.value());
+    auto cached_data = repository.Get(layer, data_handle);
     if (cached_data) {
       OLP_SDK_LOG_DEBUG_F(
           kLogTag, "GetBlobData found in cache, hrn='%s', key='%s'",
-          catalog_.ToCatalogHRNString().c_str(), data_handle->c_str());
+          catalog_.ToCatalogHRNString().c_str(), data_handle.c_str());
       return cached_data.value();
     } else if (fetch_option == CacheOnly) {
       OLP_SDK_LOG_INFO_F(
           kLogTag, "GetBlobData not found in cache, hrn='%s', key='%s'",
-          catalog_.ToCatalogHRNString().c_str(), data_handle->c_str());
+          catalog_.ToCatalogHRNString().c_str(), data_handle.c_str());
       return client::ApiError::NotFound(
           "CacheOnly: resource not found in cache");
     }
@@ -187,7 +189,7 @@ BlobApi::DataResponse DataRepository::GetBlobData(
                         "Found error in NamedMutex, aborting, hrn='%s', "
                         "key='%s', error='%s'",
                         catalog_.ToCatalogHRNString().c_str(),
-                        data_handle->c_str(),
+                        data_handle.c_str(),
                         optional_error->GetMessage().c_str());
     return *optional_error;
   }
@@ -205,25 +207,25 @@ BlobApi::DataResponse DataRepository::GetBlobData(
   BlobApi::DataResponse storage_response;
 
   if (service == kBlobService) {
-    storage_response = BlobApi::GetBlob(
-        storage_api_lookup.GetResult(), layer, data_handle.value(),
-        request.GetBillingTag(), boost::none, context);
+    storage_response =
+        BlobApi::GetBlob(storage_api_lookup.GetResult(), layer, partition,
+                         billing_tag, boost::none, context);
   } else {
-    auto volatile_blob = VolatileBlobApi::GetVolatileBlob(
-        storage_api_lookup.GetResult(), layer, data_handle.value(),
-        request.GetBillingTag(), context);
+    auto volatile_blob =
+        VolatileBlobApi::GetVolatileBlob(storage_api_lookup.GetResult(), layer,
+                                         data_handle, billing_tag, context);
     storage_response = BlobApi::DataResponse(volatile_blob.MoveResult());
   }
 
   if (storage_response.IsSuccessful() && fetch_option != OnlineOnly) {
-    const auto put_result = repository.Put(storage_response.GetResult(), layer,
-                                           data_handle.value());
+    const auto put_result =
+        repository.Put(storage_response.GetResult(), layer, data_handle);
     if (!put_result.IsSuccessful() && fail_on_cache_error) {
       OLP_SDK_LOG_ERROR_F(kLogTag,
                           "Failed to write data to cache, hrn='%s', "
                           "layer='%s', data_handle='%s'",
                           catalog_.ToCatalogHRNString().c_str(), layer.c_str(),
-                          data_handle->c_str());
+                          data_handle.c_str());
       return put_result.GetError();
     }
   }
@@ -234,8 +236,8 @@ BlobApi::DataResponse DataRepository::GetBlobData(
       OLP_SDK_LOG_WARNING_F(
           kLogTag,
           "GetBlobData 403 received, remove from cache, hrn='%s', key='%s'",
-          catalog_.ToCatalogHRNString().c_str(), data_handle->c_str());
-      repository.Clear(layer, data_handle.value());
+          catalog_.ToCatalogHRNString().c_str(), data_handle.c_str());
+      repository.Clear(layer, data_handle);
     }
 
     // Store an error to share it with other threads.
@@ -253,8 +255,11 @@ BlobApi::DataResponse DataRepository::GetVolatileData(
         "Both data handle and partition id specified");
   }
 
-  auto blob_request = request;
-  if (!request.GetDataHandle()) {
+  model::Partition partition;
+
+  if (request.GetDataHandle()) {
+    partition.SetDataHandle(*request.GetDataHandle());
+  } else {
     PartitionsRepository repository(catalog_, layer_id, settings_,
                                     lookup_client_, storage_);
     auto partitions_response =
@@ -264,7 +269,9 @@ BlobApi::DataResponse DataRepository::GetVolatileData(
       return partitions_response.GetError();
     }
 
-    const auto& partitions = partitions_response.GetResult().GetPartitions();
+    auto partitions_result = partitions_response.MoveResult();
+    auto& partitions = partitions_result.GetMutablePartitions();
+
     if (partitions.empty()) {
       OLP_SDK_LOG_INFO_F(
           kLogTag, "GetVolatileData partition %s not found, hrn='%s', key='%s'",
@@ -276,10 +283,11 @@ BlobApi::DataResponse DataRepository::GetVolatileData(
       return client::ApiError::NotFound("Partition not found");
     }
 
-    blob_request.WithDataHandle(partitions.front().GetDataHandle());
+    partition = std::move(partitions.front());
   }
 
-  return GetBlobData(layer_id, kVolatileBlobService, blob_request,
+  return GetBlobData(layer_id, kVolatileBlobService, partition,
+                     request.GetFetchOption(), request.GetBillingTag(),
                      std::move(context), fail_on_cache_error);
 }
 
