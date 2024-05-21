@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,23 +26,21 @@
 
 namespace {
 
-using namespace olp;
-using namespace olp::dataservice::read;
-
 constexpr auto kCatalog = "hrn:here:data::olp-here-test:catalog";
 
-TEST(PartitionsCacheRepositoryTest, DefaultExpiry) {
-  const auto hrn = client::HRN::FromString(kCatalog);
+TEST(CatalogCacheRepositoryTest, DefaultExpiry) {
+  const auto hrn = olp::client::HRN::FromString(kCatalog);
 
-  model::Catalog model_catalog;
+  olp::dataservice::read::model::Catalog model_catalog;
 
   {
     SCOPED_TRACE("Disable expiration");
 
     const auto default_expiry = std::chrono::seconds::max();
-    std::shared_ptr<cache::KeyValueCache> cache =
+    std::shared_ptr<olp::cache::KeyValueCache> cache =
         olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
-    repository::CatalogCacheRepository repository(hrn, cache, default_expiry);
+    olp::dataservice::read::repository::CatalogCacheRepository repository(
+        hrn, cache, default_expiry);
 
     repository.Put(model_catalog);
     const auto result = repository.Get();
@@ -54,9 +52,10 @@ TEST(PartitionsCacheRepositoryTest, DefaultExpiry) {
     SCOPED_TRACE("Expired");
 
     const auto default_expiry = std::chrono::seconds(-1);
-    std::shared_ptr<cache::KeyValueCache> cache =
+    std::shared_ptr<olp::cache::KeyValueCache> cache =
         olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
-    repository::CatalogCacheRepository repository(hrn, cache, default_expiry);
+    olp::dataservice::read::repository::CatalogCacheRepository repository(
+        hrn, cache, default_expiry);
 
     repository.Put(model_catalog);
     const auto result = repository.Get();

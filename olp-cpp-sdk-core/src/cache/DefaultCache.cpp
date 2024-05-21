@@ -90,5 +90,24 @@ uint64_t DefaultCache::Size(uint64_t new_size) { return impl_->Size(new_size); }
 
 void DefaultCache::Promote(const std::string& key) { impl_->Promote(key); }
 
+OperationOutcome<KeyValueCache::ValueTypePtr> DefaultCache::Read(
+    const std::string& key) {
+  return impl_->Read(key);
+}
+
+OperationOutcomeEmpty DefaultCache::Write(
+    const std::string& key, const KeyValueCache::ValueTypePtr& value,
+    time_t expiry) {
+  return impl_->Write(key, value, expiry);
+}
+
+OperationOutcomeEmpty DefaultCache::Delete(const std::string& key) {
+  return impl_->Delete(key);
+}
+
+OperationOutcomeEmpty DefaultCache::DeleteByPrefix(const std::string& prefix) {
+  return impl_->DeleteByPrefix(prefix);
+}
+
 }  // namespace cache
 }  // namespace olp

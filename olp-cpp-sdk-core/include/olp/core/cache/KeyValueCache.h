@@ -27,6 +27,9 @@
 #include <vector>
 
 #include <olp/core/CoreApi.h>
+#include <olp/core/client/ApiError.h>
+#include <olp/core/client/ApiNoResult.h>
+#include <olp/core/client/ApiResponse.h>
 #include <olp/core/utils/WarningWorkarounds.h>
 #include <boost/any.hpp>
 
@@ -35,6 +38,10 @@ namespace cache {
 
 using Encoder = std::function<std::string()>;
 using Decoder = std::function<boost::any(const std::string&)>;
+
+template <typename Result>
+using OperationOutcome = client::ApiResponse<Result, client::ApiError>;
+using OperationOutcomeEmpty = OperationOutcome<client::ApiNoResult>;
 
 /// An interface for a cache that expects a key-value pair.
 class CORE_API KeyValueCache {
@@ -181,6 +188,62 @@ class CORE_API KeyValueCache {
    * @param key The key to promote in the cache LRU.
    */
   virtual void Promote(const std::string& key) { OLP_SDK_CORE_UNUSED(key); }
+
+  /**
+   * @brief Gets the binary data from the cache.
+   *
+   * @param key The key that is used to look for the binary data.
+   *
+   * @return The binary data or an error if the data could not be retrieved from
+   * the cache.
+   */
+  virtual OperationOutcome<ValueTypePtr> Read(const std::string& key) {
+    OLP_SDK_CORE_UNUSED(key);
+    return client::ApiError(client::ErrorCode::Unknown, "Not implemented");
+  }
+
+  /**
+   * @brief Stores the raw binary data as a value in the cache.
+   *
+   * @param key The key for this value.
+   * @param value The binary data that should be stored.
+   * @param expiry The expiry time (in seconds) of the key-value pair.
+   *
+   * @return An error if the data could not be written to the cache.
+   */
+  virtual OperationOutcomeEmpty Write(const std::string& key,
+                                      const ValueTypePtr& value,
+                                      time_t expiry = kDefaultExpiry) {
+    OLP_SDK_CORE_UNUSED(key);
+    OLP_SDK_CORE_UNUSED(value);
+    OLP_SDK_CORE_UNUSED(expiry);
+    return client::ApiError(client::ErrorCode::Unknown, "Not implemented");
+  }
+
+  /**
+   * @brief Removes the key-value pair from the cache.
+   *
+   * @param key The key for the value.
+   *
+   * @return An error if the data could not be removed from the cache.
+   */
+  virtual OperationOutcomeEmpty Delete(const std::string& key) {
+    OLP_SDK_CORE_UNUSED(key);
+    return client::ApiError(client::ErrorCode::Unknown, "Not implemented");
+  }
+
+  /**
+   * @brief Removes the values with the keys that match the given
+   * prefix from the cache.
+   *
+   * @param prefix The prefix that matches the keys.
+   *
+   * @return An error if the data could not be removed from the cache.
+   */
+  virtual OperationOutcomeEmpty DeleteByPrefix(const std::string& prefix) {
+    OLP_SDK_CORE_UNUSED(prefix);
+    return client::ApiError(client::ErrorCode::Unknown, "Not implemented");
+  }
 };
 
 }  // namespace cache

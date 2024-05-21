@@ -68,6 +68,13 @@ class DefaultCacheImpl {
   bool IsProtected(const std::string& key) const;
   void Promote(const std::string& key);
 
+  OperationOutcome<KeyValueCache::ValueTypePtr> Read(const std::string& key);
+  OperationOutcomeEmpty Write(const std::string& key,
+                              const KeyValueCache::ValueTypePtr& value,
+                              time_t expiry);
+  OperationOutcomeEmpty Delete(const std::string& key);
+  OperationOutcomeEmpty DeleteByPrefix(const std::string& prefix);
+
   uint64_t Size(DefaultCache::CacheType type) const;
   uint64_t Size(uint64_t new_size);
 
@@ -153,8 +160,9 @@ class DefaultCacheImpl {
   int64_t MaybeUpdatedProtectedKeys(leveldb::WriteBatch& batch);
 
   /// Puts data into the mutable cache
-  bool PutMutableCache(const std::string& key, const leveldb::Slice& value,
-                       time_t expiry);
+  OperationOutcomeEmpty PutMutableCache(const std::string& key,
+                                        const leveldb::Slice& value,
+                                        time_t expiry);
 
   DefaultCache::StorageOpenResult SetupStorage();
 
@@ -164,8 +172,9 @@ class DefaultCacheImpl {
 
   void DestroyCache(DefaultCache::CacheType type);
 
-  bool GetFromDiskCache(const std::string& key,
-                        KeyValueCache::ValueTypePtr& value, time_t& expiry);
+  OperationOutcomeEmpty GetFromDiskCache(const std::string& key,
+                                         KeyValueCache::ValueTypePtr& value,
+                                         time_t& expiry);
 
   boost::optional<std::pair<std::string, time_t>> GetFromDiscCache(
       const std::string& key);

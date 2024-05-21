@@ -122,7 +122,7 @@ class DefaultCacheImplHelper : public cache::DefaultCacheImpl {
       return false;
     }
 
-    return disk_cache->Get(key) != boost::none;
+    return disk_cache->Get(key).IsSuccessful();
   }
 
   uint64_t CalculateExpirySize(const std::string& key) const {
@@ -132,7 +132,12 @@ class DefaultCacheImplHelper : public cache::DefaultCacheImpl {
       return 0u;
     }
 
-    const auto expiry_str = disk_cache->Get(expiry_key).get_value_or({});
+    auto expiry_result = disk_cache->Get(expiry_key);
+    if (!expiry_result) {
+      return 0u;
+    }
+    std::string expiry_str(expiry_result.GetResult()->begin(),
+                           expiry_result.GetResult()->end());
     if (expiry_str.empty()) {
       return 0u;
     }

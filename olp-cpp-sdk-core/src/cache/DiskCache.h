@@ -101,7 +101,8 @@ class DiskCache {
   using NoError = client::ApiNoResult;
 
   /// Operation result type
-  using OperationOutcome = client::ApiResponse<NoError, client::ApiError>;
+  template <typename Result = NoError>
+  using OperationOutcome = client::ApiResponse<Result, client::ApiError>;
 
   /// Will be used to filter out keys to be removed in case they are protected.
   using RemoveFilterFunc = std::function<bool(const std::string&)>;
@@ -128,18 +129,15 @@ class DiskCache {
   /// take a very long time, so use with care.
   void Compact();
 
-  OperationOutcome OpenError() const { return error_; }
+  OperationOutcome<> OpenError() const { return error_; }
 
   bool Put(const std::string& key, leveldb::Slice slice);
 
-  /// @deprecated Please use Get(const std::string&,
-  /// KeyValueCache::ValueTypePtr&) instead.
-  boost::optional<std::string> Get(const std::string& key);
-
-  bool Get(const std::string& key, KeyValueCache::ValueTypePtr& value);
+  OperationOutcome<KeyValueCache::ValueTypePtr> Get(const std::string& key);
 
   /// Remove single key/value from DB.
-  bool Remove(const std::string& key, uint64_t& removed_data_size);
+  OperationOutcome<> Remove(const std::string& key,
+                            uint64_t& removed_data_size);
 
   /// Get a new leveldb cache iterator. Use options.fill_cache = false for bulk
   /// scans.
@@ -147,12 +145,12 @@ class DiskCache {
 
   /// Allow batch writing so that we can delete and write multiple values at
   /// the same time.
-  OperationOutcome ApplyBatch(std::unique_ptr<leveldb::WriteBatch> batch);
+  OperationOutcome<> ApplyBatch(std::unique_ptr<leveldb::WriteBatch> batch);
 
   /// Empty prefix deleted everything from DB. Returns size of removed data.
-  bool RemoveKeysWithPrefix(const std::string& prefix,
-                            uint64_t& removed_data_size,
-                            const RemoveFilterFunc& filter = nullptr);
+  OperationOutcome<> RemoveKeysWithPrefix(
+      const std::string& prefix, uint64_t& removed_data_size,
+      const RemoveFilterFunc& filter = nullptr);
 
   /// Check if cache contains data with the key.
   bool Contains(const std::string& key);
@@ -183,7 +181,7 @@ class DiskCache {
   std::atomic<bool> compacting_{false};
   /// Used to asynchronously call database_->CompactRange().
   std::thread compaction_thread_;
-  OperationOutcome error_;
+  OperationOutcome<> error_;
 };
 
 }  // namespace cache
