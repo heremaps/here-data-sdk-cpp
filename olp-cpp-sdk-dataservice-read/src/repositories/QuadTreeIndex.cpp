@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2022 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@
 #include "QuadTreeIndex.h"
 
 #include <algorithm>
-#include <bitset>
 #include <iostream>
 
 #include <olp/core/logging/Log.h>
+#include <rapidjson/allocators.h>
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
 #include "BlobDataReader.h"
@@ -91,7 +91,7 @@ bool WriteIndexData(const QuadTreeIndex::IndexData& data,
 }
 }  // namespace
 
-QuadTreeIndex::QuadTreeIndex(cache::KeyValueCache::ValueTypePtr data) {
+QuadTreeIndex::QuadTreeIndex(const cache::KeyValueCache::ValueTypePtr& data) {
   if (data == nullptr || data->empty()) {
     return;
   }
@@ -102,16 +102,19 @@ QuadTreeIndex::QuadTreeIndex(cache::KeyValueCache::ValueTypePtr data) {
 
 QuadTreeIndex::QuadTreeIndex(const olp::geo::TileKey& root, int depth,
                              std::stringstream& json_stream) {
-  std::vector<IndexData> subs;
-  std::vector<IndexData> parents;
+  static thread_local rapidjson::CrtAllocator crt_allocator;
+  static thread_local rapidjson::MemoryPoolAllocator<> pool_allocator;
+  rapidjson::Document doc(&pool_allocator, 4096, &crt_allocator);
 
-  rapidjson::Document doc;
   rapidjson::IStreamWrapper stream(json_stream);
   doc.ParseStream(stream);
 
   if (!doc.IsObject()) {
     return;
   }
+
+  std::vector<IndexData> subs;
+  std::vector<IndexData> parents;
 
   auto parent_quads_value = doc.FindMember(kParentQuadsKey);
   auto sub_quads_value = doc.FindMember(kSubQuadsKey);
@@ -134,7 +137,8 @@ QuadTreeIndex::QuadTreeIndex(const olp::geo::TileKey& root, int depth,
 
       IndexData data = ParseCommonIndexData(value);
       data.data_handle = obj[kDataHandleKey].GetString();
-      data.tile_key = root.FromHereTile(obj[kPartitionKey].GetString());
+      data.tile_key =
+          olp::geo::TileKey::FromHereTile(obj[kPartitionKey].GetString());
       parents.push_back(std::move(data));
     }
   }
@@ -235,7 +239,8 @@ void QuadTreeIndex::CreateBlob(olp::geo::TileKey root, int depth,
   for (const IndexData& data : subs) {
     *entry_ptr++ = {
         std::uint16_t(olp::geo::QuadKey64Helper{data.tile_key.ToQuadKey64()}
-                          .GetSubkey(data.tile_key.Level() - root_quad_level)
+                          .GetSubkey(static_cast<int>(data.tile_key.Level() -
+                                                      root_quad_level))
                           .key),
         static_cast<uint32_t>(serializer.GetOffset())};
     if (!WriteIndexData(data, serializer)) {
@@ -247,7 +252,7 @@ void QuadTreeIndex::CreateBlob(olp::geo::TileKey root, int depth,
     }
   }
 
-  ParentEntry* parent_ptr = reinterpret_cast<ParentEntry*>(entry_ptr);
+  auto* parent_ptr = reinterpret_cast<ParentEntry*>(entry_ptr);
   for (const IndexData& data : parents) {
     *parent_ptr++ = {data.tile_key.ToQuadKey64(),
                      static_cast<uint32_t>(serializer.GetOffset())};
@@ -271,8 +276,8 @@ boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::Find(
 
   IndexData data;
   if (tile_key.Level() >= root_tile_key.Level()) {
-    std::uint16_t sub = std::uint16_t(
-        tile_key.GetSubkey64(tile_key.Level() - root_tile_key.Level()));
+    auto sub = std::uint16_t(tile_key.GetSubkey64(
+        static_cast<int>(tile_key.Level() - root_tile_key.Level())));
 
     const SubEntry* end = SubEntryEnd();
     const SubEntry* entry =
@@ -351,7 +356,7 @@ boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::FindNearestParent(
     }
   }
 
-  uint32_t limit = static_cast<uint32_t>(raw_data_->size());
+  auto limit = static_cast<uint32_t>(raw_data_->size());
 
   for (auto it = ParentEntryEnd(); it-- != ParentEntryBegin();) {
     auto key = geo::TileKey::FromQuadKey64(it->key);
@@ -375,7 +380,7 @@ std::vector<QuadTreeIndex::IndexData> QuadTreeIndex::GetIndexData() const {
   }
   result.reserve(data_->parent_count + data_->subkey_count);
 
-  uint32_t limit = static_cast<uint32_t>(raw_data_->size());
+  auto limit = static_cast<uint32_t>(raw_data_->size());
 
   for (auto it = ParentEntryEnd(); it-- != ParentEntryBegin();) {
     QuadTreeIndex::IndexData data;

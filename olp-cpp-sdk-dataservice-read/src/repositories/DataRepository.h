@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,11 +57,11 @@ class DataRepository final {
                                         client::CancellationContext context,
                                         bool fail_on_cache_error = false);
 
-  BlobApi::DataResponse GetBlobData(const std::string& layer,
-                                    const std::string& service,
-                                    const DataRequest& request,
-                                    client::CancellationContext context,
-                                    bool fail_on_cache_error = false);
+  BlobApi::DataResponse GetBlobData(
+      const std::string& layer, const std::string& service,
+      const model::Partition& partition, FetchOptions fetch_option,
+      const boost::optional<std::string>& billing_tag,
+      client::CancellationContext context, bool fail_on_cache_error = false);
 
  private:
   client::HRN catalog_;

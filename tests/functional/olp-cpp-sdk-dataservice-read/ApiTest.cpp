@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -267,10 +267,12 @@ TEST_F(ApiTest, GetBlob) {
 
   olp::client::CancellationContext context;
 
+  olp::dataservice::read::model::Partition partition;
+  partition.SetDataHandle("d5d73b64-7365-41c3-8faf-aa6ad5bab135");
+
   auto start_time = std::chrono::high_resolution_clock::now();
   auto data_response = olp::dataservice::read::BlobApi::GetBlob(
-      blob_client, "testlayer", "d5d73b64-7365-41c3-8faf-aa6ad5bab135",
-      boost::none, boost::none, context);
+      blob_client, "testlayer", partition, boost::none, boost::none, context);
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;
