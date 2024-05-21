@@ -121,7 +121,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
       - name: Install Ubuntu dependencies
-        run: sudo rm /etc/apt/sources.list.d/microsoft-prod.list && sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
+        run: sudo rm /etc/apt/sources.list.d/microsoft-prod.list && sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-13 g++-13 --no-install-recommends
         shell: bash
       - name: Compile project with cmake and ccache
         run: gcc --version && ./scripts/linux/psv/build_psv.sh
