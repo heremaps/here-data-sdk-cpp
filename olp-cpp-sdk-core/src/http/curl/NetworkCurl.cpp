@@ -746,7 +746,19 @@ ErrorCode NetworkCurl::SendImplementation(
   curl_easy_setopt(curl_handle, CURLOPT_ERRORBUFFER, handle->error_text);
 
 #if CURL_AT_LEAST_VERSION(7, 21, 0)
+
+// The call below instructs curl to advertise to the server that it may return
+// content in compressed form. If the server does that then curl will
+// transparently decode the data and return it to the client application in
+// uncompressed form. This usually works as intended, but causes issues if the
+// client code overwrites the Accept-Encoding HTTP request header: In that
+// case, curl may or may not decompress the HTTP response, and client code has
+// no reliable way to determine if the content is still compressed. For that
+// use case, we allow disabling this transparent decompression feature via a
+// pre-processor #define.
+#ifndef OLP_SDK_DISABLE_TRANSPARENT_CONTENT_ENCODING
   curl_easy_setopt(curl_handle, CURLOPT_ACCEPT_ENCODING, "");
+#endif
   curl_easy_setopt(curl_handle, CURLOPT_TRANSFER_ENCODING, 1L);
 #endif
 
