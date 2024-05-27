@@ -262,6 +262,8 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
     Condition condition;
     http::NetworkResponse response{kCancelledErrorResponse};
     http::Headers headers;
+    std::mutex mutex;
+    bool can_call_data_callback{true};
   };
 
   auto response_data = std::make_shared<ResponseData>();
@@ -269,6 +271,17 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
   // We dont need a response body in case we want a stream
   auto response_body =
       data_callback ? nullptr : std::make_shared<std::stringstream>();
+
+  auto data_callback_proxy =
+      !data_callback
+          ? http::Network::DataCallback{}
+          : [data_callback, response_data](const uint8_t* data, uint64_t offset,
+                                           size_t length) {
+              std::lock_guard<std::mutex> lock(response_data->mutex);
+              if (response_data->can_call_data_callback) {
+                data_callback(data, offset, length);
+              }
+            };
 
   http::SendOutcome outcome{http::ErrorCode::CANCELLED_ERROR};
   const auto timeout = std::chrono::seconds(retry_settings.timeout);
@@ -285,7 +298,7 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
               response_data->headers.emplace_back(std::move(key),
                                                   std::move(value));
             },
-            data_callback);
+            data_callback_proxy);
 
         if (!outcome.IsSuccessful()) {
           OLP_SDK_LOG_WARNING_F(kLogTag,
@@ -308,7 +321,8 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
     return ToHttpResponse(outcome);
   }
 
-  if (!response_data->condition.Wait(timeout)) {
+  const auto condition_triggered = response_data->condition.Wait(timeout);
+  if (!condition_triggered) {
     OLP_SDK_LOG_WARNING_F(
         kLogTag,
         "Request timed out, request_id=%" PRIu64
@@ -316,11 +330,16 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
         outcome.GetRequestId(), static_cast<int>(timeout.count()),
         retry_settings.max_attempts, request.GetUrl().c_str());
     context.CancelOperation();
-    return ToHttpResponse(kTimeoutErrorResponse);
   }
 
-  if (context.IsCancelled()) {
-    return ToHttpResponse(kCancelledErrorResponse);
+  {
+    std::lock_guard<std::mutex> lock(response_data->mutex);
+    response_data->can_call_data_callback = false;
+  }
+
+  if (context.IsCancelled() || !condition_triggered) {
+    return ToHttpResponse(condition_triggered ? kCancelledErrorResponse
+                                              : kTimeoutErrorResponse);
   }
 
   HttpResponse response = [&]() {
