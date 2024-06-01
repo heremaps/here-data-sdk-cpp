@@ -50,18 +50,18 @@ class DataRepository final {
                                          const DataRequest& request,
                                          int64_t version,
                                          client::CancellationContext context,
-                                         bool fail_on_cache_error = false);
+                                         bool fail_on_cache_error);
 
   BlobApi::DataResponse GetVolatileData(const std::string& layer_id,
                                         const DataRequest& request,
                                         client::CancellationContext context,
-                                        bool fail_on_cache_error = false);
+                                        bool fail_on_cache_error);
 
   BlobApi::DataResponse GetBlobData(
       const std::string& layer, const std::string& service,
       const model::Partition& partition, FetchOptions fetch_option,
       const boost::optional<std::string>& billing_tag,
-      client::CancellationContext context, bool fail_on_cache_error = false);
+      client::CancellationContext context, bool fail_on_cache_error);
 
  private:
   client::HRN catalog_;

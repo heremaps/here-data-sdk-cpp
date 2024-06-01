@@ -112,7 +112,8 @@ client::CancellationToken VolatileLayerClientImpl::GetData(
   auto task = [=](client::CancellationContext context) {
     repository::DataRepository repository(catalog_, settings_, lookup_client_,
                                           mutex_storage_);
-    return repository.GetVolatileData(layer_id_, request, context);
+    return repository.GetVolatileData(layer_id_, request, std::move(context),
+                                      settings_.propagate_all_cache_errors);
   };
 
   return task_sink_.AddTask(std::move(task), std::move(callback),

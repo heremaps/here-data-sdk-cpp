@@ -1448,4 +1448,141 @@ TEST(VersionedLayerClientTest, QuadTreeIndex) {
     EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::NotFound);
   }
 }
+
+TEST(VersionedLayerClientTest, PropagateAllCacheErrors) {
+  auto network_mock = std::make_shared<NetworkMock>();
+  auto cache_mock = std::make_shared<CacheMock>();
+  olp::client::OlpClientSettings settings;
+  settings.cache = cache_mock;
+  settings.network_request_handler = network_mock;
+  settings.propagate_all_cache_errors = true;
+
+  const auto kVersion = 4u;
+
+  read::VersionedLayerClientImpl client(kHrn, kLayerId, boost::none, settings);
+
+  auto apis = ApiDefaultResponses::GenerateResourceApisResponse(kCatalog);
+  auto api_response = ResponseGenerator::ResourceApis(apis);
+
+  PlatformUrlsGenerator generator(apis, kLayerId);
+
+  auto quad_path = generator.VersionedQuadTree("92259", kVersion, 4);
+  ASSERT_FALSE(quad_path.empty());
+  auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
+  auto response_quad = ReadDefaultResponses::GenerateQuadTreeResponse(
+      tile_key.ChangedLevelBy(-4), 4, {9, 10, 11, 12});
+  auto tile_path =
+      generator.DataBlob(ReadDefaultResponses::GenerateDataHandle(kHereTile));
+  ASSERT_FALSE(tile_path.empty());
+  auto version_path = generator.LatestVersion();
+  ASSERT_FALSE(version_path.empty());
+
+  {
+    SCOPED_TRACE("GetData call");
+
+    EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::api"), _, _, _))
+        .WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::quadtree"), _, _))
+        .WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*cache_mock,
+                Put(testing::HasSubstr("::latestVersion"), _, _, _))
+        .WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::Data"), _, _))
+        .WillRepeatedly(testing::Return(false));
+
+    EXPECT_CALL(*cache_mock, Get(_, _))
+        .WillRepeatedly(testing::Return(boost::any()));
+    EXPECT_CALL(*cache_mock, Get(_)).WillRepeatedly(testing::Return(nullptr));
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               api_response));
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(version_path), _, _, _, _))
+        .WillRepeatedly(ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(
+                olp::http::HttpStatusCode::OK),
+            olp::serializer::serialize(
+                ReadDefaultResponses::GenerateVersionResponse(kVersion))));
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(quad_path), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               response_quad));
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(tile_path), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               "data"));
+
+    auto future =
+        client.GetData(read::TileRequest().WithTileKey(tile_key)).GetFuture();
+
+    const auto& response = future.get();
+    ASSERT_FALSE(response);
+    ASSERT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::CacheIO);
+
+    Mock::VerifyAndClearExpectations(network_mock.get());
+    Mock::VerifyAndClearExpectations(cache_mock.get());
+  }
+
+  {
+    SCOPED_TRACE("GetAggregatedData call");
+
+    EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::api"), _, _, _))
+        .WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::quadtree"), _, _))
+        .WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*cache_mock,
+                Put(testing::HasSubstr("::latestVersion"), _, _, _))
+        .WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::Data"), _, _))
+        .WillRepeatedly(testing::Return(false));
+
+    EXPECT_CALL(*cache_mock, Get(_, _))
+        .WillRepeatedly(testing::Return(boost::any()));
+    EXPECT_CALL(*cache_mock, Get(_)).WillRepeatedly(testing::Return(nullptr));
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               api_response));
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(version_path), _, _, _, _))
+        .WillRepeatedly(ReturnHttpResponse(
+            olp::http::NetworkResponse().WithStatus(
+                olp::http::HttpStatusCode::OK),
+            olp::serializer::serialize(
+                ReadDefaultResponses::GenerateVersionResponse(kVersion))));
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(quad_path), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               response_quad));
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(tile_path), _, _, _, _))
+        .WillRepeatedly(
+            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                   olp::http::HttpStatusCode::OK),
+                               "data"));
+
+    auto future =
+        client.GetAggregatedData(read::TileRequest().WithTileKey(tile_key))
+            .GetFuture();
+
+    const auto& response = future.get();
+    ASSERT_FALSE(response);
+    ASSERT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::CacheIO);
+
+    Mock::VerifyAndClearExpectations(network_mock.get());
+    Mock::VerifyAndClearExpectations(cache_mock.get());
+  }
+}
 }  // namespace

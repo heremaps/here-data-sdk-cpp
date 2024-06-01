@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -232,12 +232,20 @@ struct CORE_API OlpClientSettings {
    * This setting only applies to the mutable cache and to the in-memory cache,
    * but should not affect the protected cache as no entries are added to the
    * protected cache in read-only mode. Set to std::chrono::seconds::max() to
-   * disable expiration. By default expiration is disabled.
+   * disable expiration. By default, expiration is disabled.
    *
    * @note This only makes sense for data that has an expiration limit, e.g.
    * volatile or versioned, and which is stored in cache.
    */
   std::chrono::seconds default_cache_expiration = std::chrono::seconds::max();
+
+  /**
+   * @brief The flag to enable or disable the propagation of all cache errors.
+   *
+   * When set to `false` only critical cache errors are propagated to the user.
+   * By default, this setting is set to `false`.
+   */
+  bool propagate_all_cache_errors = false;
 };
 
 }  // namespace client

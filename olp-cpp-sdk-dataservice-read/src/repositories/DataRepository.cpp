@@ -74,7 +74,8 @@ DataResponse DataRepository::GetVersionedTile(
 
   auto data_response =
       GetBlobData(layer_id, kBlobService, partition, request.GetFetchOption(),
-                  request.GetBillingTag(), std::move(context));
+                  request.GetBillingTag(), std::move(context),
+                  settings_.propagate_all_cache_errors);
   network_statistics += data_response.GetPayload();
 
   if (data_response) {
