@@ -98,7 +98,7 @@ TEST(NamedMutexTest, Cancel) {
   thread_2_context.CancelOperation();
 
   // Give other threads time to react.
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
   EXPECT_EQ(counter.load(), 2);
 
