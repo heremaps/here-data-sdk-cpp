@@ -24,6 +24,7 @@
 #include <thread>
 
 #include <matchers/NetworkUrlMatchers.h>
+#include <mocks/CacheMock.h>
 #include <mocks/NetworkMock.h>
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/client/ApiLookupClient.h>
@@ -127,7 +128,7 @@ TEST_F(DataRepositoryTest, GetBlobData) {
   auto response = repository.GetBlobData(
       kLayerId, kService, partition,
       olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context);
+      context, false);
 
   ASSERT_TRUE(response.IsSuccessful());
 }
@@ -149,7 +150,7 @@ TEST_F(DataRepositoryTest, GetBlobDataApiLookupFailed403) {
   auto response = repository.GetBlobData(
       kLayerId, kService, partition,
       olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context);
+      context, false);
 
   ASSERT_FALSE(response.IsSuccessful());
 }
@@ -164,7 +165,7 @@ TEST_F(DataRepositoryTest, GetBlobDataNoDataHandle) {
   auto response = repository.GetBlobData(
       kLayerId, kService, olp::dataservice::read::model::Partition(),
       olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context);
+      context, false);
 
   ASSERT_FALSE(response.IsSuccessful());
 }
@@ -191,7 +192,7 @@ TEST_F(DataRepositoryTest, GetBlobDataFailedDataFetch403) {
   auto response = repository.GetBlobData(
       kLayerId, kService, partition,
       olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context);
+      context, false);
 
   ASSERT_FALSE(response.IsSuccessful());
 }
@@ -220,7 +221,7 @@ TEST_F(DataRepositoryTest, GetBlobDataCache) {
   auto response = repository.GetBlobData(
       kLayerId, kService, partition,
       olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context);
+      context, false);
 
   ASSERT_TRUE(response.IsSuccessful());
 
@@ -229,7 +230,7 @@ TEST_F(DataRepositoryTest, GetBlobDataCache) {
   response = repository.GetBlobData(
       kLayerId, kService, partition,
       olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context);
+      context, false);
 
   ASSERT_TRUE(response.IsSuccessful());
 }
@@ -260,7 +261,7 @@ TEST_F(DataRepositoryTest, GetBlobDataImmediateCancel) {
   auto response = repository.GetBlobData(
       kLayerId, kService, partition,
       olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context);
+      context, false);
 
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Cancelled);
@@ -295,7 +296,7 @@ TEST_F(DataRepositoryTest, GetBlobDataInProgressCancel) {
   auto response = repository.GetBlobData(
       kLayerId, kService, partition,
       olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context);
+      context, false);
 
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Cancelled);
@@ -339,7 +340,7 @@ TEST_F(DataRepositoryTest, GetBlobDataSimultaniousFailedCalls) {
     auto response = repository.GetBlobData(
         kLayerId, kService, partition,
         olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-        context);
+        context, false);
     EXPECT_FALSE(response.IsSuccessful());
   });
 
@@ -357,7 +358,7 @@ TEST_F(DataRepositoryTest, GetBlobDataSimultaniousFailedCalls) {
     auto response = repository.GetBlobData(
         kLayerId, kService, partition,
         olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-        context);
+        context, false);
     EXPECT_FALSE(response.IsSuccessful());
   });
 
@@ -590,7 +591,7 @@ TEST_F(DataRepositoryTest, GetBlobDataCancelParralellRequest) {
     auto response = repository.GetBlobData(
         kLayerId, kService, partition,
         olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-        context);
+        context, false);
 
     EXPECT_FALSE(response);
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -604,7 +605,7 @@ TEST_F(DataRepositoryTest, GetBlobDataCancelParralellRequest) {
     auto response = repository.GetBlobData(
         kLayerId, kService, partition,
         olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-        context);
+        context, false);
 
     EXPECT_FALSE(response);
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -630,5 +631,101 @@ TEST_F(DataRepositoryTest, GetBlobDataCancelParralellRequest) {
 
   // Compare time spanding for waiting for threads to finish
   EXPECT_LT(end - start, wait_time);
+}
+
+TEST_F(DataRepositoryTest, GetBlobDataFailedToCache) {
+  auto cache_mock = std::make_shared<CacheMock>();
+
+  settings_->propagate_all_cache_errors = true;
+  settings_->cache = cache_mock;
+
+  EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::api"), _, _, _))
+      .WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::Data"), _, _))
+      .WillRepeatedly(testing::Return(false));
+
+  EXPECT_CALL(*cache_mock, Get(_, _))
+      .WillRepeatedly(testing::Return(boost::any()));
+  EXPECT_CALL(*cache_mock, Get(_)).WillRepeatedly(testing::Return(nullptr));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kUrlResponseLookup));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlBlobData269), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   "someData"));
+
+  olp::client::CancellationContext context;
+
+  olp::dataservice::read::model::Partition partition;
+  partition.SetDataHandle(kUrlBlobDataHandle);
+
+  olp::client::HRN hrn(GetTestCatalog());
+  ApiLookupClient lookup_client(hrn, *settings_);
+  DataRepository repository(hrn, *settings_, lookup_client);
+  auto response = repository.GetBlobData(
+      kLayerId, kService, partition,
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
+      context, true);
+
+  ASSERT_FALSE(response);
+  ASSERT_EQ(response.GetError().GetErrorCode(),
+            olp::client::ErrorCode::CacheIO);
+}
+
+TEST_F(DataRepositoryTest, GetVersionedDataTileFailedToCache) {
+  auto cache_mock = std::make_shared<CacheMock>();
+
+  settings_->propagate_all_cache_errors = true;
+  settings_->cache = cache_mock;
+
+  EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::api"), _, _, _))
+      .WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::quadtree"), _, _))
+      .WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::Data"), _, _))
+      .WillRepeatedly(testing::Return(false));
+
+  EXPECT_CALL(*cache_mock, Get(_, _))
+      .WillRepeatedly(testing::Return(boost::any()));
+  EXPECT_CALL(*cache_mock, Get(_)).WillRepeatedly(testing::Return(nullptr));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillRepeatedly(
+          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                 olp::http::HttpStatusCode::OK),
+                             kUrlResponseLookup));
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(kUrlQueryTreeIndex), _, _, _, _))
+      .WillRepeatedly(
+          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                 olp::http::HttpStatusCode::OK),
+                             kSubQuads));
+
+  EXPECT_CALL(*network_mock_,
+              Send(IsGetRequest(kUrlBlobData5904591), _, _, _, _))
+      .WillRepeatedly(
+          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                 olp::http::HttpStatusCode::OK),
+                             "someData"));
+
+  olp::client::HRN hrn(GetTestCatalog());
+  const auto kVersion = 4u;
+
+  auto request = olp::dataservice::read::TileRequest().WithTileKey(
+      olp::geo::TileKey::FromHereTile("5904591"));
+  olp::client::CancellationContext context;
+  ApiLookupClient lookup_client(hrn, *settings_);
+  DataRepository repository(hrn, *settings_, lookup_client);
+  auto response =
+      repository.GetVersionedTile(kLayerId, request, kVersion, context);
+
+  ASSERT_FALSE(response);
+  ASSERT_EQ(response.GetError().GetErrorCode(),
+            olp::client::ErrorCode::CacheIO);
 }
 }  // namespace

@@ -191,7 +191,8 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
 
     repository::DataRepository repository(catalog_, settings_, lookup_client_,
                                           mutex_storage_);
-    return repository.GetVersionedData(layer_id_, request, version, context);
+    return repository.GetVersionedData(layer_id_, request, version, context,
+                                       settings_.propagate_all_cache_errors);
   };
 
   return task_sink_.AddTask(std::move(data_task), std::move(callback),
@@ -841,7 +842,8 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     repository::DataRepository data_repository(catalog_, settings_,
                                                lookup_client_, mutex_storage_);
     auto data_response = data_repository.GetVersionedData(
-        layer_id_, data_request, version, context);
+        layer_id_, data_request, version, context,
+        settings_.propagate_all_cache_errors);
 
     const auto aggregated_network_statistics =
         partition_response.GetPayload() + data_response.GetPayload();
