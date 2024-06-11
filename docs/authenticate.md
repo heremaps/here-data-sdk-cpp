@@ -2,7 +2,7 @@
 
 To authenticate to the HERE platform and start working with HERE Data SDK for C++, you need to get an access token. You can receive it using a [default token provider](#authenticate-using-a-default-token-provider), [project authentication](#authenticate-using-project-authentication), or [federated credentials](#authenticate-using-federated-credentials).
 
-For instructions, see the [OAuth tokens](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/dev-token.html) section in the Identity & Access Management Developer Guide.
+For instructions, see the [OAuth tokens](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/dev-token.html) section in the Identity & Access Management Developer Guide.
 
 > #### Note
 > Keep your credentials secure and do not disclose them. Make sure that your credentials are not stored in a way that enables others to access them.
@@ -11,14 +11,14 @@ For instructions, see the [OAuth tokens](https://developer.here.com/documentatio
 
 1. Get your platform credentials.
 
-   For instructions, see the [Register your application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
+   For instructions, see the [Register your application](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/plat-token.html#step-1-register-your-application-and-get-credentials) section in the Identity & Access Management Developer Guide.
 
    You get the `credentials.properties` file.
 
 2. Initialize the authentication settings using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `kKeyId` and `kKeySecret` respectively.
 
    > #### Note
-   > You can also retrieve your credentials from the `credentials.properties` file using the `ReadFromFile` method. For more information, see the [related API documentation](https://developer.here.com/documentation/sdk-cpp/api_reference/classolp_1_1authentication_1_1_authentication_credentials.html#a6bfd8347ebe89e45713b966e621dccdd).
+   > You can also retrieve your credentials from the `credentials.properties` file using the `ReadFromFile` method. For more information, see the [related API documentation](https://www.here.com/docs/bundle/data-sdk-for-cpp-api-reference/page/namespaceolp_1_1authentication.html#).
 
    ```cpp
    olp::authentication::Settings settings({kKeyId, kKeySecret});
@@ -42,12 +42,12 @@ You can use the `AuthenticationSettings` object to create the `OlpClientSettings
 
 1. Get your platform credentials.
 
-   For instructions, see the [Register your application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
+   For instructions, see the [Register your application](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/plat-token.html#step-1-register-your-application-and-get-credentials) section in the Identity & Access Management Developer Guide.
 
 2. Initialize the `AuthenticationCredentials` class using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `kKeyId` and `kKeySecret` respectively.
 
    > #### Note
-   > You can also retrieve your credentials from the `credentials.properties` file using the `ReadFromFile` method. For more information, see the [related API documentation](https://developer.here.com/documentation/sdk-cpp/api_reference/classolp_1_1authentication_1_1_authentication_credentials.html#a6bfd8347ebe89e45713b966e621dccdd).
+   > You can also retrieve your credentials from the `credentials.properties` file using the `ReadFromFile` method. For more information, see the [related API documentation](https://www.here.com/docs/bundle/data-sdk-for-cpp-api-reference/page/namespaceolp_1_1authentication.html#).
 
    ```cpp
    olp::authentication::AuthenticationCredentials credentials(kKeyId, kKeySecret);
@@ -88,14 +88,14 @@ You can use the `AuthenticationSettings` object to create the `OlpClientSettings
 
 1. Get your platform credentials.
 
-   For instructions, see the [Register your application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
+   For instructions, see the [Register your application](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/plat-token.html#step-1-register-your-application-and-get-credentials) section in the Identity & Access Management Developer Guide.
 
    You get the `credentials.properties` file.
 
 2. Initialize the `AuthenticationCredentials` class using the **here.access.key.іd** and **here.access.key.secret** from the `credentials.properties` file as `kKeyId` and `kKeySecret` respectively.
 
    > #### Note
-   > You can also retrieve your credentials from the `credentials.properties` file using the `ReadFromFile` method. For more information, see the [related API documentation](https://developer.here.com/documentation/sdk-cpp/api_reference/classolp_1_1authentication_1_1_authentication_credentials.html#a6bfd8347ebe89e45713b966e621dccdd).
+   > You can also retrieve your credentials from the `credentials.properties` file using the `ReadFromFile` method. For more information, see the [related API documentation](https://www.here.com/docs/bundle/data-sdk-for-cpp-api-reference/page/namespaceolp_1_1authentication.html#).
 
    ```cpp
    olp::authentication::AuthenticationCredentials credentials(kKeyId, kKeySecret);
@@ -111,7 +111,7 @@ You can use the `AuthenticationSettings` object to create the `OlpClientSettings
 
 4. Get your federated (Facebook or ArcGIS) properties.
 
-   You should have at least your federated access token. For the complete list of federated properties, see the [related documentation](https://developer.here.com/documentation/sdk-cpp/api_reference/structolp_1_1authentication_1_1_authentication_client_1_1_federated_properties.html).
+   You should have at least your federated access token. For the complete list of federated properties, see the [related documentation](https://www.here.com/docs/bundle/data-sdk-for-cpp-api-reference/page/structolp_1_1authentication_1_1AuthenticationClient_1_1FederatedProperties.html).
 
 5. Initialize your federated properties.
 

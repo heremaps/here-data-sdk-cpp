@@ -6,7 +6,7 @@ On this page, find instructions on how to build and run the write example projec
 
 1. On the [Apps & keys](https://platform.here.com/admin/apps) page, copy your application access key ID and access key secret.
 
-   For instructions on how to get the access key ID and access key secret, see [Register your application](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/plat-token.html#step-1-register-your-application) section in the Identity & Access Management Developer Guide.
+   For instructions on how to get the access key ID and access key secret, see [Register your application](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/plat-token.html#step-1-register-your-application-and-get-credentials) section in the Identity & Access Management Developer Guide.
 
 2. In <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/examples/main.cpp" target="_blank">examples/main.cpp</a>, replace the placeholders with your access key ID, access key secret, Here Resource Name (HRN) of the catalog, and name of the layer to which you want to publish data.
 
@@ -159,7 +159,7 @@ If you encounter an error message, for a detailed error description, check the d
 
 ### Publish data to a stream layer
 
-You can create a queue that streams data to data consumers in real time using a [stream layer](https://developer.here.com/documentation/data-user-guide/portal/layers/layers.html#stream-layers).
+You can create a queue that streams data to data consumers in real time using a [stream layer](https://www.here.com/docs/bundle/data-api-developer-guide/page/rest/layers.html#stream-layers).
 
 **To publish data to the stream layer:**
 

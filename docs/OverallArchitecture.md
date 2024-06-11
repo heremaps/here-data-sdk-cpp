@@ -48,21 +48,21 @@ For more information on how to use this module, see the [read and write examples
 The dataservice-read module wraps a subset of the Data REST API related to reading data from platform catalogs. It allows reading of data from the following layer types and with the listed Data APIs:
 
 * Versioned layer. Used Data APIs:
-  * [Config API](https://developer.here.com/documentation/data-store/api-reference-config.html)
-  * [Metadata API](https://developer.here.com/documentation/data-store/api-reference-metadata.html)
-  * [Query API](https://developer.here.com/documentation/data-store/api-reference-query.html)
-  * [Blob API](https://developer.here.com/documentation/data-store/api-reference-blob.html)
+  * [Config API](https://www.here.com/docs/bundle/data-api-config-v1-api-reference/page/index.html)
+  * [Metadata API](https://www.here.com/docs/bundle/data-api-metadata-v1-api-reference/page/index.html)
+  * [Query API](https://www.here.com/docs/bundle/data-api-query-v1-api-reference/page/index.html)
+  * [Blob API](https://www.here.com/docs/bundle/data-api-blob-v1-api-reference/page/index.html)
 * Volatile layer. Used Data APIs:
-  * [Config API](https://developer.here.com/documentation/data-store/api-reference-config.html)
-  * [Metadata API](https://developer.here.com/documentation/data-store/api-reference-metadata.html)
-  * [Query API](https://developer.here.com/documentation/data-store/api-reference-query.html)
-  * [Volatile API](https://developer.here.com/documentation/data-store/api-reference-volatile-blob.html)
+  * [Config API](https://www.here.com/docs/bundle/data-api-config-v1-api-reference/page/index.html)
+  * [Metadata API](https://www.here.com/docs/bundle/data-api-metadata-v1-api-reference/page/index.html)
+  * [Query API](https://www.here.com/docs/bundle/data-api-query-v1-api-reference/page/index.html)
+  * [Volatile API](https://www.here.com/docs/bundle/data-api-volatile-blob-v1-api-reference/page/index.html)
 * Index layer (not supported yet). Used Data APIs:
-  * [Index API](https://developer.here.com/documentation/data-store/api-reference-index.html)
-  * [Blob API](https://developer.here.com/documentation/data-store/api-reference-blob.html)
+  * [Index API](https://www.here.com/docs/bundle/data-api-index-v1-api-reference/page/index.html)
+  * [Blob API](https://www.here.com/docs/bundle/data-api-blob-v1-api-reference/page/index.html)
 * Stream layer. Used Data APIs:
-  * [Stream API](https://developer.here.com/documentation/data-store/api-reference-stream.html)
-  * [Blob API](https://developer.here.com/documentation/data-store/api-reference-blob.html)
+  * [Stream API](https://www.here.com/docs/bundle/data-api-stream-v1-api-reference/page/index.html)
+  * [Blob API](https://www.here.com/docs/bundle/data-api-blob-v1-api-reference/page/index.html)
 
 For more information on how to use this module, see the [read example](dataservice-read-catalog-example.md).
 
@@ -71,18 +71,18 @@ For more information on how to use this module, see the [read example](dataservi
 The dataservice-write module wraps a subset of the Data REST API related to writing data to platform catalogs. It allows writing of data to the following layer types and with the listed Data APIs:
 
 * Versioned layer. Used Data APIs:
-  * [Publish API](https://developer.here.com/documentation/data-store/api-reference-publish.html)
-  * [Blob API](https://developer.here.com/documentation/data-store/api-reference-blob.html)
+  * [Publish API](https://www.here.com/docs/bundle/data-api-publish-v2-api-reference/page/index.html)
+  * [Blob API](https://www.here.com/docs/bundle/data-api-blob-v1-api-reference/page/index.html)
 * Volatile layer. Used Data APIs:
-  * [Publish API](https://developer.here.com/documentation/data-store/api-reference-publish.html)
-  * [Volatile API](https://developer.here.com/documentation/data-store/api-reference-volatile-blob.html)
+  * [Publish API](https://www.here.com/docs/bundle/data-api-publish-v2-api-reference/page/index.html)
+  * [Volatile API](https://www.here.com/docs/bundle/data-api-volatile-blob-v1-api-reference/page/index.html)
 * Index layer. Used Data APIs:
-  * [Index API](https://developer.here.com/documentation/data-store/api-reference-index.html)
-  * [Blob API](https://developer.here.com/documentation/data-store/api-reference-blob.html)
+  * [Index API](https://www.here.com/docs/bundle/data-api-index-v1-api-reference/page/index.html)
+  * [Blob API](https://www.here.com/docs/bundle/data-api-blob-v1-api-reference/page/index.html)
 * Stream layer. Used Data APIs:
-  * [Ingest API](https://developer.here.com/documentation/data-store/api-reference-ingest.html)
-  * [Publish API](https://developer.here.com/documentation/data-store/api-reference-publish.html)
-  * [Blob API](https://developer.here.com/documentation/data-store/api-reference-blob.html)
+  * [Ingest API](https://here.com/docs/bundle/data-api-ingest-v1-api-reference/page/index.html)
+  * [Publish API](https://www.here.com/docs/bundle/data-api-publish-v2-api-reference/page/index.html)
+  * [Blob API](https://www.here.com/docs/bundle/data-api-blob-v1-api-reference/page/index.html)
 
 For more information on how to use this module, see the [write example](dataservice-write-example.md).
 

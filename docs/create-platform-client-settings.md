@@ -67,7 +67,7 @@ You need to create the `OlpClientSettings` object to get catalog and partition m
        olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
        ```
 
-       To learn how to get or change cache size, see [Work with a cache](https://developer.here.com/documentation/sdk-cpp/dev_guide/docs/work-with-cache.html).
+       To learn how to get or change cache size, see [Work with a cache](https://www.here.com/docs/bundle/data-sdk-for-cpp-developer-guide/page/topics/work-with-cache.html).
 
 6. Set up the `OlpClientSettings` object, and if you want to add the expiration limit for the data that is stored in the cache, set the `default_cache_expiration` to the needed expiration time.
 
