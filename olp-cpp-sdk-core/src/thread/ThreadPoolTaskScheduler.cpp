@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,8 +74,9 @@ struct ComparePrioritizedTask {
   }
 };
 
-void SetExecutorName(size_t idx) {
-  std::string thread_name = "OLPSDKPOOL_" + std::to_string(idx);
+void SetExecutorName(std::string name) {
+  std::string thread_name = "OLPSDKPOOL_" + std::move(name);
+
   SetCurrentThreadName(thread_name);
   OLP_SDK_LOG_INFO_F(kLogTag, "Starting thread '%s'", thread_name.c_str());
 }
@@ -97,13 +98,15 @@ class ThreadPoolTaskScheduler::QueueImpl {
 };
 
 ThreadPoolTaskScheduler::ThreadPoolTaskScheduler(size_t thread_count)
-    : queue_{std::make_unique<QueueImpl>()} {
-  thread_pool_.reserve(thread_count);
+    : queue_{std::make_unique<QueueImpl>()},
+      cancel_queue_{std::make_unique<QueueImpl>()} {
+  constexpr auto kCancelThreadsCount = 1;
+
+  thread_pool_.reserve(thread_count + kCancelThreadsCount);
 
   for (size_t idx = 0; idx < thread_count; ++idx) {
     std::thread executor([this, idx]() {
-      // Set thread name for easy profiling and debugging
-      SetExecutorName(idx);
+      SetExecutorName(std::to_string(idx));
 
       for (;;) {
         PrioritizedTask task;
@@ -116,10 +119,25 @@ ThreadPoolTaskScheduler::ThreadPoolTaskScheduler(size_t thread_count)
 
     thread_pool_.push_back(std::move(executor));
   }
+
+  for (size_t idx = 0; idx < kCancelThreadsCount; ++idx) {
+    thread_pool_.emplace_back([this, idx] {
+      SetExecutorName("CANCEL_" + std::to_string(idx));
+
+      for (;;) {
+        PrioritizedTask task;
+        if (!cancel_queue_->Pull(task)) {
+          return;
+        }
+        task.function();
+      }
+    });
+  }
 }
 
 ThreadPoolTaskScheduler::~ThreadPoolTaskScheduler() {
   queue_->Close();
+  cancel_queue_->Close();
   for (auto& thread : thread_pool_) {
     thread.join();
   }
@@ -128,6 +146,11 @@ ThreadPoolTaskScheduler::~ThreadPoolTaskScheduler() {
 
 void ThreadPoolTaskScheduler::EnqueueTask(TaskScheduler::CallFuncType&& func) {
   EnqueueTask(std::move(func), thread::NORMAL);
+}
+
+void ThreadPoolTaskScheduler::EnqueueCancelTask(
+    TaskScheduler::CallFuncType&& func) {
+  cancel_queue_->Push({std::move(func), thread::NORMAL});
 }
 
 void ThreadPoolTaskScheduler::EnqueueTask(TaskScheduler::CallFuncType&& func,

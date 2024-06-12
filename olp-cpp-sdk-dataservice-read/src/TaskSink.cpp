@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2022 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ client::CancellationToken TaskSink::AddTask(
       [=](client::ApiResponse<bool, client::ApiError>) { func(context); },
       context);
   AddTaskImpl(task, priority);
-  return task.CancelToken();
+  return task.CancelToken(task_scheduler_);
 }
 
 bool TaskSink::AddTaskImpl(client::TaskContext task, uint32_t priority) {
