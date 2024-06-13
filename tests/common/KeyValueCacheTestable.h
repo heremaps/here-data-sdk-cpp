@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 HERE Europe B.V.
+ * Copyright (C) 2021-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,26 @@ class KeyValueCacheTestable : public olp::cache::KeyValueCache {
     return base_cache_->IsProtected(key);
   }
 
+  olp::cache::OperationOutcome<KeyValueCache::ValueTypePtr> Read(
+      const std::string& key) override {
+    return base_cache_->Read(key);
+  }
+
+  olp::cache::OperationOutcomeEmpty Write(
+      const std::string& key, const KeyValueCache::ValueTypePtr& value,
+      time_t expiry) override {
+    return base_cache_->Write(key, value, expiry);
+  }
+
+  olp::cache::OperationOutcomeEmpty Delete(const std::string& key) override {
+    return base_cache_->Delete(key);
+  }
+
+  olp::cache::OperationOutcomeEmpty DeleteByPrefix(
+      const std::string& prefix) override {
+    return base_cache_->DeleteByPrefix(prefix);
+  }
+
  protected:
   std::shared_ptr<olp::cache::KeyValueCache> base_cache_;
 };
@@ -84,5 +104,11 @@ struct CacheWithPutErrors : public KeyValueCacheTestable {
 
   bool Put(const std::string&, const ValueTypePtr, time_t) override {
     return false;
+  }
+
+  olp::cache::OperationOutcomeEmpty Write(const std::string&,
+                                          const KeyValueCache::ValueTypePtr&,
+                                          time_t) override {
+    return olp::client::ApiError::CacheIO();
   }
 };

@@ -3389,16 +3389,15 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
       .Times(1)
       .WillOnce(Return(true));
 
-  EXPECT_CALL(*cache, Get("hrn:here:data::olp-here-test:hereos-internal-test-"
-                          "v2::testlayer::269::4::partition",
-                          _))
+  EXPECT_CALL(*cache, Read("hrn:here:data::olp-here-test:hereos-internal-test-"
+                           "v2::testlayer::269::4::partition"))
       .Times(1)
-      .WillOnce(Return(boost::any()));
-  EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:hereos-internal-test-"
-                          "v2::testlayer::269::4::partition",
-                          _, _, _))
+      .WillOnce(Return(client::ApiError::NotFound()));
+  EXPECT_CALL(*cache, Write("hrn:here:data::olp-here-test:hereos-internal-test-"
+                            "v2::testlayer::269::4::partition",
+                            _, _))
       .Times(1)
-      .WillOnce(Return(true));
+      .WillOnce(Return(client::ApiNoResult{}));
 
   EXPECT_CALL(*cache,
               Get("hrn:here:data::olp-here-test:hereos-internal-test-v2:"
@@ -3407,11 +3406,11 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
       .WillOnce(Return(nullptr));
 
   EXPECT_CALL(*cache,
-              Put("hrn:here:data::olp-here-test:hereos-internal-test-v2:"
-                  ":testlayer::4eed6ed1-0d32-43b9-ae79-043cb4256432::Data",
-                  _, _))
+              Write("hrn:here:data::olp-here-test:hereos-internal-test-v2:"
+                    ":testlayer::4eed6ed1-0d32-43b9-ae79-043cb4256432::Data",
+                    _, _))
       .Times(1)
-      .WillOnce(Return(true));
+      .WillOnce(Return(client::ApiNoResult{}));
 
   auto request = read::DataRequest()
                      .WithPartitionId(kTestPartition)
