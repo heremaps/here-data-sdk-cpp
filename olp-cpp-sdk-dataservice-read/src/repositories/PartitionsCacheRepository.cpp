@@ -278,7 +278,8 @@ bool PartitionsCacheRepository::ClearPartitionMetadata(
 
   auto read_response = cache_->Read(key);
   if (!read_response) {
-    return false;
+    return read_response.GetError().GetErrorCode() ==
+           client::ErrorCode::NotFound;
   }
 
   out_partition = parser::parse<model::Partition>(read_response.GetResult());

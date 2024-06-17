@@ -404,7 +404,7 @@ TEST(VolatileLayerClientImplTest, RemoveFromCachePartition) {
     EXPECT_CALL(*cache_mock, Read(_)).WillOnce([](const std::string&) {
       return olp::client::ApiError::NotFound();
     });
-    ASSERT_FALSE(client.RemoveFromCache(kPartitionId));
+    ASSERT_TRUE(client.RemoveFromCache(kPartitionId));
   }
   {
     SCOPED_TRACE("Partition cache failure");
@@ -465,7 +465,7 @@ TEST(VolatileLayerClientImplTest, RemoveFromCacheTileKey) {
     EXPECT_CALL(*cache_mock, Read(_)).WillOnce([](const std::string&) {
       return olp::client::ApiError::NotFound();
     });
-    ASSERT_FALSE(client.RemoveFromCache(tile_key));
+    ASSERT_TRUE(client.RemoveFromCache(tile_key));
   }
   {
     SCOPED_TRACE("Partition cache failure");
