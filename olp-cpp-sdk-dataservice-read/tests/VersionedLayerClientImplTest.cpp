@@ -148,7 +148,7 @@ TEST(VersionedLayerClientTest, RemoveFromCachePartition) {
     EXPECT_CALL(*cache_mock, Read(_)).WillOnce([](const std::string&) {
       return olp::client::ApiError::NotFound();
     });
-    ASSERT_FALSE(client.RemoveFromCache(kPartitionId));
+    ASSERT_TRUE(client.RemoveFromCache(kPartitionId));
   }
   {
     SCOPED_TRACE("Partition cache failure");
