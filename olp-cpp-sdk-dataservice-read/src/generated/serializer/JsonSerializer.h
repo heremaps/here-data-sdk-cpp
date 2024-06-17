@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
+#include "ByteVectorBuffer.h"
+
 namespace olp {
 namespace serializer {
 template <typename T>
@@ -37,6 +39,20 @@ inline std::string serialize(const T& object) {
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
   doc.Accept(writer);
   return buffer.GetString();
+}
+
+template <typename T>
+inline ByteVectorBuffer::Buffer serialize_bytes(const T& object) {
+  rapidjson::Document doc;
+  auto& allocator = doc.GetAllocator();
+
+  doc.SetObject();
+  to_json(object, doc, allocator);
+
+  ByteVectorBuffer buffer;
+  rapidjson::Writer<ByteVectorBuffer> writer(buffer);
+  doc.Accept(writer);
+  return buffer.GetBuffer();
 }
 
 }  // namespace serializer

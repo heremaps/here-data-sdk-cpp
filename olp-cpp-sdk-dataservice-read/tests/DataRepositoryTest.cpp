@@ -639,10 +639,10 @@ TEST_F(DataRepositoryTest, GetBlobDataFailedToCache) {
   settings_->propagate_all_cache_errors = true;
   settings_->cache = cache_mock;
 
-  EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::api"), _, _, _))
-      .WillRepeatedly(testing::Return(true));
-  EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::Data"), _, _))
-      .WillRepeatedly(testing::Return(false));
+  EXPECT_CALL(*cache_mock, Write(testing::HasSubstr("::api"), _, _))
+      .WillRepeatedly(testing::Return(olp::client::ApiNoResult{}));
+  EXPECT_CALL(*cache_mock, Write(testing::HasSubstr("::Data"), _, _))
+      .WillRepeatedly(testing::Return(olp::client::ApiError::CacheIO()));
 
   EXPECT_CALL(*cache_mock, Get(_, _))
       .WillRepeatedly(testing::Return(boost::any()));
@@ -682,12 +682,12 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileFailedToCache) {
   settings_->propagate_all_cache_errors = true;
   settings_->cache = cache_mock;
 
-  EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::api"), _, _, _))
-      .WillRepeatedly(testing::Return(true));
-  EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::quadtree"), _, _))
-      .WillRepeatedly(testing::Return(true));
-  EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::Data"), _, _))
-      .WillRepeatedly(testing::Return(false));
+  EXPECT_CALL(*cache_mock, Write(testing::HasSubstr("::api"), _, _))
+      .WillRepeatedly(testing::Return(olp::client::ApiNoResult{}));
+  EXPECT_CALL(*cache_mock, Write(testing::HasSubstr("::quadtree"), _, _))
+      .WillRepeatedly(testing::Return(olp::client::ApiNoResult{}));
+  EXPECT_CALL(*cache_mock, Write(testing::HasSubstr("::Data"), _, _))
+      .WillRepeatedly(testing::Return(olp::client::ApiError::CacheIO()));
 
   EXPECT_CALL(*cache_mock, Get(_, _))
       .WillRepeatedly(testing::Return(boost::any()));

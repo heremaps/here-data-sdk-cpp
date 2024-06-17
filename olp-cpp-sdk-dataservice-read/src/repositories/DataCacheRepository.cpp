@@ -54,9 +54,10 @@ client::ApiNoResponse DataCacheRepository::Put(const model::Data& data,
       cache::KeyGenerator::CreateDataHandleKey(hrn_, layer_id, data_handle);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
-  if (!cache_->Put(key, data, default_expiry_)) {
+  auto write_result = cache_->Write(key, data, default_expiry_);
+  if (!write_result) {
     OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to write -> '%s'", key.c_str());
-    return {{client::ErrorCode::CacheIO, "Put to cache failed"}};
+    return write_result.GetError();
   }
 
   return {client::ApiNoResult{}};

@@ -675,8 +675,7 @@ OperationOutcomeEmpty DefaultCacheImpl::PutMutableCache(
                              kExpiryValueSize;
   if (!mutable_cache_lru_ && expected_size > settings_.max_disk_storage) {
     // FIXME: This error is not correct
-    return client::ApiError(client::ErrorCode::CacheIO,
-                            "Cache is full and eviction is disabled");
+    return client::ApiError::CacheIO("Cache is full and eviction is disabled");
   }
 
   uint64_t added_data_size = 0u;
@@ -711,8 +710,7 @@ OperationOutcomeEmpty DefaultCacheImpl::PutMutableCache(
           kLogTag, "Failed to store value in mutable LRU cache, key %s",
           key.c_str());
       // FIXME: This error is not correct
-      return client::ApiError(client::ErrorCode::CacheIO,
-                              "Failed to store in mutable LRU cache");
+      return client::ApiError::CacheIO("Failed to store in mutable LRU cache");
     }
   }
 

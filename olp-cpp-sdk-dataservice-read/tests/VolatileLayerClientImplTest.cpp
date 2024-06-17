@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,10 @@
 #include <olp/dataservice/read/PrefetchTileResult.h>
 #include "KeyValueCacheTestable.h"
 #include "VolatileLayerClientImpl.h"
+// clang-format off
+#include "generated/serializer/PartitionsSerializer.h"
+#include "generated/serializer/JsonSerializer.h"
+// clang-format on
 
 namespace {
 namespace read = olp::dataservice::read;
@@ -365,12 +369,11 @@ TEST(VolatileLayerClientImplTest, RemoveFromCachePartition) {
   settings.cache = cache_mock;
 
   // successfull mock cache calls
-  auto found_cache_response = [](const std::string& /*key*/,
-                                 const olp::cache::Decoder& /*encoder*/) {
+  auto found_cache_response = [](const std::string& /*key*/) {
     auto partition = model::Partition();
     partition.SetPartition(kPartitionId);
     partition.SetDataHandle(kBlobDataHandle);
-    return partition;
+    return olp::serializer::serialize_bytes(partition);
   };
 
   auto partition_cache_remove = [&](const std::string& prefix) {
@@ -390,7 +393,7 @@ TEST(VolatileLayerClientImplTest, RemoveFromCachePartition) {
   read::VolatileLayerClientImpl client(kHrn, kLayerId, settings);
   {
     SCOPED_TRACE("Successfull remove partition from cache");
-    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
         .WillOnce(partition_cache_remove)
         .WillOnce(data_cache_remove);
@@ -398,22 +401,21 @@ TEST(VolatileLayerClientImplTest, RemoveFromCachePartition) {
   }
   {
     SCOPED_TRACE("Remove not existing partition from cache");
-    EXPECT_CALL(*cache_mock, Get(_, _))
-        .WillOnce([](const std::string&, const olp::cache::Decoder&) {
-          return boost::any();
-        });
-    ASSERT_TRUE(client.RemoveFromCache(kPartitionId));
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce([](const std::string&) {
+      return olp::client::ApiError::NotFound();
+    });
+    ASSERT_FALSE(client.RemoveFromCache(kPartitionId));
   }
   {
     SCOPED_TRACE("Partition cache failure");
-    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
         .WillOnce([](const std::string&) { return false; });
     ASSERT_FALSE(client.RemoveFromCache(kPartitionId));
   }
   {
     SCOPED_TRACE("Data cache failure");
-    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
         .WillOnce(partition_cache_remove)
         .WillOnce([](const std::string&) { return false; });
@@ -427,12 +429,11 @@ TEST(VolatileLayerClientImplTest, RemoveFromCacheTileKey) {
   settings.cache = cache_mock;
 
   // successfull mock cache calls
-  auto found_cache_response = [](const std::string& /*key*/,
-                                 const olp::cache::Decoder& /*encoder*/) {
+  auto found_cache_response = [](const std::string& /*key*/) {
     auto partition = model::Partition();
     partition.SetPartition(kPartitionId);
     partition.SetDataHandle(kBlobDataHandle);
-    return partition;
+    return olp::serializer::serialize_bytes(partition);
   };
 
   auto partition_cache_remove = [&](const std::string& prefix) {
@@ -453,7 +454,7 @@ TEST(VolatileLayerClientImplTest, RemoveFromCacheTileKey) {
   read::VolatileLayerClientImpl client(kHrn, kLayerId, settings);
   {
     SCOPED_TRACE("Successfull remove partition from cache");
-    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
         .WillOnce(partition_cache_remove)
         .WillOnce(data_cache_remove);
@@ -461,22 +462,21 @@ TEST(VolatileLayerClientImplTest, RemoveFromCacheTileKey) {
   }
   {
     SCOPED_TRACE("Remove not existing partition from cache");
-    EXPECT_CALL(*cache_mock, Get(_, _))
-        .WillOnce([](const std::string&, const olp::cache::Decoder&) {
-          return boost::any();
-        });
-    ASSERT_TRUE(client.RemoveFromCache(tile_key));
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce([](const std::string&) {
+      return olp::client::ApiError::NotFound();
+    });
+    ASSERT_FALSE(client.RemoveFromCache(tile_key));
   }
   {
     SCOPED_TRACE("Partition cache failure");
-    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
         .WillOnce([](const std::string&) { return false; });
     ASSERT_FALSE(client.RemoveFromCache(tile_key));
   }
   {
     SCOPED_TRACE("Data cache failure");
-    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
         .WillOnce(partition_cache_remove)
         .WillOnce([](const std::string&) { return false; });
@@ -494,7 +494,8 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
   olp::client::HRN catalog(kCatalog);
   read::VolatileLayerClientImpl client(catalog, kLayerId, settings);
 
-  EXPECT_CALL(*cache_mock, Put(_, _, _)).WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(*cache_mock, Write(_, _, _))
+      .WillRepeatedly(testing::Return(olp::client::ApiNoResult{}));
 
   {
     SCOPED_TRACE("Prefetch tiles and store them in memory cache");
@@ -772,7 +773,8 @@ TEST(VolatileLayerClientImplTest, PrefetchTilesCancellableFuture) {
   olp::client::HRN catalog(kCatalog);
   read::VolatileLayerClientImpl client(catalog, kLayerId, settings);
 
-  EXPECT_CALL(*cache_mock, Put(_, _, _)).WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(*cache_mock, Write(_, _, _))
+      .WillRepeatedly(testing::Return(olp::client::ApiNoResult{}));
 
   {
     SCOPED_TRACE("Prefetch tiles and store them in memory cache");

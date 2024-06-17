@@ -76,13 +76,13 @@ client::ApiNoResponse PartitionsCacheRepository::Put(
         catalog_, layer_id_, partition.GetPartition(), version);
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
-    const auto put_result = cache_->Put(
-        key, partition, [&]() { return serializer::serialize(partition); },
-        expiry.get_value_or(default_expiry_));
+    const auto put_result =
+        cache_->Write(key, serializer::serialize_bytes(partition),
+                      expiry.get_value_or(default_expiry_));
 
     if (!put_result) {
       OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to write -> '%s'", key.c_str());
-      return {{client::ErrorCode::CacheIO, "Put to cache failed"}};
+      return put_result.GetError();
     }
 
     if (layer_metadata) {
@@ -96,13 +96,12 @@ client::ApiNoResponse PartitionsCacheRepository::Put(
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
     const auto put_result =
-        cache_->Put(key, partition_ids,
-                    [&]() { return serializer::serialize(partition_ids); },
-                    expiry.get_value_or(default_expiry_));
+        cache_->Write(key, serializer::serialize_bytes(partition_ids),
+                      expiry.get_value_or(default_expiry_));
 
     if (!put_result) {
       OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to write -> '%s'", key.c_str());
-      return {{client::ErrorCode::CacheIO, "Put to cache failed"}};
+      return put_result.GetError();
     }
   }
 
@@ -121,14 +120,11 @@ model::Partitions PartitionsCacheRepository::Get(
         catalog_, layer_id_, partition_id, version);
     OLP_SDK_LOG_DEBUG_F(kLogTag, "Get '%s'", key.c_str());
 
-    auto cached_partition =
-        cache_->Get(key, [](const std::string& serialized_object) {
-          return parser::parse<model::Partition>(serialized_object);
-        });
-
-    if (!cached_partition.empty()) {
-      cached_partitions.emplace_back(
-          std::move(boost::any_cast<model::Partition&&>(cached_partition)));
+    auto read_response = cache_->Read(key);
+    if (read_response) {
+      auto partition =
+          parser::parse<model::Partition>(read_response.GetResult());
+      cached_partitions.emplace_back(std::move(partition));
     }
   }
 
@@ -144,17 +140,14 @@ boost::optional<model::Partitions> PartitionsCacheRepository::Get(
   const auto& partition_ids = request.GetPartitionIds();
 
   if (partition_ids.empty()) {
-    auto cached_ids = cache_->Get(key, [](const std::string& serialized_ids) {
-      return parser::parse<std::vector<std::string>>(serialized_ids);
-    });
-
-    partitions =
-        cached_ids.empty()
-            ? boost::none
-            : boost::optional<model::Partitions>(
-                  Get(boost::any_cast<std::vector<std::string>>(cached_ids),
-                      version));
-
+    auto read_response = cache_->Read(key);
+    if (read_response) {
+      const auto cached_ids =
+          parser::parse<std::vector<std::string>>(read_response.GetResult());
+      partitions = Get(cached_ids, version);
+    } else {
+      partitions = boost::none;
+    }
   } else {
     auto available_partitions = Get(partition_ids, version);
     // In the case when not all partitions are available, we fail the cache
@@ -213,9 +206,11 @@ client::ApiNoResponse PartitionsCacheRepository::Put(
 
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
 
-  if (!cache_->Put(key, quad_tree.GetRawData(), default_expiry_)) {
+  auto write_response =
+      cache_->Write(key, quad_tree.GetRawData(), default_expiry_);
+  if (!write_response) {
     OLP_SDK_LOG_WARNING_F(kLogTag, "Failed to write -> '%s'", key.c_str());
-    return {{client::ErrorCode::CacheIO, "Put to cache failed"}};
+    return write_response.GetError();
   }
 
   return {client::ApiNoResult{}};
@@ -228,9 +223,9 @@ bool PartitionsCacheRepository::Get(geo::TileKey tile_key, int32_t depth,
       catalog_, layer_id_, tile_key, version, depth);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
 
-  auto data = cache_->Get(key);
-  if (data) {
-    tree = QuadTreeIndex(data);
+  auto read_response = cache_->Read(key);
+  if (read_response) {
+    tree = QuadTreeIndex(read_response.GetResult());
     return true;
   }
 
@@ -281,17 +276,12 @@ bool PartitionsCacheRepository::ClearPartitionMetadata(
       catalog_, layer_id_, partition_id, catalog_version);
   OLP_SDK_LOG_INFO_F(kLogTag, "ClearPartitionMetadata -> '%s'", key.c_str());
 
-  auto cached_partition =
-      cache_->Get(key, [](const std::string& serialized_object) {
-        return parser::parse<model::Partition>(serialized_object);
-      });
-
-  if (cached_partition.empty()) {
-    return true;
+  auto read_response = cache_->Read(key);
+  if (!read_response) {
+    return false;
   }
 
-  out_partition =
-      std::move(boost::any_cast<model::Partition&&>(cached_partition));
+  out_partition = parser::parse<model::Partition>(read_response.GetResult());
   return cache_->RemoveKeysWithPrefix(key);
 }
 
@@ -302,16 +292,11 @@ bool PartitionsCacheRepository::GetPartitionHandle(
       catalog_, layer_id_, partition_id, catalog_version);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "IsPartitionCached -> '%s'", key.c_str());
 
-  // Memory cache may save whole boost::any so sometimes there are no parsing
-  auto cached_partition =
-      cache_->Get(key, [](const std::string& serialized_object) {
-        return parser::parse<model::Partition>(serialized_object);
-      });
-
-  if (cached_partition.empty()) {
+  auto read_response = cache_->Read(key);
+  if (!read_response) {
     return false;
   }
-  auto& partition = boost::any_cast<model::Partition&>(cached_partition);
+  auto partition = parser::parse<model::Partition>(read_response.GetResult());
   data_handle = std::move(partition.GetMutableDataHandle());
   return true;
 }

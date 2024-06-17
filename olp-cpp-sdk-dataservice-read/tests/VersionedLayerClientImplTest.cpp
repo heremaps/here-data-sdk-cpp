@@ -113,12 +113,11 @@ TEST(VersionedLayerClientTest, RemoveFromCachePartition) {
   settings.cache = cache_mock;
 
   // Successful mock cache calls
-  auto found_cache_response = [](const std::string& /*key*/,
-                                 const olp::cache::Decoder& /*encoder*/) {
+  auto found_cache_response = [](const std::string& /*key*/) {
     auto partition = model::Partition();
     partition.SetPartition(kPartitionId);
     partition.SetDataHandle(kBlobDataHandle);
-    return partition;
+    return olp::serializer::serialize_bytes(partition);
   };
   auto partition_cache_remove = [&](const std::string& prefix) {
     std::string expected_prefix =
@@ -138,7 +137,7 @@ TEST(VersionedLayerClientTest, RemoveFromCachePartition) {
   {
     SCOPED_TRACE("Successful remove partition from cache");
 
-    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
         .WillOnce(partition_cache_remove)
         .WillOnce(data_cache_remove);
@@ -146,22 +145,21 @@ TEST(VersionedLayerClientTest, RemoveFromCachePartition) {
   }
   {
     SCOPED_TRACE("Remove not existing partition from cache");
-    EXPECT_CALL(*cache_mock, Get(_, _))
-        .WillOnce([](const std::string&, const olp::cache::Decoder&) {
-          return boost::any();
-        });
-    ASSERT_TRUE(client.RemoveFromCache(kPartitionId));
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce([](const std::string&) {
+      return olp::client::ApiError::NotFound();
+    });
+    ASSERT_FALSE(client.RemoveFromCache(kPartitionId));
   }
   {
     SCOPED_TRACE("Partition cache failure");
-    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
         .WillOnce([](const std::string&) { return false; });
     ASSERT_FALSE(client.RemoveFromCache(kPartitionId));
   }
   {
     SCOPED_TRACE("Data cache failure");
-    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
         .WillOnce(partition_cache_remove)
         .WillOnce([](const std::string&) { return false; });
@@ -202,22 +200,22 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
   {
     SCOPED_TRACE("Successful remove tile from cache");
 
-    EXPECT_CALL(*cache_mock, Get(_))
+    EXPECT_CALL(*cache_mock, Read(_))
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-2)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce(
             [&tile_key, &quad_cache_key, &buffer](const std::string& key) {
@@ -232,47 +230,47 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
   }
   {
     SCOPED_TRACE("Remove not existing tile from cache");
-    EXPECT_CALL(*cache_mock, Get(_))
+    EXPECT_CALL(*cache_mock, Read(_))
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-2)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         });
     ASSERT_TRUE(client.RemoveFromCache(tile_key));
   }
   {
     SCOPED_TRACE("Data cache failure");
-    EXPECT_CALL(*cache_mock, Get(_))
+    EXPECT_CALL(*cache_mock, Read(_))
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-2)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce(
             [&tile_key, &quad_cache_key, &buffer](const std::string& key) {
@@ -285,22 +283,22 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
   }
   {
     SCOPED_TRACE("Successful remove tile and quad tree from cache");
-    EXPECT_CALL(*cache_mock, Get(_))
+    EXPECT_CALL(*cache_mock, Read(_))
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-2)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce(
             [&tile_key, &quad_cache_key, &buffer](const std::string& key) {
@@ -316,22 +314,22 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
   }
   {
     SCOPED_TRACE("Successful remove tile but removing quad tree fails");
-    EXPECT_CALL(*cache_mock, Get(_))
+    EXPECT_CALL(*cache_mock, Read(_))
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-4)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-3)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-2)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce([&tile_key, &quad_cache_key](const std::string& key) {
           EXPECT_EQ(key, quad_cache_key(tile_key.ChangedLevelBy(-1)));
-          return nullptr;
+          return olp::client::ApiError::NotFound();
         })
         .WillOnce(
             [&tile_key, &quad_cache_key, &buffer](const std::string& key) {
@@ -353,12 +351,11 @@ TEST(VersionedLayerClientTest, ProtectThenReleasePartition) {
   settings.cache = cache_mock;
 
   // Successful mock cache calls
-  auto found_cache_response = [](const std::string& /*key*/,
-                                 const olp::cache::Decoder& /*encoder*/) {
+  auto found_cache_response = [](const std::string& /*key*/) {
     auto partition = model::Partition();
     partition.SetPartition(kPartitionId);
     partition.SetDataHandle(kBlobDataHandle);
-    return partition;
+    return olp::serializer::serialize_bytes(partition);
   };
 
   auto partition_keys =
@@ -379,7 +376,7 @@ TEST(VersionedLayerClientTest, ProtectThenReleasePartition) {
   {
     SCOPED_TRACE("Successful protect partition");
 
-    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, Protect(_)).WillOnce(partition_keys);
     ASSERT_TRUE(client.Protect(kPartitionId));
   }
@@ -387,7 +384,7 @@ TEST(VersionedLayerClientTest, ProtectThenReleasePartition) {
   {
     SCOPED_TRACE("Successful protect partitions");
 
-    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, Protect(_)).WillOnce(partition_keys);
     ASSERT_TRUE(client.Protect(std::vector<std::string>{kPartitionId}));
   }
@@ -401,7 +398,7 @@ TEST(VersionedLayerClientTest, ProtectThenReleasePartition) {
   {
     SCOPED_TRACE("Successful release partition");
 
-    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, Release(_)).WillOnce(partition_keys);
     ASSERT_TRUE(client.Release(kPartitionId));
   }
@@ -409,7 +406,7 @@ TEST(VersionedLayerClientTest, ProtectThenReleasePartition) {
   {
     SCOPED_TRACE("Successful release partitions");
 
-    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, Release(_)).WillOnce(partition_keys);
     ASSERT_TRUE(client.Release(std::vector<std::string>{kPartitionId}));
   }
@@ -422,25 +419,23 @@ TEST(VersionedLayerClientTest, ProtectThenReleasePartition) {
 
   {
     SCOPED_TRACE("Protect not existing partition");
-    EXPECT_CALL(*cache_mock, Get(_, _))
-        .WillOnce([](const std::string&, const olp::cache::Decoder&) {
-          return boost::any();
-        });
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce([](const std::string&) {
+      return olp::client::ApiError::NotFound();
+    });
     ASSERT_FALSE(client.Protect(kPartitionId));
   }
 
   {
     SCOPED_TRACE("Release not existing partition");
-    EXPECT_CALL(*cache_mock, Get(_, _))
-        .WillOnce([](const std::string&, const olp::cache::Decoder&) {
-          return boost::any();
-        });
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce([](const std::string&) {
+      return olp::client::ApiError::NotFound();
+    });
     ASSERT_FALSE(client.Release(kPartitionId));
   }
 
   {
     SCOPED_TRACE("Partition protect failure");
-    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, Protect(_))
         .WillOnce([](const olp::cache::KeyValueCache::KeyListType&) {
           return false;
@@ -450,7 +445,7 @@ TEST(VersionedLayerClientTest, ProtectThenReleasePartition) {
 
   {
     SCOPED_TRACE("Partition release failure");
-    EXPECT_CALL(*cache_mock, Get(_, _)).WillOnce(found_cache_response);
+    EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
     EXPECT_CALL(*cache_mock, Release(_))
         .WillOnce([](const olp::cache::KeyValueCache::KeyListType&) {
           return false;
@@ -1172,10 +1167,11 @@ TEST(VersionedLayerClientTest, PrefetchPromotesExistingContent) {
   const std::vector<olp::geo::TileKey> tile_keys = {
       olp::geo::TileKey::FromHereTile(kHereTile)};
 
-  EXPECT_CALL(*cache, Put(_, _, _)).WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(*cache, Write(_, _, _))
+      .WillRepeatedly(testing::Return(olp::client::ApiNoResult{}));
   EXPECT_CALL(*cache, Put(_, _, _, _)).WillRepeatedly(testing::Return(true));
 
-  EXPECT_CALL(*cache, Get(_));
+  EXPECT_CALL(*cache, Read(_));
   EXPECT_CALL(*cache, Get(_, _));
 
   EXPECT_CALL(*cache, Contains(testing::HasSubstr("-data-handle")))
@@ -1482,17 +1478,19 @@ TEST(VersionedLayerClientTest, PropagateAllCacheErrors) {
 
     EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::api"), _, _, _))
         .WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::quadtree"), _, _))
-        .WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*cache_mock, Write(testing::HasSubstr("::quadtree"), _, _))
+        .WillRepeatedly(testing::Return(olp::client::ApiNoResult{}));
     EXPECT_CALL(*cache_mock,
                 Put(testing::HasSubstr("::latestVersion"), _, _, _))
         .WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::Data"), _, _))
-        .WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*cache_mock, Write(testing::HasSubstr("::Data"), _, _))
+        .WillRepeatedly(testing::Return(olp::client::ApiError::CacheIO()));
 
     EXPECT_CALL(*cache_mock, Get(_, _))
         .WillRepeatedly(testing::Return(boost::any()));
     EXPECT_CALL(*cache_mock, Get(_)).WillRepeatedly(testing::Return(nullptr));
+    EXPECT_CALL(*cache_mock, Read(_))
+        .WillRepeatedly(testing::Return(olp::client::ApiError::NotFound()));
 
     EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(
@@ -1535,17 +1533,19 @@ TEST(VersionedLayerClientTest, PropagateAllCacheErrors) {
 
     EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::api"), _, _, _))
         .WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::quadtree"), _, _))
-        .WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*cache_mock, Write(testing::HasSubstr("::quadtree"), _, _))
+        .WillRepeatedly(testing::Return(olp::client::ApiNoResult{}));
     EXPECT_CALL(*cache_mock,
                 Put(testing::HasSubstr("::latestVersion"), _, _, _))
         .WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(*cache_mock, Put(testing::HasSubstr("::Data"), _, _))
-        .WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*cache_mock, Write(testing::HasSubstr("::Data"), _, _))
+        .WillRepeatedly(testing::Return(olp::client::ApiError::CacheIO()));
 
     EXPECT_CALL(*cache_mock, Get(_, _))
         .WillRepeatedly(testing::Return(boost::any()));
     EXPECT_CALL(*cache_mock, Get(_)).WillRepeatedly(testing::Return(nullptr));
+    EXPECT_CALL(*cache_mock, Read(_))
+        .WillRepeatedly(testing::Return(olp::client::ApiError::NotFound()));
 
     EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
         .WillRepeatedly(

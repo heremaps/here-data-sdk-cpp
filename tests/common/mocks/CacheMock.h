@@ -24,6 +24,10 @@
 
 class CacheMock : public olp::cache::KeyValueCache {
  public:
+  template <typename Result>
+  using OperationOutcome = olp::cache::OperationOutcome<Result>;
+  using OperationOutcomeEmpty = olp::cache::OperationOutcomeEmpty;
+
   CacheMock();
 
   ~CacheMock() override;
@@ -56,4 +60,17 @@ class CacheMock : public olp::cache::KeyValueCache {
   MOCK_METHOD(bool, Release, (const KeyListType&), (override));
 
   MOCK_METHOD(void, Promote, (const std::string&), (override));
+
+  MOCK_METHOD(OperationOutcome<std::shared_ptr<std::vector<unsigned char>>>,
+              Read, (const std::string&), (override));
+
+  MOCK_METHOD(OperationOutcomeEmpty, Write,
+              (const std::string&,
+               const std::shared_ptr<std::vector<unsigned char>>&, time_t),
+              (override));
+
+  MOCK_METHOD(OperationOutcomeEmpty, Delete, (const std::string&), (override));
+
+  MOCK_METHOD(OperationOutcomeEmpty, DeleteByPrefix, (const std::string&),
+              (override));
 };

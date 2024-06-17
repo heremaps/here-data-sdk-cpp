@@ -24,7 +24,13 @@
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+
 #include "repositories/DataCacheRepository.h"
+// clang-format off
+#include <olp/core/generated/serializer/SerializerWrapper.h>
+#include "generated/serializer/PartitionsSerializer.h"
+#include "generated/serializer/JsonSerializer.h"
+// clang-format on
 
 namespace {
 namespace read = olp::dataservice::read;
@@ -159,11 +165,11 @@ TEST(PartitionsCacheRepositoryTest, QuadTree) {
     repository::PartitionsCacheRepository repository(hrn, layer, cache);
     std::string key;
 
-    EXPECT_CALL(*cache, Put(_, _, _))
-        .WillOnce(DoAll(SaveArg<0>(&key), Return(true)));
+    EXPECT_CALL(*cache, Write(_, _, _))
+        .WillOnce(DoAll(SaveArg<0>(&key), Return(olp::client::ApiNoResult{})));
     repository.Put(tile_key, depth, quad_tree, version);
 
-    EXPECT_CALL(*cache, Get(key)).WillOnce(Return(quad_tree.GetRawData()));
+    EXPECT_CALL(*cache, Read(key)).WillOnce(Return(quad_tree.GetRawData()));
     read::QuadTreeIndex tree;
     const auto result = repository.Get(tile_key, depth, version, tree);
 
@@ -179,7 +185,8 @@ TEST(PartitionsCacheRepositoryTest, QuadTree) {
     auto cache = std::make_shared<CacheMock>();
     repository::PartitionsCacheRepository repository(hrn, layer, cache);
 
-    EXPECT_CALL(*cache, Get(_)).WillOnce(Return(KeyValueCache::ValueTypePtr()));
+    EXPECT_CALL(*cache, Read(_))
+        .WillOnce(Return(olp::client::ApiError::NotFound()));
 
     repository.Put(tile_key, depth, quad_tree, version);
     read::QuadTreeIndex tree;
@@ -236,6 +243,8 @@ TEST(PartitionsCacheRepositoryTest, ClearPartitions) {
   auto& partitions_vector = partitions.GetMutablePartitions();
   partitions_vector.push_back(some_partition);
 
+  auto partition_bytes = olp::serializer::serialize_bytes(some_partition);
+
   const std::string kPartitionDataHandle =
       std::string(kCatalog) + "::" + layer + "::" + kDataHandle;
   const std::string kPartition =
@@ -244,12 +253,11 @@ TEST(PartitionsCacheRepositoryTest, ClearPartitions) {
 
   auto cache = std::make_shared<testing::NaggyMock<CacheMock>>();
 
-  EXPECT_CALL(*cache, Put(testing::Eq(kPartitionKey), testing::_, testing::_,
-                          testing::_))
-      .WillRepeatedly(testing::Return(true));
+  EXPECT_CALL(*cache, Write(testing::Eq(kPartitionKey), testing::_, testing::_))
+      .WillRepeatedly(testing::Return(olp::client::ApiNoResult{}));
 
-  EXPECT_CALL(*cache, Get(testing::Eq(kPartitionKey), testing::_))
-      .WillRepeatedly(testing::Return(some_partition));
+  EXPECT_CALL(*cache, Read(testing::Eq(kPartitionKey)))
+      .WillRepeatedly(testing::Return(partition_bytes));
 
   {
     SCOPED_TRACE("RemoveKeysWithPrefix data handle failed");

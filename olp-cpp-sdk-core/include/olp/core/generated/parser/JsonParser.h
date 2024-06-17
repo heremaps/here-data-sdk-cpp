@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,10 @@
 
 #pragma once
 
+#include <memory>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
@@ -58,6 +60,17 @@ template <typename T>
 inline T parse(std::stringstream& json_stream) {
   bool res = true;
   return parse<T>(json_stream, res);
+}
+
+template <typename T>
+inline T parse(const std::shared_ptr<std::vector<unsigned char>>& json_bytes) {
+  rapidjson::Document doc;
+  doc.Parse(reinterpret_cast<char*>(json_bytes->data()), json_bytes->size());
+  T result{};
+  if (doc.IsObject() || doc.IsArray()) {
+    from_json(doc, result);
+  }
+  return result;
 }
 
 }  // namespace parser
