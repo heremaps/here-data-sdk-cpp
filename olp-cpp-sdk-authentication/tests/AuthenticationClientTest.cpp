@@ -29,6 +29,8 @@
 
 namespace {
 constexpr auto kTime = "Fri, 29 May 2020 11:07:45 GMT";
+constexpr auto kEpochTime = "Thu, 1 Jan 1970 00:00:00 GMT";
+constexpr auto kSummerTime = "Tue, 18 Jun 2024 12:25:35 GMT";
 }  // namespace
 
 namespace auth = olp::authentication;
@@ -236,6 +238,16 @@ TEST(AuthenticationClientTest, TimeParsing) {
   {
     SCOPED_TRACE("Parse time");
     EXPECT_EQ(auth::ParseTime(kTime), 1590750465);
+  }
+
+  {
+    SCOPED_TRACE("Parse epoch time");
+    EXPECT_EQ(auth::ParseTime(kEpochTime), 0);
+  }
+
+  {
+    SCOPED_TRACE("Parse summer time");
+    EXPECT_EQ(auth::ParseTime(kSummerTime), 1718713535);
   }
 }
 
