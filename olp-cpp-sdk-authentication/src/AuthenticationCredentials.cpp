@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,10 @@ const std::string kHereTokenEndpointUrl = "here.token.endpoint.url";
 std::string GetDefaultPath() {
   const char* env;
 #ifdef _WIN32
+  if ((env = std::getenv("USERPROFILE")) != nullptr) {
+    return std::string(env).append("\\.here\\credentials.properties");
+  }
+
   if ((env = std::getenv("HOMEDRIVE")) != nullptr) {
     std::string path{env};
 
