@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ class EnterBackgroundSubscriberImpl
     _sharedUrlBackgroundSession =
         [self urlSessionWithProxy:nil
                        andHeaders:nil
-                  andBackgroundId:@"olp-sdk-cpp-core"];
+                  andBackgroundId:[self generateNextSessionId]];
 
     _tasks = [[NSMutableDictionary alloc] init];
     _idTaskMap = [[NSMutableDictionary alloc] init];
