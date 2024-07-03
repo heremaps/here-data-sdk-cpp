@@ -33,7 +33,7 @@
 
 #include <boost/optional.hpp>
 
-#ifdef OLP_SDK_ENABLE_ANDROID_CURL
+#if defined(OLP_SDK_ENABLE_ANDROID_CURL) && !defined(ANDROID_HOST)
 #ifdef OLP_SDK_NETWORK_HAS_OPENSSL
 #include <openssl/ossl_typ.h>
 

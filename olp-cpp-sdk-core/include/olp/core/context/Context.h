@@ -26,7 +26,7 @@
 
 #include <olp/core/CoreApi.h>
 
-#ifdef ANDROID
+#if defined(ANDROID) || defined(ANDROID_HOST)
 #include <jni.h>
 #endif
 
@@ -98,7 +98,7 @@ class CORE_API Context {
      */
     Scope();
 
-#ifdef ANDROID
+#if defined(ANDROID) || defined(ANDROID_HOST)
     /**
      * @brief Creates the `Scope` instance.
      *
@@ -147,13 +147,13 @@ class CORE_API Context {
   /// deinitialize the Context
   static void deinit();
 
-#ifdef ANDROID
+#if defined(ANDROID) || defined(ANDROID_HOST)
   /// initialize the Context
   static void init(JavaVM* vm, jobject application);
 #endif
 
  public:
-#ifdef ANDROID
+#if defined(ANDROID) || defined(ANDROID_HOST)
   /**
    * @brief Gets the `JavaVM` object.
    *
