@@ -109,8 +109,14 @@ class CORE_API TaskContext {
   TaskContext() = default;
 
   template <typename Exec, typename Callback,
-            typename ExecResult = typename std::result_of<
-                Exec(client::CancellationContext)>::type>
+#if defined(__cpp_lib_is_invocable) && __cpp_lib_is_invocable >= 201703
+            typename ExecResult =
+                std::invoke_result_t<Exec, client::CancellationContext>
+#else
+            typename ExecResult =
+                typename std::result_of<Exec(client::CancellationContext)>::type
+#endif
+            >
   /**
    * @brief Sets the executors for the request.
    *
