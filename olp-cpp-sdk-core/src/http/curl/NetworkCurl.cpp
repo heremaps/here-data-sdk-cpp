@@ -54,7 +54,7 @@ namespace {
 
 const char* kLogTag = "CURL";
 
-#ifdef OLP_SDK_ENABLE_ANDROID_CURL
+#if defined(OLP_SDK_ENABLE_ANDROID_CURL) && !defined(ANDROID_HOST)
 const auto kCurlAndroidCaBundleFolder = "/system/etc/security/cacerts";
 
 #ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
@@ -251,7 +251,7 @@ void GetTrafficData(CURL* handle, uint64_t& upload_bytes,
 CURLcode SetCaBundlePaths(CURL* handle) {
   OLP_SDK_CORE_UNUSED(handle);
 
-#ifdef OLP_SDK_ENABLE_ANDROID_CURL
+#if defined(OLP_SDK_ENABLE_ANDROID_CURL) && !defined(ANDROID_HOST)
   // FIXME: We could disable this lookup as it won't work on most devices
   //  (probably all of them) since OpenSSL still will be trying to find
   //  certificate with SHA1 lookup
@@ -331,7 +331,7 @@ NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
 #endif
 
   std::string ca_bundle_path;
-#ifdef OLP_SDK_ENABLE_ANDROID_CURL
+#if defined(OLP_SDK_ENABLE_ANDROID_CURL) && !defined(ANDROID_HOST)
   ca_bundle_path = kCurlAndroidCaBundleFolder;
 #elif OLP_SDK_NETWORK_HAS_OPENSSL
   ca_bundle_path = CaBundlePath();

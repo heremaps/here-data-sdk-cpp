@@ -29,7 +29,7 @@
 #include <windows.h>
 #undef min
 #undef max
-#elif defined(ANDROID)
+#elif defined(ANDROID) || defined(ANDROID_HOST)
 #include <jni.h>
 #endif
 
@@ -73,7 +73,7 @@ void Context::addInitializeCallbacks(InitializedCallback initCallback,
 
 void Context::init() {
   auto cd = Instance();
-#ifdef ANDROID
+#if defined(ANDROID) || defined(ANDROID_HOST)
   cd->java_vm = nullptr;
 #else
   (void)cd;
@@ -82,7 +82,7 @@ void Context::init() {
 }
 
 void Context::deinit() {
-#ifdef ANDROID
+#if defined(ANDROID) || defined(ANDROID_HOST)
   auto cd = Instance();
   // Release the global reference of Context.
   // Technically not needed if we took the application context,
@@ -92,7 +92,12 @@ void Context::deinit() {
     bool attached = false;
     if (cd->java_vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) !=
         JNI_OK) {
-      if (cd->java_vm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
+#if defined(ANDROID)
+      auto envPtr = &env;
+#else
+      auto envPtr = reinterpret_cast<void**>(&env);
+#endif
+      if (cd->java_vm->AttachCurrentThread(envPtr, nullptr) != JNI_OK) {
         env = nullptr;
       } else {
         attached = true;
@@ -111,7 +116,7 @@ void Context::deinit() {
   deinitialize();
 }
 
-#if defined(ANDROID)
+#if defined(ANDROID) || defined(ANDROID_HOST)
 void Context::init(JavaVM* vm, jobject context) {
   auto cd = Instance();
   cd->java_vm = vm;
@@ -189,7 +194,7 @@ Context::Scope::Scope() : m_cd(Instance()) {
     Context::init();
   }
 }
-#ifdef ANDROID
+#if defined(ANDROID) || defined(ANDROID_HOST)
 /// see Context::init()
 Context::Scope::Scope(JavaVM* vm, jobject application) : m_cd(Instance()) {
   std::lock_guard<std::mutex> lock(m_cd->context_mutex);

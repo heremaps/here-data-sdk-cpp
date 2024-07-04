@@ -29,9 +29,11 @@
 #include <string>
 #endif
 
-#ifdef ANDROID
+#if defined(ANDROID) || defined(ANDROID_HOST)
 #include <jni.h>
-#elif defined(__APPLE__)
+#endif
+
+#if defined(__APPLE__)
 #include <olp/core/context/EnterBackgroundSubscriber.h>
 #endif
 
@@ -45,7 +47,7 @@ struct ContextData {
 
   std::mutex context_mutex;
   size_t context_instance_counter = 0;
-#ifdef ANDROID
+#if defined(ANDROID) || defined(ANDROID_HOST)
   JavaVM* java_vm = nullptr;
   jobject context = nullptr;
 #elif defined(__APPLE__)

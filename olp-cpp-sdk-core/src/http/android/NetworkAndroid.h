@@ -19,7 +19,7 @@
 
 #pragma once
 
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(ANDROID_HOST)
 
 #include <condition_variable>
 #include <future>
