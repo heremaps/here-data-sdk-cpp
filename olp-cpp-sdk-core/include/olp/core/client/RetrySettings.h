@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2023 HERE Europe B.V.
+ * Copyright (C) 2021-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,6 +76,18 @@ struct CORE_API RetrySettings {
    */
   int timeout = 60;
 
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+  /**
+   * @brief Maximum time for background request to complete (in seconds).
+   *
+   * The default value is 600.
+   *
+   * @note Connection or data transfer will be interrupted after specified
+   * period of time ignoring `connection_timeout` and `transfer_timeout` values.
+   */
+  int background_timeout = 600;
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+
   /**
    * @brief Time allowed to wait for connection to establish (in milliseconds).
    *
@@ -85,6 +97,20 @@ struct CORE_API RetrySettings {
    * details.
    */
   std::chrono::milliseconds connection_timeout = std::chrono::seconds(30);
+
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+  /**
+   * @brief Time allowed to wait for background connection to establish (in
+   * milliseconds).
+   *
+   * The default value is 600 seconds.
+   *
+   * @note The value should be smaller than `timeout`, @see `timeout` for more
+   * details.
+   */
+  std::chrono::milliseconds background_connection_timeout =
+      std::chrono::seconds(600);
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
 
   /**
    * @brief Time allowed to wait without data transfer (in milliseconds).

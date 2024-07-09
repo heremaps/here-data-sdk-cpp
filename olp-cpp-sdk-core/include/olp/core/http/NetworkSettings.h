@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,15 @@ class CORE_API NetworkSettings final {
    */
   std::chrono::milliseconds GetConnectionTimeoutDuration() const;
 
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+  /**
+   * @brief Gets the background connection timeout.
+   *
+   * @return The background connection timeout.
+   */
+  std::chrono::milliseconds GetBackgroundConnectionTimeoutDuration() const;
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+
   /**
    * @brief Sets the connection timeout in seconds.
    *
@@ -91,6 +100,18 @@ class CORE_API NetworkSettings final {
    * @return A reference to *this.
    */
   NetworkSettings& WithConnectionTimeout(std::chrono::milliseconds timeout);
+
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+  /**
+   * @brief Sets the background connection timeout.
+   *
+   * @param[in] timeout The background connection timeout.
+   *
+   * @return A reference to *this.
+   */
+  NetworkSettings& WithBackgroundConnectionTimeout(
+      std::chrono::milliseconds timeout);
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
 
   /**
    * @brief Gets the transfer timeout in seconds.
@@ -186,6 +207,11 @@ class CORE_API NetworkSettings final {
   std::size_t retries_{3};
   /// The connection timeout.
   std::chrono::milliseconds connection_timeout_ = std::chrono::seconds(60);
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+  /// The background connection timeout.
+  std::chrono::milliseconds background_connection_timeout_ =
+      std::chrono::seconds(600);
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
   /// The transfer timeout.
   std::chrono::milliseconds transfer_timeout_ = std::chrono::seconds(30);
   /// The max lifetime since creation allowed for reusing a connection.

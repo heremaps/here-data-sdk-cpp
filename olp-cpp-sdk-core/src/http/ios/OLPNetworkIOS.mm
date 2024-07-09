@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -180,6 +180,15 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
     task.body = ParseBodyDataFromRequest(request);
     task.headers = ParseHeadersDictionaryFromRequest(request);
     task.responseData = [[OLPHttpTaskResponseData alloc] init];
+
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+    const auto backgroundConnectionTimeoutSeconds =
+        std::chrono::duration_cast<std::chrono::seconds>(
+            settings.GetBackgroundConnectionTimeoutDuration())
+            .count();
+    task.backgroundConnectionTimeout =
+        static_cast<int>(backgroundConnectionTimeoutSeconds);
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
 
     __weak OLPHttpTask* weak_task = task;
     auto requestId = task.requestId;

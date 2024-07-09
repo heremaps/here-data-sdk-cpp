@@ -35,6 +35,11 @@
 #include "olp/core/thread/Atomic.h"
 #include "olp/core/utils/Url.h"
 
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+#include "context/ContextInternal.h"
+#include "olp/core/context/EnterBackgroundSubscriber.h"
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+
 namespace {
 constexpr auto kLogTag = "OlpClient";
 constexpr auto kApiKeyParam = "apiKey=";
@@ -52,6 +57,75 @@ struct RequestSettings {
   std::chrono::milliseconds current_backdown_period{0};
   const std::chrono::milliseconds max_wait_time{0};
 };
+
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+class EnterBackgroundSubscriberImpl
+    : public olp::context::EnterBackgroundSubscriber {
+ public:
+  struct Timeouts {
+    std::chrono::seconds foreground_timeout{0};
+    std::chrono::seconds background_timeout{0};
+  };
+
+  void OnEnterBackground() override {
+    std::lock_guard<std::mutex> lock(mutex_);
+    in_background_ = true;
+    std::for_each(states_.begin(), states_.end(),
+                  [&](bool value) { value = true; });
+  }
+
+  void OnExitBackground() override {
+    std::lock_guard<std::mutex> lock(mutex_);
+    in_background_ = false;
+  }
+
+  bool Wait(olp::client::Condition& client_condition, Timeouts timeouts) {
+    std::list<bool>::iterator state_itr;
+
+    auto init_state = [&]() -> bool {
+      std::lock_guard<std::mutex> lock(mutex_);
+      state_itr = states_.insert(states_.end(), in_background_);
+      return in_background_;
+    };
+
+    auto pop_state = [&]() -> bool {
+      std::lock_guard<std::mutex> lock(mutex_);
+      bool state = *state_itr;
+      states_.erase(state_itr);
+      return state;
+    };
+
+    const bool started_in_background = init_state();
+    const auto condition_triggered = client_condition.Wait(
+        started_in_background ? timeouts.background_timeout
+                              : timeouts.foreground_timeout);
+
+    const bool stored_state = pop_state();
+    if ((condition_triggered &&
+         (started_in_background || started_in_background == stored_state)) ||
+        timeouts.background_timeout <= timeouts.foreground_timeout) {
+      return condition_triggered;
+    }
+
+    return client_condition.Wait(timeouts.background_timeout -
+                                 timeouts.foreground_timeout);
+  }
+
+ private:
+  std::mutex mutex_;
+  bool in_background_ = false;
+  std::list<bool> states_;
+};
+
+static std::shared_ptr<EnterBackgroundSubscriberImpl> gBackgroundSubscriber =
+    []() {
+      auto impl = std::make_shared<EnterBackgroundSubscriberImpl>();
+      olp::context::ContextInternal::SubscribeEnterBackground(impl);
+      return impl;
+    }();
+
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+
 }  // namespace
 
 namespace olp {
@@ -285,6 +359,10 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
 
   http::SendOutcome outcome{http::ErrorCode::CANCELLED_ERROR};
   const auto timeout = std::chrono::seconds(retry_settings.timeout);
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+  const auto background_timeout =
+      std::chrono::seconds(retry_settings.background_timeout);
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
 
   context.ExecuteOrCancelled(
       [&]() {
@@ -321,7 +399,14 @@ HttpResponse SendRequest(const http::NetworkRequest& request,
     return ToHttpResponse(outcome);
   }
 
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+  auto backgroundSubscriber = gBackgroundSubscriber;
+  const auto condition_triggered = backgroundSubscriber->Wait(
+      response_data->condition, {timeout, background_timeout});
+#else
   const auto condition_triggered = response_data->condition.Wait(timeout);
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+
   if (!condition_triggered) {
     OLP_SDK_LOG_WARNING_F(
         kLogTag,
@@ -605,6 +690,10 @@ CancellationToken OlpClient::OlpClientImpl::CallApi(
   network_request->WithSettings(
       http::NetworkSettings()
           .WithConnectionTimeout(retry_settings.connection_timeout)
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+          .WithBackgroundConnectionTimeout(
+              retry_settings.background_connection_timeout)
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
           .WithTransferTimeout(retry_settings.transfer_timeout)
           .WithProxySettings(std::move(proxy)));
 
@@ -642,6 +731,10 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
       http::NetworkSettings()
           .WithTransferTimeout(retry_settings.transfer_timeout)
           .WithConnectionTimeout(retry_settings.connection_timeout)
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+          .WithBackgroundConnectionTimeout(
+              retry_settings.background_connection_timeout)
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
           .WithProxySettings(
               settings_.proxy_settings.value_or(http::NetworkProxySettings()));
 
