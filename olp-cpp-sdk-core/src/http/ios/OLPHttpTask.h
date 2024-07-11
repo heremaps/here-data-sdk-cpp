@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,6 +79,10 @@ typedef void (^OLPHttpTaskCompletionHandler)(NSError* error,
 @property(nonatomic) NSDictionary* headers;
 
 @property(nonatomic) NSUInteger connectionTimeout;
+
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+@property(nonatomic) NSUInteger backgroundConnectionTimeout;
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
 
 @property(nonatomic) std::shared_ptr<std::ostream> payload;
 

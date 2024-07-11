@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,13 @@ std::chrono::milliseconds NetworkSettings::GetConnectionTimeoutDuration()
     const {
   return connection_timeout_;
 }
+
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+std::chrono::milliseconds
+NetworkSettings::GetBackgroundConnectionTimeoutDuration() const {
+  return background_connection_timeout_;
+}
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
 
 int NetworkSettings::GetTransferTimeout() const {
   return static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(
@@ -71,6 +78,14 @@ NetworkSettings& NetworkSettings::WithConnectionTimeout(
   connection_timeout_ = timeout;
   return *this;
 }
+
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+NetworkSettings& NetworkSettings::WithBackgroundConnectionTimeout(
+    std::chrono::milliseconds timeout) {
+  background_connection_timeout_ = timeout;
+  return *this;
+}
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
 
 NetworkSettings& NetworkSettings::WithTransferTimeout(int timeout) {
   return WithTransferTimeout(std::chrono::seconds(timeout));

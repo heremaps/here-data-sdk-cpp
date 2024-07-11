@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@
 
 namespace {
 constexpr auto kLogTag = "OLPHttpTask";
-constexpr auto kBackgroundTimeoutMultiplicator = 100u;
 }  // namespace
 
 #pragma mark - OLPHttpTaskResponseData
@@ -106,9 +105,11 @@ constexpr auto kBackgroundTimeoutMultiplicator = 100u;
   NSMutableURLRequest* request =
       [NSMutableURLRequest requestWithURL:[NSURL URLWithString:self.url]];
   request.timeoutInterval = self.connectionTimeout;
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
   if (self.backgroundMode) {
-    request.timeoutInterval *= kBackgroundTimeoutMultiplicator;
+    request.timeoutInterval = self.backgroundConnectionTimeout;
   }
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
   request.HTTPMethod = self.HTTPMethod;
   if (self.body.length) {
     request.HTTPBody = self.body;
