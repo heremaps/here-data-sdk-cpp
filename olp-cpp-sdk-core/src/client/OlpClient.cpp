@@ -22,6 +22,9 @@
 #include <cctype>
 #include <chrono>
 #include <future>
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+#include <list>
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
 #include <sstream>
 #include <thread>
 
