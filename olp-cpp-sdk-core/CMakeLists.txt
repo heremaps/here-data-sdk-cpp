@@ -142,6 +142,7 @@ set(OLP_SDK_UTILS_HEADERS
     ./include/olp/core/utils/Credentials.h
     ./include/olp/core/utils/Dir.h
     ./include/olp/core/utils/LruCache.h
+    ./include/olp/core/utils/Thread.h
     ./include/olp/core/utils/Url.h
     ./include/olp/core/utils/WarningWorkarounds.h
 )
@@ -351,6 +352,7 @@ set(OLP_SDK_UTILS_SOURCES
     ./src/utils/BoostExceptionHandle.cpp
     ./src/utils/Credentials.cpp
     ./src/utils/Dir.cpp
+    ./src/utils/Thread.cpp
     ./src/utils/Url.cpp
 )
 

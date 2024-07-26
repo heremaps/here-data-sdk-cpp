@@ -16,8 +16,8 @@
  * SPDX-License-Identifier: Apache-2.0
  * License-Filename: LICENSE
  */
-
 #include "olp/core/thread/ThreadPoolTaskScheduler.h"
+#include "olp/core/utils/Thread.h"
 
 #if defined(PORTING_PLATFORM_QNX)
 #include <process.h>
@@ -35,7 +35,6 @@
 #include "olp/core/logging/LogContext.h"
 #include "olp/core/porting/platform.h"
 #include "olp/core/thread/SyncQueue.h"
-#include "olp/core/utils/WarningWorkarounds.h"
 #include "thread/PriorityQueueExtended.h"
 
 namespace olp {
@@ -43,24 +42,6 @@ namespace thread {
 
 namespace {
 constexpr auto kLogTag = "ThreadPoolTaskScheduler";
-
-void SetCurrentThreadName(const std::string& thread_name) {
-  // Currently only supported for pthread users
-  OLP_SDK_CORE_UNUSED(thread_name);
-
-#if defined(PORTING_PLATFORM_MAC)
-  // Note that in Mac based systems the pthread_setname_np takes 1 argument
-  // only.
-  pthread_setname_np(thread_name.c_str());
-#elif defined(OLP_SDK_HAVE_PTHREAD_SETNAME_NP)  // Linux, Android, QNX
-  // QNX allows 100 but Linux only 16 so select min value and apply for both.
-  // If maximum length is exceeded on some systems, e.g. Linux, the name is not
-  // set at all. So better truncate it to have at least the minimum set.
-  constexpr size_t kMaxThreadNameLength = 16u;
-  std::string truncated_name = thread_name.substr(0, kMaxThreadNameLength - 1);
-  pthread_setname_np(pthread_self(), truncated_name.c_str());
-#endif  // OLP_SDK_HAVE_PTHREAD_SETNAME_NP
-}
 
 struct PrioritizedTask {
   TaskScheduler::CallFuncType function;
@@ -76,7 +57,7 @@ struct ComparePrioritizedTask {
 
 void SetExecutorName(size_t idx) {
   std::string thread_name = "OLPSDKPOOL_" + std::to_string(idx);
-  SetCurrentThreadName(thread_name);
+  olp::utils::Thread::SetCurrentThreadName(thread_name);
   OLP_SDK_LOG_INFO_F(kLogTag, "Starting thread '%s'", thread_name.c_str());
 }
 
