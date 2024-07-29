@@ -36,11 +36,13 @@
 #include "olp/core/logging/Log.h"
 #include "olp/core/porting/make_unique.h"
 #include "olp/core/utils/Dir.h"
+#include "olp/core/utils/Thread.h"
 
 namespace olp {
 namespace cache {
 
 namespace {
+constexpr auto kThreadNameCompactDb = "CompactDB";
 constexpr auto kLogTag = "DiskCache";
 constexpr auto kLevelDbLostFolder = "lost";
 constexpr auto kMaxL0Files = 4;
@@ -432,6 +434,7 @@ DiskCache::OperationOutcome<> DiskCache::ApplyBatch(
       }
 
       compaction_thread_ = std::thread([this]() {
+        olp::utils::Thread::SetCurrentThreadName(kThreadNameCompactDb);
         OLP_SDK_LOG_INFO(kLogTag, "Compacting database started");
         database_->CompactRange(nullptr, nullptr);
         compacting_ = false;

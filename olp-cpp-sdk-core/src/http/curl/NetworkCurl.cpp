@@ -27,6 +27,7 @@
 #include <cstring>
 #include <memory>
 #include <utility>
+#include "olp/core/utils/Thread.h"
 
 #if defined(HAVE_SIGNAL_H)
 #include <signal.h>
@@ -53,6 +54,7 @@ namespace http {
 namespace {
 
 const char* kLogTag = "CURL";
+const char* kCurlThreadName = "OLPSDKCURL";
 
 #if defined(OLP_SDK_ENABLE_ANDROID_CURL) && !defined(ANDROID_HOST)
 const auto kCurlAndroidCaBundleFolder = "/system/etc/security/cacerts";
@@ -1095,6 +1097,8 @@ int NetworkCurl::GetHandleIndex(CURL* handle) {
 }
 
 void NetworkCurl::Run() {
+  olp::utils::Thread::SetCurrentThreadName(kCurlThreadName);
+
   {
     std::lock_guard<std::mutex> lock(event_mutex_);
     state_ = WorkerState::STARTED;
