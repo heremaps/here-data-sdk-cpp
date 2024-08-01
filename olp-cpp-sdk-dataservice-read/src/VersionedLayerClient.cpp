@@ -128,6 +128,16 @@ bool VersionedLayerClient::RemoveFromCache(const geo::TileKey& tile) {
   return impl_->RemoveFromCache(tile);
 }
 
+client::ApiNoResponse VersionedLayerClient::DeleteFromCache(
+    const std::string& partition_id) {
+  return impl_->DeleteFromCache(partition_id);
+}
+
+client::ApiNoResponse VersionedLayerClient::DeleteFromCache(
+    const geo::TileKey& tile) {
+  return impl_->DeleteFromCache(tile);
+}
+
 client::CancellationToken VersionedLayerClient::GetAggregatedData(
     TileRequest request, AggregatedDataResponseCallback callback) {
   return impl_->GetAggregatedData(std::move(request), std::move(callback));

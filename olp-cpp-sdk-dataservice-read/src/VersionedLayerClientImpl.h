@@ -105,6 +105,11 @@ class VersionedLayerClientImpl {
 
   virtual bool RemoveFromCache(const geo::TileKey& tile);
 
+  virtual client::ApiNoResponse DeleteFromCache(
+      const std::string& partition_id);
+
+  virtual client::ApiNoResponse DeleteFromCache(const geo::TileKey& tile);
+
   virtual bool IsCached(const std::string& partition_id);
 
   virtual bool IsCached(const geo::TileKey& tile, bool aggregated = false);

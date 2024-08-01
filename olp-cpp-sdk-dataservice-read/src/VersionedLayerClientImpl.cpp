@@ -684,24 +684,34 @@ client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
 
 bool VersionedLayerClientImpl::RemoveFromCache(
     const std::string& partition_id) {
+  return DeleteFromCache(partition_id).IsSuccessful();
+}
+
+bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
+  return DeleteFromCache(tile).IsSuccessful();
+}
+
+client::ApiNoResponse VersionedLayerClientImpl::DeleteFromCache(
+    const std::string& partition_id) {
   auto version = catalog_version_.load();
   if (version == kInvalidVersion) {
     OLP_SDK_LOG_WARNING(
-        kLogTag, "Method RemoveFromCache failed, version is not initialized");
-    return false;
+        kLogTag, "Method DeleteFromCache failed, version is not initialized");
+    return client::ApiError::PreconditionFailed("Version is not initialized");
   }
 
   boost::optional<model::Partition> partition;
 
   repository::PartitionsCacheRepository partitions_cache_repository(
       catalog_, layer_id_, settings_.cache);
-  if (!partitions_cache_repository.ClearPartitionMetadata(partition_id, version,
-                                                          partition)) {
-    return false;
+  auto clear_response = partitions_cache_repository.ClearPartitionMetadata(
+      partition_id, version, partition);
+  if (!clear_response) {
+    return clear_response;
   }
 
   if (!partition) {
-    return true;
+    return client::ApiNoResult{};
   }
 
   repository::DataCacheRepository data_cache_repository(catalog_,
@@ -710,37 +720,38 @@ bool VersionedLayerClientImpl::RemoveFromCache(
                                      partition.get().GetDataHandle());
 }
 
-bool VersionedLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
+client::ApiNoResponse VersionedLayerClientImpl::DeleteFromCache(
+    const geo::TileKey& tile) {
   read::QuadTreeIndex cached_tree;
   repository::PartitionsCacheRepository partitions_cache_repository(
       catalog_, layer_id_, settings_.cache);
   auto version = catalog_version_.load();
   if (version == kInvalidVersion) {
     OLP_SDK_LOG_WARNING(
-        kLogTag, "Method RemoveFromCache failed, version is not initialized");
-    return false;
+        kLogTag, "Method DeleteFromCache failed, version is not initialized");
+    return client::ApiError::PreconditionFailed("Version is not initialized");
   }
 
   if (!partitions_cache_repository.FindQuadTree(tile, version, cached_tree)) {
-    return true;
+    return client::ApiNoResult{};
   }
 
   auto data = cached_tree.Find(tile, false);
   if (!data) {
-    return true;
+    return client::ApiNoResult{};
   }
   repository::DataCacheRepository data_cache_repository(catalog_,
                                                         settings_.cache);
   auto result = data_cache_repository.Clear(layer_id_, data->data_handle);
   if (!result) {
-    return false;
+    return result;
   }
 
   auto index_data = cached_tree.GetIndexData();
   for (const auto& ind : index_data) {
     if (ind.tile_key != tile &&
         data_cache_repository.IsCached(layer_id_, ind.data_handle)) {
-      return true;
+      return client::ApiNoResult{};
     }
   }
 

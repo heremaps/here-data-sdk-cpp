@@ -131,26 +131,37 @@ client::CancellableFuture<DataResponse> VolatileLayerClientImpl::GetData(
 }
 
 bool VolatileLayerClientImpl::RemoveFromCache(const std::string& partition_id) {
+  return DeleteFromCache(partition_id).IsSuccessful();
+}
+
+bool VolatileLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
+  return DeleteFromCache(tile).IsSuccessful();
+}
+
+client::ApiNoResponse VolatileLayerClientImpl::DeleteFromCache(
+    const std::string& partition_id) {
   repository::PartitionsCacheRepository cache_repository(catalog_, layer_id_,
                                                          settings_.cache);
   boost::optional<model::Partition> partition;
-  if (!cache_repository.ClearPartitionMetadata(partition_id, boost::none,
-                                               partition)) {
-    return false;
+  auto clear_response = cache_repository.ClearPartitionMetadata(
+      partition_id, boost::none, partition);
+  if (!clear_response) {
+    return clear_response;
   }
 
   if (!partition) {
     // partition are not stored in cache
-    return true;
+    return client::ApiNoResult{};
   }
 
   repository::DataCacheRepository data_repository(catalog_, settings_.cache);
   return data_repository.Clear(layer_id_, partition.get().GetDataHandle());
 }
 
-bool VolatileLayerClientImpl::RemoveFromCache(const geo::TileKey& tile) {
+client::ApiNoResponse VolatileLayerClientImpl::DeleteFromCache(
+    const geo::TileKey& tile) {
   auto partition_id = tile.ToHereTile();
-  return RemoveFromCache(partition_id);
+  return DeleteFromCache(partition_id);
 }
 
 client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(

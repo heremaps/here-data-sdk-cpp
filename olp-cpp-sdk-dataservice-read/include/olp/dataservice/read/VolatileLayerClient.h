@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -201,6 +201,24 @@ class DATASERVICE_READ_API VolatileLayerClient final {
    * @return True if tile data is removed successfully; false otherwise.
    */
   bool RemoveFromCache(const geo::TileKey& tile);
+
+  /**
+   * @brief Removes the partition from the mutable disk cache.
+   *
+   * @param partition_id The partition ID that should be removed.
+   *
+   * @return An error if the partition data could not be removed from the cache.
+   */
+  client::ApiNoResponse DeleteFromCache(const std::string& partition_id);
+
+  /**
+   * @brief Removes the tile from the mutable disk cache.
+   *
+   * @param tile The tile key that should be removed.
+   *
+   * @return An error if the tile data could not be removed from the cache.
+   */
+  client::ApiNoResponse DeleteFromCache(const geo::TileKey& tile);
 
   /**
    * @brief Prefetches a set of tiles asynchronously.
