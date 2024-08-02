@@ -83,12 +83,12 @@ bool DataCacheRepository::IsCached(const std::string& layer_id,
       cache::KeyGenerator::CreateDataHandleKey(hrn_, layer_id, data_handle));
 }
 
-bool DataCacheRepository::Clear(const std::string& layer_id,
-                                const std::string& data_handle) {
+client::ApiNoResponse DataCacheRepository::Clear(
+    const std::string& layer_id, const std::string& data_handle) {
   const auto key =
       cache::KeyGenerator::CreateDataHandleKey(hrn_, layer_id, data_handle);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "Clear -> '%s'", key.c_str());
-  return cache_->RemoveKeysWithPrefix(key);
+  return cache_->DeleteByPrefix(key);
 }
 void DataCacheRepository::PromoteInCache(const std::string& layer_id,
                                          const std::string& data_handle) {

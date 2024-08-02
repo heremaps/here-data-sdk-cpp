@@ -107,7 +107,7 @@ TEST(VersionedLayerClientTest, GetData) {
   Mock::VerifyAndClearExpectations(network_mock.get());
 }
 
-TEST(VersionedLayerClientTest, RemoveFromCachePartition) {
+TEST(VersionedLayerClientTest, DeleteFromCachePartition) {
   olp::client::OlpClientSettings settings;
   std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
   settings.cache = cache_mock;
@@ -124,13 +124,13 @@ TEST(VersionedLayerClientTest, RemoveFromCachePartition) {
         kHrn.ToCatalogHRNString() + "::" + kLayerId + "::" + kPartitionId +
         "::" + std::to_string(kCatalogVersion) + "::partition";
     EXPECT_EQ(prefix, expected_prefix);
-    return true;
+    return olp::client::ApiNoResult{};
   };
   auto data_cache_remove = [&](const std::string& prefix) {
     std::string expected_prefix = kHrn.ToCatalogHRNString() + "::" + kLayerId +
                                   "::" + kBlobDataHandle + "::Data";
     EXPECT_EQ(prefix, expected_prefix);
-    return true;
+    return olp::client::ApiNoResult{};
   };
 
   read::VersionedLayerClient client(kHrn, kLayerId, kCatalogVersion, settings);
@@ -138,36 +138,46 @@ TEST(VersionedLayerClientTest, RemoveFromCachePartition) {
     SCOPED_TRACE("Successful remove partition from cache");
 
     EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
-    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
+    EXPECT_CALL(*cache_mock, DeleteByPrefix(_))
         .WillOnce(partition_cache_remove)
         .WillOnce(data_cache_remove);
-    ASSERT_TRUE(client.RemoveFromCache(kPartitionId));
+    ASSERT_TRUE(client.DeleteFromCache(kPartitionId));
   }
   {
     SCOPED_TRACE("Remove not existing partition from cache");
     EXPECT_CALL(*cache_mock, Read(_)).WillOnce([](const std::string&) {
       return olp::client::ApiError::NotFound();
     });
-    ASSERT_TRUE(client.RemoveFromCache(kPartitionId));
+    ASSERT_TRUE(client.DeleteFromCache(kPartitionId));
   }
   {
     SCOPED_TRACE("Partition cache failure");
     EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
-    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
-        .WillOnce([](const std::string&) { return false; });
-    ASSERT_FALSE(client.RemoveFromCache(kPartitionId));
+    EXPECT_CALL(*cache_mock, DeleteByPrefix(_))
+        .WillOnce([](const std::string&) {
+          return olp::client::ApiError(ErrorCode::NoSpaceLeft, "");
+        });
+    auto delete_response = client.DeleteFromCache(kPartitionId);
+    ASSERT_FALSE(delete_response);
+    ASSERT_EQ(delete_response.GetError().GetErrorCode(),
+              ErrorCode::NoSpaceLeft);
   }
   {
     SCOPED_TRACE("Data cache failure");
     EXPECT_CALL(*cache_mock, Read(_)).WillOnce(found_cache_response);
-    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
+    EXPECT_CALL(*cache_mock, DeleteByPrefix(_))
         .WillOnce(partition_cache_remove)
-        .WillOnce([](const std::string&) { return false; });
-    ASSERT_FALSE(client.RemoveFromCache(kPartitionId));
+        .WillOnce([](const std::string&) {
+          return olp::client::ApiError(ErrorCode::NoSpaceLeft, "");
+        });
+    auto delete_response = client.DeleteFromCache(kPartitionId);
+    ASSERT_FALSE(delete_response);
+    ASSERT_EQ(delete_response.GetError().GetErrorCode(),
+              ErrorCode::NoSpaceLeft);
   }
 }
 
-TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
+TEST(VersionedLayerClientTest, DeleteFromCacheTileKey) {
   olp::client::OlpClientSettings settings;
   std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
   settings.cache = cache_mock;
@@ -193,7 +203,7 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
         kHrn.ToCatalogHRNString() + "::" + kLayerId +
         "::" + ReadDefaultResponses::GenerateDataHandle(kHereTile) + "::Data";
     EXPECT_EQ(prefix, expected_prefix);
-    return true;
+    return olp::client::ApiNoResult{};
   };
 
   read::VersionedLayerClient client(kHrn, kLayerId, kCatalogVersion, settings);
@@ -222,11 +232,10 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
               EXPECT_EQ(key, quad_cache_key(tile_key));
               return buffer;
             });
-    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
-        .WillOnce(data_cache_remove);
+    EXPECT_CALL(*cache_mock, DeleteByPrefix(_)).WillOnce(data_cache_remove);
     EXPECT_CALL(*cache_mock, Contains(_))
         .WillRepeatedly([&](const std::string&) { return true; });
-    ASSERT_TRUE(client.RemoveFromCache(tile_key));
+    ASSERT_TRUE(client.DeleteFromCache(tile_key));
   }
   {
     SCOPED_TRACE("Remove not existing tile from cache");
@@ -251,7 +260,7 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
           EXPECT_EQ(key, quad_cache_key(tile_key));
           return olp::client::ApiError::NotFound();
         });
-    ASSERT_TRUE(client.RemoveFromCache(tile_key));
+    ASSERT_TRUE(client.DeleteFromCache(tile_key));
   }
   {
     SCOPED_TRACE("Data cache failure");
@@ -277,9 +286,14 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
               EXPECT_EQ(key, quad_cache_key(tile_key));
               return buffer;
             });
-    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
-        .WillOnce([](const std::string&) { return false; });
-    ASSERT_FALSE(client.RemoveFromCache(tile_key));
+    EXPECT_CALL(*cache_mock, DeleteByPrefix(_))
+        .WillOnce([](const std::string&) {
+          return olp::client::ApiError(ErrorCode::NoSpaceLeft, "");
+        });
+    auto delete_response = client.DeleteFromCache(tile_key);
+    ASSERT_FALSE(delete_response);
+    ASSERT_EQ(delete_response.GetError().GetErrorCode(),
+              ErrorCode::NoSpaceLeft);
   }
   {
     SCOPED_TRACE("Successful remove tile and quad tree from cache");
@@ -305,12 +319,13 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
               EXPECT_EQ(key, quad_cache_key(tile_key));
               return buffer;
             });
-    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
+    EXPECT_CALL(*cache_mock, DeleteByPrefix(_))
         .WillOnce(data_cache_remove)
-        .WillOnce([&](const std::string&) { return true; });
+        .WillOnce(
+            [&](const std::string&) { return olp::client::ApiNoResult{}; });
     EXPECT_CALL(*cache_mock, Contains(_))
         .WillRepeatedly([&](const std::string&) { return false; });
-    ASSERT_TRUE(client.RemoveFromCache(tile_key));
+    ASSERT_TRUE(client.DeleteFromCache(tile_key));
   }
   {
     SCOPED_TRACE("Successful remove tile but removing quad tree fails");
@@ -336,12 +351,17 @@ TEST(VersionedLayerClientTest, RemoveFromCacheTileKey) {
               EXPECT_EQ(key, quad_cache_key(tile_key));
               return buffer;
             });
-    EXPECT_CALL(*cache_mock, RemoveKeysWithPrefix(_))
+    EXPECT_CALL(*cache_mock, DeleteByPrefix(_))
         .WillOnce(data_cache_remove)
-        .WillOnce([&](const std::string&) { return false; });
+        .WillOnce([&](const std::string&) {
+          return olp::client::ApiError(ErrorCode::NoSpaceLeft, "");
+        });
     EXPECT_CALL(*cache_mock, Contains(_))
         .WillRepeatedly([&](const std::string&) { return false; });
-    ASSERT_FALSE(client.RemoveFromCache(tile_key));
+    auto delete_response = client.DeleteFromCache(tile_key);
+    ASSERT_FALSE(delete_response);
+    ASSERT_EQ(delete_response.GetError().GetErrorCode(),
+              ErrorCode::NoSpaceLeft);
   }
 }
 

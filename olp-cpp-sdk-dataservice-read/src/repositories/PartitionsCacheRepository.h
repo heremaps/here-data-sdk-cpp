@@ -75,12 +75,13 @@ class PartitionsCacheRepository final {
   bool ClearPartitions(const std::vector<std::string>& partition_ids,
                        const boost::optional<int64_t>& version);
 
-  bool ClearQuadTree(geo::TileKey tile_key, int32_t depth,
-                     const boost::optional<int64_t>& version);
+  client::ApiNoResponse ClearQuadTree(geo::TileKey tile_key, int32_t depth,
+                                      const boost::optional<int64_t>& version);
 
-  bool ClearPartitionMetadata(const std::string& partition_id,
-                              const boost::optional<int64_t>& catalog_version,
-                              boost::optional<model::Partition>& out_partition);
+  client::ApiNoResponse ClearPartitionMetadata(
+      const std::string& partition_id,
+      const boost::optional<int64_t>& catalog_version,
+      boost::optional<model::Partition>& out_partition);
 
   bool GetPartitionHandle(const std::string& partition_id,
                           const boost::optional<int64_t>& catalog_version,

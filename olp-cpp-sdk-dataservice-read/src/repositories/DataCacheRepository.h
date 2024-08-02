@@ -55,7 +55,8 @@ class DataCacheRepository final {
   void PromoteInCache(const std::string& layer_id,
                       const std::string& data_handle);
 
-  bool Clear(const std::string& layer_id, const std::string& data_handle);
+  client::ApiNoResponse Clear(const std::string& layer_id,
+                              const std::string& data_handle);
 
  private:
   const std::string hrn_;

@@ -59,8 +59,8 @@ class VersionedLayerClientImpl;
  * first request made, based on this rules which apply for each specific FetchOptions:
  * - OnlineOnly - version is resolved from online.
  * - CacheOnly - version is resolved from cache.
- * - OnlineIfNotFound - retrieve from online first, then checks the cache in 
- * case of error. Update cache version if online version is higher then the 
+ * - OnlineIfNotFound - retrieve from online first, then checks the cache in
+ * case of error. Update cache version if online version is higher then the
  * cache version.
  *
  * An example with the catalog version provided that saves one network request:
@@ -474,6 +474,30 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * @return True if tile data is removed successfully; false otherwise.
    */
   bool RemoveFromCache(const geo::TileKey& tile);
+
+  /**
+   * @brief Removes the partition from the mutable disk cache.
+   *
+   * @param partition_id The partition ID that should be removed.
+   *
+   * @note Before calling the API, specify a catalog version. You can set it
+   * using the constructor or after the first online request.
+   *
+   * @return An error if the partition data could not be removed from the cache.
+   */
+  client::ApiNoResponse DeleteFromCache(const std::string& partition_id);
+
+  /**
+   * @brief Removes the tile from the mutable disk cache.
+   *
+   * @param tile The tile key that should be removed.
+   *
+   * @note Before calling the API, specify a catalog version. You can set it
+   * using the constructor or after the first online request.
+   *
+   * @return An error if the tile data could not be removed from the cache.
+   */
+  client::ApiNoResponse DeleteFromCache(const geo::TileKey& tile);
 
   /**
    * @brief Checks whether the partition is cached.

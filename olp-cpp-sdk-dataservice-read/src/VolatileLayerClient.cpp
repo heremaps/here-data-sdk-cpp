@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,16 @@ bool VolatileLayerClient::RemoveFromCache(const std::string& partition_id) {
 
 bool VolatileLayerClient::RemoveFromCache(const geo::TileKey& tile) {
   return impl_->RemoveFromCache(tile);
+}
+
+client::ApiNoResponse VolatileLayerClient::DeleteFromCache(
+    const std::string& partition_id) {
+  return impl_->DeleteFromCache(partition_id);
+}
+
+client::ApiNoResponse VolatileLayerClient::DeleteFromCache(
+    const geo::TileKey& tile) {
+  return impl_->DeleteFromCache(tile);
 }
 
 client::CancellationToken VolatileLayerClient::PrefetchTiles(

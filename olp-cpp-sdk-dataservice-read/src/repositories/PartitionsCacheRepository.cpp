@@ -258,17 +258,17 @@ bool PartitionsCacheRepository::ClearPartitions(
   return passed;
 }
 
-bool PartitionsCacheRepository::ClearQuadTree(
+client::ApiNoResponse PartitionsCacheRepository::ClearQuadTree(
     geo::TileKey tile_key, int32_t depth,
     const boost::optional<int64_t>& version) {
   const auto key = cache::KeyGenerator::CreateQuadTreeKey(
       catalog_, layer_id_, tile_key, version, depth);
   OLP_SDK_LOG_DEBUG_F(kLogTag, "ClearQuadTree -> '%s'", key.c_str());
 
-  return cache_->RemoveKeysWithPrefix(key);
+  return cache_->DeleteByPrefix(key);
 }
 
-bool PartitionsCacheRepository::ClearPartitionMetadata(
+client::ApiNoResponse PartitionsCacheRepository::ClearPartitionMetadata(
     const std::string& partition_id,
     const boost::optional<int64_t>& catalog_version,
     boost::optional<model::Partition>& out_partition) {
@@ -278,12 +278,13 @@ bool PartitionsCacheRepository::ClearPartitionMetadata(
 
   auto read_response = cache_->Read(key);
   if (!read_response) {
-    return read_response.GetError().GetErrorCode() ==
-           client::ErrorCode::NotFound;
+    if (read_response.GetError().GetErrorCode() == client::ErrorCode::NotFound)
+      return client::ApiNoResponse{client::ApiNoResult{}};
+    return client::ApiNoResponse{read_response.GetError()};
   }
 
   out_partition = parser::parse<model::Partition>(read_response.GetResult());
-  return cache_->RemoveKeysWithPrefix(key);
+  return cache_->DeleteByPrefix(key);
 }
 
 bool PartitionsCacheRepository::GetPartitionHandle(
