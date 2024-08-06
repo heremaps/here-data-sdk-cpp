@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.19.0</span>
+   &#160;<span id="projectnumber">1.20.0</span>
    </div>
   </td>
  </tr>
@@ -121,6 +121,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aba1a39954b5e4a2c8436c72557592c65"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#aba1a39954b5e4a2c8436c72557592c65">RemoveFromCache</a> (const <a class="el" href="classolp_1_1geo_1_1TileKey.html">geo::TileKey</a> &amp;tile)</td></tr>
 <tr class="memdesc:aba1a39954b5e4a2c8436c72557592c65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the tile from the mutable disk cache.  <a href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#aba1a39954b5e4a2c8436c72557592c65">More...</a><br /></td></tr>
 <tr class="separator:aba1a39954b5e4a2c8436c72557592c65"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a67838521efde060ae34d82d52c70cd9c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceolp_1_1client.html#a81e6bd68864bf9e2cc66efcf2e4ed927">client::ApiNoResponse</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#a67838521efde060ae34d82d52c70cd9c">DeleteFromCache</a> (const std::string &amp;partition_id)</td></tr>
+<tr class="memdesc:a67838521efde060ae34d82d52c70cd9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the partition from the mutable disk cache.  <a href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#a67838521efde060ae34d82d52c70cd9c">More...</a><br /></td></tr>
+<tr class="separator:a67838521efde060ae34d82d52c70cd9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba194718cd8db8138224b6d93878ea25"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceolp_1_1client.html#a81e6bd68864bf9e2cc66efcf2e4ed927">client::ApiNoResponse</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#aba194718cd8db8138224b6d93878ea25">DeleteFromCache</a> (const <a class="el" href="classolp_1_1geo_1_1TileKey.html">geo::TileKey</a> &amp;tile)</td></tr>
+<tr class="memdesc:aba194718cd8db8138224b6d93878ea25"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the tile from the mutable disk cache.  <a href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#aba194718cd8db8138224b6d93878ea25">More...</a><br /></td></tr>
+<tr class="separator:aba194718cd8db8138224b6d93878ea25"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab788b406b67bf176c2d20ebff2f29318"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">client::CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#ab788b406b67bf176c2d20ebff2f29318">PrefetchTiles</a> (<a class="el" href="classolp_1_1dataservice_1_1read_1_1PrefetchTilesRequest.html">PrefetchTilesRequest</a> request, PrefetchTilesResponseCallback callback)</td></tr>
 <tr class="memdesc:ab788b406b67bf176c2d20ebff2f29318"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prefetches a set of tiles asynchronously.  <a href="classolp_1_1dataservice_1_1read_1_1VolatileLayerClient.html#ab788b406b67bf176c2d20ebff2f29318">More...</a><br /></td></tr>
 <tr class="separator:ab788b406b67bf176c2d20ebff2f29318"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -226,6 +232,60 @@ Public Member Functions</h2></td></tr>
 
 <p>Cancels all active and pending requests. </p>
 <dl class="section return"><dt>Returns</dt><dd>True if the request is successful; false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="aba194718cd8db8138224b6d93878ea25"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aba194718cd8db8138224b6d93878ea25">&#9670;&nbsp;</a></span>DeleteFromCache() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceolp_1_1client.html#a81e6bd68864bf9e2cc66efcf2e4ed927">client::ApiNoResponse</a> olp::dataservice::read::VolatileLayerClient::DeleteFromCache </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1geo_1_1TileKey.html">geo::TileKey</a> &amp;&#160;</td>
+          <td class="paramname"><em>tile</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Removes the tile from the mutable disk cache. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">tile</td><td>The tile key that should be removed.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>An error if the tile data could not be removed from the cache. </dd></dl>
+
+</div>
+</div>
+<a id="a67838521efde060ae34d82d52c70cd9c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a67838521efde060ae34d82d52c70cd9c">&#9670;&nbsp;</a></span>DeleteFromCache() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceolp_1_1client.html#a81e6bd68864bf9e2cc66efcf2e4ed927">client::ApiNoResponse</a> olp::dataservice::read::VolatileLayerClient::DeleteFromCache </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>partition_id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Removes the partition from the mutable disk cache. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">partition_id</td><td>The partition ID that should be removed.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>An error if the partition data could not be removed from the cache. </dd></dl>
 
 </div>
 </div>

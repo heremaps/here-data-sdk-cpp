@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.19.0</span>
+   &#160;<span id="projectnumber">1.20.0</span>
    </div>
   </td>
  </tr>
@@ -85,8 +85,8 @@ Inheritance diagram for olp::cache::KeyValueCache:</div>
 <div class="dyncontent">
 <div class="center"><img src="classolp_1_1cache_1_1KeyValueCache__inherit__graph.png" border="0" usemap="#aolp_1_1cache_1_1KeyValueCache_inherit__map" alt="Inheritance graph"/></div>
 <map name="aolp_1_1cache_1_1KeyValueCache_inherit__map" id="aolp_1_1cache_1_1KeyValueCache_inherit__map">
-<area shape="rect" title="An interface for a cache that expects a key&#45;value pair." alt="" coords="5,5,189,32"/>
-<area shape="rect" href="classolp_1_1cache_1_1DefaultCache.html" title="A default cache that provides a memory LRU cache and persistence of cached key&#45;value pairs." alt="" coords="12,80,183,107"/>
+<area shape="rect" title="An interface for a cache that expects a key&#45;value pair." alt="" coords="5,5,201,32"/>
+<area shape="rect" href="classolp_1_1cache_1_1DefaultCache.html" title="A default cache that provides a memory LRU cache and persistence of cached key&#45;value pairs." alt="" coords="11,80,195,107"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -140,6 +140,18 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a6978747e11e949bd73f54a6fec7da846"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1cache_1_1KeyValueCache.html#a6978747e11e949bd73f54a6fec7da846">Promote</a> (const std::string &amp;key)</td></tr>
 <tr class="memdesc:a6978747e11e949bd73f54a6fec7da846"><td class="mdescLeft">&#160;</td><td class="mdescRight">Promotes a key in the cache LRU when applicable.  <a href="classolp_1_1cache_1_1KeyValueCache.html#a6978747e11e949bd73f54a6fec7da846">More...</a><br /></td></tr>
 <tr class="separator:a6978747e11e949bd73f54a6fec7da846"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8ad1e3a903fbfcd1075c26e7729c630a"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classolp_1_1client_1_1ApiResponse.html">OperationOutcome</a>&lt; <a class="el" href="classolp_1_1cache_1_1KeyValueCache.html#a2246664173218bda21d66d0708e16e49">ValueTypePtr</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1cache_1_1KeyValueCache.html#a8ad1e3a903fbfcd1075c26e7729c630a">Read</a> (const std::string &amp;key)</td></tr>
+<tr class="memdesc:a8ad1e3a903fbfcd1075c26e7729c630a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the binary data from the cache.  <a href="classolp_1_1cache_1_1KeyValueCache.html#a8ad1e3a903fbfcd1075c26e7729c630a">More...</a><br /></td></tr>
+<tr class="separator:a8ad1e3a903fbfcd1075c26e7729c630a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e8ba7fe9817f1e5abe90dd7d5b9f3e2"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classolp_1_1client_1_1ApiResponse.html">OperationOutcomeEmpty</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1cache_1_1KeyValueCache.html#a8e8ba7fe9817f1e5abe90dd7d5b9f3e2">Write</a> (const std::string &amp;key, const <a class="el" href="classolp_1_1cache_1_1KeyValueCache.html#a2246664173218bda21d66d0708e16e49">ValueTypePtr</a> &amp;value, time_t expiry=<a class="el" href="classolp_1_1cache_1_1KeyValueCache.html#af0db94d37cab9bea235039b8f7f8ed1b">kDefaultExpiry</a>)</td></tr>
+<tr class="memdesc:a8e8ba7fe9817f1e5abe90dd7d5b9f3e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stores the raw binary data as a value in the cache.  <a href="classolp_1_1cache_1_1KeyValueCache.html#a8e8ba7fe9817f1e5abe90dd7d5b9f3e2">More...</a><br /></td></tr>
+<tr class="separator:a8e8ba7fe9817f1e5abe90dd7d5b9f3e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80123fc5417f81e2ea7b17d7fd353325"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classolp_1_1client_1_1ApiResponse.html">OperationOutcomeEmpty</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1cache_1_1KeyValueCache.html#a80123fc5417f81e2ea7b17d7fd353325">Delete</a> (const std::string &amp;key)</td></tr>
+<tr class="memdesc:a80123fc5417f81e2ea7b17d7fd353325"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the key-value pair from the cache.  <a href="classolp_1_1cache_1_1KeyValueCache.html#a80123fc5417f81e2ea7b17d7fd353325">More...</a><br /></td></tr>
+<tr class="separator:a80123fc5417f81e2ea7b17d7fd353325"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8ea2e3e4965f6e3dd7f2e689b01cf5ca"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classolp_1_1client_1_1ApiResponse.html">OperationOutcomeEmpty</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1cache_1_1KeyValueCache.html#a8ea2e3e4965f6e3dd7f2e689b01cf5ca">DeleteByPrefix</a> (const std::string &amp;prefix)</td></tr>
+<tr class="memdesc:a8ea2e3e4965f6e3dd7f2e689b01cf5ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the values with the keys that match the given prefix from the cache.  <a href="classolp_1_1cache_1_1KeyValueCache.html#a8ea2e3e4965f6e3dd7f2e689b01cf5ca">More...</a><br /></td></tr>
+<tr class="separator:a8ea2e3e4965f6e3dd7f2e689b01cf5ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
@@ -184,6 +196,80 @@ Static Public Attributes</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>True if the key is cached; false otherwise. </dd></dl>
 
 <p>Reimplemented in <a class="el" href="classolp_1_1cache_1_1DefaultCache.html#ac09a6d8f95f1534165722698e0d13f5e">olp::cache::DefaultCache</a>.</p>
+
+</div>
+</div>
+<a id="a80123fc5417f81e2ea7b17d7fd353325"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a80123fc5417f81e2ea7b17d7fd353325">&#9670;&nbsp;</a></span>Delete()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="classolp_1_1client_1_1ApiResponse.html">OperationOutcomeEmpty</a> olp::cache::KeyValueCache::Delete </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>key</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Removes the key-value pair from the cache. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>The key for the value.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>An error if the data could not be removed from the cache. </dd></dl>
+
+<p>Reimplemented in <a class="el" href="classolp_1_1cache_1_1DefaultCache.html#a848f5c8bd18b516b7f67d7e6a5011425">olp::cache::DefaultCache</a>.</p>
+
+</div>
+</div>
+<a id="a8ea2e3e4965f6e3dd7f2e689b01cf5ca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8ea2e3e4965f6e3dd7f2e689b01cf5ca">&#9670;&nbsp;</a></span>DeleteByPrefix()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="classolp_1_1client_1_1ApiResponse.html">OperationOutcomeEmpty</a> olp::cache::KeyValueCache::DeleteByPrefix </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>prefix</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Removes the values with the keys that match the given prefix from the cache. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">prefix</td><td>The prefix that matches the keys.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>An error if the data could not be removed from the cache. </dd></dl>
+
+<p>Reimplemented in <a class="el" href="classolp_1_1cache_1_1DefaultCache.html#a66c1259e031aae32821f1ff484f0d359">olp::cache::DefaultCache</a>.</p>
 
 </div>
 </div>
@@ -500,6 +586,43 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a8ad1e3a903fbfcd1075c26e7729c630a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8ad1e3a903fbfcd1075c26e7729c630a">&#9670;&nbsp;</a></span>Read()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="classolp_1_1client_1_1ApiResponse.html">OperationOutcome</a>&lt;<a class="el" href="classolp_1_1cache_1_1KeyValueCache.html#a2246664173218bda21d66d0708e16e49">ValueTypePtr</a>&gt; olp::cache::KeyValueCache::Read </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>key</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Gets the binary data from the cache. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>The key that is used to look for the binary data.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The binary data or an error if the data could not be retrieved from the cache. </dd></dl>
+
+<p>Reimplemented in <a class="el" href="classolp_1_1cache_1_1DefaultCache.html#a3aba3b5963817f9115b34fd4231a5bee">olp::cache::DefaultCache</a>.</p>
+
+</div>
+</div>
 <a id="a7dd59cc35db4c607e9ead1be99be81c9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7dd59cc35db4c607e9ead1be99be81c9">&#9670;&nbsp;</a></span>Release()</h2>
 
@@ -609,6 +732,61 @@ Static Public Attributes</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>True if the values are removed; false otherwise. </dd></dl>
 
 <p>Implemented in <a class="el" href="classolp_1_1cache_1_1DefaultCache.html#a2a362956bcd371134073726c5c749e4e">olp::cache::DefaultCache</a>.</p>
+
+</div>
+</div>
+<a id="a8e8ba7fe9817f1e5abe90dd7d5b9f3e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8e8ba7fe9817f1e5abe90dd7d5b9f3e2">&#9670;&nbsp;</a></span>Write()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="classolp_1_1client_1_1ApiResponse.html">OperationOutcomeEmpty</a> olp::cache::KeyValueCache::Write </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classolp_1_1cache_1_1KeyValueCache.html#a2246664173218bda21d66d0708e16e49">ValueTypePtr</a> &amp;&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">time_t&#160;</td>
+          <td class="paramname"><em>expiry</em> = <code><a class="el" href="classolp_1_1cache_1_1KeyValueCache.html#af0db94d37cab9bea235039b8f7f8ed1b">kDefaultExpiry</a></code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Stores the raw binary data as a value in the cache. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>The key for this value. </td></tr>
+    <tr><td class="paramname">value</td><td>The binary data that should be stored. </td></tr>
+    <tr><td class="paramname">expiry</td><td>The expiry time (in seconds) of the key-value pair.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>An error if the data could not be written to the cache. </dd></dl>
+
+<p>Reimplemented in <a class="el" href="classolp_1_1cache_1_1DefaultCache.html#a9d7401c1330b407ed00516de223dccd6">olp::cache::DefaultCache</a>.</p>
 
 </div>
 </div>

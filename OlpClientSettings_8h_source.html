@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.19.0</span>
+   &#160;<span id="projectnumber">1.20.0</span>
    </div>
   </td>
  </tr>
@@ -71,7 +71,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/*</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2023 HERE Europe B.V.</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2024 HERE Europe B.V.</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment"> * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment"> * you may not use this file except in compliance with the License.</span></div>
@@ -163,10 +163,12 @@ $(function() {
 <div class="line"><a name="l00226"></a><span class="lineno"><a class="line" href="structolp_1_1client_1_1OlpClientSettings.html#a022e049a4295922b29eb4401215ba6b4">  226</a></span>&#160;  std::shared_ptr&lt;cache::KeyValueCache&gt; cache = <span class="keyword">nullptr</span>;</div>
 <div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160; </div>
 <div class="line"><a name="l00240"></a><span class="lineno"><a class="line" href="structolp_1_1client_1_1OlpClientSettings.html#a8ed9fd263beea78a62e76382f49984e8">  240</a></span>&#160;  std::chrono::seconds default_cache_expiration = std::chrono::seconds::max();</div>
-<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;};</div>
-<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160; </div>
-<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;}  <span class="comment">// namespace client</span></div>
-<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160; </div>
+<div class="line"><a name="l00248"></a><span class="lineno"><a class="line" href="structolp_1_1client_1_1OlpClientSettings.html#a063c186380e77e1f58ebfa57bd1d81be">  248</a></span>&#160;  <span class="keywordtype">bool</span> propagate_all_cache_errors = <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;};</div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160; </div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;}  <span class="comment">// namespace client</span></div>
+<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;}  <span class="comment">// namespace olp</span></div>
 <div class="ttc" id="aclassolp_1_1client_1_1CancellationContext_html"><div class="ttname"><a href="classolp_1_1client_1_1CancellationContext.html">olp::client::CancellationContext</a></div><div class="ttdoc">A wrapper that manages the cancellation state of an asynchronous operation in a thread-safe way.</div><div class="ttdef"><b>Definition:</b> CancellationContext.h:40</div></div>
 <div class="ttc" id="aclassolp_1_1client_1_1HRN_html"><div class="ttname"><a href="classolp_1_1client_1_1HRN.html">olp::client::HRN</a></div><div class="ttdoc">Allows a Here Resource Name (HRN) to be passed to the operations that require it.</div><div class="ttdef"><b>Definition:</b> HRN.h:34</div></div>
 <div class="ttc" id="aclassolp_1_1client_1_1HttpResponse_html"><div class="ttname"><a href="classolp_1_1client_1_1HttpResponse.html">olp::client::HttpResponse</a></div><div class="ttdoc">This class represents the HTTP response created from the NetworkResponse and the request body.</div><div class="ttdef"><b>Definition:</b> HttpResponse.h:89</div></div>

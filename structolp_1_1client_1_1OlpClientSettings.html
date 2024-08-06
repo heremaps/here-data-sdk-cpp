@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.19.0</span>
+   &#160;<span id="projectnumber">1.20.0</span>
    </div>
   </td>
  </tr>
@@ -83,9 +83,9 @@ Collaboration diagram for olp::client::OlpClientSettings:</div>
 <div class="dyncontent">
 <div class="center"><img src="structolp_1_1client_1_1OlpClientSettings__coll__graph.png" border="0" usemap="#aolp_1_1client_1_1OlpClientSettings_coll__map" alt="Collaboration graph"/></div>
 <map name="aolp_1_1client_1_1OlpClientSettings_coll__map" id="aolp_1_1client_1_1OlpClientSettings_coll__map">
-<area shape="rect" title="Configures the behavior of the OlpClient class." alt="" coords="111,95,299,121"/>
-<area shape="rect" href="structolp_1_1client_1_1ApiLookupSettings.html" title="Settings to provide URLs for API lookup requests." alt="" coords="5,5,200,32"/>
-<area shape="rect" href="structolp_1_1client_1_1RetrySettings.html" title="A collection of settings that controls how failed requests should be treated by the Data SDK." alt="" coords="225,5,391,32"/>
+<area shape="rect" title="Configures the behavior of the OlpClient class." alt="" coords="120,95,327,121"/>
+<area shape="rect" href="structolp_1_1client_1_1ApiLookupSettings.html" title="Settings to provide URLs for API lookup requests." alt="" coords="5,5,220,32"/>
+<area shape="rect" href="structolp_1_1client_1_1RetrySettings.html" title="A collection of settings that controls how failed requests should be treated by the Data SDK." alt="" coords="244,5,427,32"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -117,6 +117,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a8ed9fd263beea78a62e76382f49984e8"><td class="memItemLeft" align="right" valign="top">std::chrono::seconds&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1client_1_1OlpClientSettings.html#a8ed9fd263beea78a62e76382f49984e8">default_cache_expiration</a> = std::chrono::seconds::max()</td></tr>
 <tr class="memdesc:a8ed9fd263beea78a62e76382f49984e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set default expiration for any cache entry made by the according layer or catalog client.  <a href="structolp_1_1client_1_1OlpClientSettings.html#a8ed9fd263beea78a62e76382f49984e8">More...</a><br /></td></tr>
 <tr class="separator:a8ed9fd263beea78a62e76382f49984e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a063c186380e77e1f58ebfa57bd1d81be"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1client_1_1OlpClientSettings.html#a063c186380e77e1f58ebfa57bd1d81be">propagate_all_cache_errors</a> = false</td></tr>
+<tr class="memdesc:a063c186380e77e1f58ebfa57bd1d81be"><td class="mdescLeft">&#160;</td><td class="mdescRight">The flag to enable or disable the propagation of all cache errors.  <a href="structolp_1_1client_1_1OlpClientSettings.html#a063c186380e77e1f58ebfa57bd1d81be">More...</a><br /></td></tr>
+<tr class="separator:a063c186380e77e1f58ebfa57bd1d81be"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Configures the behavior of the <code><a class="el" href="classolp_1_1client_1_1OlpClient.html" title="Executes HTTP requests by using the base url and the provided parameters and body....">OlpClient</a></code> class. </p>
@@ -168,7 +171,7 @@ Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Set default expiration for any cache entry made by the according layer or catalog client. </p>
-<p>This setting only applies to the mutable cache and to the in-memory cache, but should not affect the protected cache as no entries are added to the protected cache in read-only mode. Set to std::chrono::seconds::max() to disable expiration. By default expiration is disabled.</p>
+<p>This setting only applies to the mutable cache and to the in-memory cache, but should not affect the protected cache as no entries are added to the protected cache in read-only mode. Set to std::chrono::seconds::max() to disable expiration. By default, expiration is disabled.</p>
 <dl class="section note"><dt>Note</dt><dd>This only makes sense for data that has an expiration limit, e.g. volatile or versioned, and which is stored in cache. </dd></dl>
 
 </div>
@@ -187,6 +190,23 @@ Public Attributes</h2></td></tr>
 
 <p>The <code>Network</code> instance. </p>
 <p>Used to internally operate with the HERE platform Services. </p>
+
+</div>
+</div>
+<a id="a063c186380e77e1f58ebfa57bd1d81be"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a063c186380e77e1f58ebfa57bd1d81be">&#9670;&nbsp;</a></span>propagate_all_cache_errors</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool olp::client::OlpClientSettings::propagate_all_cache_errors = false</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The flag to enable or disable the propagation of all cache errors. </p>
+<p>When set to <code>false</code> only critical cache errors are propagated to the user. By default, this setting is set to <code>false</code>. </p>
 
 </div>
 </div>

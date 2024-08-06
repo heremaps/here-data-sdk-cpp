@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.19.0</span>
+   &#160;<span id="projectnumber">1.20.0</span>
    </div>
   </td>
  </tr>
@@ -104,6 +104,7 @@ Public Types</h2></td></tr>
 &#160;&#160;<a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4aa76d4ef5f3f6a672bbfab2865563e530">Time</a>
 , <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4afca1e9617ac05dac5dbcd50970bf79c6">TimeMs</a>
 , <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4a693e7589872f7acd3e69d831d022d6ea">ThreadId</a>
+, <a class="el" href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4adc82ba7bb0046efd532f8debf5abea32">ContextValue</a>
 <br />
  }</td></tr>
 <tr class="memdesc:a00f34e2e9c507a76dcf3e5f058c36fe4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of the element to print out.  <a href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4">More...</a><br /></td></tr>
@@ -197,7 +198,7 @@ Static Public Member Functions</h2></td></tr>
 <div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_a00f34e2e9c507a76dcf3e5f058c36fe4aa76d4ef5f3f6a672bbfab2865563e530"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4aa76d4ef5f3f6a672bbfab2865563e530">olp::logging::MessageFormatter::ElementType::Time</a></div><div class="ttdeci">@ Time</div></div>
 <div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_a00f34e2e9c507a76dcf3e5f058c36fe4ac101058e7ea21bbbf2a5ac893088e90b"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4ac101058e7ea21bbbf2a5ac893088e90b">olp::logging::MessageFormatter::ElementType::Tag</a></div><div class="ttdeci">@ Tag</div></div>
 <div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_a5d23312ba0c8e7b0456ac2e7bf0de0d7"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#a5d23312ba0c8e7b0456ac2e7bf0de0d7">olp::logging::MessageFormatter::defaultLevelNameMap</a></div><div class="ttdeci">static const LevelNameMap &amp; defaultLevelNameMap()</div><div class="ttdoc">Gets the default level name map.</div></div>
-<div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_adf447a6fac614b938f17d6164496aa5b"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#adf447a6fac614b938f17d6164496aa5b">olp::logging::MessageFormatter::MessageFormatter</a></div><div class="ttdeci">MessageFormatter()</div><div class="ttdoc">The default constructor.</div><div class="ttdef"><b>Definition:</b> MessageFormatter.h:314</div></div>
+<div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_adf447a6fac614b938f17d6164496aa5b"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#adf447a6fac614b938f17d6164496aa5b">olp::logging::MessageFormatter::MessageFormatter</a></div><div class="ttdeci">MessageFormatter()</div><div class="ttdoc">The default constructor.</div><div class="ttdef"><b>Definition:</b> MessageFormatter.h:315</div></div>
 <div class="ttc" id="aclassolp_1_1logging_1_1MessageFormatter_html_afa78e7ed0c2c90f1e3683b92b54e6a2da2211d2dd79ba751bdc41551b05d1f807"><div class="ttname"><a href="classolp_1_1logging_1_1MessageFormatter.html#afa78e7ed0c2c90f1e3683b92b54e6a2da2211d2dd79ba751bdc41551b05d1f807">olp::logging::MessageFormatter::Timezone::Utc</a></div><div class="ttdeci">@ Utc</div><div class="ttdoc">Prints time in the UTC standard.</div></div>
 </div><!-- fragment --> </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a26b2623b8306380bd03f5dd19079f7a0"></a>
@@ -261,6 +262,8 @@ Static Public Member Functions</h2></td></tr>
 <tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4afca1e9617ac05dac5dbcd50970bf79c6"></a>TimeMs&#160;</td><td class="fielddoc"><p>The millisecond portion of the timestamp. It is formatted as an unsigned integer. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4a693e7589872f7acd3e69d831d022d6ea"></a>ThreadId&#160;</td><td class="fielddoc"><p>The thread ID of the thread that generated the message. It is formatted as an unsigned long. </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a00f34e2e9c507a76dcf3e5f058c36fe4adc82ba7bb0046efd532f8debf5abea32"></a>ContextValue&#160;</td><td class="fielddoc"><p>A key/value literal from LogContext; 'format' is the key to look up. </p>
 </td></tr>
 </table>
 

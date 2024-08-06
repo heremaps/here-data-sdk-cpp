@@ -1,5 +1,5 @@
 <map id="olp::geo::ISubdivisionScheme" name="olp::geo::ISubdivisionScheme">
-<area shape="rect" id="node1" title="An abstract tiling subdivision scheme." alt="" coords="137,5,332,32"/>
-<area shape="rect" id="node2" href="$classolp_1_1geo_1_1HalfQuadTreeSubdivisionScheme.html" title="A subdivision scheme used to represent half quadtrees." alt="" coords="5,80,229,121"/>
-<area shape="rect" id="node3" href="$classolp_1_1geo_1_1QuadTreeSubdivisionScheme.html" title="A quadtree subdivision scheme." alt="" coords="253,80,453,121"/>
+<area shape="rect" id="node1" title="An abstract tiling subdivision scheme." alt="" coords="149,5,363,32"/>
+<area shape="rect" id="node2" href="$classolp_1_1geo_1_1HalfQuadTreeSubdivisionScheme.html" title="A subdivision scheme used to represent half quadtrees." alt="" coords="5,80,251,121"/>
+<area shape="rect" id="node3" href="$classolp_1_1geo_1_1QuadTreeSubdivisionScheme.html" title="A quadtree subdivision scheme." alt="" coords="275,80,493,121"/>
 </map>
