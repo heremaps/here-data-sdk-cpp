@@ -31,6 +31,7 @@
 #include <olp/core/client/OlpClientFactory.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <olp/core/utils/Url.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/TileRequest.h>
 #include <repositories/DataRepository.h>
@@ -57,11 +58,18 @@ constexpr auto kUrlResponse403 =
 
 constexpr auto kUrlBlobDataHandle = R"(4eed6ed1-0d32-43b9-ae79-043cb4256432)";
 
-constexpr auto kUrlQueryTreeIndex =
-    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/23064/depths/4)";
+const auto kUrlQueryTreeIndex =
+    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/23064/depths/4?additionalFields=)" +
+    olp::utils::Url::Encode(R"(checksum,crc,dataSize,compressedDataSize)");
 
 constexpr auto kSubQuads =
-    R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
+    R"jsonString(
+      {
+        "subQuads": [
+          {"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1","checksum":"xxx","compressedDataSize":10,"dataSize":15,"crc":"aaa"},
+          {"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1","checksum":"xxx","compressedDataSize":10,"dataSize":15,"crc":"aaa"}],
+        "parentQuads": []
+      })jsonString";
 
 namespace {
 

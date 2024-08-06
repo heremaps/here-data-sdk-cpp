@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,10 @@ namespace mockserver {
 struct TileMetadata {
   std::string data_handle;
   boost::optional<int32_t> version;
+  std::string crc;
+  std::string checksum;
+  int32_t data_size{0};
+  int32_t compressed_data_size{0};
 };
 
 class ReadDefaultResponses {
@@ -85,16 +89,13 @@ class QuadTreeBuilder {
   explicit QuadTreeBuilder(olp::geo::TileKey root_tile,
                            boost::optional<int32_t> base_version);
 
-  QuadTreeBuilder& WithParent(olp::geo::TileKey parent, std::string datahandle,
+  QuadTreeBuilder& WithParent(olp::geo::TileKey parent, std::string data_handle,
                               boost::optional<int32_t> version = boost::none);
   QuadTreeBuilder& FillParents();
 
   // tile is represented as a normal tilekey
   QuadTreeBuilder& WithSubQuad(olp::geo::TileKey tile, std::string datahandle,
                                boost::optional<int32_t> version = boost::none);
-
-  // valid depth 0..4
-  QuadTreeBuilder& FillSubquads(uint32_t depth);
 
   std::string BuildJson() const;
 

@@ -44,7 +44,7 @@ namespace repository {
 
 namespace {
 constexpr auto kLogTag = "PrefetchTilesRepository";
-constexpr std::uint32_t kMaxQuadTreeIndexDepth = 4u;
+constexpr std::int32_t kMaxQuadTreeIndexDepth = 4;
 
 SubQuadsResult FlattenTree(const QuadTreeIndex& tree) {
   SubQuadsResult result;
@@ -63,14 +63,14 @@ SubQuadsResult FlattenTree(const QuadTreeIndex& tree) {
 }  // namespace
 
 PrefetchTilesRepository::PrefetchTilesRepository(
-    client::HRN catalog, const std::string& layer_id,
+    client::HRN catalog, std::string layer_id,
     client::OlpClientSettings settings, client::ApiLookupClient client,
     boost::optional<std::string> billing_tag, NamedMutexStorage storage)
     : catalog_(std::move(catalog)),
       catalog_str_(catalog_.ToString()),
-      layer_id_(layer_id),
+      layer_id_(std::move(layer_id)),
       settings_(std::move(settings)),
-      lookup_client_(std::move(client)),
+      lookup_client_(client),
       cache_repository_(catalog_, layer_id_, settings_.cache,
                         settings_.default_cache_expiration),
       billing_tag_(std::move(billing_tag)),
@@ -78,7 +78,7 @@ PrefetchTilesRepository::PrefetchTilesRepository(
 
 void PrefetchTilesRepository::SplitSubtree(
     RootTilesForRequest& root_tiles_depth,
-    RootTilesForRequest::iterator subtree_to_split,
+    const RootTilesForRequest::iterator& subtree_to_split,
     const geo::TileKey& tile_key, std::uint32_t min) {
   unsigned int depth = subtree_to_split->second;
   auto tileKey = subtree_to_split->first;
@@ -87,7 +87,7 @@ void PrefetchTilesRepository::SplitSubtree(
   }
   while (depth > kMaxQuadTreeIndexDepth) {
     unsigned int level = depth - kMaxQuadTreeIndexDepth;
-    int childCount = geo::QuadKey64Helper::ChildrenAtLevel(level);
+    auto childCount = geo::QuadKey64Helper::ChildrenAtLevel(level);
 
     const geo::TileKey firstChild =
         tileKey.ChangedLevelTo(tileKey.Level() + level);
@@ -257,7 +257,8 @@ SubQuadsResponse PrefetchTilesRepository::GetVersionedSubQuads(
 }
 
 SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
-    geo::TileKey tile, int32_t depth, client::CancellationContext context) {
+    geo::TileKey tile, int32_t depth,
+    const client::CancellationContext& context) {
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetSubQuadsVolatile(%s, %" PRId32 ")",
                       tile.ToHereTile().c_str(), depth);
 
@@ -431,7 +432,11 @@ std::vector<geo::TileKey> PrefetchTilesRepository::FilterTileKeysByList(
 PrefetchTilesRepository::QuadTreeResponse
 PrefetchTilesRepository::DownloadVersionedQuadTree(
     geo::TileKey tile, int32_t depth, std::int64_t version,
-    client::CancellationContext context) {
+    const client::CancellationContext& context) {
+  static const std::vector<std::string> default_additional_fields = {
+      PartitionsRequest::kChecksum, PartitionsRequest::kCrc,
+      PartitionsRequest::kDataSize, PartitionsRequest::kCompressedDataSize};
+
   auto query_api = lookup_client_.LookupApi("query", "v1",
                                             client::OnlineIfNotFound, context);
 
@@ -445,18 +450,17 @@ PrefetchTilesRepository::DownloadVersionedQuadTree(
                       "GetSubQuads execute(%s, %" PRId64 ", %" PRId32 ")",
                       tile_key.c_str(), version, depth);
 
-  auto quad_tree = QueryApi::QuadTreeIndex(query_api.GetResult(), layer_id_,
-                                           tile_key, version, depth,
-                                           boost::none, billing_tag_, context);
+  auto quad_tree = QueryApi::QuadTreeIndex(
+      query_api.GetResult(), layer_id_, tile_key, version, depth,
+      default_additional_fields, billing_tag_, context);
 
   if (quad_tree.status != olp::http::HttpStatusCode::OK) {
     OLP_SDK_LOG_WARNING_F(kLogTag,
                           "GetSubQuads failed(%s, %" PRId64 ", %" PRId32
                           "), status_code='%d'",
                           tile_key.c_str(), version, depth, quad_tree.status);
-    return QuadTreeResponse(
-        client::ApiError(quad_tree.status, quad_tree.response.str()),
-        quad_tree.GetNetworkStatistics());
+    return {client::ApiError(quad_tree.status, quad_tree.response.str()),
+            quad_tree.GetNetworkStatistics()};
   }
 
   QuadTreeIndex tree(tile, depth, quad_tree.response);
@@ -468,9 +472,8 @@ PrefetchTilesRepository::DownloadVersionedQuadTree(
                           "', depth='%" PRId32 "'",
                           catalog_.ToString().c_str(), layer_id_.c_str(),
                           tile_key.c_str(), version, depth);
-    return QuadTreeResponse(
-        client::ApiError::Unknown("Failed to parse quad tree response"),
-        quad_tree.GetNetworkStatistics());
+    return {client::ApiError::Unknown("Failed to parse quad tree response"),
+            quad_tree.GetNetworkStatistics()};
   }
 
   // add to cache
@@ -479,7 +482,7 @@ PrefetchTilesRepository::DownloadVersionedQuadTree(
     return {put_result.GetError(), quad_tree.GetNetworkStatistics()};
   }
 
-  return QuadTreeResponse(std::move(tree), quad_tree.GetNetworkStatistics());
+  return {std::move(tree), quad_tree.GetNetworkStatistics()};
 }
 
 }  // namespace repository

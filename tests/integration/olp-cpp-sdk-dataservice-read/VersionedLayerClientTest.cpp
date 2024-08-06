@@ -91,18 +91,15 @@ constexpr char kHttpResponseLatestCatalogVersion[] =
 constexpr char kHttpResponseBlobData_5904591[] =
     R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)";
 
-constexpr char kHttpQueryTreeIndex_23064[] =
-    R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/23064/depths/4)";
-
-const auto kHttpQueryTreeIndexWithAdditionalFields_23064 =
-    std::string(kHttpQueryTreeIndex_23064) +
-    "?additionalFields=" + olp::utils::Url::Encode("checksum,crc,dataSize");
+const std::string kHttpQueryTreeIndex_23064 =
+    R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/versions/4/quadkeys/23064/depths/4?additionalFields=)" +
+    olp::utils::Url::Encode("checksum,crc,dataSize,compressedDataSize");
 
 constexpr char kHttpSubQuads_23064[] =
-    R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
+    R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1","checksum":"xxx","dataSize":10,"crc":"aaa","compressedDataSize":10},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1","checksum":"yyy","dataSize":20,"crc":"bbb","compressedDataSize":10}],"parentQuads": []})jsonString";
 
-constexpr char kHttpSubQuadsWithAdditionalFields_23064[] =
-    R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1","checksum":"xxx","dataSize":10,"crc":"aaa"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1","checksum":"yyy","dataSize":20,"crc":"bbb"}],"parentQuads": []})jsonString";
+constexpr char kHttpSubQuadsWithoutAdditionalFields_23064[] =
+    R"jsonString({"subQuads": [{"subQuadKey":"115","version":4,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":4,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
 
 constexpr char kUrlBlobData_1476147[] =
     R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/95c5c703-e00e-4c38-841e-e419367474f1)";
@@ -1461,7 +1458,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
     const auto& result = response.GetResult();
     ASSERT_EQ(result.size(), 5);
 
-    for (auto tile_result : result) {
+    for (const auto& tile_result : result) {
       ASSERT_TRUE(tile_result->IsSuccessful());
       ASSERT_TRUE(tile_result->tile_key_.IsValid());
     }
@@ -4526,7 +4523,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, OverlappingQuads) {
         .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                      HTTP_RESPONSE_LOOKUP));
     const auto quad_request =
-        R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/23606936/depths/4)";
+        R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/23606936/depths/4?additionalFields=checksum%2Ccrc%2CdataSize%2CcompressedDataSize)";
     const auto quad_responce =
         R"jsonString({"subQuads":[{"subQuadKey":"1","version":0,"dataHandle":"23606936-data-handle","dataSize":100}],"parentQuads":[]})jsonString";
     const auto data_request =
@@ -4556,7 +4553,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, OverlappingQuads) {
   {
     SCOPED_TRACE("Prefetch another levels");
     auto quad_request =
-        R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/5901734/depths/4)";
+        R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/5901734/depths/4?additionalFields=checksum%2Ccrc%2CdataSize%2CcompressedDataSize)";
     auto quad_responce =
         R"jsonString({"subQuads":[{"subQuadKey":"4","version":0,"dataHandle":"23606936-data-handle","dataSize":100}],"parentQuads":[]})jsonString";
 
@@ -4595,11 +4592,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, QuadTreeIndex) {
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _));
   EXPECT_CALL(*network_mock_,
-              Send(IsGetRequest(kHttpQueryTreeIndexWithAdditionalFields_23064),
-                   _, _, _, _))
+              Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
       .WillOnce(
           ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK, 1024, 100),
-                             kHttpSubQuadsWithAdditionalFields_23064));
+                             kHttpSubQuads_23064));
 
   std::promise<PartitionsResponse> promise;
   auto request =
@@ -4635,13 +4631,12 @@ TEST_F(DataserviceReadVersionedLayerClientTest, QuadTreeIndexFallback) {
     SCOPED_TRACE("Load the data without additional fields to the cache");
 
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _));
-    EXPECT_CALL(
-        *network_mock_,
-        Send(IsGetRequest(kHttpQueryTreeIndexWithAdditionalFields_23064), _, _,
-             _, _))
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
         .Times(2)
-        .WillRepeatedly(ReturnHttpResponse(
-            GetResponse(http::HttpStatusCode::OK), kHttpSubQuads_23064));
+        .WillRepeatedly(
+            ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                               kHttpSubQuadsWithoutAdditionalFields_23064));
 
     std::promise<PartitionsResponse> promise;
     auto request =
@@ -4688,12 +4683,10 @@ TEST_F(DataserviceReadVersionedLayerClientTest, QuadTreeIndexFallback) {
   {
     SCOPED_TRACE("Load the data when it is cached without additional fields");
 
-    EXPECT_CALL(
-        *network_mock_,
-        Send(IsGetRequest(kHttpQueryTreeIndexWithAdditionalFields_23064), _, _,
-             _, _))
+    EXPECT_CALL(*network_mock_,
+                Send(IsGetRequest(kHttpQueryTreeIndex_23064), _, _, _, _))
         .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
-                                     kHttpSubQuadsWithAdditionalFields_23064));
+                                     kHttpSubQuads_23064));
 
     std::promise<PartitionsResponse> promise;
     auto request =

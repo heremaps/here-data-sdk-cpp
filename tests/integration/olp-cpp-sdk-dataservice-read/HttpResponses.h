@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@
 
 #pragma once
 
-#define URL_CONFIG                                                        \
+#include "olp/core/utils/Url.h"
+
+#define URL_CONFIG                                                         \
   R"(https://config.data.api.platform.sit.here.com/config/v1/catalogs/)" + \
       GetTestCatalog()
 
@@ -111,7 +113,8 @@
 #define URL_SEEK_STREAM \
   R"(https://some.stream.url/stream/v2/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/seek?mode=serial&subscriptionId=subscribe_id_12345)"
 
-#define CONFIG_BASE_URL "https://config.data.api.platform.sit.here.com/config/v1"
+#define CONFIG_BASE_URL \
+  "https://config.data.api.platform.sit.here.com/config/v1"
 
 #define HTTP_RESPONSE_LOOKUP_CONFIG                                                    \
   R"jsonString([{"api":"config","version":"v1","baseURL":")jsonString" CONFIG_BASE_URL \
@@ -189,22 +192,22 @@
       GetTestCatalog()
 
 #define URL_QUADKEYS_23618364 \
-  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/23618364/depths/4)"
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/23618364/depths/4?additionalFields=checksum%2Ccrc%2CdataSize%2CcompressedDataSize)"
 
 #define URL_QUADKEYS_1476147 \
-  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/1476147/depths/4)"
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/1476147/depths/4?additionalFields=checksum%2Ccrc%2CdataSize%2CcompressedDataSize)"
 
 #define URL_QUADKEYS_5904591 \
-  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/5904591/depths/4)"
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/5904591/depths/4?additionalFields=checksum%2Ccrc%2CdataSize%2CcompressedDataSize)"
 
 #define URL_QUADKEYS_369036 \
-  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/369036/depths/4)"
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/369036/depths/4?additionalFields=checksum%2Ccrc%2CdataSize%2CcompressedDataSize)"
 
 #define URL_QUADKEYS_92259 \
-  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/92259/depths/4)"
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/versions/4/quadkeys/92259/depths/4?additionalFields=checksum%2Ccrc%2CdataSize%2CcompressedDataSize)"
 
 #define URL_QUADKEYS_AGGREGATE_92259 \
-  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/versions/108/quadkeys/92259/depths/4)"
+  R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/testlayer/versions/108/quadkeys/92259/depths/4?additionalFields=checksum%2Ccrc%2CdataSize%2CcompressedDataSize)"
 
 #define URL_QUADKEYS_VOLATILE_23618364 \
   R"(https://query.data.api.platform.here.com/query/v1/catalogs/hereos-internal-test-v2/layers/hype-test-prefetch/quadkeys/23618364/depths/4)"

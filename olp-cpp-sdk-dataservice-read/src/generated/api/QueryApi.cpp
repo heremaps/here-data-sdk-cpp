@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,9 +94,9 @@ QueryApi::PartitionsExtendedResponse QueryApi::GetPartitionsbyId(
                       layer_id.c_str(), http_response.status);
 
   if (http_response.status != olp::http::HttpStatusCode::OK) {
-    return PartitionsExtendedResponse(
+    return {
         client::ApiError(http_response.status, http_response.response.str()),
-        http_response.GetNetworkStatistics());
+        http_response.GetNetworkStatistics()};
   }
   using PartitionsResponse =
       client::ApiResponse<model::Partitions, client::ApiError>;
@@ -104,28 +104,28 @@ QueryApi::PartitionsExtendedResponse QueryApi::GetPartitionsbyId(
   auto partitions_response =
       parser::parse_result<PartitionsResponse>(http_response.response);
 
-  if (!partitions_response.IsSuccessful()) {
-    return PartitionsExtendedResponse(partitions_response.GetError(),
-                                      http_response.GetNetworkStatistics());
+  if (!partitions_response) {
+    return {partitions_response.GetError(),
+            http_response.GetNetworkStatistics()};
   }
 
-  return PartitionsExtendedResponse(partitions_response.MoveResult(),
-                                    http_response.GetNetworkStatistics());
+  return {partitions_response.MoveResult(),
+          http_response.GetNetworkStatistics()};
 }
 
 olp::client::HttpResponse QueryApi::QuadTreeIndex(
     const client::OlpClient& client, const std::string& layer_id,
     const std::string& quad_key, boost::optional<int64_t> version,
-    int32_t depth, boost::optional<std::vector<std::string>> additional_fields,
+    int32_t depth, const std::vector<std::string>& additional_fields,
     boost::optional<std::string> billing_tag,
     client::CancellationContext context) {
   std::multimap<std::string, std::string> header_params;
   header_params.emplace("Accept", "application/json");
 
   std::multimap<std::string, std::string> query_params;
-  if (additional_fields) {
+  if (!additional_fields.empty()) {
     query_params.emplace("additionalFields",
-                         ConcatStringArray(*additional_fields, ","));
+                         ConcatStringArray(additional_fields, ","));
   }
   if (billing_tag) {
     query_params.emplace("billingTag", *billing_tag);

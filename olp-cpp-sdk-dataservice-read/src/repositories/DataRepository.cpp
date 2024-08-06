@@ -56,7 +56,7 @@ DataResponse DataRepository::GetVersionedTile(
     client::CancellationContext context) {
   PartitionsRepository repository(catalog_, layer_id, settings_, lookup_client_,
                                   storage_);
-  auto response = repository.GetTile(request, version, context);
+  auto response = repository.GetTile(request, version, context, {});
 
   auto network_statistics = response.GetPayload();
 
@@ -66,7 +66,7 @@ DataResponse DataRepository::GetVersionedTile(
         "GetVersionedDataTile partition request failed, hrn='%s', key='%s'",
         catalog_.ToCatalogHRNString().c_str(),
         request.CreateKey(layer_id).c_str());
-    return DataResponse(response.GetError(), network_statistics);
+    return {response.GetError(), network_statistics};
   }
 
   // Get the data using a data handle for requested tile
@@ -79,9 +79,9 @@ DataResponse DataRepository::GetVersionedTile(
   network_statistics += data_response.GetPayload();
 
   if (data_response) {
-    return DataResponse(data_response.MoveResult(), network_statistics);
+    return {data_response.MoveResult(), network_statistics};
   } else {
-    return DataResponse(data_response.GetError(), network_statistics);
+    return {data_response.GetError(), network_statistics};
   }
 }
 

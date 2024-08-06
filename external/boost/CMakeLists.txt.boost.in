@@ -60,7 +60,7 @@ ExternalProject_Add(boost-download
     BUILD_IN_SOURCE     1
     UPDATE_COMMAND      ""
     CONFIGURE_COMMAND   @BOOTSTRAP_CMD@
-    BUILD_COMMAND       @B2_CMD@ headers
+    BUILD_COMMAND       "@B2_CMD@" headers
     INSTALL_COMMAND     ""
     TEST_COMMAND        ""
 )

@@ -54,7 +54,7 @@ using SubTilesResponse = ExtendedApiResponse<SubTilesResult, client::ApiError,
 class PrefetchTilesRepository {
  public:
   PrefetchTilesRepository(
-      client::HRN catalog, const std::string& layer_id,
+      client::HRN catalog, std::string layer_id,
       client::OlpClientSettings settings, client::ApiLookupClient client,
       boost::optional<std::string> billing_tag = boost::none,
       NamedMutexStorage mutex_storage = NamedMutexStorage());
@@ -134,20 +134,22 @@ class PrefetchTilesRepository {
                                         std::int64_t version,
                                         client::CancellationContext context);
 
-  SubQuadsResponse GetVolatileSubQuads(geo::TileKey tile, int32_t depth,
-                                       client::CancellationContext context);
+  SubQuadsResponse GetVolatileSubQuads(
+      geo::TileKey tile, int32_t depth,
+      const client::CancellationContext& context);
 
  protected:
-  static void SplitSubtree(RootTilesForRequest& root_tiles_depth,
-                           RootTilesForRequest::iterator subtree_to_split,
-                           const geo::TileKey& tile_key, std::uint32_t min);
+  static void SplitSubtree(
+      RootTilesForRequest& root_tiles_depth,
+      const RootTilesForRequest::iterator& subtree_to_split,
+      const geo::TileKey& tile_key, std::uint32_t min);
 
   using QuadTreeResponse = ExtendedApiResponse<QuadTreeIndex, client::ApiError,
                                                client::NetworkStatistics>;
 
   QuadTreeResponse DownloadVersionedQuadTree(
       geo::TileKey tile, int32_t depth, std::int64_t version,
-      client::CancellationContext context);
+      const client::CancellationContext& context);
 
  private:
   const client::HRN catalog_;

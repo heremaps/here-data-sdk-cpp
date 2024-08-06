@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2022 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <utility>
 
+#include <olp/core/utils/Url.h>
 #include <olp/dataservice/read/model/Partitions.h>
 #include <olp/dataservice/read/model/VersionResponse.h>
 #include "ApiDefaultResponses.h"
@@ -85,8 +86,11 @@ std::string PlatformUrlsGenerator::LatestVersion() {
 std::string PlatformUrlsGenerator::VersionedQuadTree(const std::string& quadkey,
                                                      uint64_t version,
                                                      uint64_t depth) {
-  auto path = "/layers/" + layer_ + "/versions/" + std::to_string(version) +
-              "/quadkeys/" + quadkey + "/depths/" + std::to_string(depth);
+  auto path =
+      "/layers/" + layer_ + "/versions/" + std::to_string(version) +
+      "/quadkeys/" + quadkey + "/depths/" + std::to_string(depth) +
+      "?additionalFields=" +
+      olp::utils::Url::Encode("checksum,crc,dataSize,compressedDataSize");
   return FullPath("query", path);
 }
 

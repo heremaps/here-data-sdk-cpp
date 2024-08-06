@@ -1365,8 +1365,6 @@ TEST(VersionedLayerClientTest, QuadTreeIndex) {
 
   auto quad_path = generator.VersionedQuadTree("92259", kCatalogVersion, depth);
   ASSERT_FALSE(quad_path.empty());
-  quad_path +=
-      "?additionalFields=" + olp::utils::Url::Encode("checksum,crc,dataSize");
 
   const auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
   auto client = std::make_shared<read::VersionedLayerClientImpl>(

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,12 +56,12 @@ class PartitionsRepository {
  public:
   PartitionsRepository(client::HRN catalog, std::string layer,
                        client::OlpClientSettings settings,
-                       client::ApiLookupClient client,
+                       const client::ApiLookupClient& client,
                        NamedMutexStorage storage = NamedMutexStorage());
 
   PartitionsResponse GetVolatilePartitions(
       const read::PartitionsRequest& request,
-      client::CancellationContext context);
+      const client::CancellationContext& context);
 
   QueryApi::PartitionsExtendedResponse GetVersionedPartitionsExtendedResponse(
       const read::PartitionsRequest& request, std::int64_t version,
@@ -74,33 +74,31 @@ class PartitionsRepository {
   static model::Partition PartitionFromSubQuad(const model::SubQuad& sub_quad,
                                                const std::string& partition);
 
-  PartitionResponse GetAggregatedTile(TileRequest request,
-                                      boost::optional<int64_t> version,
-                                      client::CancellationContext context);
+  PartitionResponse GetAggregatedTile(
+      TileRequest request, boost::optional<int64_t> version,
+      const client::CancellationContext& context);
 
   PartitionResponse GetTile(const TileRequest& request,
                             boost::optional<int64_t> version,
                             client::CancellationContext context,
-                            boost::optional<std::vector<std::string>>
-                                additional_fields = boost::none);
+                            const std::vector<std::string>& required_fields);
 
   client::ApiNoResponse ParsePartitionsStream(
-      std::shared_ptr<AsyncJsonStream> async_stream,
-      PartitionsStreamCallback partition_callback,
+      const std::shared_ptr<AsyncJsonStream>& async_stream,
+      const PartitionsStreamCallback& partition_callback,
       client::CancellationContext context);
 
-  void StreamPartitions(std::shared_ptr<AsyncJsonStream> async_stream,
+  void StreamPartitions(const std::shared_ptr<AsyncJsonStream>& async_stream,
                         std::int64_t version,
                         const std::vector<std::string>& additional_fields,
                         boost::optional<std::string> billing_tag,
-                        client::CancellationContext context);
+                        const client::CancellationContext& context);
 
  private:
   QuadTreeIndexResponse GetQuadTreeIndexForTile(
       const TileRequest& request, boost::optional<int64_t> version,
       client::CancellationContext context,
-      boost::optional<std::vector<std::string>> additional_fields =
-          boost::none);
+      const std::vector<std::string>& required_fields);
 
   QueryApi::PartitionsExtendedResponse GetPartitionsExtendedResponse(
       const read::PartitionsRequest& request,

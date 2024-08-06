@@ -329,8 +329,8 @@ TEST_F(ApiTest, QuadTreeIndex) {
 
   auto start_time = std::chrono::high_resolution_clock::now();
   auto index_response = olp::dataservice::read::QueryApi::QuadTreeIndex(
-      query_client, layer_id, quad_key, version, depth, boost::none,
-      boost::none, olp::client::CancellationContext{});
+      query_client, layer_id, quad_key, version, depth, {}, boost::none,
+      olp::client::CancellationContext{});
   auto end = std::chrono::high_resolution_clock::now();
 
   std::chrono::duration<double> time = end - start_time;
