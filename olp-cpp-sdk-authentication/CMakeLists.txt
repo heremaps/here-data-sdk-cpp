@@ -15,8 +15,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-project(olp-cpp-sdk-authentication VERSION 1.19.0)
-set(DESCRIPTION "C++ API library for accesing HERE Account authentication service")
+project(olp-cpp-sdk-authentication VERSION 1.20.0)
+set(DESCRIPTION "C++ API library for accessing HERE Account authentication service")
 
 file(GLOB_RECURSE AUTHENTICATION_INC "include/*.h*")
 file(GLOB_RECURSE AUTHENTICATION_SRC "src/*.*")

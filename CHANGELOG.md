@@ -1,3 +1,32 @@
+## v1.20.0 (06/08/2024)
+
+**Common**
+* Updated links and filenames in the documentation.
+* Improved the CI scripts and pipelines.
+
+**olp-cpp-sdk-authentication**
+* Fixed the `DateTime` parser to respect DST timezones on iOS.
+* Fixed the mechanism that determines the absolute path of the credentials file on new Windows versions, such as Windows 11.
+
+**olp-cpp-sdk-core**
+* Extended logging with `olp::logging::LogContext` and `olp::logging::ScopedLogContext` to facilitate better management of logs.
+* Added logging contexts usage to the `olp::http::NetworkCurl` class.
+* Added a new error code `olp::client::ErrorCode::NoSpaceLeft` to signal a shortage of available space on the target device.
+* Extended  `olp::cache::KeyValueCache` and `olp::cache::DefaultCache` with new methods: `Read`, `Write`, `Delete`, and `DeleteByPrefix` to allow propagation of actual operation errors.
+These methods correspond to `Put`, `Get`, `Remove`, and `RemoveKeysWithPrefix`, but return `olp::cache::OperationOutcome`.
+* Extended `olp::client::OlpClientSettings` with a new setting `propagate_all_cache_errors` that allows to enable the propagation of all cache errors.
+* Added a new way of serializing data to JSON, which outputs the result to a byte vector.
+* Updated the logic to use a generated session ID for the background network session on iOS.
+* Added support of Android-like build on desktops to allow running tests on host PCs.
+* Fixed deprecation warnings related to C++17.
+* Added background timeouts for iOS.
+* Made CMake option `OLP_SDK_ENABLE_IOS_BACKGROUND_DOWNLOAD` usable only for iOS.
+* Added missing thread names for resource and time-intensive operations to help with profiling and debugging.
+
+**olp-cpp-sdk-dataservice-read**
+* Optimized memory allocations.
+* Added a `DeleteFromCache` method to `olp::dataservice::read::VersionedLayerClient` and `olp::dataservice::read::VolatileLayerClient` to allow the propagation of the actual operation error.
+
 ## v1.19.0 (13/05/2024)
 
 **Common**
