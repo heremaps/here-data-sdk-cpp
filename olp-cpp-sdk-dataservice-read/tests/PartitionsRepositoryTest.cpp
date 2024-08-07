@@ -144,18 +144,16 @@ const std::string kHttpResponseLookupQuery =
 const std::string kUrlQueryApi =
     R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2)";
 
-const std::string kQueryTreeIndex =
-    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/100/quadkeys/23064/depths/4)";
-
 const std::string kQueryTreeIndexWithAdditionalFields =
-    kQueryTreeIndex + R"(?additionalFields=)" +
+    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/100/quadkeys/23064/depths/4?additionalFields=)" +
     olp::utils::Url::Encode(R"(checksum,crc,dataSize,compressedDataSize)");
 
 const std::string kQueryQuadTreeIndex =
-    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/100/quadkeys/90/depths/4)";
+    R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/100/quadkeys/90/depths/4?additionalFields=)" +
+    olp::utils::Url::Encode(R"(checksum,crc,dataSize,compressedDataSize)");
 
 const std::string kSubQuads =
-    R"jsonString({"subQuads": [{"subQuadKey":"115","version":100,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":100,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
+    R"jsonString({"subQuads": [{"subQuadKey":"115","version":100,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1","checksum":"xxx","compressedDataSize":10,"dataSize":15,"crc":"aaa"},{"subQuadKey":"463","version":100,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1","checksum":"xxx","compressedDataSize":10,"dataSize":15,"crc":"aaa"}],"parentQuads": []})jsonString";
 
 const std::string kInvalidJson =
     R"jsonString({}"subQuads": [{"subQuadKey":"115","version":100,"dataHandle":"95c5c703-e00e-4c38-841e-e419367474f1"},{"subQuadKey":"463","version":100,"dataHandle":"e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1"}],"parentQuads": []})jsonString";
@@ -859,7 +857,7 @@ TEST_F(PartitionsRepositoryTest, AdditionalFields) {
   EXPECT_EQ(partitions[0].GetCrc(), cached_partitions[0].GetCrc());
 }
 
-TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
+TEST_F(PartitionsRepositoryTest, CheckCachedPartitions) {
   std::shared_ptr<cache::KeyValueCache> default_cache =
       client::OlpClientSettingsFactory::CreateDefaultCache({});
   auto mock_network = std::make_shared<NetworkMock>();
@@ -873,7 +871,9 @@ TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
                                        olp::http::HttpStatusCode::OK),
                                    kHttpResponseLookupQuery));
 
-  EXPECT_CALL(*mock_network, Send(IsGetRequest(kQueryTreeIndex), _, _, _, _))
+  EXPECT_CALL(
+      *mock_network,
+      Send(IsGetRequest(kQueryTreeIndexWithAdditionalFields), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                        olp::http::HttpStatusCode::OK),
                                    kSubQuads));
@@ -890,7 +890,7 @@ TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
         read::TileRequest().WithTileKey(TileKey::FromHereTile("5904591"));
     olp::client::CancellationContext context;
 
-    auto response = repository.GetTile(request, kVersion, context);
+    auto response = repository.GetTile(request, kVersion, context, {});
 
     ASSERT_TRUE(response.IsSuccessful());
     ASSERT_EQ(response.GetResult().GetDataHandle(),
@@ -905,7 +905,7 @@ TEST_F(PartitionsRepositoryTest, CheckCashedPartitions) {
                        .WithTileKey(TileKey::FromHereTile("1476147"))
                        .WithFetchOption(read::CacheOnly);
 
-    auto response = repository.GetTile(request, kVersion, context);
+    auto response = repository.GetTile(request, kVersion, context, {});
 
     // check if partition was stored to cache
     ASSERT_TRUE(response.IsSuccessful());
@@ -1281,7 +1281,7 @@ TEST_F(PartitionsRepositoryTest, GetTile) {
 
     repository::PartitionsRepository repository(hrn, kVersionedLayerId,
                                                 settings, lookup_client);
-    const auto response = repository.GetTile(request, kVersion, context);
+    const auto response = repository.GetTile(request, kVersion, context, {});
 
     ASSERT_FALSE(response);
 
@@ -1304,7 +1304,7 @@ TEST_F(PartitionsRepositoryTest, GetTile) {
 
     repository::PartitionsRepository repository(hrn, kVersionedLayerId,
                                                 settings, lookup_client);
-    const auto response = repository.GetTile(request, kVersion, context);
+    const auto response = repository.GetTile(request, kVersion, context, {});
 
     ASSERT_FALSE(response);
 
@@ -1321,7 +1321,9 @@ TEST_F(PartitionsRepositoryTest, GetTile) {
     SCOPED_TRACE("Get tile not aggregated");
 
     setup_get_cached_quad_expectations();
-    EXPECT_CALL(*mock_network, Send(IsGetRequest(kQueryTreeIndex), _, _, _, _))
+    EXPECT_CALL(
+        *mock_network,
+        Send(IsGetRequest(kQueryTreeIndexWithAdditionalFields), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
                                      kSubQuadsWithParent));
@@ -1330,7 +1332,7 @@ TEST_F(PartitionsRepositoryTest, GetTile) {
 
     repository::PartitionsRepository repository(hrn, kVersionedLayerId,
                                                 settings, lookup_client);
-    const auto response = repository.GetTile(request, kVersion, context);
+    const auto response = repository.GetTile(request, kVersion, context, {});
 
     ASSERT_TRUE(response);
     EXPECT_EQ(response.GetResult().GetPartition(), kHereTile);
@@ -1395,7 +1397,7 @@ TEST_F(PartitionsRepositoryTest, GetTile) {
 
     repository::PartitionsRepository repository(hrn, kVersionedLayerId,
                                                 settings, lookup_client);
-    const auto response = repository.GetTile(request, kVersion, context);
+    const auto response = repository.GetTile(request, kVersion, context, {});
 
     ASSERT_TRUE(response);
     const auto& result = response.GetResult();
@@ -1420,7 +1422,7 @@ TEST_F(PartitionsRepositoryTest, GetTile) {
 
     repository::PartitionsRepository repository(hrn, kVersionedLayerId,
                                                 settings, lookup_client);
-    const auto response = repository.GetTile(request, kVersion, context);
+    const auto response = repository.GetTile(request, kVersion, context, {});
 
     ASSERT_TRUE(response);
     const auto& result = response.GetResult();

@@ -118,7 +118,7 @@ client::CancellationToken VersionedLayerClientImpl::StreamLayerPartitions(
   auto async_stream = std::make_shared<repository::AsyncJsonStream>();
 
   auto request_task =
-      [=](client::CancellationContext context) -> client::ApiNoResponse {
+      [=](const client::CancellationContext& context) -> client::ApiNoResponse {
     auto version_response =
         GetVersion(boost::none, FetchOptions::OnlineIfNotFound, context);
     if (!version_response.IsSuccessful()) {
@@ -145,8 +145,8 @@ client::CancellationToken VersionedLayerClientImpl::StreamLayerPartitions(
     repository::PartitionsRepository repository(catalog_, layer_id_, settings_,
                                                 lookup_client_, mutex_storage_);
 
-    return repository.ParsePartitionsStream(async_stream,
-                                            partition_stream_callback, context);
+    return repository.ParsePartitionsStream(
+        async_stream, partition_stream_callback, std::move(context));
   };
 
   auto parse_task_token =
@@ -166,14 +166,13 @@ VersionedLayerClientImpl::GetPartitions(PartitionsRequest partitions_request) {
                                     [promise](PartitionsResponse response) {
                                       promise->set_value(std::move(response));
                                     });
-  return client::CancellableFuture<PartitionsResponse>(std::move(cancel_token),
-                                                       std::move(promise));
+  return {cancel_token, std::move(promise)};
 }
 
 client::CancellationToken VersionedLayerClientImpl::GetData(
     DataRequest request, DataResponseCallback callback) {
   auto data_task =
-      [=](client::CancellationContext context) mutable -> DataResponse {
+      [=](const client::CancellationContext& context) mutable -> DataResponse {
     if (request.GetFetchOption() == CacheWithUpdate) {
       return client::ApiError::InvalidArgument(
           "CacheWithUpdate option can not be used for versioned layer");
@@ -201,8 +200,8 @@ client::CancellationToken VersionedLayerClientImpl::GetData(
 
 client::CancellationToken VersionedLayerClientImpl::QuadTreeIndex(
     TileRequest tile_request, PartitionsResponseCallback callback) {
-  auto data_task =
-      [=](client::CancellationContext context) mutable -> PartitionsResponse {
+  auto data_task = [=](const client::CancellationContext& context) mutable
+      -> PartitionsResponse {
     if (!tile_request.GetTileKey().IsValid()) {
       return client::ApiError::InvalidArgument("Tile key is invalid");
     }
@@ -224,20 +223,19 @@ client::CancellationToken VersionedLayerClientImpl::QuadTreeIndex(
     repository::PartitionsRepository repository(catalog_, layer_id_, settings_,
                                                 lookup_client_, mutex_storage_);
 
-    std::vector<std::string> additional_fields = {PartitionsRequest::kChecksum,
-                                                  PartitionsRequest::kCrc,
-                                                  PartitionsRequest::kDataSize};
-    auto partition_response = repository.GetTile(tile_request, version, context,
-                                                 std::move(additional_fields));
+    static const std::vector<std::string> additional_fields = {
+        PartitionsRequest::kChecksum, PartitionsRequest::kCrc,
+        PartitionsRequest::kDataSize};
+
+    auto partition_response =
+        repository.GetTile(tile_request, version, context, additional_fields);
     if (!partition_response) {
-      return PartitionsResponse(partition_response.GetError(),
-                                partition_response.GetPayload());
+      return {partition_response.GetError(), partition_response.GetPayload()};
     }
 
     model::Partitions result;
     result.GetMutablePartitions().emplace_back(partition_response.MoveResult());
-    return PartitionsResponse(std::move(result),
-                              partition_response.GetPayload());
+    return {std::move(result), partition_response.GetPayload()};
   };
 
   return task_sink_.AddTask(std::move(data_task), std::move(callback),
@@ -251,8 +249,7 @@ client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
       GetData(std::move(data_request), [promise](DataResponse response) {
         promise->set_value(std::move(response));
       });
-  return client::CancellableFuture<DataResponse>(std::move(cancel_token),
-                                                 std::move(promise));
+  return {cancel_token, std::move(promise)};
 }
 
 client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
@@ -291,7 +288,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
       return;
     }
 
-    auto billing_tag = request.GetBillingTag();
+    const auto& billing_tag = request.GetBillingTag();
 
     auto response = GetVersion(billing_tag, OnlineIfNotFound, context);
 
@@ -366,7 +363,8 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
           version, std::move(inner_context), true);
     };
 
-    auto append_result = [](ExtendedDataResponse response, std::string item,
+    auto append_result = [](const ExtendedDataResponse& response,
+                            std::string item,
                             PrefetchPartitionsResult& prefetch_result) {
       if (response.IsSuccessful()) {
         prefetch_result.AddPartition(std::move(item));
@@ -406,8 +404,7 @@ VersionedLayerClientImpl::PrefetchPartitions(
                            promise->set_value(std::move(response));
                          },
                          std::move(status_callback));
-  return client::CancellableFuture<PrefetchPartitionsResponse>(cancel_token,
-                                                               promise);
+  return {cancel_token, promise};
 }
 
 client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
@@ -420,7 +417,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
 
   execution_context.ExecuteOrCancelled([&]() -> client::CancellationToken {
     return task_sink_.AddTask(
-        [=](client::CancellationContext context) mutable -> void {
+        [=](const client::CancellationContext& context) mutable {
           if (context.IsCancelled()) {
             callback(ApiError::Cancelled());
             return;
@@ -507,27 +504,28 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
             }
           };
 
-          auto query = [=](geo::TileKey root,
-                           client::CancellationContext inner_context) mutable {
-            auto response = repository.GetVersionedSubQuads(
-                root, kQuadTreeDepth, version, inner_context);
+          auto query =
+              [=](geo::TileKey root,
+                  const client::CancellationContext& inner_context) mutable {
+                auto response = repository.GetVersionedSubQuads(
+                    root, kQuadTreeDepth, version, inner_context);
 
-            if (response.IsSuccessful() && aggregation_enabled) {
-              const auto& tiles = response.GetResult();
-              auto network_stats = repository.LoadAggregatedSubQuads(
-                  root,
-                  request_only_input_tiles
-                      ? repository.FilterTileKeysByList(request, tiles)
-                      : repository.FilterTileKeysByLevel(request, tiles),
-                  version, inner_context);
+                if (response.IsSuccessful() && aggregation_enabled) {
+                  const auto& tiles = response.GetResult();
+                  auto network_stats = repository.LoadAggregatedSubQuads(
+                      root,
+                      request_only_input_tiles
+                          ? repository.FilterTileKeysByList(request, tiles)
+                          : repository.FilterTileKeysByLevel(request, tiles),
+                      version, inner_context);
 
-              // append network statistics
-              network_stats += GetNetworkStatistics(response);
-              response = {response.MoveResult(), network_stats};
-            }
+                  // append network statistics
+                  network_stats += GetNetworkStatistics(response);
+                  response = {response.MoveResult(), network_stats};
+                }
 
-            return response;
-          };
+                return response;
+              };
 
           auto& billing_tag = request.GetBillingTag();
 
@@ -569,10 +567,10 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                 return root.first;
               });
 
-          auto append_result = [](ExtendedDataResponse response,
+          auto append_result = [](const ExtendedDataResponse& response,
                                   geo::TileKey item,
                                   PrefetchTilesResult& prefetch_result) {
-            if (response.IsSuccessful()) {
+            if (response) {
               prefetch_result.emplace_back(std::make_shared<PrefetchTileResult>(
                   item, PrefetchTileNoError()));
             } else {
@@ -587,7 +585,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
                   std::move(callback), std::move(status_callback));
 
           return PrefetchTilesHelper::Prefetch(
-              std::move(download_job), std::move(roots), std::move(query),
+              std::move(download_job), roots, std::move(query),
               std::move(filter), task_sink_, request.GetPriority(),
               execution_context);
         },
@@ -607,8 +605,7 @@ VersionedLayerClientImpl::PrefetchTiles(
                                       promise->set_value(std::move(response));
                                     },
                                     std::move(status_callback));
-  return client::CancellableFuture<PrefetchTilesResponse>(cancel_token,
-                                                          promise);
+  return {cancel_token, promise};
 }
 
 CatalogVersionResponse VersionedLayerClientImpl::GetVersion(
@@ -678,8 +675,7 @@ client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
       GetData(std::move(request), [promise](DataResponse response) {
         promise->set_value(std::move(response));
       });
-  return client::CancellableFuture<DataResponse>(std::move(cancel_token),
-                                                 std::move(promise));
+  return {cancel_token, std::move(promise)};
 }
 
 bool VersionedLayerClientImpl::RemoveFromCache(
@@ -812,10 +808,10 @@ bool VersionedLayerClientImpl::IsCached(const geo::TileKey& tile,
 
 client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     TileRequest request, AggregatedDataResponseCallback callback) {
-  auto data_task =
-      [=](client::CancellationContext context) -> AggregatedDataResponse {
+  auto data_task = [=](const client::CancellationContext& context)
+      -> AggregatedDataResponse {
     const auto fetch_option = request.GetFetchOption();
-    const auto billing_tag = request.GetBillingTag();
+    const auto& billing_tag = request.GetBillingTag();
 
     if (fetch_option == CacheWithUpdate) {
       return client::ApiError::InvalidArgument(
@@ -832,28 +828,20 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
     }
 
     auto version = version_response.GetResult().GetVersion();
-    repository::PartitionsRepository repository(catalog_, layer_id_, settings_,
-                                                lookup_client_, mutex_storage_);
-    auto partition_response =
-        repository.GetAggregatedTile(request, version, context);
+    repository::PartitionsRepository partition_repository(
+        catalog_, layer_id_, settings_, lookup_client_, mutex_storage_);
+    const auto& partition_response =
+        partition_repository.GetAggregatedTile(request, version, context);
     if (!partition_response.IsSuccessful()) {
-      return AggregatedDataResponse(partition_response.GetError(),
-                                    partition_response.GetPayload());
+      return {partition_response.GetError(), partition_response.GetPayload()};
     }
 
-    const auto& fetch_partition = partition_response.GetResult();
-    const auto fetch_tile_key =
-        geo::TileKey::FromHereTile(fetch_partition.GetPartition());
-
-    auto data_request = DataRequest()
-                            .WithDataHandle(fetch_partition.GetDataHandle())
-                            .WithFetchOption(fetch_option)
-                            .WithBillingTag(billing_tag);
+    const auto& partition = partition_response.GetResult();
 
     repository::DataRepository data_repository(catalog_, settings_,
                                                lookup_client_, mutex_storage_);
-    auto data_response = data_repository.GetVersionedData(
-        layer_id_, data_request, version, context,
+    auto data_response = data_repository.GetBlobData(
+        layer_id_, "blob", partition, fetch_option, billing_tag, context,
         settings_.propagate_all_cache_errors);
 
     const auto aggregated_network_statistics =
@@ -863,18 +851,15 @@ client::CancellationToken VersionedLayerClientImpl::GetAggregatedData(
       OLP_SDK_LOG_WARNING_F(
           kLogTag,
           "GetAggregatedData: failed to load data, key=%s, data_handle=%s",
-          fetch_tile_key.ToHereTile().c_str(),
-          fetch_partition.GetDataHandle().c_str());
-      return AggregatedDataResponse(data_response.GetError(),
-                                    aggregated_network_statistics);
+          partition.GetPartition().c_str(), partition.GetDataHandle().c_str());
+      return {data_response.GetError(), aggregated_network_statistics};
     }
 
     AggregatedDataResult result;
-    result.SetTile(fetch_tile_key);
+    result.SetTile(geo::TileKey::FromHereTile(partition.GetPartition()));
     result.SetData(data_response.MoveResult());
 
-    return AggregatedDataResponse(std::move(result),
-                                  aggregated_network_statistics);
+    return {result, aggregated_network_statistics};
   };
 
   return task_sink_.AddTask(std::move(data_task), std::move(callback),
@@ -888,8 +873,7 @@ VersionedLayerClientImpl::GetAggregatedData(TileRequest request) {
       std::move(request), [promise](AggregatedDataResponse response) {
         promise->set_value(std::move(response));
       });
-  return client::CancellableFuture<AggregatedDataResponse>(
-      std::move(cancel_token), std::move(promise));
+  return {cancel_token, std::move(promise)};
 }
 
 bool VersionedLayerClientImpl::Protect(const TileKeys& tiles) {

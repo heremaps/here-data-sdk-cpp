@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,8 +112,7 @@ class QueryApi {
   static olp::client::HttpResponse QuadTreeIndex(
       const client::OlpClient& client, const std::string& layer_id,
       const std::string& quad_key, boost::optional<int64_t> version,
-      int32_t depth,
-      boost::optional<std::vector<std::string>> additional_fields,
+      int32_t depth, const std::vector<std::string>& additional_fields,
       boost::optional<std::string> billing_tag,
       client::CancellationContext context);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,19 +36,25 @@ void WriteSubquadsToJson(
     rapidjson::Document::AllocatorType& allocator) {
   rapidjson::Value sub_quads_value;
   sub_quads_value.SetArray();
-  for (auto quad : sub_quads) {
-    const auto partition = root_tile.AddedSubkey64(quad.first).ToHereTile();
-    const auto& data_handle = quad.second.data_handle;
-    const auto version = quad.second.version;
+  for (const auto& quad : sub_quads) {
+    const mockserver::TileMetadata& metadata = quad.second;
 
-    rapidjson::Value item_value;
-    item_value.SetObject();
-    olp::serializer::serialize("subQuadKey", std::to_string(quad.first),
-                               item_value, allocator);
-    olp::serializer::serialize("version", version, item_value, allocator);
-    olp::serializer::serialize("dataHandle", data_handle, item_value,
+    const auto partition = root_tile.AddedSubkey64(quad.first).ToHereTile();
+
+    rapidjson::Value item;
+    item.SetObject();
+    olp::serializer::serialize("subQuadKey", std::to_string(quad.first), item,
                                allocator);
-    sub_quads_value.PushBack(std::move(item_value), allocator);
+    olp::serializer::serialize("version", metadata.version, item, allocator);
+    olp::serializer::serialize("dataHandle", metadata.data_handle, item,
+                               allocator);
+    olp::serializer::serialize("crc", metadata.crc, item, allocator);
+    olp::serializer::serialize("checksum", metadata.checksum, item, allocator);
+    olp::serializer::serialize("dataSize", metadata.data_size, item, allocator);
+    olp::serializer::serialize("compressedDataSize",
+                               metadata.compressed_data_size, item, allocator);
+
+    sub_quads_value.PushBack(std::move(item), allocator);
   }
   doc.AddMember("subQuads", std::move(sub_quads_value), allocator);
 }
@@ -59,20 +65,24 @@ void WriteParentquadsToJson(
     rapidjson::Document::AllocatorType& allocator) {
   rapidjson::Value parent_quads_value;
   parent_quads_value.SetArray();
-  for (auto parent : parent_quads) {
+  for (const auto& parent : parent_quads) {
     const auto partition = std::to_string(parent.first);
-    const auto version = parent.second.version;
-    const auto& data_handle = parent.second.data_handle;
+    const mockserver::TileMetadata& metadata = parent.second;
 
-    rapidjson::Value item_value;
-    item_value.SetObject();
-    olp::serializer::serialize("partition", partition, item_value, allocator);
-    olp::serializer::serialize("version", version, item_value, allocator);
-    olp::serializer::serialize("dataHandle", data_handle, item_value,
+    rapidjson::Value item;
+    item.SetObject();
+    olp::serializer::serialize("partition", partition, item, allocator);
+    olp::serializer::serialize("version", metadata.version, item, allocator);
+    olp::serializer::serialize("dataHandle", metadata.data_handle, item,
                                allocator);
-    olp::serializer::serialize("dataSize", 100, item_value, allocator);
-    parent_quads_value.PushBack(std::move(item_value), allocator);
+    olp::serializer::serialize("crc", metadata.crc, item, allocator);
+    olp::serializer::serialize("checksum", metadata.checksum, item, allocator);
+    olp::serializer::serialize("dataSize", metadata.data_size, item, allocator);
+    olp::serializer::serialize("compressedDataSize",
+                               metadata.compressed_data_size, item, allocator);
+    parent_quads_value.PushBack(std::move(item), allocator);
   }
+
   doc.AddMember("parentQuads", std::move(parent_quads_value), allocator);
 }
 
@@ -102,6 +112,18 @@ void FillSubQuads(std::int32_t depth, std::vector<std::uint16_t>& sub_quads_) {
   sub_quads_.insert(sub_quads_.end(), layer_ids.begin(), layer_ids.end());
 }
 
+mockserver::TileMetadata MakePartition(std::string data_handle,
+                                       boost::optional<int32_t> version) {
+  mockserver::TileMetadata partition;
+  partition.data_handle = std::move(data_handle);
+  partition.version = version;
+  partition.crc = GenerateRandomString(6);
+  partition.checksum = GenerateRandomString(32);
+  partition.data_size = 100;
+  partition.compressed_data_size = 10;
+  return partition;
+}
+
 }  // namespace
 
 namespace mockserver {
@@ -120,7 +142,8 @@ std::string ReadDefaultResponses::GenerateQuadTreeResponse(
   for (auto level : available_levels) {
     if (level < root_tile.Level()) {
       auto key = root_tile.ChangedLevelTo(level).ToQuadKey64();
-      parent_quads[key] = {GenerateDataHandle(std::to_string(key)), 0};
+      parent_quads[key] =
+          MakePartition(GenerateDataHandle(std::to_string(key)), 0);
     } else {
       const auto level_depth = level - root_tile.Level();
       if (level_depth > depth) {
@@ -132,7 +155,7 @@ std::string ReadDefaultResponses::GenerateQuadTreeResponse(
 
       for (const auto& sub_quad : sub_quads_vector) {
         const auto partition = root_tile.AddedSubkey64(sub_quad).ToHereTile();
-        sub_quads[sub_quad] = {GenerateDataHandle(partition), 0};
+        sub_quads[sub_quad] = MakePartition(GenerateDataHandle(partition), 0);
       }
     }
   }
@@ -154,7 +177,7 @@ QuadTreeBuilder::QuadTreeBuilder(olp::geo::TileKey root_tile,
     : root_tile_(root_tile), base_version_(version) {}
 
 QuadTreeBuilder& QuadTreeBuilder::WithParent(olp::geo::TileKey parent,
-                                             std::string datahandle,
+                                             std::string data_handle,
                                              boost::optional<int32_t> version) {
   assert(root_tile_.IsChildOf(parent));
 
@@ -165,7 +188,8 @@ QuadTreeBuilder& QuadTreeBuilder::WithParent(olp::geo::TileKey parent,
     version = base_version_;
   }
 
-  parent_quads_[parent.ToQuadKey64()] = {datahandle, version};
+  parent_quads_[parent.ToQuadKey64()] =
+      MakePartition(std::move(data_handle), version);
 
   return *this;
 }
@@ -175,7 +199,8 @@ QuadTreeBuilder& QuadTreeBuilder::FillParents() {
   while (key.IsValid()) {
     auto quad_key = key.ToQuadKey64();
     if (parent_quads_.find(quad_key) == parent_quads_.end()) {
-      parent_quads_[quad_key] = {GenerateRandomString(32), base_version_};
+      parent_quads_[quad_key] =
+          MakePartition(GenerateRandomString(32), base_version_);
     }
   }
   return *this;
@@ -197,24 +222,7 @@ QuadTreeBuilder& QuadTreeBuilder::WithSubQuad(
                                             tile.Level() - root_tile_.Level())
           .ToQuadKey64();
 
-  sub_quads_[sub_quad] = {datahandle, version};
-
-  return *this;
-}
-
-QuadTreeBuilder& QuadTreeBuilder::FillSubquads(uint32_t depth) {
-  assert(depth <= 4);
-
-  std::vector<std::uint16_t> sub_quads;
-  for (uint32_t i = 0; i <= depth; i++) {
-    FillSubQuads(i, sub_quads);
-  }
-
-  for (const auto& sub_quad : sub_quads) {
-    if (sub_quads_.find(sub_quad) == sub_quads_.end()) {
-      sub_quads_[sub_quad] = {GenerateRandomString(32), base_version_};
-    }
-  }
+  sub_quads_[sub_quad] = MakePartition(std::move(datahandle), version);
 
   return *this;
 }
