@@ -121,7 +121,7 @@ struct CORE_API CacheSettings {
    */
   OpenOptions openOptions = OpenOptions::Default;
 
-  /*
+  /**
    * @brief This flag sets the eviction policy for the key/value cache created
    * based on the disk_path_mutable path.
    *
@@ -170,7 +170,7 @@ struct CORE_API CacheSettings {
    * directory creation. When enabled, all permissions for files and directories
    * will be set to 0666 and 0777 respectively, which allows read, write, and
    * execute access to all users.
-   * 
+   *
    * Note: the resulting permissions are affected by the umask.
    */
   bool extend_permissions = false;
