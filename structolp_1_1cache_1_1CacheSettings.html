@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.20.0</span>
+   &#160;<span id="projectnumber">1.20.1</span>
    </div>
   </td>
  </tr>
@@ -104,8 +104,8 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stru
 OpenOptions&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a62b40ac0e8056a4b2d1a6542a2ed0f17">openOptions</a> = OpenOptions::Default</td></tr>
 <tr class="memdesc:a62b40ac0e8056a4b2d1a6542a2ed0f17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the disk cache open options. <br /></td></tr>
 <tr class="separator:a62b40ac0e8056a4b2d1a6542a2ed0f17"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad63162c076fbadbeca09c26fd766701a"><td class="memItemLeft" align="right" valign="top"><a id="ad63162c076fbadbeca09c26fd766701a"></a>
-EvictionPolicy&#160;</td><td class="memItemRight" valign="bottom"><b>eviction_policy</b> = EvictionPolicy::kLeastRecentlyUsed</td></tr>
+<tr class="memitem:ad63162c076fbadbeca09c26fd766701a"><td class="memItemLeft" align="right" valign="top">EvictionPolicy&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#ad63162c076fbadbeca09c26fd766701a">eviction_policy</a> = EvictionPolicy::kLeastRecentlyUsed</td></tr>
+<tr class="memdesc:ad63162c076fbadbeca09c26fd766701a"><td class="mdescLeft">&#160;</td><td class="mdescRight">This flag sets the eviction policy for the key/value cache created based on the disk_path_mutable path.  <a href="structolp_1_1cache_1_1CacheSettings.html#ad63162c076fbadbeca09c26fd766701a">More...</a><br /></td></tr>
 <tr class="separator:ad63162c076fbadbeca09c26fd766701a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2cac2763360a1eb06af36600058e9c36"><td class="memItemLeft" align="right" valign="top">CompressionType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a2cac2763360a1eb06af36600058e9c36">compression</a> = CompressionType::kDefaultCompression</td></tr>
 <tr class="memdesc:a2cac2763360a1eb06af36600058e9c36"><td class="mdescLeft">&#160;</td><td class="mdescRight">This flag sets the compression policy to be applied on the database.  <a href="structolp_1_1cache_1_1CacheSettings.html#a2cac2763360a1eb06af36600058e9c36">More...</a><br /></td></tr>
@@ -169,6 +169,23 @@ EvictionPolicy&#160;</td><td class="memItemRight" valign="bottom"><b>eviction_po
 
 <p>The path to the protected (read-only) cache. </p>
 <p>This cache will be used as the primary source for data lookup. The <code><a class="el" href="classolp_1_1cache_1_1DefaultCache.html" title="A default cache that provides a memory LRU cache and persistence of cached key-value pairs.">DefaultCache</a></code> will try to open this cache in the r/w mode to make sure the database can perform on-open optimizations like write-ahead logging (WAL) committing or compaction. In case we do not have permission to write on the provided path, or user set explicitly ReadOnly in the <code><a class="el" href="structolp_1_1cache_1_1CacheSettings.html#a62b40ac0e8056a4b2d1a6542a2ed0f17" title="Sets the disk cache open options.">CacheSettings::openOptions</a></code>, the protected cache will be opened in r/o mode. In both cases the database will not be opened and user will receive a <code>ProtectedCacheCorrupted</code> from <code><a class="el" href="classolp_1_1cache_1_1DefaultCache.html#ac75363a5f7129f4ec2128f5630eda167" title="Opens the cache to start read and write operations.">DefaultCache::Open</a></code> in case the database has after open still an un-commited WAL, is uncompressed or cannot guarantee a normal operation and RAM usage. Use this cache if you want to have a stable fallback state or offline data that you can always access regardless of the network state. </p>
+
+</div>
+</div>
+<a id="ad63162c076fbadbeca09c26fd766701a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad63162c076fbadbeca09c26fd766701a">&#9670;&nbsp;</a></span>eviction_policy</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">EvictionPolicy olp::cache::CacheSettings::eviction_policy = EvictionPolicy::kLeastRecentlyUsed</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This flag sets the eviction policy for the key/value cache created based on the disk_path_mutable path. </p>
+<p>This flag will not have any effect in case the disk_path_mutable is not specified and in case max_disk_storage is set to -1. The default value is EvictionPolicy::kLeastRecentlyUsed. </p>
 
 </div>
 </div>
