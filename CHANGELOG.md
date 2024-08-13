@@ -1,3 +1,12 @@
+## v1.20.1 (13/08/2024)
+
+**Common**
+* Fixed various clang-tidy warnings.
+* Fixed Boost configuration error on Windows.
+
+**olp-cpp-sdk-dataservice-read**
+* Updated query network requests to include metadata fields `crc`, `checksum`, `dataSize` and `compressedDataSize` by default.
+
 ## v1.20.0 (06/08/2024)
 
 **Common**

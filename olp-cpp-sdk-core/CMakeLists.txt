@@ -16,7 +16,7 @@
 # License-Filename: LICENSE
 
 
-project(olp-cpp-sdk-core VERSION 1.20.0)
+project(olp-cpp-sdk-core VERSION 1.20.1)
 set(DESCRIPTION "Core network and utility library for the HERE OLP SDK C++")
 
 find_package(RapidJSON 1.1.0 REQUIRED)
