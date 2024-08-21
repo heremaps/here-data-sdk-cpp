@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,15 @@
 namespace mockserver {
 
 struct Expectation {
+  struct QueryStringParameter {
+    std::string name;
+    std::vector<std::string> values;
+  };
   struct RequestMatcher {
     boost::optional<std::string> path = boost::none;
     boost::optional<std::string> method = boost::none;
+    boost::optional<std::vector<QueryStringParameter>> query_string_parameters =
+        boost::none;
   };
 
   struct ResponseDelay {
@@ -64,6 +70,9 @@ struct Expectation {
 
 void to_json(const Expectation& x, rapidjson::Value& value,
              rapidjson::Document::AllocatorType& allocator);
+void to_json(const Expectation::QueryStringParameter& x,
+             rapidjson::Value& value,
+             rapidjson::Document::AllocatorType& allocator);
 void to_json(const Expectation::RequestMatcher& x, rapidjson::Value& value,
              rapidjson::Document::AllocatorType& allocator);
 void to_json(const Expectation::BinaryResponse& x, rapidjson::Value& value,
@@ -90,12 +99,22 @@ inline void to_json(const Expectation& x, rapidjson::Value& value,
   }
 }
 
+inline void to_json(const Expectation::QueryStringParameter& x,
+                    rapidjson::Value& value,
+                    rapidjson::Document::AllocatorType& allocator) {
+  value.SetObject();
+  serialize("name", x.name, value, allocator);
+  serialize("values", x.values, value, allocator);
+}
+
 inline void to_json(const Expectation::RequestMatcher& x,
                     rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
   value.SetObject();
   serialize("path", x.path, value, allocator);
   serialize("method", x.method, value, allocator);
+  serialize("queryStringParameters", x.query_string_parameters, value,
+            allocator);
 }
 
 inline void to_json(const Expectation::BinaryResponse& x,
