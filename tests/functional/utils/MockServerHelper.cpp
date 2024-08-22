@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,12 +80,14 @@ void MockServerHelper::MockGetResponse(const std::string& layer,
 void MockServerHelper::MockGetResponse(const std::string& layer,
                                        olp::geo::TileKey tile, int64_t version,
                                        const std::string& tree) {
-  mock_server_client_.MockResponse("GET",
-                                   "/query/v1/catalogs/" + catalog_ +
-                                       "/layers/" + layer + "/versions/" +
-                                       std::to_string(version) + "/quadkeys/" +
-                                       tile.ToHereTile() + "/depths/4",
-                                   tree);
+  mock_server_client_.MockResponse(
+      "GET",
+      "/query/v1/catalogs/" + catalog_ + "/layers/" + layer + "/versions/" +
+          std::to_string(version) + "/quadkeys/" + tile.ToHereTile() +
+          "/depths/4",
+      tree, olp::http::HttpStatusCode::OK, false, boost::none,
+      std::vector<Expectation::QueryStringParameter>{
+          {"additionalFields", {"checksum,crc,dataSize,compressedDataSize"}}});
 }
 
 bool MockServerHelper::Verify() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ class VersionedLayerClientProtectTest : public ::testing::Test {
     cache_settings.eviction_policy =
         olp::cache::EvictionPolicy::kLeastRecentlyUsed;
     cache_settings.max_disk_storage =
-        46484u / 0.85;  // eviction trashold is (0.8500000238F)
+        55000u / 0.85;  // eviction threshold is (0.8500000238F)
     settings_->cache =
         olp::client::OlpClientSettingsFactory::CreateDefaultCache(
             cache_settings);

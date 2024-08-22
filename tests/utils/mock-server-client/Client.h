@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,12 +45,13 @@ class Client {
  public:
   explicit Client(olp::client::OlpClientSettings settings);
 
-  void MockResponse(const std::string& method_matcher,
-                    const std::string& path_matcher,
-                    const std::string& response_body,
-                    int https_status = olp::http::HttpStatusCode::OK,
-                    bool unlimited = false,
-                    boost::optional<int32_t> delay_ms = boost::none);
+  void MockResponse(
+      const std::string& method_matcher, const std::string& path_matcher,
+      const std::string& response_body,
+      int https_status = olp::http::HttpStatusCode::OK, bool unlimited = false,
+      boost::optional<int32_t> delay_ms = boost::none,
+      boost::optional<std::vector<Expectation::QueryStringParameter>>
+          query_params = boost::none);
 
   void MockBinaryResponse(const std::string& method_matcher,
                           const std::string& path_matcher,
@@ -77,14 +78,16 @@ inline Client::Client(olp::client::OlpClientSettings settings) {
   http_client_->SetBaseUrl(kBaseUrl);
 }
 
-inline void Client::MockResponse(const std::string& method_matcher,
-                                 const std::string& path_matcher,
-                                 const std::string& response_body,
-                                 int https_status, bool unlimited,
-                                 boost::optional<int32_t> delay_ms) {
+inline void Client::MockResponse(
+    const std::string& method_matcher, const std::string& path_matcher,
+    const std::string& response_body, int https_status, bool unlimited,
+    boost::optional<int32_t> delay_ms,
+    boost::optional<std::vector<Expectation::QueryStringParameter>>
+        query_params) {
   auto expectation = Expectation{};
   expectation.request.path = path_matcher;
   expectation.request.method = method_matcher;
+  expectation.request.query_string_parameters = std::move(query_params);
 
   boost::optional<Expectation::ResponseAction> action =
       Expectation::ResponseAction{};
