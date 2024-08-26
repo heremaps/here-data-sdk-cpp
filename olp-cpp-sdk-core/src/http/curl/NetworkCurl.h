@@ -167,14 +167,16 @@ class NetworkCurl : public olp::http::Network,
    * @brief Blobs required for custom certificate validation.
    */
   struct SslCertificateBlobs {
+    using OptionalBlob = boost::optional<struct curl_blob>;
+
     /// Certificate blob.
-    struct curl_blob ssl_cert_blob;
+    OptionalBlob ssl_cert_blob;
 
     /// Private key blob.
-    struct curl_blob ssl_key_blob;
+    OptionalBlob ssl_key_blob;
 
     /// Certificate authority blob.
-    struct curl_blob ca_info_blob;
+    OptionalBlob ca_info_blob;
   };
 #endif
 
