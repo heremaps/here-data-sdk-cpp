@@ -696,11 +696,11 @@ ErrorCode NetworkCurl::SendImplementation(
 #ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
   if (ssl_certificates_blobs_) {
     curl_easy_setopt(curl_handle, CURLOPT_SSLCERT_BLOB,
-                     &ssl_certificates_blobs_->ssl_cert_blob);
+                     ssl_certificates_blobs_->ssl_cert_blob.get_ptr());
     curl_easy_setopt(curl_handle, CURLOPT_SSLKEY_BLOB,
-                     &ssl_certificates_blobs_->ssl_key_blob);
+                     ssl_certificates_blobs_->ssl_key_blob.get_ptr());
     curl_easy_setopt(curl_handle, CURLOPT_CAINFO_BLOB,
-                     &ssl_certificates_blobs_->ca_info_blob);
+                     ssl_certificates_blobs_->ca_info_blob.get_ptr());
   } else
 #endif
   {
@@ -1312,17 +1312,23 @@ void NetworkCurl::Run() {
 
 #ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
 void NetworkCurl::SetupCertificateBlobs() {
-  if (certificate_settings_.client_cert_file_blob.empty() ||
-      certificate_settings_.client_key_file_blob.empty() ||
+  if (certificate_settings_.client_cert_file_blob.empty() &&
+      certificate_settings_.client_key_file_blob.empty() &&
       certificate_settings_.cert_file_blob.empty()) {
     OLP_SDK_LOG_INFO(kLogTag, "No certificate blobs provided");
     return;
   }
 
-  auto setup_blob = [](struct curl_blob& blob, std::string& src) {
-    blob.data = const_cast<char*>(src.data());
-    blob.len = src.size();
-    blob.flags = CURL_BLOB_NOCOPY;
+  auto setup_blob = [](SslCertificateBlobs::OptionalBlob& blob,
+                       std::string& src) {
+    if (src.empty()) {
+      blob.reset();
+      return;
+    }
+    blob = SslCertificateBlobs::OptionalBlob::value_type{};
+    blob->data = const_cast<char*>(src.data());
+    blob->len = src.size();
+    blob->flags = CURL_BLOB_NOCOPY;
   };
 
   ssl_certificates_blobs_ = SslCertificateBlobs{};
@@ -1334,7 +1340,17 @@ void NetworkCurl::SetupCertificateBlobs() {
   setup_blob(ssl_certificates_blobs_->ca_info_blob,
              certificate_settings_.cert_file_blob);
 
-  OLP_SDK_LOG_INFO(kLogTag, "Certificate blobs provided");
+  auto to_log_str = [](const SslCertificateBlobs::OptionalBlob& blob) {
+    return blob ? "<provided>" : "<empty>";
+  };
+
+  OLP_SDK_LOG_INFO(kLogTag,
+                   "Certificate blobs provided, client_cert_blob="
+                       << to_log_str(ssl_certificates_blobs_->ssl_cert_blob)
+                       << ", client_key_blob="
+                       << to_log_str(ssl_certificates_blobs_->ssl_key_blob)
+                       << ", ca_info_blob="
+                       << to_log_str(ssl_certificates_blobs_->ca_info_blob));
 }
 #endif
 
