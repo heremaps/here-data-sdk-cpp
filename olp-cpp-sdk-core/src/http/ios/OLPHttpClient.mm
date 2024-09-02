@@ -42,14 +42,14 @@ class EnterBackgroundSubscriberImpl
       : http_client_(http_client) {}
 
   void OnEnterBackground() override {
-    if (http_client_) {
+    if (http_client_ && !http_client_.inBackground) {
       http_client_.inBackground = true;
       [http_client_ restartCurrentTasks];
     }
   }
 
   void OnExitBackground() override {
-    if (http_client_) {
+    if (http_client_ && http_client_.inBackground) {
       http_client_.inBackground = false;
     }
   }

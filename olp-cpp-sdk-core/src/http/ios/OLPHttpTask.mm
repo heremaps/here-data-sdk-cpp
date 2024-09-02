@@ -73,6 +73,7 @@ constexpr auto kLogTag = "OLPHttpTask";
     _headersSizeReceived = 0;
     _headersSizeSent = 0;
     _contentLength = 0;
+    _backgroundMode = false;
   }
   return self;
 }
