@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - master
-  schedule:
-    # FV Android and iOS only once a month besides the master merges runs
-    - cron: '* 5 1 * *'
 
 jobs:
   fv-build-ios-network-test:
