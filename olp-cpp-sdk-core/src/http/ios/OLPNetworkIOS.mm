@@ -92,7 +92,6 @@ NSString* ParseHttpMethodFromRequest(const olp::http::NetworkRequest& request) {
 olp::http::ErrorCode ConvertNSURLErrorToNetworkErrorCode(NSInteger error_code) {
   switch (error_code) {
     case NSURLErrorUnsupportedURL:
-    case NSURLErrorCannotFindHost:
       return ErrorCode::INVALID_URL_ERROR;
     case NSURLErrorNotConnectedToInternet:
     case NSURLErrorDataNotAllowed:
@@ -101,10 +100,14 @@ olp::http::ErrorCode ConvertNSURLErrorToNetworkErrorCode(NSInteger error_code) {
       return ErrorCode::TIMEOUT_ERROR;
     case NSURLErrorNetworkConnectionLost:
     case NSURLErrorCannotConnectToHost:
+    case NSURLErrorSecureConnectionFailed:
+    case NSURLErrorCannotFindHost:
+    case NSURLErrorDNSLookupFailed:
+    case NSURLErrorResourceUnavailable:
       return ErrorCode::IO_ERROR;
     default:
       if (error_code >= NSURLErrorClientCertificateRequired &&
-          error_code <= NSURLErrorSecureConnectionFailed) {
+          error_code <= NSURLErrorServerCertificateHasBadDate) {
         return ErrorCode::AUTHORIZATION_ERROR;
       } else {
         return ErrorCode::UNKNOWN_ERROR;
