@@ -84,7 +84,7 @@ see=$(cat commit.log | grep 'See also: ') || true
 
 # This is verification that we have any of these possible issue references.
 if [[ -n "${relates_to}" ]] || [[ -n "${resolves}" ]] || [[ -n "${see}" ]] ; then
-    # This verification is needed for correct Jira linking in Gitlab.
+    # This verification is needed for correct ticket linking.
     if [[ "$(echo ${relates_to}| cut -d":" -f2)" =~ [a-z] ]] || [[ "$(echo ${resolves}| cut -d":" -f2)" =~ [a-z] ]] || [[ "$(echo ${see}| cut -d":" -f2)" =~ [a-z] ]] ; then
         echo ""
         echo "ERROR: Commit message contains ticket or issue reference in lower case !"
