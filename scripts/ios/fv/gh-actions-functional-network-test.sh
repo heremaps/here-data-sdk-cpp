@@ -32,7 +32,6 @@
 ## curl -s http://${IP_ADDR}:1080
 ##
 ##
-## For linux fv network tests please refer to : ./scripts/linux/fv/gitlab-olp-cpp-sdk-functional-network-test.sh
 
 
 # For core dump backtrace
