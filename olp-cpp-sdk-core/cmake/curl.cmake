@@ -33,18 +33,19 @@ if(CURL_FOUND AND NOT NETWORK_NO_CURL)
     endif()
 
     if(NOT OPENSSL_FOUND)
-        find_package(OpenSSL)
+        if(ANDROID AND OLP_SDK_ENABLE_ANDROID_CURL)
+            find_package(OpenSSL REQUIRED)
+        else()
+            find_package(OpenSSL)
+        endif()
     endif()
 
     if(OPENSSL_FOUND)
         add_definitions(-DOLP_SDK_NETWORK_HAS_OPENSSL)
-        set(OLP_SDK_NETWORK_CURL_LIBRARIES ${OLP_SDK_NETWORK_CURL_LIBRARIES} ${OPENSSL_SSL_LIBRARY})
 
-        option(OLP_SDK_USE_LIBCRYPTO "Enables the libcrypto dependency" ON)
-
-        if(OLP_SDK_USE_LIBCRYPTO)
+        if(ANDROID AND OLP_SDK_ENABLE_ANDROID_CURL)
             include_directories(${OPENSSL_INCLUDE_DIR})
-            set(OLP_SDK_NETWORK_CURL_LIBRARIES ${OLP_SDK_NETWORK_CURL_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY})
+            set(OLP_SDK_NETWORK_CURL_LIBRARIES ${OLP_SDK_NETWORK_CURL_LIBRARIES} ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
         endif()
     endif()
 
