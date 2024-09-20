@@ -1,0 +1,3 @@
+export dataservice_read_test_secret="${dataservice_read_test_secret}" #defined previously as protected value
+export dataservice_read_test_appid="${dataservice_read_test_appid}" #defined previously as protected value
+export dataservice_read_test_catalog="hrn:here:data::olp-here-test:hereos-internal-test-v2"
