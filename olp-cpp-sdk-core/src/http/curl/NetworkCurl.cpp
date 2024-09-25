@@ -38,7 +38,7 @@
 #include <openssl/x509_vfy.h>
 #include <sys/stat.h>
 #include <cstdio>
-#elif OLP_SDK_NETWORK_HAS_OPENSSL
+#else
 #include "olp/core/utils/Dir.h"
 #endif
 
@@ -112,19 +112,14 @@ int Md5LookupGetBySubject(X509_LOOKUP* ctx, X509_LOOKUP_TYPE type,
 }
 #endif
 
-#elif OLP_SDK_NETWORK_HAS_OPENSSL
+#else
 const auto kCurlCaBundleName = "ca-bundle.crt";
 
 std::string DefaultCaBundlePath() { return kCurlCaBundleName; }
 
-std::string AlternativeCaBundlePath() { return kCurlCaBundleName; }
-
 std::string CaBundlePath() {
   std::string bundle_path;
   bundle_path = DefaultCaBundlePath();
-  if (!olp::utils::Dir::FileExists(bundle_path)) {
-    bundle_path = AlternativeCaBundlePath();
-  }
   if (!olp::utils::Dir::FileExists(bundle_path)) {
     bundle_path.clear();
   }
@@ -258,7 +253,7 @@ CURLcode SetCaBundlePaths(CURL* handle) {
   //  (probably all of them) since OpenSSL still will be trying to find
   //  certificate with SHA1 lookup
   return curl_easy_setopt(handle, CURLOPT_CAPATH, kCurlAndroidCaBundleFolder);
-#elif OLP_SDK_NETWORK_HAS_OPENSSL
+#else
   const auto curl_ca_bundle = CaBundlePath();
   if (!curl_ca_bundle.empty()) {
     return curl_easy_setopt(handle, CURLOPT_CAINFO, curl_ca_bundle.c_str());
@@ -321,10 +316,11 @@ NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
       LIBCURL_VERSION);
 #endif
 
+  const auto* version_data = curl_version_info(CURLVERSION_NOW);
+
   std::string curl_ca_info;
   std::string curl_ca_path;
 #if CURL_AT_LEAST_VERSION(7, 70, 0)
-  const auto* version_data = curl_version_info(CURLVERSION_NOW);
   curl_ca_path = version_data->capath ? version_data->capath : "<empty>";
   curl_ca_info = version_data->cainfo ? version_data->cainfo : "<empty>";
 #else
@@ -335,7 +331,7 @@ NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
   std::string ca_bundle_path;
 #if defined(OLP_SDK_ENABLE_ANDROID_CURL) && !defined(ANDROID_HOST)
   ca_bundle_path = kCurlAndroidCaBundleFolder;
-#elif OLP_SDK_NETWORK_HAS_OPENSSL
+#else
   ca_bundle_path = CaBundlePath();
   if (ca_bundle_path.empty()) {
     ca_bundle_path = "<empty>";
@@ -347,6 +343,10 @@ NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
                      "ca_bundle_path=%s",
                      curl_ca_path.c_str(), curl_ca_info.c_str(),
                      ca_bundle_path.c_str());
+
+  OLP_SDK_LOG_INFO_F(
+      kLogTag, "TLS backend: %s",
+      version_data->ssl_version ? version_data->ssl_version : "<empty>");
 }
 
 NetworkCurl::~NetworkCurl() {
