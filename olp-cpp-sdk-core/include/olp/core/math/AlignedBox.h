@@ -424,8 +424,8 @@ bool AlignedBox<T, N>::Intersects(const AlignedBox& box) const {
     return false;
   }
 
-  const VectorType& otherMin = box.min();
-  const VectorType& otherMax = box.max();
+  const VectorType& otherMin = box.Minimum();
+  const VectorType& otherMax = box.Maximum();
   for (unsigned dim = 0; dim < dimensions; dim++) {
     if ((maximum_[dim] < otherMin[dim]) || (minimum_[dim] > otherMax[dim]))
       return false;
@@ -462,12 +462,12 @@ bool AlignedBox<T, N>::operator==(const AlignedBox& box) const {
   // empty.
   //
   bool thisEmpty = Empty();
-  bool otherEmpty = box.empty();
+  bool otherEmpty = box.Empty();
   if (thisEmpty || otherEmpty) {
     return thisEmpty == otherEmpty;
   }
 
-  return minimum_ == box.min() && maximum_ == box.max();
+  return minimum_ == box.Minimum() && maximum_ == box.Maximum();
 }
 
 template <typename T, unsigned int N>
