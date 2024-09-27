@@ -541,6 +541,10 @@ leveldb::Options DiskCache::CreateOpenOptions(const StorageSettings& settings,
 }
 
 uint64_t DiskCache::Size() const {
+  if (!database_) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Size: Database is not initialized");
+    return 0;
+  }
   uint64_t result{0u};
   leveldb::Range range{"0", "z"};
   database_->GetApproximateSizes(&range, 1, &result);
