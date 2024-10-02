@@ -33,20 +33,13 @@ if(CURL_FOUND AND NOT NETWORK_NO_CURL)
     endif()
 
     if(NOT OPENSSL_FOUND)
-        if(ANDROID AND OLP_SDK_ENABLE_ANDROID_CURL)
-            find_package(OpenSSL REQUIRED)
-        else()
-            find_package(OpenSSL)
-        endif()
+        # Enforcing OpenSSL to make sure that it is available
+        find_package(OpenSSL REQUIRED)
     endif()
 
-    if(OPENSSL_FOUND)
-        add_definitions(-DOLP_SDK_NETWORK_HAS_OPENSSL)
-
-        if(ANDROID AND OLP_SDK_ENABLE_ANDROID_CURL)
-            include_directories(${OPENSSL_INCLUDE_DIR})
-            set(OLP_SDK_NETWORK_CURL_LIBRARIES ${OLP_SDK_NETWORK_CURL_LIBRARIES} ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
-        endif()
+    if(OPENSSL_FOUND AND ANDROID AND OLP_SDK_ENABLE_ANDROID_CURL)
+        include_directories(${OPENSSL_INCLUDE_DIR})
+        set(OLP_SDK_NETWORK_CURL_LIBRARIES ${OLP_SDK_NETWORK_CURL_LIBRARIES} ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
     endif()
 
     option(OLP_SDK_ENABLE_CURL_VERBOSE "Enable support for CURL_VERBOSE environment variable to set libcurl to verbose mode" OFF)

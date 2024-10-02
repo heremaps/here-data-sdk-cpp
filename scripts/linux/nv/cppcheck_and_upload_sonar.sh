@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (C) 2019-2021 HERE Europe B.V.
+# Copyright (C) 2019-2024 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ cppcheck \
     -DHAVE_SIGNAL_H \
     -DIGNORE_SIGPIPE \
     -DOLP_SDK_NETWORK_HAS_CURL \
-    -DOLP_SDK_NETWORK_HAS_OPENSSL \
     -DOLP_SDK_NETWORK_HAS_PIPE=1 \
     -DOLP_SDK_NETWORK_HAS_UNISTD_H=1 \
     -DOLP_SDK_PLATFORM_NAME=\"Linux\" \

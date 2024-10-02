@@ -34,7 +34,6 @@
 #include <boost/optional.hpp>
 
 #if defined(OLP_SDK_ENABLE_ANDROID_CURL) && !defined(ANDROID_HOST)
-#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
 #include <openssl/ossl_typ.h>
 
 #ifdef OPENSSL_NO_MD5
@@ -46,7 +45,6 @@
 // certificate as it won't be able to locate one. We need to add our custom
 // lookup method that uses MD5. Old SHA1 lookup will be left as is.
 #define OLP_SDK_USE_MD5_CERT_LOOKUP
-#endif
 #endif
 
 // CURLOPT_CAINFO_BLOB has become available only in curl-7.77
@@ -386,12 +384,6 @@ class NetworkCurl : public olp::http::Network,
 
   /// UNIX Pipe used to notify sleeping worker thread during select() call.
   int pipe_[2]{};
-
-#ifdef OLP_SDK_NETWORK_HAS_OPENSSL
-  /// Mutexes that are used by OpenSSL to synchronize during concurrent
-  /// network transfer.
-  std::unique_ptr<std::mutex[]> ssl_mutexes_{};
-#endif
 
   /// Stores value if `curl_global_init()` was successful on construction.
   bool curl_initialized_;
