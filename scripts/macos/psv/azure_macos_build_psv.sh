@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (C) 2019 HERE Europe B.V.
+# Copyright (C) 2019-2024 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 mkdir -p build
 cd build
 cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+    -DCMAKE_CXX_FLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations -Wno-deprecated-copy" \
     -DOLP_SDK_BUILD_EXAMPLES=ON \
     -DBUILD_SHARED_LIBS=ON \
     -DOLP_SDK_ENABLE_TESTING=NO \

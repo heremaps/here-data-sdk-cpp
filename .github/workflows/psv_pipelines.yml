@@ -186,6 +186,16 @@ jobs:
       run: scripts/macos/psv/azure_macos_build_psv.sh
       shell: bash
 
+  psv-macos-14-xcode-15-build:
+    name: PSV.MacOS14.Xcode15
+    runs-on: macos-14
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: MacOS Build
+        run: scripts/macos/psv/azure_macos_build_psv.sh
+        shell: bash
+
   psv-ios-xcode-14-build:
     name: PSV.iOS.MacOS12.Xcode14
     runs-on: macOS-12
