@@ -467,6 +467,7 @@ class OlpClient::OlpClientImpl {
 
   ParametersType& GetMutableDefaultHeaders();
   void SetSettings(const OlpClientSettings& settings);
+  const OlpClientSettings& GetSettings() const { return settings_; }
 
   CancellationToken CallApi(const std::string& path, const std::string& method,
                             const ParametersType& query_params,
@@ -854,6 +855,10 @@ OlpClient::ParametersType& OlpClient::GetMutableDefaultHeaders() {
 
 void OlpClient::SetSettings(const OlpClientSettings& settings) {
   impl_->SetSettings(settings);
+}
+
+const OlpClientSettings& OlpClient::GetSettings() const {
+  return impl_->GetSettings();
 }
 
 CancellationToken OlpClient::CallApi(

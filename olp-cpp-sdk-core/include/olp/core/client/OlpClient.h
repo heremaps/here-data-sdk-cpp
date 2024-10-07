@@ -108,6 +108,13 @@ class CORE_API OlpClient {
   void SetSettings(const OlpClientSettings& settings);
 
   /**
+   * @brief Getter function to retrieve client settings.
+   *
+   * @return The client settings
+   */
+  const OlpClientSettings& GetSettings() const;
+
+  /**
    * @brief Executes the HTTP request through the network stack.
    *
    * @param path The path that is appended to the base URL.
