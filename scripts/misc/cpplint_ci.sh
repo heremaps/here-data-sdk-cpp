@@ -52,7 +52,7 @@ fi
 # Install cpplint tool using pip
 printf "Installing cpplint using pip\n\n"
 
-pip3 install --user cpplint
+pip3 install --user cpplint==1.6.1
 export PATH=$PATH:~/.local/bin/
 printf "\n\nRunning cpplint\n\n"
 
