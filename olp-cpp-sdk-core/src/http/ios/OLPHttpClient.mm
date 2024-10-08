@@ -562,18 +562,33 @@ class EnterBackgroundSubscriberImpl
     @synchronized(_urlSessions) {
       OLPHttpTask* httpTask =
           [self taskWithTaskDescription:dataTask.taskDescription];
+
+      if (!httpTask) {
+        OLP_SDK_LOG_WARNING_F(kLogTag,
+                              "didFinishDownloadingToURL failed - task can't "
+                              "be found, session=%p, dataTask=%p, task_id=%u, "
+                              "task_description=%s",
+                              (__bridge void*)session, (__bridge void*)dataTask,
+                              (unsigned int)dataTask.taskIdentifier,
+                              (char*)[dataTask.taskDescription UTF8String]);
+        return;
+      }
+
       if ([httpTask isValid] && ![httpTask isCancelled]) {
         [httpTask didReceiveData:data withWholeData:true];
         [httpTask didCompleteWithError:dataTask.error];
-        [self removeTaskWithId:httpTask.requestId];
       } else {
         OLP_SDK_LOG_WARNING_F(
             kLogTag,
-            "didFinishDownloadingToURL failed - task can't be found or "
-            "cancelled, session=%p, dataTask=%p, task_id=%u",
+            "didFinishDownloadingToURL failed - task not valid or "
+            "cancelled, session=%p, dataTask=%p, task_id=%u, "
+            "task_description=%s",
             (__bridge void*)session, (__bridge void*)dataTask,
-            (unsigned int)dataTask.taskIdentifier);
+            (unsigned int)dataTask.taskIdentifier,
+            (char*)[dataTask.taskDescription UTF8String]);
       }
+
+      [self removeTaskWithId:httpTask.requestId];
     }
   }
 }
