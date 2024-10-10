@@ -45,7 +45,7 @@ class VersionedLayerClientProtectTest : public ::testing::Test {
     olp::cache::CacheSettings cache_settings;
     cache_path_ = olp::utils::Dir::TempDirectory() + "/test";
     cache_settings.disk_path_mutable = cache_path_;
-    olp::utils::Dir::remove(cache_path_);
+    olp::utils::Dir::Remove(cache_path_);
     cache_settings.max_memory_cache_size = 0u;
     cache_settings.eviction_policy =
         olp::cache::EvictionPolicy::kLeastRecentlyUsed;
@@ -66,7 +66,7 @@ class VersionedLayerClientProtectTest : public ::testing::Test {
     auto network = std::move(settings_->network_request_handler);
     settings_.reset();
     mock_server_client_.reset();
-    olp::utils::Dir::remove(cache_path_);
+    olp::utils::Dir::Remove(cache_path_);
   }
 
   std::shared_ptr<olp::client::OlpClientSettings> settings_;

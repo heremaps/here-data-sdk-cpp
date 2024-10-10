@@ -169,7 +169,7 @@ bool DiskCache::Clear() {
   Close();
 
   if (!disk_cache_path_.empty()) {
-    return olp::utils::Dir::remove(disk_cache_path_);
+    return olp::utils::Dir::Remove(disk_cache_path_);
   }
 
   return true;
@@ -200,8 +200,8 @@ OpenResult DiskCache::Open(const std::string& data_path,
                            bool repair_if_broken) {
   disk_cache_path_ = data_path;
   bool is_read_only = (options & ReadOnly) == ReadOnly;
-  if (!olp::utils::Dir::exists(disk_cache_path_)) {
-    if (!olp::utils::Dir::create(disk_cache_path_)) {
+  if (!olp::utils::Dir::Exists(disk_cache_path_)) {
+    if (!olp::utils::Dir::Create(disk_cache_path_)) {
       return OpenResult::Fail;
     }
   }

@@ -44,17 +44,6 @@ class CORE_API Dir {
    * @param path The path of the directory.
    *
    * @return True if the directory exists; false otherwise.
-   *
-   * @deprecated Will be removed by 10/2020. Use `Exists()` instead.
-   */
-  static bool exists(const std::string& path);
-
-  /**
-   * @brief Checks whether a directory exists.
-   *
-   * @param path The path of the directory.
-   *
-   * @return True if the directory exists; false otherwise.
    */
   static bool Exists(const std::string& path);
 
@@ -64,31 +53,8 @@ class CORE_API Dir {
    * @param path The path of the directory.
    *
    * @return True if the operation is successful; false otherwise.
-   *
-   * @deprecated Will be removed by 10/2020. Use `Remove()` instead.
-   */
-  static bool remove(const std::string& path);
-
-  /**
-   * @brief Removes a directory and deletes all its subfolders and files.
-   *
-   * @param path The path of the directory.
-   *
-   * @return True if the operation is successful; false otherwise.
    */
   static bool Remove(const std::string& path);
-
-  /**
-   * @brief Creates a directory and all required directories specified
-   * in the path.
-   *
-   * @param path The path of the directory.
-   *
-   * @return True if the operation is successful; false otherwise.
-   *
-   * @deprecated Will be removed by 10/2020. Use `Create()` instead.
-   */
-  static bool create(const std::string& path);
 
   /**
    * @brief Creates a directory and all required directories specified

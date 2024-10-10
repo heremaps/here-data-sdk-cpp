@@ -252,8 +252,6 @@ bool Dir::Exists(const std::string& path) {
 #endif  // _WIN32
 }
 
-bool Dir::exists(const std::string& path) { return Dir::Exists(path); }
-
 bool Dir::Remove(const std::string& path) {
   bool ret = true;
 #if defined(_WIN32) && !defined(__MINGW32__)
@@ -275,10 +273,8 @@ bool Dir::Remove(const std::string& path) {
   return ret;
 }
 
-bool Dir::remove(const std::string& path) { return Dir::Remove(path); }
-
 bool Dir::Create(const std::string& path, bool extend_permissions) {
-  if (exists(path)) {
+  if (Exists(path)) {
     return true;
   }
   bool ret = true;
@@ -314,7 +310,7 @@ bool Dir::Create(const std::string& path, bool extend_permissions) {
       }
     }
     dir_path += token[t];
-    if (!exists(dir_path)) {
+    if (!Exists(dir_path)) {
 #ifdef _UNICODE
       std::wstring wstrPath = ConvertStringToWideString(dir_path);
       const TCHAR* n_path = wstrPath.c_str();
@@ -332,8 +328,6 @@ bool Dir::Create(const std::string& path, bool extend_permissions) {
 #endif
   return ret;
 }
-
-bool Dir::create(const std::string& path) { return Dir::Create(path); }
 
 std::string Dir::TempDirectory() {
 #if defined(_WIN32) && !defined(__MINGW32__)

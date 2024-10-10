@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2023 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -340,7 +340,7 @@ TEST(DefaultCacheTest, ProtectedLruEviction) {
 #ifndef WIN32
 
 TEST(DefaultCacheTest, Permissions) {
-    // Enable the process to use all permissions
+  // Enable the process to use all permissions
   auto old_mask = umask(0);
 
   {
@@ -368,7 +368,7 @@ TEST(DefaultCacheTest, Permissions) {
     EXPECT_TRUE((permissions & S_IXOTH) == 0);
   }
 
-  EXPECT_TRUE(olp::utils::Dir::remove("./cache"));
+  EXPECT_TRUE(olp::utils::Dir::Remove("./cache"));
 
   {
     SCOPED_TRACE("Modified permission");
@@ -395,7 +395,7 @@ TEST(DefaultCacheTest, Permissions) {
     EXPECT_TRUE((permissions & S_IXOTH) == 0);
   }
 
-  EXPECT_TRUE(olp::utils::Dir::remove("./cache"));
+  EXPECT_TRUE(olp::utils::Dir::Remove("./cache"));
 
   // Restore the mask
   umask(old_mask);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ VersionedLayerTestBase::VersionedLayerTestBase()
     : url_generator_(kCatalog, kLayerName, kEndpoint) {}
 
 void VersionedLayerTestBase::SetUp() {
-  olp::utils::Dir::remove(kCachePathMutable);
+  olp::utils::Dir::Remove(kCachePathMutable);
 
   network_mock_ = std::make_shared<NetworkMock>();
 
@@ -66,7 +66,7 @@ void VersionedLayerTestBase::TearDown() {
   testing::Mock::VerifyAndClearExpectations(network_mock_.get());
   network_mock_.reset();
   settings_.task_scheduler.reset();
-  olp::utils::Dir::remove(kCachePathMutable);
+  olp::utils::Dir::Remove(kCachePathMutable);
 }
 
 void VersionedLayerTestBase::ExpectQuadTreeRequest(
