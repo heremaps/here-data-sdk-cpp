@@ -38,33 +38,6 @@ namespace http {
 class CORE_API NetworkSettings final {
  public:
   /**
-   * @brief Gets the maximum number of retries for the HTTP request.
-   *
-   * @return The maximum number of retries for the HTTP request.
-   */
-  OLP_SDK_DEPRECATED("Will be removed by 04.2024")
-  std::size_t GetRetries() const;
-
-  /**
-   * @brief Sets the maximum number of retries for the HTTP request.
-   *
-   * @param[in] retries The maximum number of retries for HTTP request.
-   *
-   * @return A reference to *this.
-   */
-  OLP_SDK_DEPRECATED("Will be removed by 04.2024")
-  NetworkSettings& WithRetries(std::size_t retries);
-
-  /**
-   * @brief Gets the connection timeout in seconds.
-   *
-   * @return The connection timeout in seconds.
-   */
-  OLP_SDK_DEPRECATED(
-      "Will be removed by 04.2024, use GetConnectionTimeoutDuration() instead")
-  int GetConnectionTimeout() const;
-
-  /**
    * @brief Gets the connection timeout.
    *
    * @return The connection timeout.
@@ -79,18 +52,6 @@ class CORE_API NetworkSettings final {
    */
   std::chrono::milliseconds GetBackgroundConnectionTimeoutDuration() const;
 #endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
-
-  /**
-   * @brief Sets the connection timeout in seconds.
-   *
-   * @param[in] timeout The connection timeout in seconds.
-   *
-   * @return A reference to *this.
-   */
-  OLP_SDK_DEPRECATED(
-      "Will be removed by 04.2024, use "
-      "WithConnectionTimeout(std::chrono::milliseconds) instead")
-  NetworkSettings& WithConnectionTimeout(int timeout);
 
   /**
    * @brief Sets the connection timeout.
@@ -114,32 +75,11 @@ class CORE_API NetworkSettings final {
 #endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
 
   /**
-   * @brief Gets the transfer timeout in seconds.
-   *
-   * @return The transfer timeout in seconds.
-   */
-  OLP_SDK_DEPRECATED(
-      "Will be removed by 04.2024, use GetTransferTimeoutDuration() instead")
-  int GetTransferTimeout() const;
-
-  /**
    * @brief Gets the transfer timeout.
    *
    * @return The transfer timeout.
    */
   std::chrono::milliseconds GetTransferTimeoutDuration() const;
-
-  /**
-   * @brief Sets the transfer timeout in seconds.
-   *
-   * @param[in] timeout The transfer timeout in seconds.
-   *
-   * @return A reference to *this.
-   */
-  OLP_SDK_DEPRECATED(
-      "Will be removed by 04.2024, use "
-      "WithTransferTimeout(std::chrono::milliseconds) instead")
-  NetworkSettings& WithTransferTimeout(int timeout);
 
   /**
    * @brief Gets max lifetime (since creation) allowed for reusing a connection.
@@ -203,8 +143,6 @@ class CORE_API NetworkSettings final {
   NetworkSettings& WithDNSServers(std::vector<std::string> dns_servers);
 
  private:
-  /// The maximum number of retries for the HTTP request.
-  std::size_t retries_{3};
   /// The connection timeout.
   std::chrono::milliseconds connection_timeout_ = std::chrono::seconds(60);
 #ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
