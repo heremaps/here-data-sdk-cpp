@@ -4224,7 +4224,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ProtectAndReleaseTileKeys) {
   olp::cache::CacheSettings cache_settings;
   const std::string cache_path =
       olp::utils::Dir::TempDirectory() + "/integration_test";
-  olp::utils::Dir::remove(cache_path);
+  olp::utils::Dir::Remove(cache_path);
   cache_settings.disk_path_mutable = cache_path;
   std::shared_ptr<olp::cache::KeyValueCache> cache =
       olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
@@ -4265,7 +4265,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ProtectAndReleaseTileKeys) {
   ASSERT_TRUE(client.Release({tile_key}));
   ASSERT_FALSE(client.IsCached(tile_key));
   // remove cache
-  olp::utils::Dir::remove(cache_path);
+  olp::utils::Dir::Remove(cache_path);
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, ProtectAndReleasePartition) {
@@ -4280,7 +4280,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ProtectAndReleasePartition) {
   olp::cache::CacheSettings cache_settings;
   const std::string cache_path =
       olp::utils::Dir::TempDirectory() + "/integration_test";
-  olp::utils::Dir::remove(cache_path);
+  olp::utils::Dir::Remove(cache_path);
   cache_settings.disk_path_mutable = cache_path;
   std::shared_ptr<olp::cache::KeyValueCache> cache =
       olp::client::OlpClientSettingsFactory::CreateDefaultCache(cache_settings);
@@ -4321,7 +4321,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ProtectAndReleaseWithEviction) {
   const std::string blob_data(data_size, 0);
   const std::string cache_path =
       olp::utils::Dir::TempDirectory() + "/integration_test";
-  olp::utils::Dir::remove(cache_path);
+  olp::utils::Dir::Remove(cache_path);
   olp::cache::CacheSettings cache_settings;
   cache_settings.disk_path_mutable = cache_path;
   cache_settings.max_memory_cache_size = 0u;
@@ -4425,7 +4425,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ProtectAndReleaseWithEviction) {
   // after release key is evicted
   ASSERT_FALSE(client.IsCached(protected_key));
   // remove cache folder
-  olp::utils::Dir::remove(cache_path);
+  olp::utils::Dir::Remove(cache_path);
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, CatalogEndpointProvider) {
@@ -4504,7 +4504,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, OverlappingQuads) {
   const std::string blob_data(data_size, 0);
   const std::string cache_path =
       olp::utils::Dir::TempDirectory() + "/integration_test";
-  olp::utils::Dir::remove(cache_path);
+  olp::utils::Dir::Remove(cache_path);
   olp::cache::CacheSettings cache_settings;
   cache_settings.disk_path_mutable = cache_path;
   settings_.cache =
@@ -4583,7 +4583,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, OverlappingQuads) {
   }
 
   // remove cache folder
-  olp::utils::Dir::remove(cache_path);
+  olp::utils::Dir::Remove(cache_path);
 }
 
 TEST_F(DataserviceReadVersionedLayerClientTest, QuadTreeIndex) {

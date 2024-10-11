@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ class CatalogClientCacheTest : public integration::CatalogClientTestBase {
   }
 
  protected:
-  void ClearCache(const std::string& path) { olp::utils::Dir::remove(path); }
+  void ClearCache(const std::string& path) { olp::utils::Dir::Remove(path); }
 
   std::shared_ptr<olp::cache::DefaultCache> cache_;
 };
