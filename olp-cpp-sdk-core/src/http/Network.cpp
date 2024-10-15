@@ -65,12 +65,6 @@ Network::Statistics Network::GetStatistics(uint8_t /*bucket_id*/) {
   return Network::Statistics{};
 }
 
-std::shared_ptr<Network> CreateDefaultNetwork(size_t max_requests_count) {
-  NetworkInitializationSettings settings;
-  settings.max_requests_count = max_requests_count;
-  return CreateDefaultNetwork(std::move(settings));
-}
-
 std::shared_ptr<Network> CreateDefaultNetwork(
     NetworkInitializationSettings settings) {
   auto network = CreateDefaultNetworkImpl(std::move(settings));
