@@ -22,14 +22,6 @@
 namespace olp {
 namespace http {
 
-std::size_t NetworkSettings::GetRetries() const { return retries_; }
-
-int NetworkSettings::GetConnectionTimeout() const {
-  return static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(
-                              GetConnectionTimeoutDuration())
-                              .count());
-}
-
 std::chrono::milliseconds NetworkSettings::GetConnectionTimeoutDuration()
     const {
   return connection_timeout_;
@@ -41,12 +33,6 @@ NetworkSettings::GetBackgroundConnectionTimeoutDuration() const {
   return background_connection_timeout_;
 }
 #endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
-
-int NetworkSettings::GetTransferTimeout() const {
-  return static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(
-                              GetTransferTimeoutDuration())
-                              .count());
-}
 
 std::chrono::milliseconds NetworkSettings::GetTransferTimeoutDuration() const {
   return transfer_timeout_;
@@ -64,15 +50,6 @@ const std::vector<std::string>& NetworkSettings::GetDNSServers() const {
   return dns_servers_;
 }
 
-NetworkSettings& NetworkSettings::WithRetries(std::size_t retries) {
-  retries_ = retries;
-  return *this;
-}
-
-NetworkSettings& NetworkSettings::WithConnectionTimeout(int timeout) {
-  return WithConnectionTimeout(std::chrono::seconds(timeout));
-}
-
 NetworkSettings& NetworkSettings::WithConnectionTimeout(
     std::chrono::milliseconds timeout) {
   connection_timeout_ = timeout;
@@ -86,10 +63,6 @@ NetworkSettings& NetworkSettings::WithBackgroundConnectionTimeout(
   return *this;
 }
 #endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
-
-NetworkSettings& NetworkSettings::WithTransferTimeout(int timeout) {
-  return WithTransferTimeout(std::chrono::seconds(timeout));
-}
 
 NetworkSettings& NetworkSettings::WithTransferTimeout(
     std::chrono::milliseconds timeout) {
