@@ -954,7 +954,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitions429Error) {
 
   client::RetrySettings retry_settings;
   retry_settings.retry_condition = [](const client::HttpResponse& response) {
-    return http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
+    return http::HttpStatusCode::TOO_MANY_REQUESTS == response.GetStatus();
   };
   settings_.retry_settings = retry_settings;
   auto client = std::make_shared<read::VersionedLayerClient>(
@@ -989,7 +989,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ApiLookup429) {
 
   client::RetrySettings retry_settings;
   retry_settings.retry_condition = [](const client::HttpResponse& response) {
-    return http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
+    return http::HttpStatusCode::TOO_MANY_REQUESTS == response.GetStatus();
   };
   settings_.retry_settings = retry_settings;
   auto client = std::make_shared<read::VersionedLayerClient>(
@@ -2305,7 +2305,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetData429Error) {
 
   client::RetrySettings retry_settings;
   retry_settings.retry_condition = [](const client::HttpResponse& response) {
-    return http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
+    return http::HttpStatusCode::TOO_MANY_REQUESTS == response.GetStatus();
   };
   settings_.retry_settings = retry_settings;
   auto client = std::make_shared<read::VersionedLayerClient>(

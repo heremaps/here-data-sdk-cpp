@@ -322,12 +322,12 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
           CallAuth(client, kOauthEndpoint, context, credentials, request_body,
                    timer.GetRequestTime());
 
-      const auto status = auth_response.status;
+      const auto status = auth_response.GetStatus();
       if (status < 0) {
         response = GetSignInResponse<SignInResult>(auth_response, context,
                                                    credentials.GetKey());
       } else {
-        response = ParseAuthResponse(status, auth_response.response);
+        response = ParseAuthResponse(status, auth_response.GetRawResponse());
       }
 
       if (retry_settings.retry_condition(auth_response)) {
@@ -338,7 +338,7 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
       // In case we can't authorize with system time, retry with the server
       // time from response headers (if available).
       if (HasWrongTimestamp(response.GetResult())) {
-        auto server_time = GetTimestampFromHeaders(auth_response.headers);
+        auto server_time = GetTimestampFromHeaders(auth_response.GetHeaders());
         if (server_time) {
           timer = RequestTimer(*server_time);
           continue;
@@ -386,15 +386,15 @@ TimeResponse AuthenticationClientImpl::GetTimeFromServer(
   auto http_result = client.CallApi(kTimestampEndpoint, "GET", {}, {}, {},
                                     nullptr, {}, context);
 
-  if (http_result.status != http::HttpStatusCode::OK) {
-    auto response = http_result.response.str();
+  if (http_result.GetStatus() != http::HttpStatusCode::OK) {
+    auto response = http_result.GetResponseAsString();
     OLP_SDK_LOG_WARNING_F(
         kLogTag, "Failed to get time from server, status=%d, response='%s'",
-        http_result.status, response.c_str());
-    return client::ApiError(http_result.status, http_result.response.str());
+        http_result.GetStatus(), response.c_str());
+    return client::ApiError(http_result.GetStatus(), response);
   }
 
-  auto server_time = ParseTimeResponse(http_result.response);
+  auto server_time = ParseTimeResponse(http_result.GetRawResponse());
 
   if (!server_time) {
     const auto& error = server_time.GetError();
@@ -447,7 +447,8 @@ client::CancellationToken AuthenticationClientImpl::SignInApple(
                                                  properties.GetClientId());
     }
 
-    auto response = ParseUserAuthResponse(status, auth_response.response);
+    auto response =
+        ParseUserAuthResponse(status, auth_response.GetRawResponse());
 
     if (status == http::HttpStatusCode::OK) {
       StoreInCache(properties.GetClientId(), response);
@@ -513,13 +514,13 @@ client::CancellationToken AuthenticationClientImpl::HandleUserRequest(
       auto auth_response = CallAuth(client, endpoint, context, credentials,
                                     request_body, timer.GetRequestTime());
 
-      auto status = auth_response.status;
+      auto status = auth_response.GetStatus();
       if (status < 0) {
         return GetSignInResponse<SignInUserResult>(auth_response, context,
                                                    credentials.GetKey());
       }
 
-      response = ParseUserAuthResponse(status, auth_response.response);
+      response = ParseUserAuthResponse(status, auth_response.GetRawResponse());
 
       if (retry_settings.retry_condition(auth_response)) {
         RetryDelay(retry_settings, retry);
@@ -529,7 +530,7 @@ client::CancellationToken AuthenticationClientImpl::HandleUserRequest(
       // In case we can't authorize with system time, retry with the server
       // time from response headers (if available).
       if (HasWrongTimestamp(response)) {
-        auto server_time = GetTimestampFromHeaders(auth_response.headers);
+        auto server_time = GetTimestampFromHeaders(auth_response.GetHeaders());
         if (server_time) {
           timer = RequestTimer(*server_time);
           continue;
@@ -664,15 +665,15 @@ client::CancellationToken AuthenticationClientImpl::IntrospectApp(
                                       nullptr, {}, context);
 
     rapidjson::Document document;
-    rapidjson::IStreamWrapper stream(http_result.response);
+    rapidjson::IStreamWrapper stream(http_result.GetRawResponse());
     document.ParseStream(stream);
-    if (http_result.status != http::HttpStatusCode::OK) {
+    if (http_result.GetStatus() != http::HttpStatusCode::OK) {
       // HttpResult response can be error message or valid json with it.
-      std::string msg = http_result.response.str();
+      std::string msg = http_result.GetResponseAsString();
       if (!document.HasParseError() && document.HasMember(Constants::MESSAGE)) {
         msg = document[Constants::MESSAGE].GetString();
       }
-      return client::ApiError({http_result.status, msg});
+      return client::ApiError({http_result.GetStatus(), msg});
     }
 
     if (document.HasParseError()) {
@@ -711,15 +712,15 @@ client::CancellationToken AuthenticationClientImpl::Authorize(
                                       kApplicationJson, context);
 
     rapidjson::Document document;
-    rapidjson::IStreamWrapper stream(http_result.response);
+    rapidjson::IStreamWrapper stream(http_result.GetRawResponse());
     document.ParseStream(stream);
-    if (http_result.status != http::HttpStatusCode::OK) {
+    if (http_result.GetStatus() != http::HttpStatusCode::OK) {
       // HttpResult response can be error message or valid json with it.
-      std::string msg = http_result.response.str();
+      std::string msg = http_result.GetResponseAsString();
       if (!document.HasParseError() && document.HasMember(Constants::MESSAGE)) {
         msg = document[Constants::MESSAGE].GetString();
       }
-      return client::ApiError({http_result.status, msg});
+      return client::ApiError({http_result.GetStatus(), msg});
     } else if (!document.HasParseError() &&
                document.HasMember(Constants::ERROR_CODE) &&
                document[Constants::ERROR_CODE].IsInt()) {

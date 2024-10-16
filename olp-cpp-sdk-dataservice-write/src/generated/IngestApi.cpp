@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,14 +79,14 @@ client::CancellationToken IngestApi::IngestData(
   auto cancel_token = client.CallApi(
       ingest_uri, "POST", query_params, header_params, form_params, data,
       content_type, [callback](client::HttpResponse http_response) {
-        if (http_response.status != http::HttpStatusCode::OK) {
+        if (http_response.GetStatus() != http::HttpStatusCode::OK) {
           callback(IngestDataResponse{client::ApiError(
-              http_response.status, http_response.response.str())});
+              http_response.GetStatus(), http_response.GetResponseAsString())});
           return;
         }
 
         callback(
-            parser::parse_result<IngestDataResponse>(http_response.response));
+            parser::parse_result<IngestDataResponse>(http_response.GetRawResponse()));
       });
 
   return cancel_token;
@@ -129,15 +129,15 @@ IngestDataResponse IngestApi::IngestData(
   auto http_response = client.CallApi(
       ingest_uri, "POST", std::move(query_params), std::move(header_params),
       std::move(form_params), data, content_type, context);
-  if (http_response.status != olp::http::HttpStatusCode::OK) {
+  if (http_response.GetStatus() != olp::http::HttpStatusCode::OK) {
     OLP_SDK_LOG_ERROR_F(
         kLogTag, "Error during OlpClient::CallApi call, uri=%s, status=%i",
-        ingest_uri.c_str(), http_response.status);
+        ingest_uri.c_str(), http_response.GetStatus());
     return IngestDataResponse{
-        client::ApiError(http_response.status, http_response.response.str())};
+        client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString())};
   }
 
-  return parser::parse_result<IngestDataResponse>(http_response.response);
+  return parser::parse_result<IngestDataResponse>(http_response.GetRawResponse());
 }
 
 IngestSdiiResponse IngestApi::IngestSdii(
@@ -169,11 +169,11 @@ IngestSdiiResponse IngestApi::IngestSdii(
                                  header_params, form_params, sdii_message_list,
                                  "application/x-protobuf", context);
 
-  if (response.status != olp::http::HttpStatusCode::OK) {
+  if (response.GetStatus() != olp::http::HttpStatusCode::OK) {
     return IngestSdiiResponse(
-        client::ApiError(response.status, response.response.str()));
+        client::ApiError(response.GetStatus(), response.GetResponseAsString()));
   }
-  return parser::parse_result<IngestSdiiResponse>(response.response);
+  return parser::parse_result<IngestSdiiResponse>(response.GetRawResponse());
 }
 
 }  // namespace write

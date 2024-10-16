@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,9 +47,9 @@ VolatileBlobApi::DataResponse VolatileBlobApi::GetVolatileBlob(
       client.CallApi(metadata_uri, "GET", query_params, header_params,
                      form_params, nullptr, "", context);
 
-  if (api_response.status != http::HttpStatusCode::OK) {
+  if (api_response.GetStatus() != http::HttpStatusCode::OK) {
     return DataResponse(
-        client::ApiError(api_response.status, api_response.response.str()),
+        client::ApiError(api_response.GetStatus(), api_response.GetResponseAsString()),
         api_response.GetNetworkStatistics());
   }
 

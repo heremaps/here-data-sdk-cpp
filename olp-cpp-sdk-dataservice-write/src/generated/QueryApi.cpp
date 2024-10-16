@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,12 +82,12 @@ client::CancellationToken QueryApi::GetPartitionsById(
 
   client::NetworkAsyncCallback callback =
       [partitionsCallback](client::HttpResponse response) {
-        if (response.status != http::HttpStatusCode::OK) {
+        if (response.GetStatus() != http::HttpStatusCode::OK) {
           partitionsCallback(
-              client::ApiError(response.status, response.response.str()));
+              client::ApiError(response.GetStatus(), response.GetResponseAsString()));
         } else {
           partitionsCallback(
-              parser::parse_result<PartitionsResponse>(response.response));
+              parser::parse_result<PartitionsResponse>(response.GetRawResponse()));
         }
       };
 
@@ -127,10 +127,10 @@ QueryApi::PartitionsResponse QueryApi::GetPartitionsById(
       client.CallApi(query_uri, "GET", query_params, header_params, form_params,
                      nullptr, "", context);
 
-  if (http_response.status != http::HttpStatusCode::OK) {
-    return client::ApiError(http_response.status, http_response.response.str());
+  if (http_response.GetStatus() != http::HttpStatusCode::OK) {
+    return client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString());
   }
-  return parser::parse_result<PartitionsResponse>(http_response.response);
+  return parser::parse_result<PartitionsResponse>(http_response.GetRawResponse());
 }
 
 }  // namespace write

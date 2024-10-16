@@ -500,7 +500,7 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
       kAggregateQuadTreeDepth, default_additional_fields,
       request.GetBillingTag(), context);
 
-  if (quadtree_response.status != olp::http::HttpStatusCode::OK) {
+  if (quadtree_response.GetStatus() != olp::http::HttpStatusCode::OK) {
     OLP_SDK_LOG_WARNING_F(kLogTag,
                           "GetQuadTreeIndexForTile QuadTreeIndex failed, "
                           "hrn='%s', layer='%s', root='%s', "
@@ -508,13 +508,13 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
                           catalog_.ToString().c_str(), layer_id_.c_str(),
                           root_tile_here.c_str(), version.get_value_or(-1),
                           kAggregateQuadTreeDepth);
-    return {client::ApiError(quadtree_response.status,
-                             quadtree_response.response.str()),
+    return {client::ApiError(quadtree_response.GetStatus(),
+                             quadtree_response.GetResponseAsString()),
             quadtree_response.GetNetworkStatistics()};
   }
 
   QuadTreeIndex tree(root_tile_key, kAggregateQuadTreeDepth,
-                     quadtree_response.response);
+                     quadtree_response.GetRawResponse());
   if (tree.IsNull()) {
     OLP_SDK_LOG_WARNING_F(
         kLogTag,
@@ -714,8 +714,8 @@ void PartitionsRepository::StreamPartitions(
       boost::none, std::move(billing_tag), data_callback, context);
 
   auto error =
-      http_response.status != olp::http::HttpStatusCode::OK
-          ? boost::make_optional(client::ApiError(http_response.status))
+      http_response.GetStatus() != olp::http::HttpStatusCode::OK
+          ? boost::make_optional(client::ApiError(http_response.GetStatus()))
           : boost::none;
 
   async_stream->CloseStream(error);

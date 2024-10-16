@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,16 +71,16 @@ std::string Base64Encode(const Crypto::Sha256Digest& digest) {
 }
 
 Response<rapidjson::Document> Parse(client::HttpResponse& http_response) {
-  rapidjson::IStreamWrapper stream(http_response.response);
+  rapidjson::IStreamWrapper stream(http_response.GetRawResponse());
   rapidjson::Document document;
   document.ParseStream(stream);
-  if (http_response.status != http::HttpStatusCode::OK) {
+  if (http_response.GetStatus() != http::HttpStatusCode::OK) {
     // HttpResult response can be error message or valid json with it.
-    std::string msg = http_response.response.str();
+    std::string msg = http_response.GetResponseAsString();
     if (!document.HasParseError() && document.HasMember(Constants::MESSAGE)) {
       msg = document[Constants::MESSAGE].GetString();
     }
-    return client::ApiError({http_response.status, msg});
+    return client::ApiError({http_response.GetStatus(), msg});
   }
 
   if (document.HasParseError()) {

@@ -801,7 +801,7 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
   for (int i = 1; i <= retry_settings.max_attempts && !context.IsCancelled() &&
                   accumulated_wait_time < max_wait_time;
        i++) {
-    if (StatusSuccess(response.status)) {
+    if (StatusSuccess(response.GetStatus())) {
       return response;
     }
 

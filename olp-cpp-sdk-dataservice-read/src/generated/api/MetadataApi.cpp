@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,11 +77,11 @@ MetadataApi::LayerVersionsResponse MetadataApi::GetLayerVersions(
       client.CallApi(std::move(metadataUri), "GET", query_params, header_params,
                      {}, nullptr, "", context);
 
-  if (api_response.status != http::HttpStatusCode::OK) {
-    return client::ApiError(api_response.status, api_response.response.str());
+  if (api_response.GetStatus() != http::HttpStatusCode::OK) {
+    return client::ApiError(api_response.GetStatus(), api_response.GetResponseAsString());
   }
 
-  return parser::parse_result<LayerVersionsResponse>(api_response.response);
+  return parser::parse_result<LayerVersionsResponse>(api_response.GetRawResponse());
 }
 
 MetadataApi::PartitionsExtendedResponse MetadataApi::GetPartitions(
@@ -115,9 +115,9 @@ MetadataApi::PartitionsExtendedResponse MetadataApi::GetPartitions(
       client.CallApi(std::move(metadataUri), "GET", query_params, header_params,
                      {}, nullptr, "", context);
 
-  if (http_response.status != olp::http::HttpStatusCode::OK) {
+  if (http_response.GetStatus() != olp::http::HttpStatusCode::OK) {
     return PartitionsExtendedResponse(
-        client::ApiError(http_response.status, http_response.response.str()),
+        client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString()),
         http_response.GetNetworkStatistics());
   }
 
@@ -125,7 +125,7 @@ MetadataApi::PartitionsExtendedResponse MetadataApi::GetPartitions(
       client::ApiResponse<model::Partitions, client::ApiError>;
 
   auto partitions_response =
-      parser::parse_result<PartitionsResponse>(http_response.response);
+      parser::parse_result<PartitionsResponse>(http_response.GetRawResponse());
 
   if (!partitions_response.IsSuccessful()) {
     return PartitionsExtendedResponse(partitions_response.GetError(),
@@ -188,11 +188,11 @@ MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
       client.CallApi(std::move(metadata_uri), "GET", query_params,
                      header_params, {}, nullptr, "", context);
 
-  if (api_response.status != http::HttpStatusCode::OK) {
-    return {{api_response.status, api_response.response.str()}};
+  if (api_response.GetStatus() != http::HttpStatusCode::OK) {
+    return {{api_response.GetStatus(), api_response.GetResponseAsString()}};
   }
 
-  return parser::parse_result<CatalogVersionResponse>(api_response.response);
+  return parser::parse_result<CatalogVersionResponse>(api_response.GetRawResponse());
 }
 
 MetadataApi::VersionsResponse MetadataApi::ListVersions(
@@ -214,10 +214,10 @@ MetadataApi::VersionsResponse MetadataApi::ListVersions(
   auto api_response = client.CallApi(metadata_uri, "GET", query_params,
                                      header_params, {}, nullptr, "", context);
 
-  if (api_response.status != http::HttpStatusCode::OK) {
-    return {{api_response.status, api_response.response.str()}};
+  if (api_response.GetStatus() != http::HttpStatusCode::OK) {
+    return {{api_response.GetStatus(), api_response.GetResponseAsString()}};
   }
-  return parser::parse_result<VersionsResponse>(api_response.response);
+  return parser::parse_result<VersionsResponse>(api_response.GetRawResponse());
 }
 
 MetadataApi::CompatibleVersionsResponse MetadataApi::GetCompatibleVersions(
@@ -242,12 +242,12 @@ MetadataApi::CompatibleVersionsResponse MetadataApi::GetCompatibleVersions(
       client.CallApi(metadata_uri, "POST", query_params, header_params, {},
                      data, "application/json", context);
 
-  if (api_response.status != http::HttpStatusCode::OK) {
-    return {{api_response.status, api_response.response.str()}};
+  if (api_response.GetStatus() != http::HttpStatusCode::OK) {
+    return {{api_response.GetStatus(), api_response.GetResponseAsString()}};
   }
 
   return parser::parse_result<CompatibleVersionsResponse>(
-      api_response.response);
+      api_response.GetRawResponse());
 }
 
 }  // namespace read

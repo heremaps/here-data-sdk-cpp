@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -442,7 +442,7 @@ TEST_F(ReadStreamLayerClientTest, SubscribeApiLookup429) {
 
   client::RetrySettings retry_settings;
   retry_settings.retry_condition = [](const client::HttpResponse& response) {
-    return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
+    return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.GetStatus();
   };
   settings_.retry_settings = retry_settings;
   read::StreamLayerClient client(hrn, kLayerId, settings_);

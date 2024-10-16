@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,17 +28,17 @@ namespace olp {
 namespace client {
 
 bool DefaultRetryCondition(const HttpResponse& response) {
-  if ((response.status >= http::HttpStatusCode::INTERNAL_SERVER_ERROR &&
-       response.status <= http::HttpStatusCode::NETWORK_CONNECT_TIMEOUT) ||
-      response.status == http::HttpStatusCode::TOO_MANY_REQUESTS) {
+  const auto status = response.GetStatus();
+  if ((status >= http::HttpStatusCode::INTERNAL_SERVER_ERROR &&
+       status <= http::HttpStatusCode::NETWORK_CONNECT_TIMEOUT) ||
+      status == http::HttpStatusCode::TOO_MANY_REQUESTS) {
     return true;
   }
 
-  if (response.status == static_cast<int>(http::ErrorCode::IO_ERROR) ||
-      response.status == static_cast<int>(http::ErrorCode::OFFLINE_ERROR) ||
-      response.status == static_cast<int>(http::ErrorCode::TIMEOUT_ERROR) ||
-      response.status ==
-          static_cast<int>(http::ErrorCode::NETWORK_OVERLOAD_ERROR)) {
+  if (status == static_cast<int>(http::ErrorCode::IO_ERROR) ||
+      status == static_cast<int>(http::ErrorCode::OFFLINE_ERROR) ||
+      status == static_cast<int>(http::ErrorCode::TIMEOUT_ERROR) ||
+      status == static_cast<int>(http::ErrorCode::NETWORK_OVERLOAD_ERROR)) {
     return true;
   }
   return false;

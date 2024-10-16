@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,12 +71,12 @@ ResourcesApi::ApisResponse ResourcesApi::GetApis(
   auto response = client.CallApi(resource_url, "GET", {}, header_params, {},
                                  nullptr, "", context);
 
-  if (response.status != http::HttpStatusCode::OK) {
-    return {{response.status, response.response.str()}};
+  if (response.GetStatus() != http::HttpStatusCode::OK) {
+    return {{response.GetStatus(), response.GetResponseAsString()}};
   }
 
-  return parser::parse_result<ApisResponse, Apis>(response.response,
-                                                  GetExpiry(response.headers));
+  return parser::parse_result<ApisResponse, Apis>(response.GetRawResponse(),
+                                                  GetExpiry(response.GetHeaders()));
 }
 
 CancellationToken ResourcesApi::GetApis(const OlpClient& client,
@@ -89,11 +89,11 @@ CancellationToken ResourcesApi::GetApis(const OlpClient& client,
   const auto resource_url = "/resources/" + hrn + "/apis";
 
   auto network_callback = [callback](client::HttpResponse response) {
-    if (response.status != olp::http::HttpStatusCode::OK) {
-      callback({{response.status, response.response.str()}});
+    if (response.GetStatus() != olp::http::HttpStatusCode::OK) {
+      callback({{response.GetStatus(), response.GetResponseAsString()}});
     } else {
       callback(parser::parse_result<ApisResponse, Apis>(
-          response.response, GetExpiry(response.headers)));
+          response.GetRawResponse(), GetExpiry(response.GetHeaders())));
     }
   };
   return client.CallApi(resource_url, "GET", {}, header_params, {}, nullptr, "",

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -377,7 +377,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, GetPartitions429Error) {
   olp::client::RetrySettings retry_settings;
   retry_settings.retry_condition =
       [](const olp::client::HttpResponse& response) {
-        return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
+        return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.GetStatus();
       };
   settings_.retry_settings = retry_settings;
   read::VolatileLayerClient client(hrn, "testlayer", settings_);
@@ -417,7 +417,7 @@ TEST_F(DataserviceReadVolatileLayerClientTest, ApiLookup429) {
   olp::client::RetrySettings retry_settings;
   retry_settings.retry_condition =
       [](const olp::client::HttpResponse& response) {
-        return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.status;
+        return olp::http::HttpStatusCode::TOO_MANY_REQUESTS == response.GetStatus();
       };
   settings_.retry_settings = retry_settings;
   read::VolatileLayerClient client(hrn, "testlayer", settings_);

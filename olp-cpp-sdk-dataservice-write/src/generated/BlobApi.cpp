@@ -63,10 +63,10 @@ client::CancellationToken BlobApi::PutBlob(
   auto cancel_token = client.CallApi(
       put_blob_uri, "PUT", query_params, header_params, form_params, data,
       content_type, [callback](client::HttpResponse http_response) {
-        if (http_response.status != http::HttpStatusCode::OK &&
-            http_response.status != http::HttpStatusCode::NO_CONTENT) {
+        if (http_response.GetStatus() != http::HttpStatusCode::OK &&
+            http_response.GetStatus() != http::HttpStatusCode::NO_CONTENT) {
           callback(PutBlobResponse(client::ApiError(
-              http_response.status, http_response.response.str())));
+              http_response.GetStatus(), http_response.GetResponseAsString())));
           return;
         }
 
@@ -105,10 +105,10 @@ PutBlobResponse BlobApi::PutBlob(
                      std::move(header_params), std::move(form_params), data,
                      content_type, cancel_context);
 
-  if (http_response.status != olp::http::HttpStatusCode::OK &&
-      http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
+  if (http_response.GetStatus() != olp::http::HttpStatusCode::OK &&
+      http_response.GetStatus() != olp::http::HttpStatusCode::NO_CONTENT) {
     return PutBlobResponse(
-        client::ApiError(http_response.status, http_response.response.str()));
+        client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString()));
   }
 
   return PutBlobResponse(client::ApiNoResult());
@@ -134,10 +134,10 @@ client::CancellationToken BlobApi::deleteBlob(
   auto cancel_token = client.CallApi(
       delete_blob_uri, "DELETE", query_params, header_params, form_params,
       nullptr, "", [callback](client::HttpResponse http_response) {
-        if (http_response.status != http::HttpStatusCode::OK &&
-            http_response.status != http::HttpStatusCode::ACCEPTED) {
+        if (http_response.GetStatus() != http::HttpStatusCode::OK &&
+            http_response.GetStatus() != http::HttpStatusCode::ACCEPTED) {
           callback(PutBlobResponse(client::ApiError(
-              http_response.status, http_response.response.str())));
+              http_response.GetStatus(), http_response.GetResponseAsString())));
           return;
         }
         callback(DeleteBlobRespone(client::ApiNoResult()));
@@ -165,13 +165,13 @@ client::CancellationToken BlobApi::checkBlobExists(
   auto cancel_token = client.CallApi(
       check_blob_uri, "HEAD", query_params, header_params, form_params, nullptr,
       "", [callback](client::HttpResponse http_response) {
-        if (http_response.status == http::HttpStatusCode::OK ||
-            http_response.status == http::HttpStatusCode::NOT_FOUND) {
-          callback(CheckBlobRespone(http_response.status));
+        if (http_response.GetStatus() == http::HttpStatusCode::OK ||
+            http_response.GetStatus() == http::HttpStatusCode::NOT_FOUND) {
+          callback(CheckBlobRespone(http_response.GetStatus()));
           return;
         } else {
           callback(CheckBlobRespone(client::ApiError(
-              http_response.status, http_response.response.str())));
+              http_response.GetStatus(), http_response.GetResponseAsString())));
         }
       });
   return cancel_token;

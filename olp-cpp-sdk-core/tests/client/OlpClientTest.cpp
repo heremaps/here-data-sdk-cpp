@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -315,7 +315,7 @@ TEST_P(OlpClientTest, RetryCondition) {
   client_settings_.retry_settings.max_attempts = 6;
   client_settings_.retry_settings.retry_condition =
       ([](const olp::client::HttpResponse& response) {
-        return response.status == http::HttpStatusCode::TOO_MANY_REQUESTS;
+        return response.GetStatus() == http::HttpStatusCode::TOO_MANY_REQUESTS;
       });
   client_.SetSettings(client_settings_);
 
@@ -1211,7 +1211,7 @@ TEST_P(OlpClientTest, CancelBeforeExecution) {
   olp::client::CancellationContext context;
   context.CancelOperation();
   auto response = client_.CallApi({}, "GET", {}, {}, {}, nullptr, {}, context);
-  ASSERT_EQ(response.status,
+  ASSERT_EQ(response.GetStatus(),
             static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR));
 }
 
@@ -1430,7 +1430,7 @@ TEST_P(OlpClientTest, CancelRetry) {
   client_settings_.retry_settings.initial_backdown_period = 500;
   client_settings_.retry_settings.retry_condition =
       ([](const olp::client::HttpResponse& response) {
-        return response.status == http::HttpStatusCode::TOO_MANY_REQUESTS;
+        return response.GetStatus() == http::HttpStatusCode::TOO_MANY_REQUESTS;
       });
   client_.SetSettings(client_settings_);
 
