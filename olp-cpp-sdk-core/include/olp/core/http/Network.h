@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -146,13 +146,6 @@ class CORE_API Network {
    */
   virtual Statistics GetStatistics(uint8_t bucket_id = 0);
 };
-
-/// Creates a default `Network` implementation.
-OLP_SDK_DEPRECATED(
-    "Will be removed by 05.2024, use "
-    "CreateDefaultNetwork(NetworkInitializationSettings) instead")
-CORE_API std::shared_ptr<Network> CreateDefaultNetwork(
-    size_t max_requests_count);
 
 /// Creates a default `Network` implementation.
 CORE_API std::shared_ptr<Network> CreateDefaultNetwork(
