@@ -33,15 +33,13 @@ namespace http = olp::http;
 class OlpClientDefaultAsyncHttpTest : public ::testing::Test {
  protected:
   olp::client::OlpClientSettings client_settings_;
-  olp::client::OlpClient client_;
 };
 
 TEST_F(OlpClientDefaultAsyncHttpTest, GetGoogleWebsite) {
-  client_.SetBaseUrl("https://www.google.com");
-
   client_settings_.network_request_handler = olp::client::
       OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, "https://www.google.com");
 
   std::promise<olp::client::HttpResponse> p;
   olp::client::NetworkAsyncCallback callback =
@@ -49,11 +47,11 @@ TEST_F(OlpClientDefaultAsyncHttpTest, GetGoogleWebsite) {
         p.set_value(std::move(response));
       };
 
-  auto cancel_token = client_.CallApi(std::string(), std::string(),
-                                      std::multimap<std::string, std::string>(),
-                                      std::multimap<std::string, std::string>(),
-                                      std::multimap<std::string, std::string>(),
-                                      nullptr, std::string(), callback);
+  auto cancel_token = client.CallApi(std::string(), std::string(),
+                                     std::multimap<std::string, std::string>(),
+                                     std::multimap<std::string, std::string>(),
+                                     std::multimap<std::string, std::string>(),
+                                     nullptr, std::string(), callback);
 
   auto response = p.get_future().get();
   ASSERT_EQ(http::HttpStatusCode::OK, response.GetStatus());
@@ -61,8 +59,6 @@ TEST_F(OlpClientDefaultAsyncHttpTest, GetGoogleWebsite) {
 }
 
 TEST_F(OlpClientDefaultAsyncHttpTest, GetNonExistentWebsite) {
-  // RFC 2606. Use reserved domain name that nobody could register.
-  client_.SetBaseUrl("https://example.test");
   std::promise<olp::client::HttpResponse> p;
   olp::client::NetworkAsyncCallback callback =
       [&p](olp::client::HttpResponse response) {
@@ -71,13 +67,15 @@ TEST_F(OlpClientDefaultAsyncHttpTest, GetNonExistentWebsite) {
 
   client_settings_.network_request_handler = olp::client::
       OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler();
-  client_.SetSettings(client_settings_);
 
-  auto cancel_token = client_.CallApi(std::string(), std::string(),
-                                      std::multimap<std::string, std::string>(),
-                                      std::multimap<std::string, std::string>(),
-                                      std::multimap<std::string, std::string>(),
-                                      nullptr, std::string(), callback);
+  // RFC 2606. Use reserved domain name that nobody could register.
+  olp::client::OlpClient client(client_settings_, "https://example.test");
+
+  auto cancel_token = client.CallApi(std::string(), std::string(),
+                                     std::multimap<std::string, std::string>(),
+                                     std::multimap<std::string, std::string>(),
+                                     std::multimap<std::string, std::string>(),
+                                     nullptr, std::string(), callback);
   auto response = p.get_future().get();
   ASSERT_EQ(olp::http::ErrorCode::INVALID_URL_ERROR,
             static_cast<olp::http::ErrorCode>(response.GetStatus()));

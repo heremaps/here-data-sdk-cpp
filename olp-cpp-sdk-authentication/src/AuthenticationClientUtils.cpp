@@ -275,9 +275,7 @@ client::OlpClient CreateOlpClient(
     settings.retry_settings.max_attempts = 0;
   }
 
-  client::OlpClient client;
-  client.SetBaseUrl(auth_settings.token_endpoint_url);
-  client.SetSettings(std::move(settings));
+  client::OlpClient client(settings, auth_settings.token_endpoint_url);
   return client;
 }
 

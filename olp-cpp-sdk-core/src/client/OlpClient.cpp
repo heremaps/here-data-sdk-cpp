@@ -466,7 +466,6 @@ class OlpClient::OlpClientImpl {
   std::string GetBaseUrl() const;
 
   ParametersType& GetMutableDefaultHeaders();
-  void SetSettings(const OlpClientSettings& settings);
   const OlpClientSettings& GetSettings() const { return settings_; }
 
   CancellationToken CallApi(const std::string& path, const std::string& method,
@@ -525,11 +524,6 @@ std::string OlpClient::OlpClientImpl::GetBaseUrl() const {
 OlpClient::ParametersType&
 OlpClient::OlpClientImpl::GetMutableDefaultHeaders() {
   return default_headers_;
-}
-
-void OlpClient::OlpClientImpl::SetSettings(const OlpClientSettings& settings) {
-  // I would not expect that settings change during lifetime of the instance.
-  settings_ = settings;
 }
 
 boost::optional<client::ApiError> OlpClient::OlpClientImpl::AddBearer(
@@ -851,10 +845,6 @@ std::string OlpClient::GetBaseUrl() const { return impl_->GetBaseUrl(); }
 
 OlpClient::ParametersType& OlpClient::GetMutableDefaultHeaders() {
   return impl_->GetMutableDefaultHeaders();
-}
-
-void OlpClient::SetSettings(const OlpClientSettings& settings) {
-  impl_->SetSettings(settings);
 }
 
 const OlpClientSettings& OlpClient::GetSettings() const {

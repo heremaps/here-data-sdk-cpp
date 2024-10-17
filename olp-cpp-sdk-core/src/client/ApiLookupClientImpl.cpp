@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2022 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,9 +47,7 @@ std::string FindApi(const Apis& apis, const std::string& service,
 
 OlpClient CreateClient(const std::string& base_url,
                        const OlpClientSettings& settings) {
-  OlpClient client;
-  client.SetBaseUrl(base_url);
-  client.SetSettings(settings);
+  OlpClient client(settings, base_url);
   return client;
 }
 
@@ -227,20 +225,28 @@ CancellationToken ApiLookupClientImpl::LookupApi(
 OlpClient ApiLookupClientImpl::CreateAndCacheClient(
     const std::string& base_url, const std::string& cache_key,
     boost::optional<time_t> expiration) {
-  std::lock_guard<std::mutex> lock(cached_clients_mutex_);
-  ClientWithExpiration& client_with_expiration = cached_clients_[cache_key];
+  const auto new_expiration =
+      std::chrono::steady_clock::now() +
+      std::chrono::seconds(expiration.value_or(kLookupApiDefaultExpiryTime));
 
-  const auto current_base_url = client_with_expiration.client.GetBaseUrl();
-  if (current_base_url.empty()) {
-    client_with_expiration.client.SetSettings(settings_);
+  std::lock_guard<std::mutex> lock(cached_clients_mutex_);
+
+  auto findIt = cached_clients_.find(cache_key);
+  if (findIt == cached_clients_.end()) {
+    auto emplace_result = cached_clients_.emplace(
+        cache_key,
+        ClientWithExpiration{OlpClient(settings_, base_url), new_expiration});
+    return emplace_result.first->second.client;
   }
+
+  ClientWithExpiration& client_with_expiration = findIt->second;
+  const auto current_base_url = client_with_expiration.client.GetBaseUrl();
   if (current_base_url != base_url) {
     client_with_expiration.client.SetBaseUrl(base_url);
   }
 
-  client_with_expiration.expire_at =
-      std::chrono::steady_clock::now() +
-      std::chrono::seconds(expiration.value_or(kLookupApiDefaultExpiryTime));
+  client_with_expiration.expire_at = new_expiration;
+
   return client_with_expiration.client;
 }
 
