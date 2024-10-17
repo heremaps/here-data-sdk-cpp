@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (C) 2019-2021 HERE Europe B.V.
+# Copyright (C) 2019-2024 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-
+env
 [[ -d "build" ]] && rm -rf build
 mkdir build && cd build
-cmake .. -G "Visual Studio 16 2019" -A x64 \
-        -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+cmake .. -G "${GENERATOR}" -A x64 \
+        -DBUILD_TYPE=$BUILD_TYPE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 cmake --build . --config $BUILD_TYPE
