@@ -42,6 +42,7 @@ namespace http = olp::http;
 
 enum class CallApiType { ASYNC, SYNC };
 
+static constexpr auto kEmptyBaseUrl = "";
 static constexpr auto kCallbackSleepTime = std::chrono::milliseconds(50);
 static constexpr auto kCallbackWaitTime = std::chrono::seconds(10);
 static const auto kToManyRequestResponse =
@@ -142,24 +143,23 @@ class OlpClientTest : public ::testing::TestWithParam<CallApiType> {
   void SetUp() override {
     network_ = std::make_shared<NetworkMock>();
     client_settings_.network_request_handler = network_;
+  }
+
+  std::shared_ptr<CallApiWrapper> MakeCallWrapper(
+      const olp::client::OlpClient& client) {
     switch (GetParam()) {
       case CallApiType::ASYNC:
-        call_wrapper_ =
-            std::make_shared<CallApiGeneric<CallApiType::ASYNC>>(client_);
-        break;
+        return std::make_shared<CallApiGeneric<CallApiType::ASYNC>>(client);
       case CallApiType::SYNC:
-        call_wrapper_ =
-            std::make_shared<CallApiGeneric<CallApiType::SYNC>>(client_);
-        break;
+        return std::make_shared<CallApiGeneric<CallApiType::SYNC>>(client);
       default:
         ADD_FAILURE() << "Invalid type of CallApi wrapper";
         break;
     }
+    return nullptr;
   }
 
   olp::client::OlpClientSettings client_settings_;
-  olp::client::OlpClient client_;
-  std::shared_ptr<CallApiWrapper> call_wrapper_;
   std::shared_ptr<NetworkMock> network_;
 };
 
@@ -168,7 +168,8 @@ TEST_P(OlpClientTest, NumberOfAttempts) {
   client_settings_.retry_settings.max_attempts = 5;
   client_settings_.retry_settings.retry_condition =
       [](const olp::client::HttpResponse&) { return true; };
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   std::vector<std::future<void>> futures;
   olp::http::RequestId request_id = 5;
@@ -196,7 +197,8 @@ TEST_P(OlpClientTest, NumberOfAttempts) {
             return olp::http::SendOutcome(current_request_id);
           });
 
-  auto response = call_wrapper_->CallApi({}, "GET", {}, {}, {}, nullptr, {});
+  auto call_wrapper = MakeCallWrapper(client);
+  auto response = call_wrapper->CallApi({}, "GET", {}, {}, {}, nullptr, {});
 
   for (auto& future : futures) {
     future.wait();
@@ -211,7 +213,8 @@ TEST_P(OlpClientTest, ZeroAttempts) {
   client_settings_.retry_settings.max_attempts = 0;
   client_settings_.retry_settings.retry_condition =
       ([](const olp::client::HttpResponse&) { return true; });
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   std::vector<std::future<void>> futures;
   olp::http::RequestId request_id = 5;
@@ -237,7 +240,8 @@ TEST_P(OlpClientTest, ZeroAttempts) {
         return olp::http::SendOutcome(current_request_id);
       });
 
-  auto response = call_wrapper_->CallApi({}, "GET", {}, {}, {}, nullptr, {});
+  auto call_wrapper = MakeCallWrapper(client);
+  auto response = call_wrapper->CallApi({}, "GET", {}, {}, {}, nullptr, {});
 
   for (auto& future : futures) {
     future.wait();
@@ -262,7 +266,8 @@ TEST_P(OlpClientTest, DefaultRetryCondition) {
       [](std::chrono::milliseconds, size_t) {
         return std::chrono::milliseconds(0);
       };
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   EXPECT_CALL(*network, Send(_, _, _, _, _))
       .Times(static_cast<int>(attempt_statuses.size()))
@@ -298,7 +303,8 @@ TEST_P(OlpClientTest, DefaultRetryCondition) {
             return olp::http::SendOutcome(current_request_id);
           });
 
-  auto response = call_wrapper_->CallApi({}, "GET", {}, {}, {}, nullptr, {});
+  auto call_wrapper = MakeCallWrapper(client);
+  auto response = call_wrapper->CallApi({}, "GET", {}, {}, {}, nullptr, {});
 
   for (auto& future : futures) {
     future.wait();
@@ -317,7 +323,8 @@ TEST_P(OlpClientTest, RetryCondition) {
       ([](const olp::client::HttpResponse& response) {
         return response.GetStatus() == http::HttpStatusCode::TOO_MANY_REQUESTS;
       });
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   std::vector<std::future<void>> futures;
   olp::http::RequestId request_id = 5;
@@ -356,7 +363,8 @@ TEST_P(OlpClientTest, RetryCondition) {
             return olp::http::SendOutcome(current_request_id);
           });
 
-  auto response = call_wrapper_->CallApi({}, "GET", {}, {}, {}, nullptr, {});
+  auto call_wrapper = MakeCallWrapper(client);
+  auto response = call_wrapper->CallApi({}, "GET", {}, {}, {}, nullptr, {});
 
   for (auto& future : futures) {
     future.wait();
@@ -391,7 +399,8 @@ TEST_P(OlpClientTest, RetryWithExponentialBackdownStrategy) {
     wait_times.push_back(wait_time.count());
     return wait_time;
   };
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   const auto requests_count = retry_settings.max_attempts + 1;
   std::vector<std::chrono::system_clock::time_point> timestamps;
@@ -423,7 +432,8 @@ TEST_P(OlpClientTest, RetryWithExponentialBackdownStrategy) {
             return olp::http::SendOutcome(current_request_id);
           });
 
-  auto response = call_wrapper_->CallApi({}, "GET", {}, {}, {}, nullptr, {});
+  auto call_wrapper = MakeCallWrapper(client);
+  auto response = call_wrapper->CallApi({}, "GET", {}, {}, {}, nullptr, {});
 
   ASSERT_EQ(kToManyRequestResponse.GetStatus(), response.GetStatus());
   ASSERT_EQ(client_settings_.retry_settings.max_attempts, expected_retry_count);
@@ -458,7 +468,8 @@ TEST_P(OlpClientTest, RetryTimeout) {
     return initial_backdown_period *
            static_cast<size_t>(std::pow(2, retry_count));
   };
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   auto network = network_;
   size_t current_attempt = 0;
@@ -502,7 +513,8 @@ TEST_P(OlpClientTest, RetryTimeout) {
             return olp::http::SendOutcome(current_request_id);
           });
 
-  auto response = call_wrapper_->CallApi({}, "GET", {}, {}, {}, nullptr, {});
+  auto call_wrapper = MakeCallWrapper(client);
+  auto response = call_wrapper->CallApi({}, "GET", {}, {}, {}, nullptr, {});
 
   for (auto& future : futures) {
     future.wait();
@@ -521,7 +533,8 @@ TEST_P(OlpClientTest, Timeout) {
   std::chrono::milliseconds connection_timeout{0};
   std::chrono::milliseconds transfer_timeout{0};
   auto network = network_;
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   std::vector<std::future<void>> futures;
   olp::http::RequestId request_id = 5;
@@ -554,7 +567,8 @@ TEST_P(OlpClientTest, Timeout) {
             return olp::http::SendOutcome(current_request_id);
           });
 
-  auto response = call_wrapper_->CallApi({}, "GET", {}, {}, {}, nullptr, {});
+  auto call_wrapper = MakeCallWrapper(client);
+  auto response = call_wrapper->CallApi({}, "GET", {}, {}, {}, nullptr, {});
 
   for (auto& future : futures) {
     future.wait();
@@ -580,7 +594,8 @@ TEST_P(OlpClientTest, Proxy) {
 
   client_settings_.proxy_settings = expected_settings;
   olp::http::NetworkProxySettings result_settings;
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   std::future<void> future;
   olp::http::RequestId request_id = 5;
@@ -604,7 +619,8 @@ TEST_P(OlpClientTest, Proxy) {
         return olp::http::SendOutcome(current_request_id);
       });
 
-  auto response = call_wrapper_->CallApi({}, "GET", {}, {}, {}, nullptr, {});
+  auto call_wrapper = MakeCallWrapper(client);
+  auto response = call_wrapper->CallApi({}, "GET", {}, {}, {}, nullptr, {});
 
   future.wait();
 
@@ -624,7 +640,8 @@ TEST_P(OlpClientTest, EmptyProxy) {
   ASSERT_FALSE(client_settings_.proxy_settings);
 
   olp::http::NetworkProxySettings result_settings;
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   std::future<void> future;
   olp::http::RequestId request_id = 5;
@@ -648,7 +665,8 @@ TEST_P(OlpClientTest, EmptyProxy) {
         return olp::http::SendOutcome(current_request_id);
       });
 
-  auto response = call_wrapper_->CallApi({}, "GET", {}, {}, {}, nullptr, {});
+  auto call_wrapper = MakeCallWrapper(client);
+  auto response = call_wrapper->CallApi({}, "GET", {}, {}, {}, nullptr, {});
 
   future.wait();
 
@@ -659,7 +677,8 @@ TEST_P(OlpClientTest, EmptyProxy) {
 
 TEST_P(OlpClientTest, HttpResponse) {
   auto network = network_;
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   std::future<void> future;
   olp::http::RequestId request_id = 5;
@@ -682,7 +701,8 @@ TEST_P(OlpClientTest, HttpResponse) {
         return olp::http::SendOutcome(current_request_id);
       });
 
-  auto response = call_wrapper_->CallApi({}, "GET", {}, {}, {}, nullptr, {});
+  auto call_wrapper = MakeCallWrapper(client);
+  auto response = call_wrapper->CallApi({}, "GET", {}, {}, {}, nullptr, {});
 
   future.wait();
 
@@ -696,8 +716,8 @@ TEST_P(OlpClientTest, HttpResponse) {
 
 TEST_P(OlpClientTest, Paths) {
   auto network = network_;
-  client_.SetBaseUrl("https://here.com");
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, "https://here.com");
 
   std::future<void> future;
   olp::http::RequestId request_id = 5;
@@ -721,8 +741,9 @@ TEST_P(OlpClientTest, Paths) {
         return olp::http::SendOutcome(current_request_id);
       });
 
+  auto call_wrapper = MakeCallWrapper(client);
   auto response =
-      call_wrapper_->CallApi("/index", "GET", {}, {}, {}, nullptr, {});
+      call_wrapper->CallApi("/index", "GET", {}, {}, {}, nullptr, {});
 
   future.wait();
   testing::Mock::VerifyAndClearExpectations(network.get());
@@ -730,7 +751,8 @@ TEST_P(OlpClientTest, Paths) {
 
 TEST_P(OlpClientTest, Method) {
   auto network = network_;
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   std::future<void> future;
   olp::http::RequestId request_id = 5;
@@ -765,13 +787,14 @@ TEST_P(OlpClientTest, Method) {
             return olp::http::SendOutcome(current_request_id);
           });
 
+  auto call_wrapper = MakeCallWrapper(client);
   for (size_t idx = 0; idx < methods.size(); ++idx) {
     const auto& method = methods[idx];
     expected_verb = expected[idx];
 
     SCOPED_TRACE(testing::Message() << "Method=" << method);
 
-    auto response = call_wrapper_->CallApi({}, method, {}, {}, {}, nullptr, {});
+    auto response = call_wrapper->CallApi({}, method, {}, {}, {}, nullptr, {});
     future.wait();
   }
 
@@ -780,7 +803,8 @@ TEST_P(OlpClientTest, Method) {
 
 TEST_P(OlpClientTest, QueryParam) {
   auto network = network_;
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   std::future<void> future;
   olp::http::RequestId request_id = 5;
@@ -807,8 +831,9 @@ TEST_P(OlpClientTest, QueryParam) {
   std::multimap<std::string, std::string> query_params = {{"var1", ""},
                                                           {"var2", "2"}};
 
+  auto call_wrapper = MakeCallWrapper(client);
   auto response =
-      call_wrapper_->CallApi("index", "GET", query_params, {}, {}, nullptr, {});
+      call_wrapper->CallApi("index", "GET", query_params, {}, {}, nullptr, {});
 
   future.wait();
   testing::Mock::VerifyAndClearExpectations(network.get());
@@ -818,7 +843,8 @@ TEST_P(OlpClientTest, HeaderParams) {
   auto network = network_;
   std::multimap<std::string, std::string> header_params = {{"head1", "value1"},
                                                            {"head2", "value2"}};
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   std::future<void> future;
   olp::http::RequestId request_id = 5;
@@ -853,8 +879,9 @@ TEST_P(OlpClientTest, HeaderParams) {
         return olp::http::SendOutcome(current_request_id);
       });
 
+  auto call_wrapper = MakeCallWrapper(client);
   auto response =
-      call_wrapper_->CallApi({}, "GET", {}, header_params, {}, nullptr, {});
+      call_wrapper->CallApi({}, "GET", {}, header_params, {}, nullptr, {});
 
   future.wait();
   testing::Mock::VerifyAndClearExpectations(network.get());
@@ -862,9 +889,11 @@ TEST_P(OlpClientTest, HeaderParams) {
 
 TEST_P(OlpClientTest, DefaultHeaderParams) {
   auto network = network_;
-  client_.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
-  client_.GetMutableDefaultHeaders().insert(std::make_pair("head2", "value2"));
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
+
+  client.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
+  client.GetMutableDefaultHeaders().insert(std::make_pair("head2", "value2"));
 
   std::future<void> future;
   olp::http::RequestId request_id = 5;
@@ -899,7 +928,8 @@ TEST_P(OlpClientTest, DefaultHeaderParams) {
         return olp::http::SendOutcome(current_request_id);
       });
 
-  auto response = call_wrapper_->CallApi({}, "GET", {}, {}, {}, nullptr, {});
+  auto call_wrapper = MakeCallWrapper(client);
+  auto response = call_wrapper->CallApi({}, "GET", {}, {}, {}, nullptr, {});
 
   future.wait();
   testing::Mock::VerifyAndClearExpectations(network.get());
@@ -907,11 +937,13 @@ TEST_P(OlpClientTest, DefaultHeaderParams) {
 
 TEST_P(OlpClientTest, CombineHeaderParams) {
   auto network = network_;
-  client_.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
-  client_.GetMutableDefaultHeaders().insert(std::make_pair("head2", "value2"));
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
+
+  client.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
+  client.GetMutableDefaultHeaders().insert(std::make_pair("head2", "value2"));
   std::multimap<std::string, std::string> header_params;
   header_params.insert(std::make_pair("head3", "value3"));
-  client_.SetSettings(client_settings_);
 
   std::future<void> future;
   olp::http::RequestId request_id = 5;
@@ -948,8 +980,9 @@ TEST_P(OlpClientTest, CombineHeaderParams) {
         return olp::http::SendOutcome(current_request_id);
       });
 
+  auto call_wrapper = MakeCallWrapper(client);
   auto response =
-      call_wrapper_->CallApi({}, "GET", {}, header_params, {}, nullptr, {});
+      call_wrapper->CallApi({}, "GET", {}, header_params, {}, nullptr, {});
 
   future.wait();
   testing::Mock::VerifyAndClearExpectations(network.get());
@@ -959,7 +992,8 @@ TEST_P(OlpClientTest, QueryMultiParams) {
   std::string uri;
   std::vector<std::pair<std::string, std::string>> headers;
   auto network = network_;
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   std::multimap<std::string, std::string> query_params = {
       {"a", "a1"}, {"b", "b1"}, {"b", "b2"},
@@ -992,8 +1026,9 @@ TEST_P(OlpClientTest, QueryMultiParams) {
         return olp::http::SendOutcome(current_request_id);
       });
 
-  auto response = call_wrapper_->CallApi({}, {}, query_params, header_params,
-                                         {}, nullptr, {});
+  auto call_wrapper = MakeCallWrapper(client);
+  auto response = call_wrapper->CallApi({}, {}, query_params, header_params, {},
+                                        nullptr, {});
   // query test
   for (auto q : query_params) {
     std::string param_equal_value = q.first + "=" + q.second;
@@ -1022,12 +1057,14 @@ TEST_P(OlpClientTest, QueryMultiParams) {
 
 TEST_P(OlpClientTest, Content) {
   auto network = network_;
-  client_.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
+
+  client.GetMutableDefaultHeaders().insert(std::make_pair("head1", "value1"));
   std::multimap<std::string, std::string> header_params = {{"head3", "value3"}};
   const std::string content_string = "something";
   const auto content = std::make_shared<std::vector<unsigned char>>(
       content_string.begin(), content_string.end());
-  client_.SetSettings(client_settings_);
 
   std::future<void> future;
   olp::http::RequestId request_id = 5;
@@ -1066,8 +1103,9 @@ TEST_P(OlpClientTest, Content) {
         return olp::http::SendOutcome(current_request_id);
       });
 
-  auto response = call_wrapper_->CallApi({}, "GET", {}, header_params, {},
-                                         content, "plain-text");
+  auto call_wrapper = MakeCallWrapper(client);
+  auto response = call_wrapper->CallApi({}, "GET", {}, header_params, {},
+                                        content, "plain-text");
 
   future.wait();
   testing::Mock::VerifyAndClearExpectations(network.get());
@@ -1080,8 +1118,8 @@ TEST_P(OlpClientTest, CancelBeforeResponse) {
   auto cancelled = std::make_shared<std::atomic_bool>(false);
   constexpr int kExpectedError =
       static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR);
-  client_.SetBaseUrl("https://www.google.com");
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, "https://www.google.com");
 
   std::future<void> future;
   olp::http::RequestId request_id = 5;
@@ -1115,8 +1153,9 @@ TEST_P(OlpClientTest, CancelBeforeResponse) {
 
   olp::client::CancellationContext context;
 
+  auto call_wrapper = MakeCallWrapper(client);
   auto response_future = std::async(std::launch::async, [&]() {
-    return call_wrapper_->CallApi({}, "GET", {}, {}, {}, nullptr, {}, context);
+    return call_wrapper->CallApi({}, "GET", {}, {}, {}, nullptr, {}, context);
   });
 
   // Wait for Network call and cancel it
@@ -1142,8 +1181,8 @@ TEST_P(OlpClientTest, HeadersCallbackAfterCancel) {
   auto cancel_wait = std::make_shared<std::promise<bool>>();
   auto network_wait = std::make_shared<std::promise<bool>>();
   auto cancelled = std::make_shared<std::atomic_bool>(false);
-  client_.SetBaseUrl("https://www.google.com");
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, "https://www.google.com");
 
   std::future<void> future;
   olp::http::RequestId request_id = 5;
@@ -1180,9 +1219,10 @@ TEST_P(OlpClientTest, HeadersCallbackAfterCancel) {
 
   olp::client::CancellationContext context;
 
+  auto call_wrapper = MakeCallWrapper(client);
   auto response_future = std::async(std::launch::async, [&]() {
-    return call_wrapper_->CallApi({}, "GET", {}, {{"header", "header"}}, {},
-                                  nullptr, {}, context);
+    return call_wrapper->CallApi({}, "GET", {}, {{"header", "header"}}, {},
+                                 nullptr, {}, context);
   });
 
   network_wait->get_future().wait();
@@ -1203,22 +1243,22 @@ TEST_P(OlpClientTest, HeadersCallbackAfterCancel) {
 
 // Test is valid only valid for sync api
 TEST_P(OlpClientTest, CancelBeforeExecution) {
-  client_.SetBaseUrl("https://www.google.com");
   auto network = network_;
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, "https://www.google.com");
 
   EXPECT_CALL(*network, Send(_, _, _, _, _)).Times(0);
   olp::client::CancellationContext context;
   context.CancelOperation();
-  auto response = client_.CallApi({}, "GET", {}, {}, {}, nullptr, {}, context);
+  auto response = client.CallApi({}, "GET", {}, {}, {}, nullptr, {}, context);
   ASSERT_EQ(response.GetStatus(),
             static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR));
 }
 
 TEST_P(OlpClientTest, CancelAfterCompletion) {
-  client_.SetBaseUrl("https://www.google.com");
   auto network = network_;
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, "https://www.google.com");
 
   std::future<void> future;
   olp::http::RequestId request_id = 5;
@@ -1248,10 +1288,10 @@ TEST_P(OlpClientTest, CancelAfterCompletion) {
 
     std::promise<olp::client::HttpResponse> promise;
     auto cancel_token =
-        client_.CallApi({}, "GET", {}, {}, {}, nullptr, {},
-                        [&](olp::client::HttpResponse http_response) {
-                          promise.set_value(std::move(http_response));
-                        });
+        client.CallApi({}, "GET", {}, {}, {}, nullptr, {},
+                       [&](olp::client::HttpResponse http_response) {
+                         promise.set_value(std::move(http_response));
+                       });
 
     auto response = promise.get_future().get();
     ASSERT_EQ(http::HttpStatusCode::OK, response.GetStatus());
@@ -1291,10 +1331,10 @@ TEST_P(OlpClientTest, CancelAfterCompletion) {
 
     std::promise<olp::client::HttpResponse> promise;
     auto cancel_token =
-        client_.CallApi({}, "GET", {}, {}, {}, content, {},
-                        [&](olp::client::HttpResponse http_response) {
-                          promise.set_value(std::move(http_response));
-                        });
+        client.CallApi({}, "GET", {}, {}, {}, content, {},
+                       [&](olp::client::HttpResponse http_response) {
+                         promise.set_value(std::move(http_response));
+                       });
 
     auto response = promise.get_future().get();
     ASSERT_EQ(http::HttpStatusCode::OK, response.GetStatus());
@@ -1310,9 +1350,9 @@ TEST_P(OlpClientTest, CancelAfterCompletion) {
 // Test only make sense for async api, as CancellationContext guards for
 // double cancellation.
 TEST_P(OlpClientTest, CancelDuplicate) {
-  client_.SetBaseUrl("https://www.google.com");
   auto network = network_;
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, "https://www.google.com");
 
   std::future<void> future;
   olp::http::RequestId request_id = 5;
@@ -1351,7 +1391,7 @@ TEST_P(OlpClientTest, CancelDuplicate) {
     };
 
     auto cancel_token =
-        client_.CallApi({}, "GET", {}, {}, {}, nullptr, {}, callback);
+        client.CallApi({}, "GET", {}, {}, {}, nullptr, {}, callback);
 
     // Cancel multiple times
     cancel_token.Cancel();
@@ -1406,7 +1446,7 @@ TEST_P(OlpClientTest, CancelDuplicate) {
         content_string.begin(), content_string.end());
 
     auto cancel_token =
-        client_.CallApi({}, "GET", {}, {}, {}, content, {}, callback);
+        client.CallApi({}, "GET", {}, {}, {}, content, {}, callback);
 
     // Cancel multiple times
     cancel_token.Cancel();
@@ -1432,7 +1472,8 @@ TEST_P(OlpClientTest, CancelRetry) {
       ([](const olp::client::HttpResponse& response) {
         return response.GetStatus() == http::HttpStatusCode::TOO_MANY_REQUESTS;
       });
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   std::future<void> future;
   olp::http::RequestId request_id = 5;
@@ -1475,8 +1516,9 @@ TEST_P(OlpClientTest, CancelRetry) {
 
     olp::client::CancellationContext context;
 
+    auto call_wrapper = MakeCallWrapper(client);
     auto response = std::async(std::launch::async, [&]() {
-      return call_wrapper_->CallApi({}, {}, {}, {}, {}, nullptr, {}, context);
+      return call_wrapper->CallApi({}, {}, {}, {}, {}, nullptr, {}, context);
     });
 
     cancel_wait->get_future().get();
@@ -1535,8 +1577,9 @@ TEST_P(OlpClientTest, CancelRetry) {
     const auto content = std::make_shared<std::vector<unsigned char>>(
         content_string.begin(), content_string.end());
 
+    auto call_wrapper = MakeCallWrapper(client);
     auto response = std::async(std::launch::async, [&]() {
-      return call_wrapper_->CallApi({}, {}, {}, {}, {}, content, {}, context);
+      return call_wrapper->CallApi({}, {}, {}, {}, {}, content, {}, context);
     });
 
     cancel_wait->get_future().get();
@@ -1558,7 +1601,8 @@ TEST_P(OlpClientTest, CancelRetry) {
 TEST_P(OlpClientTest, SlowDownError) {
   auto network = network_;
   client_settings_.retry_settings.max_attempts = 0;
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
   constexpr int kExpectedError =
       static_cast<int>(http::ErrorCode::NETWORK_OVERLOAD_ERROR);
 
@@ -1574,7 +1618,8 @@ TEST_P(OlpClientTest, SlowDownError) {
               http::ErrorCode::NETWORK_OVERLOAD_ERROR);
         });
 
-    auto response = call_wrapper_->CallApi({}, {}, {}, {}, {}, nullptr, {});
+    auto call_wrapper = MakeCallWrapper(client);
+    auto response = call_wrapper->CallApi({}, {}, {}, {}, {}, nullptr, {});
 
     EXPECT_EQ(kExpectedError, response.GetStatus());
 
@@ -1596,7 +1641,8 @@ TEST_P(OlpClientTest, SlowDownError) {
     const auto content = std::make_shared<std::vector<unsigned char>>(
         content_string.begin(), content_string.end());
 
-    auto response = call_wrapper_->CallApi({}, {}, {}, {}, {}, content, {});
+    auto call_wrapper = MakeCallWrapper(client);
+    auto response = call_wrapper->CallApi({}, {}, {}, {}, {}, content, {});
 
     EXPECT_EQ(kExpectedError, response.GetStatus());
 
@@ -1622,7 +1668,8 @@ TEST_P(OlpClientTest, ApiKey) {
 
   auto network = network_;
   client_settings_.authentication_settings = authentication_settings;
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   std::future<void> future;
   olp::http::RequestId request_id = 5;
@@ -1646,8 +1693,9 @@ TEST_P(OlpClientTest, ApiKey) {
         return olp::http::SendOutcome(current_request_id);
       });
 
-  auto response = call_wrapper_->CallApi("https://here.com", "GET", {}, {}, {},
-                                         nullptr, {});
+  auto call_wrapper = MakeCallWrapper(client);
+  auto response =
+      call_wrapper->CallApi("https://here.com", "GET", {}, {}, {}, nullptr, {});
 
   future.wait();
   testing::Mock::VerifyAndClearExpectations(network.get());
@@ -1664,12 +1712,14 @@ TEST_P(OlpClientTest, EmptyBearerToken) {
 
   auto network = network_;
   client_settings_.authentication_settings = authentication_settings;
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   EXPECT_CALL(*network, Send(_, _, _, _, _)).Times(0);
 
-  auto response = call_wrapper_->CallApi("https://here.com", "GET", {}, {}, {},
-                                         nullptr, {});
+  auto call_wrapper = MakeCallWrapper(client);
+  auto response =
+      call_wrapper->CallApi("https://here.com", "GET", {}, {}, {}, nullptr, {});
   EXPECT_EQ(response.GetStatus(),
             static_cast<int>(http::ErrorCode::AUTHORIZATION_ERROR));
 
@@ -1689,12 +1739,14 @@ TEST_P(OlpClientTest, ErrorOnTokenRequest) {
 
   auto network = network_;
   client_settings_.authentication_settings = authentication_settings;
-  client_.SetSettings(client_settings_);
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
 
   EXPECT_CALL(*network, Send(_, _, _, _, _)).Times(0);
 
-  auto response = call_wrapper_->CallApi("https://here.com", "GET", {}, {}, {},
-                                         nullptr, {});
+  auto call_wrapper = MakeCallWrapper(client);
+  auto response =
+      call_wrapper->CallApi("https://here.com", "GET", {}, {}, {}, nullptr, {});
   EXPECT_EQ(response.GetStatus(),
             static_cast<int>(http::ErrorCode::NETWORK_OVERLOAD_ERROR));
 
@@ -1710,6 +1762,9 @@ class OlpClientMergeTest : public ::testing::Test {
   void SetUp() override {
     network_ = std::make_shared<testing::StrictMock<NetworkMock>>();
     settings_.network_request_handler = network_;
+    client_ = olp::client::OlpClient(settings_,
+                                     "https://api.platform.here.com/query/v1/"
+                                     "catalogs/hrn:here:data:::dummy");
   }
 
   olp::client::OlpClientSettings settings_;
@@ -1719,10 +1774,7 @@ class OlpClientMergeTest : public ::testing::Test {
 
 TEST_F(OlpClientMergeTest, MergeMultipleCallbacks) {
   const std::string path = "/layers/xyz/versions/1/quadkeys/23618402/depths/4";
-  client_.SetBaseUrl(
-      "https://api.platform.here.com/query/v1/catalogs/hrn:here:data:::dummy");
   auto network = network_;
-  client_.SetSettings(settings_);
   constexpr size_t kExpectedCallbacks = 3u;
 
   std::future<void> future;
@@ -1902,10 +1954,7 @@ TEST_F(OlpClientMergeTest, MergeMultipleCallbacks) {
 
 TEST_F(OlpClientMergeTest, NoMergeMultipleCallbacks) {
   const std::string path = "/layers/xyz/versions/1/quadkeys/23618402/depths/4";
-  client_.SetBaseUrl(
-      "https://api.platform.here.com/query/v1/catalogs/hrn:here:data:::dummy");
   auto network = network_;
-  client_.SetSettings(settings_);
   constexpr size_t kExpectedCallbacks = 3u;
 
   std::vector<std::future<void>> futures;
@@ -2120,10 +2169,10 @@ TEST_P(OlpClientTest, UrlWithoutProtocol) {
   {
     SCOPED_TRACE("Url without protocol");
 
-    client_.SetBaseUrl("here.com");
-    client_.SetSettings(client_settings_);
+    olp::client::OlpClient client(client_settings_, "here.com");
 
-    auto response = call_wrapper_->CallApi("", "GET", {}, {}, {}, nullptr, {});
+    auto call_wrapper = MakeCallWrapper(client);
+    auto response = call_wrapper->CallApi("", "GET", {}, {}, {}, nullptr, {});
     EXPECT_EQ(response.GetStatus(),
               static_cast<int>(http::ErrorCode::INVALID_URL_ERROR));
   }

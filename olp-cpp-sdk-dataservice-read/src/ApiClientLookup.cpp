@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,9 +77,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
       OLP_SDK_LOG_DEBUG_F(kLogTag, "LookupApi(%s/%s) found in cache, hrn='%s'",
                           service.c_str(), service_version.c_str(),
                           hrn.c_str());
-      client::OlpClient client;
-      client.SetSettings(std::move(settings));
-      client.SetBaseUrl(*url);
+      client::OlpClient client(settings, *url);
       return client;
     } else if (options == CacheOnly) {
       return {{client::ErrorCode::NotFound,
@@ -92,10 +90,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
                      service.c_str(), service_version.c_str(), hrn.c_str());
 
   const auto& base_url = GetDatastoreServerUrl(catalog.GetPartition());
-  client::OlpClient client;
-  client.SetBaseUrl(base_url);
-  // Do not move settings, we still need them later on!
-  client.SetSettings(settings);
+  client::OlpClient client(settings, base_url);
   PlatformApi::ApisResponse api_response;
 
   if (service == "config") {
@@ -142,9 +137,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
                       service.c_str(), service_version.c_str(), hrn.c_str(),
                       service_url.c_str());
 
-  client::OlpClient service_client;
-  service_client.SetBaseUrl(service_url);
-  service_client.SetSettings(settings);
+  client::OlpClient service_client(settings, service_url);
   return service_client;
 }
 }  // namespace read

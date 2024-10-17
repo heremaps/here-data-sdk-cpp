@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,21 +91,6 @@ class CORE_API OlpClient {
    * @return The default headers.
    */
   ParametersType& GetMutableDefaultHeaders();
-
-  /**
-   * @brief Sets the client settings.
-   *
-   * @note Handle with care and do not change while requests are ongoing.
-   * Ideally the settings would not change during the lifecycle of this
-   * instance.
-   *
-   * @param settings The client settings.
-   *
-   * @deprecated This method will be removed by 05.2021. Please use the
-   * constructor instead. The settings should not change during the lifetime of
-   * the instance.
-   */
-  void SetSettings(const OlpClientSettings& settings);
 
   /**
    * @brief Getter function to retrieve client settings.

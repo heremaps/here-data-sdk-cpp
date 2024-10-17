@@ -133,11 +133,8 @@ client::CancellationToken StreamLayerClientImpl::Subscribe(
 
       client_context_ = std::make_unique<StreamLayerClientContext>(
           subscripton_id, subscription_mode, correlation_id,
-          std::make_shared<client::OlpClient>());
-
-      client_context_->client->SetBaseUrl(
-          subscription.GetResult().GetNodeBaseURL());
-      client_context_->client->SetSettings(settings_);
+          std::make_shared<client::OlpClient>(
+              settings_, subscription.GetResult().GetNodeBaseURL()));
     }
 
     OLP_SDK_LOG_INFO_F(kLogTag,

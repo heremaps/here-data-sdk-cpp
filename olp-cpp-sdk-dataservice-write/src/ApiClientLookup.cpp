@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,9 +152,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApiClient(
       auto base_url = boost::any_cast<std::string>(url);
       OLP_SDK_LOG_INFO_F(kLogTag, "LookupApiClient(%s, %s) -> from cache",
                          service.c_str(), service_version.c_str());
-      client::OlpClient client;
-      client.SetSettings(settings);
-      client.SetBaseUrl(base_url);
+      client::OlpClient client(settings, base_url);
       return ApiClientResponse{client};
     }
   }
@@ -174,9 +172,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApiClient(
   }
 
   ApisResponse api_response;
-  client::OlpClient input_client;
-  input_client.SetBaseUrl(base_url);
-  input_client.SetSettings(settings);
+  client::OlpClient input_client(settings, base_url);
 
   if (service == "config") {
     OLP_SDK_LOG_INFO_F(kLogTag, "LookupApiClient(%s/%s): %s - config service",
@@ -219,9 +215,6 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApiClient(
         service_version.c_str(), catalog.GetPartition().c_str());
   }
 
-  client::OlpClient output_client;
-  output_client.SetBaseUrl(output_base_url);
-
   if (cache) {
     constexpr time_t kExpiryTimeInSecs = 3600;
     if (cache->Put(cache_key, output_base_url,
@@ -234,7 +227,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApiClient(
     }
   }
 
-  output_client.SetSettings(settings);
+  client::OlpClient output_client(settings, output_base_url);
   return ApiClientResponse{std::move(output_client)};
 }
 
