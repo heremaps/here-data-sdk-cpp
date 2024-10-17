@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,12 +47,12 @@ ResourcesApi::ApisResponse ResourcesApi::GetApis(
       client.CallApi(resource_url, "GET", query_params, header_params,
                      form_params, nullptr, "", context);
 
-  if (response.status != http::HttpStatusCode::OK) {
+  if (response.GetStatus() != http::HttpStatusCode::OK) {
     return ApisResponse(
-        client::ApiError(response.status, response.response.str()));
+        client::ApiError(response.GetStatus(), response.GetResponseAsString()));
   }
 
-  return parser::parse_result<ApisResponse>(response.response);
+  return parser::parse_result<ApisResponse>(response.GetRawResponse());
 }
 
 }  // namespace read

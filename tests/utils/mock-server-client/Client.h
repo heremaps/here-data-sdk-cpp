@@ -135,11 +135,11 @@ inline Status::Ports Client::Ports() const {
   auto response = http_client_->CallApi(kStatusPath, "PUT", {}, {}, {}, nullptr,
                                         "", olp::client::CancellationContext{});
 
-  if (response.status != olp::http::HttpStatusCode::OK) {
+  if (response.GetStatus() != olp::http::HttpStatusCode::OK) {
     return {};
   }
 
-  const auto status = parse<Status>(response.response);
+  const auto status = parse<Status>(response.GetRawResponse());
   return status.ports;
 }
 
@@ -168,7 +168,7 @@ inline bool Client::RemoveMockResponse(const std::string& method_matcher,
   auto response =
       http_client_->CallApi(kClearPath, "PUT", {}, {}, {}, request_body, "",
                             olp::client::CancellationContext{});
-  if (response.status != olp::http::HttpStatusCode::OK) {
+  if (response.GetStatus() != olp::http::HttpStatusCode::OK) {
     return false;
   }
 
@@ -209,7 +209,7 @@ inline bool Client::VerifySequence(
   auto response =
       http_client_->CallApi(kVerifySequence, "PUT", {}, {}, {}, request_body,
                             "", olp::client::CancellationContext{});
-  if (response.status != olp::http::HttpStatusCode::ACCEPTED) {
+  if (response.GetStatus() != olp::http::HttpStatusCode::ACCEPTED) {
     return false;
   }
   return true;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,13 +46,13 @@ client::CancellationToken PlatformApi::GetApis(
 
   client::NetworkAsyncCallback client_callback =
       [callback](client::HttpResponse response) {
-        if (response.status != olp::http::HttpStatusCode::OK) {
+        if (response.GetStatus() != olp::http::HttpStatusCode::OK) {
           callback(ApisResponse(
-              client::ApiError(response.status, response.response.str())));
+              client::ApiError(response.GetStatus(), response.GetResponseAsString())));
         } else {
           // parse the services
           // TODO catch any exception and return as Error
-          callback(parser::parse_result<ApisResponse>(response.response));
+          callback(parser::parse_result<ApisResponse>(response.GetRawResponse()));
         }
       };
 
@@ -76,11 +76,11 @@ PlatformApi::ApisResponse PlatformApi::GetApis(
       client.CallApi(std::move(platform_url), "GET", std::move(query_params),
                      std::move(header_params), std::move(form_params), nullptr,
                      "", cancel_context);
-  if (http_response.status != olp::http::HttpStatusCode::OK) {
-    return client::ApiError(http_response.status, http_response.response.str());
+  if (http_response.GetStatus() != olp::http::HttpStatusCode::OK) {
+    return client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString());
   }
 
-  return parser::parse_result<ApisResponse>(http_response.response);
+  return parser::parse_result<ApisResponse>(http_response.GetRawResponse());
 }
 
 }  // namespace write

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,11 +53,11 @@ client::CancellationToken ConfigApi::GetCatalog(
 
   client::NetworkAsyncCallback callback = [catalogCallback](
                                               client::HttpResponse response) {
-    if (response.status != http::HttpStatusCode::OK) {
+    if (response.GetStatus() != http::HttpStatusCode::OK) {
       catalogCallback(CatalogResponse(
-          client::ApiError(response.status, response.response.str())));
+          client::ApiError(response.GetStatus(), response.GetResponseAsString())));
     } else {
-      catalogCallback(parser::parse_result<CatalogResponse>(response.response));
+      catalogCallback(parser::parse_result<CatalogResponse>(response.GetRawResponse()));
     }
   };
 
@@ -80,10 +80,10 @@ CatalogResponse ConfigApi::GetCatalog(const client::OlpClient& client,
   client::HttpResponse response = client.CallApi(
       std::move(catalog_uri), "GET", std::move(query_params),
       std::move(header_params), {}, nullptr, std::string{}, std::move(context));
-  if (response.status != olp::http::HttpStatusCode::OK) {
-    return client::ApiError(response.status, response.response.str());
+  if (response.GetStatus() != olp::http::HttpStatusCode::OK) {
+    return client::ApiError(response.GetStatus(), response.GetResponseAsString());
   }
-  return parser::parse_result<CatalogResponse>(response.response);
+  return parser::parse_result<CatalogResponse>(response.GetRawResponse());
 }
 
 }  // namespace write

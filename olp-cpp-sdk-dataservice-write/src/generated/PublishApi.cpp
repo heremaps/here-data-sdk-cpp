@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,14 +67,14 @@ client::CancellationToken PublishApi::InitPublication(
   auto cancel_token = client.CallApi(
       init_publication_uri, "POST", query_params, header_params, form_params,
       data, "application/json", [callback](client::HttpResponse http_response) {
-        if (http_response.status != http::HttpStatusCode::OK) {
+        if (http_response.GetStatus() != http::HttpStatusCode::OK) {
           callback(InitPublicationResponse{client::ApiError(
-              http_response.status, http_response.response.str())});
+              http_response.GetStatus(), http_response.GetResponseAsString())});
           return;
         }
 
         callback(parser::parse_result<InitPublicationResponse>(
-            http_response.response));
+            http_response.GetRawResponse()));
       });
 
   return cancel_token;
@@ -105,11 +105,12 @@ InitPublicationResponse PublishApi::InitPublication(
       std::move(init_publication_uri), "POST", std::move(query_params),
       std::move(header_params), std::move(form_params), std::move(data),
       "application/json", cancellation_context);
-  if (http_response.status != olp::http::HttpStatusCode::OK) {
-    return InitPublicationResponse(
-        client::ApiError(http_response.status, http_response.response.str()));
+  if (http_response.GetStatus() != olp::http::HttpStatusCode::OK) {
+    return InitPublicationResponse(client::ApiError(
+        http_response.GetStatus(), http_response.GetResponseAsString()));
   }
-  return parser::parse_result<InitPublicationResponse>(http_response.response);
+  return parser::parse_result<InitPublicationResponse>(
+      http_response.GetRawResponse());
 }
 
 client::CancellationToken PublishApi::UploadPartitions(
@@ -141,9 +142,10 @@ client::CancellationToken PublishApi::UploadPartitions(
   auto cancel_token = client.CallApi(
       upload_partitions_uri, "POST", query_params, header_params, form_params,
       data, "application/json", [callback](client::HttpResponse http_response) {
-        if (http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
+        if (http_response.GetStatus() !=
+            olp::http::HttpStatusCode::NO_CONTENT) {
           callback(UploadPartitionsResponse{client::ApiError(
-              http_response.status, http_response.response.str())});
+              http_response.GetStatus(), http_response.GetResponseAsString())});
           return;
         }
 
@@ -183,9 +185,9 @@ UploadPartitionsResponse PublishApi::UploadPartitions(
       std::move(upload_partitions_uri), "POST", std::move(query_params),
       std::move(header_params), std::move(form_params), std::move(data),
       "application/json", cancellation_context);
-  if (http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
-    return UploadPartitionsResponse(
-        client::ApiError(http_response.status, http_response.response.str()));
+  if (http_response.GetStatus() != olp::http::HttpStatusCode::NO_CONTENT) {
+    return UploadPartitionsResponse(client::ApiError(
+        http_response.GetStatus(), http_response.GetResponseAsString()));
   }
 
   return UploadPartitionsResponse(client::ApiNoResult());
@@ -212,9 +214,10 @@ client::CancellationToken PublishApi::SubmitPublication(
       submit_publication_uri, "PUT", query_params, header_params, form_params,
       nullptr, "application/json",
       [callback](client::HttpResponse http_response) {
-        if (http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
+        if (http_response.GetStatus() !=
+            olp::http::HttpStatusCode::NO_CONTENT) {
           callback(SubmitPublicationResponse{client::ApiError(
-              http_response.status, http_response.response.str())});
+              http_response.GetStatus(), http_response.GetResponseAsString())});
           return;
         }
 
@@ -245,9 +248,9 @@ SubmitPublicationResponse PublishApi::SubmitPublication(
       std::move(header_params), std::move(form_params), nullptr,
       "application/json", cancellation_context);
 
-  if (http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
-    return SubmitPublicationResponse(
-        client::ApiError(http_response.status, http_response.response.str()));
+  if (http_response.GetStatus() != olp::http::HttpStatusCode::NO_CONTENT) {
+    return SubmitPublicationResponse(client::ApiError(
+        http_response.GetStatus(), http_response.GetResponseAsString()));
   }
 
   return SubmitPublicationResponse(client::ApiNoResult());
@@ -274,14 +277,14 @@ client::CancellationToken PublishApi::GetPublication(
       get_publication_uri, "GET", query_params, header_params, form_params,
       nullptr, "application/json",
       [callback](client::HttpResponse http_response) {
-        if (http_response.status != http::HttpStatusCode::OK) {
+        if (http_response.GetStatus() != http::HttpStatusCode::OK) {
           callback(GetPublicationResponse{client::ApiError(
-              http_response.status, http_response.response.str())});
+              http_response.GetStatus(), http_response.GetResponseAsString())});
           return;
         }
 
         callback(parser::parse_result<GetPublicationResponse>(
-            http_response.response));
+            http_response.GetRawResponse()));
       });
 
   return cancel_token;
@@ -308,8 +311,9 @@ SubmitPublicationResponse PublishApi::CancelPublication(
                                       query_params, header_params, form_params,
                                       nullptr, "application/json", context);
 
-  if (http_response.status != olp::http::HttpStatusCode::NO_CONTENT) {
-    return client::ApiError(http_response.status, http_response.response.str());
+  if (http_response.GetStatus() != olp::http::HttpStatusCode::NO_CONTENT) {
+    return client::ApiError(http_response.GetStatus(),
+                            http_response.GetResponseAsString());
   }
 
   return client::ApiNoResult();

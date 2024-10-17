@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,9 +76,9 @@ client::CancellationToken IndexApi::insertIndexes(
   auto cancel_token = client.CallApi(
       insert_indexes_uri, "POST", query_params, header_params, form_params,
       data, "application/json", [callback](client::HttpResponse http_response) {
-        if (http_response.status > http::HttpStatusCode::CREATED) {
+        if (http_response.GetStatus() > http::HttpStatusCode::CREATED) {
           callback(InsertIndexesResponse(client::ApiError(
-              http_response.status, http_response.response.str())));
+              http_response.GetStatus(), http_response.GetResponseAsString())));
           return;
         }
 
@@ -112,8 +112,8 @@ InsertIndexesResponse IndexApi::InsertIndexes(
   auto http_response =
       client.CallApi(insert_indexes_uri, "POST", query_params, header_params,
                      form_params, data, "application/json", context);
-  if (http_response.status > http::HttpStatusCode::CREATED) {
-    return client::ApiError(http_response.status, http_response.response.str());
+  if (http_response.GetStatus() > http::HttpStatusCode::CREATED) {
+    return client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString());
   }
 
   return client::ApiNoResult();
@@ -155,9 +155,9 @@ client::CancellationToken IndexApi::performUpdate(
   auto cancel_token = client.CallApi(
       update_indexes_uri, "PUT", query_params, header_params, form_params, data,
       "application/json", [callback](client::HttpResponse http_response) {
-        if (http_response.status > http::HttpStatusCode::CREATED) {
+        if (http_response.GetStatus() > http::HttpStatusCode::CREATED) {
           callback(InsertIndexesResponse(client::ApiError(
-              http_response.status, http_response.response.str())));
+              http_response.GetStatus(), http_response.GetResponseAsString())));
           return;
         }
 

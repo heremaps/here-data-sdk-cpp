@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,10 +49,10 @@ ConfigApi::CatalogResponse ConfigApi::GetCatalog(
   client::HttpResponse response = client.CallApi(
       std::move(catalog_uri), "GET", std::move(query_params),
       std::move(header_params), {}, nullptr, std::string{}, std::move(context));
-  if (response.status != olp::http::HttpStatusCode::OK) {
-    return client::ApiError(response.status, response.response.str());
+  if (response.GetStatus() != olp::http::HttpStatusCode::OK) {
+    return client::ApiError(response.GetStatus(), response.GetResponseAsString());
   }
-  return parser::parse_result<ConfigApi::CatalogResponse>(response.response);
+  return parser::parse_result<ConfigApi::CatalogResponse>(response.GetRawResponse());
 }
 
 }  // namespace read

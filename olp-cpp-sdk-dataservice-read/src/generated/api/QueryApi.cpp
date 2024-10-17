@@ -91,18 +91,18 @@ QueryApi::PartitionsExtendedResponse QueryApi::GetPartitionsbyId(
       {}, nullptr, std::string{}, std::move(context));
 
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetPartitionsbyId, layer_id=%s, status=%d",
-                      layer_id.c_str(), http_response.status);
+                      layer_id.c_str(), http_response.GetStatus());
 
-  if (http_response.status != olp::http::HttpStatusCode::OK) {
+  if (http_response.GetStatus() != olp::http::HttpStatusCode::OK) {
     return {
-        client::ApiError(http_response.status, http_response.response.str()),
+        client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString()),
         http_response.GetNetworkStatistics()};
   }
   using PartitionsResponse =
       client::ApiResponse<model::Partitions, client::ApiError>;
 
   auto partitions_response =
-      parser::parse_result<PartitionsResponse>(http_response.response);
+      parser::parse_result<PartitionsResponse>(http_response.GetRawResponse());
 
   if (!partitions_response) {
     return {partitions_response.GetError(),
@@ -167,12 +167,12 @@ QueryApi::QuadTreeIndexResponse QueryApi::QuadTreeIndexVolatile(
       {}, nullptr, std::string{}, std::move(context));
 
   OLP_SDK_LOG_DEBUG_F(kLogTag, "QuadTreeIndex, uri=%s, status=%d",
-                      metadata_uri.c_str(), response.status);
-  if (response.status != olp::http::HttpStatusCode::OK) {
-    return client::ApiError(response.status, response.response.str());
+                      metadata_uri.c_str(), response.GetStatus());
+  if (response.GetStatus() != olp::http::HttpStatusCode::OK) {
+    return client::ApiError(response.GetStatus(), response.GetResponseAsString());
   }
 
-  return parser::parse_result<QuadTreeIndexResponse>(response.response);
+  return parser::parse_result<QuadTreeIndexResponse>(response.GetRawResponse());
 }
 
 }  // namespace read

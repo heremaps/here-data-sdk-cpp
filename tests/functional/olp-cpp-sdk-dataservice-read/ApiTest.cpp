@@ -335,7 +335,7 @@ TEST_F(ApiTest, QuadTreeIndex) {
 
   std::chrono::duration<double> time = end - start_time;
   std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
-  ASSERT_EQ(index_response.status, olp::http::HttpStatusCode::OK);
+  ASSERT_EQ(index_response.GetStatus(), olp::http::HttpStatusCode::OK);
 }
 
 }  // namespace

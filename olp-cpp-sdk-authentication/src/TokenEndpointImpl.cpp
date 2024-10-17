@@ -153,7 +153,7 @@ TimeResponse GetTimeFromServer(client::CancellationContext& context,
   std::string response;
   http_result.GetResponse(response);
 
-  if (http_result.status != http::HttpStatusCode::OK) {
+  if (http_result.GetStatus() != http::HttpStatusCode::OK) {
     OLP_SDK_LOG_WARNING_F(
         kLogTag, "Failed to get time from server, status=%d, response='%s'",
         http_result.GetStatus(), response.c_str());
@@ -268,7 +268,7 @@ SignInResponse TokenEndpointImpl::SignInClient(
 
     auto auth_response = CallAuth(client, kOauthEndpoint, context, request_body,
                                   timer.GetRequestTime());
-    const auto status = auth_response.status;
+    const auto status = auth_response.GetStatus();
     if (status < 0) {
       // If a timeout occurred, the cancellation id done through the context.
       // So this case needs to be handled independently of context state.
@@ -279,7 +279,7 @@ SignInResponse TokenEndpointImpl::SignInClient(
 
       // Auth response message may be empty in case of unknown errors.
       // Fill in the message as a status string representation in this case.
-      auto message = auth_response.response.str();
+      auto message = auth_response.GetResponseAsString();
       if (message.empty()) {
         message = http::HttpErrorToString(status);
       }
@@ -287,7 +287,7 @@ SignInResponse TokenEndpointImpl::SignInClient(
       return client::ApiError(status, message);
     }
 
-    response = ParseAuthResponse(status, auth_response.response);
+    response = ParseAuthResponse(status, auth_response.GetRawResponse());
 
     // The request ended up with `OK` status should not be retriggered even if
     // `retry_condition` is `true` for this `HttpResponse`.
@@ -303,7 +303,7 @@ SignInResponse TokenEndpointImpl::SignInClient(
     // In case we can't authorize with system time, retry with the server
     // time from response headers (if available).
     if (HasWrongTimestamp(response)) {
-      auto server_time = GetTimestampFromHeaders(auth_response.headers);
+      auto server_time = GetTimestampFromHeaders(auth_response.GetHeaders());
       if (server_time) {
         timer = RequestTimer(*server_time);
         continue;

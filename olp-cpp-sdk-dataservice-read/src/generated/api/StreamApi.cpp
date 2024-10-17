@@ -97,15 +97,15 @@ StreamApi::SubscribeApiResponse StreamApi::Subscribe(
   auto http_response = client.CallApi(
       metadata_uri, "POST", std::move(query_params), std::move(header_params),
       {}, data, "application/json", context);
-  if (http_response.status != http::HttpStatusCode::CREATED) {
-    return client::ApiError(http_response.status, http_response.response.str());
+  if (http_response.GetStatus() != http::HttpStatusCode::CREATED) {
+    return client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString());
   }
 
   OLP_SDK_LOG_DEBUG_F(kLogTag, "subscribe, uri=%s, status=%d",
-                      metadata_uri.c_str(), http_response.status);
+                      metadata_uri.c_str(), http_response.GetStatus());
 
-  HandleCorrelationId(http_response.headers, x_correlation_id);
-  return parser::parse_result<SubscribeApiResponse>(http_response.response);
+  HandleCorrelationId(http_response.GetHeaders(), x_correlation_id);
+  return parser::parse_result<SubscribeApiResponse>(http_response.GetRawResponse());
 }
 
 StreamApi::ConsumeDataApiResponse StreamApi::ConsumeData(
@@ -131,15 +131,15 @@ StreamApi::ConsumeDataApiResponse StreamApi::ConsumeData(
   auto http_response = client.CallApi(
       metadata_uri, "GET", std::move(query_params), std::move(header_params),
       {}, nullptr, std::string{}, context);
-  if (http_response.status != http::HttpStatusCode::OK) {
-    return client::ApiError(http_response.status, http_response.response.str());
+  if (http_response.GetStatus() != http::HttpStatusCode::OK) {
+    return client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString());
   }
 
   OLP_SDK_LOG_DEBUG_F(kLogTag, "consumeData, uri=%s, status=%d",
-                      metadata_uri.c_str(), http_response.status);
+                      metadata_uri.c_str(), http_response.GetStatus());
 
-  HandleCorrelationId(http_response.headers, x_correlation_id);
-  return parser::parse_result<ConsumeDataApiResponse>(http_response.response);
+  HandleCorrelationId(http_response.GetHeaders(), x_correlation_id);
+  return parser::parse_result<ConsumeDataApiResponse>(http_response.GetRawResponse());
 }
 
 StreamApi::CommitOffsetsApiResponse StreamApi::CommitOffsets(
@@ -182,14 +182,14 @@ StreamApi::UnsubscribeApiResponse StreamApi::DeleteSubscription(
   const auto http_response = client.CallApi(
       metadata_uri, "DELETE", std::move(query_params), std::move(header_params),
       {}, nullptr, std::string{}, context);
-  if (http_response.status != http::HttpStatusCode::OK) {
-    return client::ApiError(http_response.status, http_response.response.str());
+  if (http_response.GetStatus() != http::HttpStatusCode::OK) {
+    return client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString());
   }
 
   OLP_SDK_LOG_DEBUG_F(kLogTag, "deleteSubscription, uri=%s, status=%d",
-                      metadata_uri.c_str(), http_response.status);
+                      metadata_uri.c_str(), http_response.GetStatus());
 
-  return http_response.status;
+  return http_response.GetStatus();
 }
 
 Response<int> StreamApi::HandleOffsets(
@@ -221,15 +221,15 @@ Response<int> StreamApi::HandleOffsets(
   const auto http_response = client.CallApi(
       metadata_uri, "PUT", std::move(query_params), std::move(header_params),
       {}, data, "application/json", context);
-  if (http_response.status != http::HttpStatusCode::OK) {
-    return client::ApiError(http_response.status, http_response.response.str());
+  if (http_response.GetStatus() != http::HttpStatusCode::OK) {
+    return client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString());
   }
 
   OLP_SDK_LOG_DEBUG_F(kLogTag, "handleOffsets, uri=%s, status=%d",
-                      metadata_uri.c_str(), http_response.status);
+                      metadata_uri.c_str(), http_response.GetStatus());
 
-  HandleCorrelationId(http_response.headers, x_correlation_id);
-  return http_response.status;
+  HandleCorrelationId(http_response.GetHeaders(), x_correlation_id);
+  return http_response.GetStatus();
 }
 
 }  // namespace read

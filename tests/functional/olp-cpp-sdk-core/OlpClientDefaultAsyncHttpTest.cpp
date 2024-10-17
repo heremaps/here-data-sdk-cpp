@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,8 +56,8 @@ TEST_F(OlpClientDefaultAsyncHttpTest, GetGoogleWebsite) {
                                       nullptr, std::string(), callback);
 
   auto response = p.get_future().get();
-  ASSERT_EQ(http::HttpStatusCode::OK, response.status);
-  ASSERT_LT(0u, response.response.str().size());
+  ASSERT_EQ(http::HttpStatusCode::OK, response.GetStatus());
+  ASSERT_LT(0u, response.GetResponseAsString().size());
 }
 
 TEST_F(OlpClientDefaultAsyncHttpTest, GetNonExistentWebsite) {
@@ -80,5 +80,5 @@ TEST_F(OlpClientDefaultAsyncHttpTest, GetNonExistentWebsite) {
                                       nullptr, std::string(), callback);
   auto response = p.get_future().get();
   ASSERT_EQ(olp::http::ErrorCode::INVALID_URL_ERROR,
-            static_cast<olp::http::ErrorCode>(response.status));
+            static_cast<olp::http::ErrorCode>(response.GetStatus()));
 }

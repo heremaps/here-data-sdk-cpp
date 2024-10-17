@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2023 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,7 +145,7 @@ void PendingUrlRequest::OnRequestCompleted(HttpResponse response) {
       // We need to reset the stringstream position else the next copy
       // constructor will not be able to read anything because the read
       // position is at the end of the stream.
-      response_out.response.seekg(0, std::ios::beg);
+      response_out.GetRawResponse().seekg(0, std::ios::beg);
     }
 
     if (!cancelled_callbacks.empty() &&
@@ -159,7 +159,7 @@ void PendingUrlRequest::OnRequestCompleted(HttpResponse response) {
       // We need to reset the stringstream position else the next copy
       // constructor will not be able to read anything because the read
       // position is at the end of the stream.
-      response_out.response.seekg(0, std::ios::beg);
+      response_out.GetRawResponse().seekg(0, std::ios::beg);
     }
   }
 

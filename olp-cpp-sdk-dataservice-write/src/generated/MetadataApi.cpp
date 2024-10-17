@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,12 +74,12 @@ client::CancellationToken MetadataApi::GetLayerVersions(
 
   client::NetworkAsyncCallback callback =
       [layerVersionsCallback](client::HttpResponse response) {
-        if (response.status != http::HttpStatusCode::OK) {
+        if (response.GetStatus() != http::HttpStatusCode::OK) {
           layerVersionsCallback(
-              client::ApiError(response.status, response.response.str()));
+              client::ApiError(response.GetStatus(), response.GetResponseAsString()));
         } else {
           layerVersionsCallback(
-              parser::parse_result<LayerVersionsResponse>(response.response));
+              parser::parse_result<LayerVersionsResponse>(response.GetRawResponse()));
         }
       };
 
@@ -117,12 +117,12 @@ client::CancellationToken MetadataApi::GetPartitions(
 
   client::NetworkAsyncCallback callback =
       [partitionsCallback](client::HttpResponse response) {
-        if (response.status != http::HttpStatusCode::OK) {
+        if (response.GetStatus() != http::HttpStatusCode::OK) {
           partitionsCallback(
-              client::ApiError(response.status, response.response.str()));
+              client::ApiError(response.GetStatus(), response.GetResponseAsString()));
         } else {
           partitionsCallback(
-              parser::parse_result<PartitionsResponse>(response.response));
+              parser::parse_result<PartitionsResponse>(response.GetRawResponse()));
         }
       };
 
@@ -150,12 +150,12 @@ client::CancellationToken MetadataApi::GetLatestCatalogVersion(
 
   client::NetworkAsyncCallback callback =
       [catalogVersionCallback](client::HttpResponse response) {
-        if (response.status != http::HttpStatusCode::OK) {
+        if (response.GetStatus() != http::HttpStatusCode::OK) {
           catalogVersionCallback(
-              client::ApiError(response.status, response.response.str()));
+              client::ApiError(response.GetStatus(), response.GetResponseAsString()));
         } else {
           catalogVersionCallback(
-              parser::parse_result<CatalogVersionResponse>(response.response));
+              parser::parse_result<CatalogVersionResponse>(response.GetRawResponse()));
         }
       };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,7 +98,7 @@ class CORE_API HttpResponse {
    * @param response The response body.
    */
   HttpResponse(int status, std::string response = {})  // NOLINT
-      : status(status), response(std::move(response)) {}
+      : status_(status), response_(std::move(response)) {}
 
   /**
    * @brief Creates the `HttpResponse` instance.
@@ -108,7 +108,7 @@ class CORE_API HttpResponse {
    *
    */
   HttpResponse(int status, std::stringstream&& response)
-      : status(status), response(std::move(response)) {}
+      : status_(status), response_(std::move(response)) {}
 
   /**
    * @brief Creates the `HttpResponse` instance.
@@ -119,9 +119,9 @@ class CORE_API HttpResponse {
    *
    */
   HttpResponse(int status, std::stringstream&& response, http::Headers headers)
-      : status(status),
-        response(std::move(response)),
-        headers(std::move(headers)) {}
+      : status_(status),
+        response_(std::move(response)),
+        headers_(std::move(headers)) {}
 
   /**
    * @brief A copy constructor.
@@ -132,14 +132,14 @@ class CORE_API HttpResponse {
    * @param other The instance of `HttpStatus` to copy from.
    */
   HttpResponse(const HttpResponse& other)
-      : status(other.status), headers(other.headers) {
-    response << other.response.rdbuf();
-    if (!response.good()) {
+      : status_(other.status_), headers_(other.headers_) {
+    response_ << other.response_.rdbuf();
+    if (!response_.good()) {
       // Depending on the users handling of the stringstream it might be that
       // the read position is already at the end and thus operator<< cannot
       // read anything, so lets try with the safer but more memory intensive
       // solution as a second step.
-      response.str(other.response.str());
+      response_.str(other.GetResponseAsString());
     }
   }
 
@@ -153,10 +153,10 @@ class CORE_API HttpResponse {
    */
   HttpResponse& operator=(const HttpResponse& other) {
     if (this != &other) {
-      status = other.status;
-      response = std::stringstream{};
-      response << other.response.rdbuf();
-      headers = other.headers;
+      status_ = other.status_;
+      response_ = std::stringstream{};
+      response_ << other.response_.rdbuf();
+      headers_ = other.headers_;
     }
 
     return *this;
@@ -174,14 +174,14 @@ class CORE_API HttpResponse {
    * @param output Reference to a vector.
    */
   void GetResponse(std::vector<unsigned char>& output) {
-    response.seekg(0, std::ios::end);
-    const auto pos = response.tellg();
+    response_.seekg(0, std::ios::end);
+    const auto pos = response_.tellg();
     if (pos > 0) {
       output.resize(pos);
     }
-    response.seekg(0, std::ios::beg);
-    response.read(reinterpret_cast<char*>(output.data()), output.size());
-    response.seekg(0, std::ios::beg);
+    response_.seekg(0, std::ios::beg);
+    response_.read(reinterpret_cast<char*>(output.data()), output.size());
+    response_.seekg(0, std::ios::beg);
   }
 
   /**
@@ -189,14 +189,43 @@ class CORE_API HttpResponse {
    *
    * @param output Reference to a string.
    */
-  void GetResponse(std::string& output) const { output = response.str(); }
+  void GetResponse(std::string& output) const { output = response_.str(); }
+
+  /**
+   * @brief Get the response body as a vector of unsigned chars.
+   *
+   * @return The response body as a vector of unsigned chars.
+   */
+  std::vector<unsigned char> GetResponseAsBytes() {
+    std::vector<unsigned char> bytes;
+    GetResponse(bytes);
+    return bytes;
+  }
+
+  /**
+   * @brief Renders `HttpResponse` content to a string.
+   *
+   * @return String representation of the response.
+   */
+  std::string GetResponseAsString() const {
+    std::string result;
+    GetResponse(result);
+    return result;
+  }
+
+  /**
+   * @brief Return the reference to the response object.
+   *
+   * @return The reference to the response object.
+   */
+  std::stringstream& GetRawResponse() { return response_; }
 
   /**
    * @brief Return the const reference to the response headers.
    *
    * @return The const reference to the headers vector.
    */
-  const http::Headers& GetHeaders() const { return headers; }
+  const http::Headers& GetHeaders() const { return headers_; }
 
   /**
    * @brief Return the response status.
@@ -206,7 +235,7 @@ class CORE_API HttpResponse {
    *
    * @return The response status.
    */
-  int GetStatus() const { return status; }
+  int GetStatus() const { return status_; }
 
   /**
    * @brief Set `NetworkStatistics`.
@@ -226,21 +255,10 @@ class CORE_API HttpResponse {
     return network_statistics_;
   }
 
-  /// The HTTP Status. This can be either a `ErrorCode` if negative or a
-  /// `HttpStatusCode` if positive.
-  /// @deprecated: This field will be marked as private by 01.2021.
-  /// Please do not use directly, use `GetStatus()` method instead.
-  int status{static_cast<int>(olp::http::ErrorCode::UNKNOWN_ERROR)};
-  /// The HTTP response.
-  /// @deprecated: This field will be marked as private by 01.2021.
-  /// Please do not use directly, use `GetResponse()` methods instead.
-  std::stringstream response;
-  /// HTTP headers.
-  /// @deprecated: This field will be marked as private by 01.2021.
-  /// Please do not use directly, use `GetHeaders()` method instead.
-  http::Headers headers;
-
  private:
+  int status_{static_cast<int>(olp::http::ErrorCode::UNKNOWN_ERROR)};
+  std::stringstream response_;
+  http::Headers headers_;
   NetworkStatistics network_statistics_;
 };
 

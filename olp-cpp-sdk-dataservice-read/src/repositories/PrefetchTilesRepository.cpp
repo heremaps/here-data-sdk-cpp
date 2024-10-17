@@ -454,16 +454,16 @@ PrefetchTilesRepository::DownloadVersionedQuadTree(
       query_api.GetResult(), layer_id_, tile_key, version, depth,
       default_additional_fields, billing_tag_, context);
 
-  if (quad_tree.status != olp::http::HttpStatusCode::OK) {
+  if (quad_tree.GetStatus() != olp::http::HttpStatusCode::OK) {
     OLP_SDK_LOG_WARNING_F(kLogTag,
                           "GetSubQuads failed(%s, %" PRId64 ", %" PRId32
                           "), status_code='%d'",
-                          tile_key.c_str(), version, depth, quad_tree.status);
-    return {client::ApiError(quad_tree.status, quad_tree.response.str()),
+                          tile_key.c_str(), version, depth, quad_tree.GetStatus());
+    return {client::ApiError(quad_tree.GetStatus(), quad_tree.GetResponseAsString()),
             quad_tree.GetNetworkStatistics()};
   }
 
-  QuadTreeIndex tree(tile, depth, quad_tree.response);
+  QuadTreeIndex tree(tile, depth, quad_tree.GetRawResponse());
 
   if (tree.IsNull()) {
     OLP_SDK_LOG_WARNING_F(kLogTag,

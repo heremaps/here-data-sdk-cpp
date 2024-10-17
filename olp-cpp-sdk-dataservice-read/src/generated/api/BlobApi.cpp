@@ -75,8 +75,8 @@ BlobApi::DataResponse BlobApi::GetBlob(
       client.CallApiStream(metadata_uri, "GET", query_params, header_params,
                            data_callback, nullptr, "", context);
 
-  if (api_response.status != http::HttpStatusCode::OK) {
-    return {client::ApiError(api_response.status),
+  if (api_response.GetStatus() != http::HttpStatusCode::OK) {
+    return {client::ApiError(api_response.GetStatus()),
             api_response.GetNetworkStatistics()};
   }
 
