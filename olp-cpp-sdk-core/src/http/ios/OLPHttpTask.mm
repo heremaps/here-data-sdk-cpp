@@ -98,7 +98,9 @@ constexpr auto kLogTag = "OLPHttpTask";
   }
 
   if (_dataTask) {
-    _httpClient.toIgnoreResponse[_dataTask.taskDescription] = _dataTask;
+    @synchronized(_httpClient.toIgnoreResponse) {
+      _httpClient.toIgnoreResponse[_dataTask.taskDescription] = _dataTask;
+    }
     [_dataTask cancel];
     _dataTask = nil;
   }
