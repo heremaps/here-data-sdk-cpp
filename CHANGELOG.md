@@ -1,3 +1,35 @@
+## v1.21.0 (25/10/2024)
+
+**Common**
+* Removed deprecated `olp::client::OlpClient::SetSettings(...)` method.  Use `olp::client::OlpClient` constructor instead.
+* Removed deprecated `olp::client::HttpResponse::status` field. Use `HttpResponse::GetStatus()` method instead.
+* Removed deprecated `olp::client::HttpResponse::response` field. Use `HttpResponse::GetRawResponse()` method instead.
+* Removed deprecated `olp::client::HttpResponse::headers` field. Use `HttpResponse::GetHeaders()` method instead.
+
+**olp-cpp-sdk-core**
+* Added `olp::client::HttpResponse::GetResponseAsBytes` convenience method to get the response body as a vector of unsigned chars.
+* Added `olp::client::HttpResponse::GetResponseAsString` convenience method to get the response body content as a string.
+* Added `olp::client::HttpResponse::GetRawResponse` convenience method to get reference to the response object.
+* Added `olp::client::OlpClient::GetSettings()` method.
+* Removed deprecated `olp::http::CreateDefaultNetwork(size_t)` function. Use `olp::http::CreateDefaultNetwork(NetworkInitializationSettings)` instead.
+* Removed deprecated `olp::http::NetworkSettings::GetRetries()` method.
+* Removed deprecated `olp::http::NetworkSettings::WithRetries()` method.
+* Removed deprecated `olp::http::NetworkSettings::GetConnectionTimeout()` method. Use `NetworkSettings::GetConnectionTimeoutDuration()` instead.
+* Removed deprecated `olp::http::NetworkSettings::WithConnectionTimeout(int)` method. Use `NetworkSettings::WithConnectionTimeout(std::chrono::milliseconds)` instead.
+* Removed deprecated `olp::http::NetworkSettings::GetTransferTimeout()` method. Use `NetworkSettings::GetTransferTimeoutDuration()` instead.
+* Removed deprecated `olp::http::NetworkSettings::WithTransferTimeout(int)` method. Use `NetworkSettings::WithTransferTimeout(std::chrono::milliseconds)` instead.
+* Removed deprecated `olp::utils::Dir::exists(const std::string&)` method. Use `Dir::Exists(...)` instead.
+* Removed deprecated `olp::utils::Dir::remove(const std::string&)` method. Use `Dir::Remove(...)` instead.
+* Removed deprecated `olp::utils::Dir::create(const std::string&)` method. Use `Dir::Create(...)` instead.
+* Changed cURL network implementation requirements. OpenSSL is mandatory now.
+* Fixed asynchronous access to the list of cancelled tasks in the iOS background mode.
+* Fixed deleting cancelled invalid download tasks in the iOS background mode.
+* Fixed crashes in `olp::cache::DiskCache::Size()` method that happened when it's called on closed cache.
+* Fixed `olp::math::AlignedBox` template compilation in certain environments.
+* Improved error handling on iOS. `NSURLErrorSecureConnectionFailed`, `NSURLErrorCannotFindHost`, `NSURLErrorDNSLookupFailed` and `NSURLErrorResourceUnavailable` are retriable now.
+* Improved the iOS background download mode change. No additional actions performed when requested mode is already active.
+* Improved cURL certificates configuration. Now, every field can be set up independently.
+
 ## v1.20.1 (13/08/2024)
 
 **Common**
