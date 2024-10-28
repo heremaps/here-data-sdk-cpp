@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.20.1</span>
+   &#160;<span id="projectnumber">1.21.0</span>
    </div>
   </td>
  </tr>
@@ -312,8 +312,8 @@ $(function() {
 <div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
 <div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;  }</div>
 <div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160; </div>
-<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;  <span class="keyword">const</span> <a class="code" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a>&amp; otherMin = box.min();</div>
-<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;  <span class="keyword">const</span> <a class="code" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a>&amp; otherMax = box.max();</div>
+<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;  <span class="keyword">const</span> <a class="code" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a>&amp; otherMin = box.<a class="code" href="classolp_1_1math_1_1AlignedBox.html#a77aaa40db853a153611c897763ca2efc">Minimum</a>();</div>
+<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;  <span class="keyword">const</span> <a class="code" href="classolp_1_1math_1_1AlignedBox.html#aa8583fe7d2433b2e2b9c9ff27d22333a">VectorType</a>&amp; otherMax = box.<a class="code" href="classolp_1_1math_1_1AlignedBox.html#ae71086cdb1bb1fdc5a59fc9f1b88b0d5">Maximum</a>();</div>
 <div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;  <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> dim = 0; dim &lt; dimensions; dim++) {</div>
 <div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;    <span class="keywordflow">if</span> ((maximum_[dim] &lt; otherMin[dim]) || (minimum_[dim] &gt; otherMax[dim]))</div>
 <div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
@@ -350,12 +350,12 @@ $(function() {
 <div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;  <span class="comment">// empty.</span></div>
 <div class="line"><a name="l00463"></a><span class="lineno">  463</span>&#160;  <span class="comment">//</span></div>
 <div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;  <span class="keywordtype">bool</span> thisEmpty = Empty();</div>
-<div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;  <span class="keywordtype">bool</span> otherEmpty = box.empty();</div>
+<div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;  <span class="keywordtype">bool</span> otherEmpty = box.<a class="code" href="classolp_1_1math_1_1AlignedBox.html#a5888aa8e06b480f1971b9215cdba5655">Empty</a>();</div>
 <div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;  <span class="keywordflow">if</span> (thisEmpty || otherEmpty) {</div>
 <div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;    <span class="keywordflow">return</span> thisEmpty == otherEmpty;</div>
 <div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160;  }</div>
 <div class="line"><a name="l00469"></a><span class="lineno">  469</span>&#160; </div>
-<div class="line"><a name="l00470"></a><span class="lineno">  470</span>&#160;  <span class="keywordflow">return</span> minimum_ == box.min() &amp;&amp; maximum_ == box.max();</div>
+<div class="line"><a name="l00470"></a><span class="lineno">  470</span>&#160;  <span class="keywordflow">return</span> minimum_ == box.<a class="code" href="classolp_1_1math_1_1AlignedBox.html#a77aaa40db853a153611c897763ca2efc">Minimum</a>() &amp;&amp; maximum_ == box.<a class="code" href="classolp_1_1math_1_1AlignedBox.html#ae71086cdb1bb1fdc5a59fc9f1b88b0d5">Maximum</a>();</div>
 <div class="line"><a name="l00471"></a><span class="lineno">  471</span>&#160;}</div>
 <div class="line"><a name="l00472"></a><span class="lineno">  472</span>&#160; </div>
 <div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> N&gt;</div>

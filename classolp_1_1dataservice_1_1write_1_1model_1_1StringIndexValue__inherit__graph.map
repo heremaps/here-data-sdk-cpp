@@ -1,4 +1,4 @@
 <map id="olp::dataservice::write::model::StringIndexValue" name="olp::dataservice::write::model::StringIndexValue">
-<area shape="rect" id="node1" title="Represents the index layer of the string type." alt="" coords="5,95,195,136"/>
-<area shape="rect" id="node2" href="$classolp_1_1dataservice_1_1write_1_1model_1_1IndexValue.html" title="Represents values supported by the HERE platform index layer." alt="" coords="17,5,183,47"/>
+<area shape="rect" id="node1" title="Represents the index layer of the string type." alt="" coords="5,95,177,136"/>
+<area shape="rect" id="node2" href="$classolp_1_1dataservice_1_1write_1_1model_1_1IndexValue.html" title="Represents values supported by the HERE platform index layer." alt="" coords="16,5,167,47"/>
 </map>

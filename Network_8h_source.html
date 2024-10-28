@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.20.1</span>
+   &#160;<span id="projectnumber">1.21.0</span>
    </div>
   </td>
  </tr>
@@ -71,7 +71,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/*</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2023 HERE Europe B.V.</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2024 HERE Europe B.V.</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment"> * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment"> * you may not use this file except in compliance with the License.</span></div>
@@ -143,17 +143,11 @@ $(function() {
 <div class="line"><a name="l00147"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1Network.html#a18e3c44bd22fa16e6e2d5c55ed28ebb5">  147</a></span>&#160;  <span class="keyword">virtual</span> <a class="code" href="structolp_1_1http_1_1Network_1_1Statistics.html">Statistics</a> <a class="code" href="classolp_1_1http_1_1Network.html#a18e3c44bd22fa16e6e2d5c55ed28ebb5">GetStatistics</a>(uint8_t bucket_id = 0);</div>
 <div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;};</div>
 <div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160; </div>
-<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;OLP_SDK_DEPRECATED(</div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;    <span class="stringliteral">&quot;Will be removed by 05.2024, use &quot;</span></div>
-<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;    <span class="stringliteral">&quot;CreateDefaultNetwork(NetworkInitializationSettings) instead&quot;</span>)</div>
-<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;CORE_API std::shared_ptr&lt;<a class="code" href="classolp_1_1http_1_1Network.html">Network</a>&gt; <a class="code" href="namespaceolp_1_1http.html#afeb9a055cb0b7ec4347b5d0f36bd5b69">CreateDefaultNetwork</a>(</div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;    <span class="keywordtype">size_t</span> max_requests_count);</div>
-<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160; </div>
-<div class="line"><a name="l00158"></a><span class="lineno"><a class="line" href="namespaceolp_1_1http.html#afeb9a055cb0b7ec4347b5d0f36bd5b69">  158</a></span>&#160;CORE_API std::shared_ptr&lt;<a class="code" href="classolp_1_1http_1_1Network.html">Network</a>&gt; <a class="code" href="namespaceolp_1_1http.html#afeb9a055cb0b7ec4347b5d0f36bd5b69">CreateDefaultNetwork</a>(</div>
-<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;    <a class="code" href="structolp_1_1http_1_1NetworkInitializationSettings.html">NetworkInitializationSettings</a> settings);</div>
-<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160; </div>
-<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;}  <span class="comment">// namespace http</span></div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00151"></a><span class="lineno"><a class="line" href="namespaceolp_1_1http.html#a27c963dcc356774d93ee4d53a40c59b8">  151</a></span>&#160;CORE_API std::shared_ptr&lt;Network&gt; <a class="code" href="namespaceolp_1_1http.html#a27c963dcc356774d93ee4d53a40c59b8">CreateDefaultNetwork</a>(</div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;    <a class="code" href="structolp_1_1http_1_1NetworkInitializationSettings.html">NetworkInitializationSettings</a> settings);</div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160; </div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;}  <span class="comment">// namespace http</span></div>
+<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;}  <span class="comment">// namespace olp</span></div>
 <div class="ttc" id="aclassolp_1_1http_1_1NetworkRequest_html"><div class="ttname"><a href="classolp_1_1http_1_1NetworkRequest.html">olp::http::NetworkRequest</a></div><div class="ttdoc">A network request abstraction for an HTTP request.</div><div class="ttdef"><b>Definition:</b> NetworkRequest.h:34</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1NetworkResponse_html"><div class="ttname"><a href="classolp_1_1http_1_1NetworkResponse.html">olp::http::NetworkResponse</a></div><div class="ttdoc">A network response abstraction for the HTTP request.</div><div class="ttdef"><b>Definition:</b> NetworkResponse.h:32</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1Network_html"><div class="ttname"><a href="classolp_1_1http_1_1Network.html">olp::http::Network</a></div><div class="ttdoc">An HTTP client abstraction.</div><div class="ttdef"><b>Definition:</b> Network.h:38</div></div>
@@ -167,9 +161,9 @@ $(function() {
 <div class="ttc" id="aclassolp_1_1http_1_1Network_html_af0a5a2c85909ff38ad56d356c557b748"><div class="ttname"><a href="classolp_1_1http_1_1Network.html#af0a5a2c85909ff38ad56d356c557b748">olp::http::Network::Callback</a></div><div class="ttdeci">std::function&lt; void(NetworkResponse response)&gt; Callback</div><div class="ttdoc">The callback that is called when the request is processed or canceled.</div><div class="ttdef"><b>Definition:</b> Network.h:41</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1Network_html_afdd44ac31e169a43ecdc05783d6f14cf"><div class="ttname"><a href="classolp_1_1http_1_1Network.html#afdd44ac31e169a43ecdc05783d6f14cf">olp::http::Network::Send</a></div><div class="ttdeci">virtual SendOutcome Send(NetworkRequest request, Payload payload, Callback callback, HeaderCallback header_callback=nullptr, DataCallback data_callback=nullptr)=0</div><div class="ttdoc">Sends the network request.</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1SendOutcome_html"><div class="ttname"><a href="classolp_1_1http_1_1SendOutcome.html">olp::http::SendOutcome</a></div><div class="ttdoc">Rrepresents the outcome of a network request.</div><div class="ttdef"><b>Definition:</b> NetworkTypes.h:76</div></div>
+<div class="ttc" id="anamespaceolp_1_1http_html_a27c963dcc356774d93ee4d53a40c59b8"><div class="ttname"><a href="namespaceolp_1_1http.html#a27c963dcc356774d93ee4d53a40c59b8">olp::http::CreateDefaultNetwork</a></div><div class="ttdeci">CORE_API std::shared_ptr&lt; Network &gt; CreateDefaultNetwork(NetworkInitializationSettings settings)</div><div class="ttdoc">Creates a default Network implementation.</div></div>
 <div class="ttc" id="anamespaceolp_1_1http_html_ab4ebd4de6206da6920482383a686e7b4"><div class="ttname"><a href="namespaceolp_1_1http.html#ab4ebd4de6206da6920482383a686e7b4">olp::http::RequestId</a></div><div class="ttdeci">std::uint64_t RequestId</div><div class="ttdoc">A unique request ID.</div><div class="ttdef"><b>Definition:</b> NetworkTypes.h:41</div></div>
 <div class="ttc" id="anamespaceolp_1_1http_html_ae2f7d2a838ca66559b0abdac68a7514c"><div class="ttname"><a href="namespaceolp_1_1http.html#ae2f7d2a838ca66559b0abdac68a7514c">olp::http::Headers</a></div><div class="ttdeci">std::vector&lt; Header &gt; Headers</div><div class="ttdoc">An alias for a vector of the HTTP headers.</div><div class="ttdef"><b>Definition:</b> NetworkTypes.h:140</div></div>
-<div class="ttc" id="anamespaceolp_1_1http_html_afeb9a055cb0b7ec4347b5d0f36bd5b69"><div class="ttname"><a href="namespaceolp_1_1http.html#afeb9a055cb0b7ec4347b5d0f36bd5b69">olp::http::CreateDefaultNetwork</a></div><div class="ttdeci">OLP_SDK_DEPRECATED(&quot;Will be removed by 05.2024, use &quot; &quot;CreateDefaultNetwork(NetworkInitializationSettings) instead&quot;) CORE_API std CORE_API std::shared_ptr&lt; Network &gt; CreateDefaultNetwork(NetworkInitializationSettings settings)</div><div class="ttdoc">Creates a default Network implementation.</div></div>
 <div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">Rules all the other namespaces.</div><div class="ttdef"><b>Definition:</b> AppleSignInProperties.h:24</div></div>
 <div class="ttc" id="astructolp_1_1http_1_1NetworkInitializationSettings_html"><div class="ttname"><a href="structolp_1_1http_1_1NetworkInitializationSettings.html">olp::http::NetworkInitializationSettings</a></div><div class="ttdoc">Settings for network initialization.</div><div class="ttdef"><b>Definition:</b> NetworkInitializationSettings.h:31</div></div>
 <div class="ttc" id="astructolp_1_1http_1_1Network_1_1Statistics_html"><div class="ttname"><a href="structolp_1_1http_1_1Network_1_1Statistics.html">olp::http::Network::Statistics</a></div><div class="ttdoc">Network statistics for a specific bucket.</div><div class="ttdef"><b>Definition:</b> Network.h:55</div></div>

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['deprecated_20list_2779',['Deprecated List',['../deprecated.html',1,'']]]
+  ['here_20data_20sdk_20for_20c_2b_2b_2761',['HERE Data SDK for C++',['../index.html',1,'']]]
 ];

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.20.1</span>
+   &#160;<span id="projectnumber">1.21.0</span>
    </div>
   </td>
  </tr>
@@ -106,78 +106,61 @@ $(function() {
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; </div>
 <div class="line"><a name="l00038"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html">   38</a></span>&#160;<span class="keyword">class </span>CORE_API <a class="code" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a> final {</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;  OLP_SDK_DEPRECATED(<span class="stringliteral">&quot;Will be removed by 04.2024&quot;</span>)</div>
-<div class="line"><a name="l00046"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#a9bb5f97918ddd54b61a354db0faf1909">   46</a></span>&#160;  std::<span class="keywordtype">size_t</span> GetRetries() const;</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160; </div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;  OLP_SDK_DEPRECATED(&quot;Will be removed by 04.2024&quot;)</div>
-<div class="line"><a name="l00056"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#a247cf825cc9c64d5c15935f64ae3cbdf">   56</a></span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; WithRetries(std::<span class="keywordtype">size_t</span> retries);</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160; </div>
-<div class="line"><a name="l00063"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#ae9773fa803f2964e003f005c1e4f0926">   63</a></span>&#160;  OLP_SDK_DEPRECATED(</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;      &quot;Will be removed by 04.2024, use GetConnectionTimeoutDuration() instead&quot;)</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;  <span class="keywordtype">int</span> GetConnectionTimeout() const;</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160; </div>
-<div class="line"><a name="l00072"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#a54a024e2598b3eed8a390043a2cd326a">   72</a></span>&#160;  std::chrono::milliseconds GetConnectionTimeoutDuration() const;</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160; </div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;<span class="preprocessor">#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD</span></div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;  std::chrono::milliseconds GetBackgroundConnectionTimeoutDuration() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;<span class="preprocessor">#endif  </span><span class="comment">// OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD</span></div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160; </div>
-<div class="line"><a name="l00090"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#adc459ed117c71e873a218d4613c6d832">   90</a></span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html#adc459ed117c71e873a218d4613c6d832">OLP_SDK_DEPRECATED</a>(</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;      <span class="stringliteral">&quot;Will be removed by 04.2024, use &quot;</span></div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;      <span class="stringliteral">&quot;WithConnectionTimeout(std::chrono::milliseconds) instead&quot;</span>)</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; WithConnectionTimeout(<span class="keywordtype">int</span> timeout);</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
-<div class="line"><a name="l00102"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#aaffbe52e579428f0ff871522ec860f33">  102</a></span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; WithConnectionTimeout(std::chrono::milliseconds timeout);</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160; </div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;<span class="preprocessor">#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD</span></div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; WithBackgroundConnectionTimeout(</div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;      std::chrono::milliseconds timeout);</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;<span class="preprocessor">#endif  </span><span class="comment">// OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD</span></div>
+<div class="line"><a name="l00045"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#a54a024e2598b3eed8a390043a2cd326a">   45</a></span>&#160;  std::chrono::milliseconds <a class="code" href="classolp_1_1http_1_1NetworkSettings.html#a54a024e2598b3eed8a390043a2cd326a">GetConnectionTimeoutDuration</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160; </div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="preprocessor">#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD</span></div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;  std::chrono::milliseconds GetBackgroundConnectionTimeoutDuration() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="preprocessor">#endif  </span><span class="comment">// OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD</span></div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160; </div>
+<div class="line"><a name="l00063"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#aaffbe52e579428f0ff871522ec860f33">   63</a></span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; <a class="code" href="classolp_1_1http_1_1NetworkSettings.html#aaffbe52e579428f0ff871522ec860f33">WithConnectionTimeout</a>(std::chrono::milliseconds timeout);</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; </div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="preprocessor">#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD</span></div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; WithBackgroundConnectionTimeout(</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;      std::chrono::milliseconds timeout);</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="preprocessor">#endif  </span><span class="comment">// OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD</span></div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160; </div>
+<div class="line"><a name="l00082"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#a23a1770d404e16e400bcb434052a942b">   82</a></span>&#160;  std::chrono::milliseconds <a class="code" href="classolp_1_1http_1_1NetworkSettings.html#a23a1770d404e16e400bcb434052a942b">GetTransferTimeoutDuration</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160; </div>
+<div class="line"><a name="l00089"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#a5e900bb264b00741f9b056a89b2dd6ce">   89</a></span>&#160;  std::chrono::seconds <a class="code" href="classolp_1_1http_1_1NetworkSettings.html#a5e900bb264b00741f9b056a89b2dd6ce">GetMaxConnectionLifetime</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160; </div>
+<div class="line"><a name="l00098"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#ac221bd4b5ab05318ad8a40844d4d70f7">   98</a></span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; <a class="code" href="classolp_1_1http_1_1NetworkSettings.html#ac221bd4b5ab05318ad8a40844d4d70f7">WithMaxConnectionLifetime</a>(std::chrono::seconds lifetime);</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160; </div>
+<div class="line"><a name="l00107"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#ad0c299f69c02fcb7907e63663f6248fe">  107</a></span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; <a class="code" href="classolp_1_1http_1_1NetworkSettings.html#ad0c299f69c02fcb7907e63663f6248fe">WithTransferTimeout</a>(std::chrono::milliseconds timeout);</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160; </div>
+<div class="line"><a name="l00114"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#ab59e6bd5defd48871d722edc8af954bc">  114</a></span>&#160;  <span class="keyword">const</span> <a class="code" href="classolp_1_1http_1_1NetworkProxySettings.html">NetworkProxySettings</a>&amp; <a class="code" href="classolp_1_1http_1_1NetworkSettings.html#ab59e6bd5defd48871d722edc8af954bc">GetProxySettings</a>() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160; </div>
-<div class="line"><a name="l00121"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#a17b09c2e49b8b19261a5767cfd8fd96a">  121</a></span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html#a17b09c2e49b8b19261a5767cfd8fd96a">OLP_SDK_DEPRECATED</a>(</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;      <span class="stringliteral">&quot;Will be removed by 04.2024, use GetTransferTimeoutDuration() instead&quot;</span>)</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;  int GetTransferTimeout() const;</div>
+<div class="line"><a name="l00123"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#a0ee12bc18c2a3541155af4e7f8dbf208">  123</a></span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; <a class="code" href="classolp_1_1http_1_1NetworkSettings.html#a0ee12bc18c2a3541155af4e7f8dbf208">WithProxySettings</a>(<a class="code" href="classolp_1_1http_1_1NetworkProxySettings.html">NetworkProxySettings</a> settings);</div>
 <div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160; </div>
-<div class="line"><a name="l00130"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#a23a1770d404e16e400bcb434052a942b">  130</a></span>&#160;  std::chrono::milliseconds GetTransferTimeoutDuration() const;</div>
+<div class="line"><a name="l00130"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#a19fd0ddf8cc59fa183e07093fa2a2856">  130</a></span>&#160;  <span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; <a class="code" href="classolp_1_1http_1_1NetworkSettings.html#a19fd0ddf8cc59fa183e07093fa2a2856">GetDNSServers</a>() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160; </div>
-<div class="line"><a name="l00139"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#ae3dade49fed118438328efed59c4496b">  139</a></span>&#160;  OLP_SDK_DEPRECATED(</div>
-<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;      &quot;Will be removed by 04.2024, use &quot;</div>
-<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;      &quot;WithTransferTimeout(std::chrono::milliseconds) instead&quot;)</div>
-<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; WithTransferTimeout(<span class="keywordtype">int</span> timeout);</div>
-<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160; </div>
-<div class="line"><a name="l00149"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#a5e900bb264b00741f9b056a89b2dd6ce">  149</a></span>&#160;  std::chrono::seconds GetMaxConnectionLifetime() const;</div>
-<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160; </div>
-<div class="line"><a name="l00158"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#ac221bd4b5ab05318ad8a40844d4d70f7">  158</a></span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; WithMaxConnectionLifetime(std::chrono::seconds lifetime);</div>
-<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160; </div>
-<div class="line"><a name="l00167"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#ad0c299f69c02fcb7907e63663f6248fe">  167</a></span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; WithTransferTimeout(std::chrono::milliseconds timeout);</div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160; </div>
-<div class="line"><a name="l00174"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#ab59e6bd5defd48871d722edc8af954bc">  174</a></span>&#160;  const <a class="code" href="classolp_1_1http_1_1NetworkProxySettings.html">NetworkProxySettings</a>&amp; GetProxySettings() const;</div>
-<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160; </div>
-<div class="line"><a name="l00183"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#a0ee12bc18c2a3541155af4e7f8dbf208">  183</a></span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; WithProxySettings(<a class="code" href="classolp_1_1http_1_1NetworkProxySettings.html">NetworkProxySettings</a> settings);</div>
-<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160; </div>
-<div class="line"><a name="l00190"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#a19fd0ddf8cc59fa183e07093fa2a2856">  190</a></span>&#160;  const std::vector&lt;std::<span class="keywordtype">string</span>&gt;&amp; GetDNSServers() const;</div>
-<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160; </div>
-<div class="line"><a name="l00203"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#a6ae525fe8b3c865c76120be9a4dad791">  203</a></span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; WithDNSServers(std::vector&lt;std::<span class="keywordtype">string</span>&gt; dns_servers);</div>
-<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160; </div>
-<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160; private:</div>
-<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;  std::<span class="keywordtype">size_t</span> retries_{3};</div>
-<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;  std::chrono::milliseconds connection_timeout_ = std::chrono::seconds(60);</div>
-<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;<span class="preprocessor">#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD</span></div>
-<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;  std::chrono::milliseconds background_connection_timeout_ =</div>
-<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;      std::chrono::seconds(600);</div>
-<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;<span class="preprocessor">#endif  </span><span class="comment">// OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD</span></div>
-<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;<span class="comment"></span>  std::chrono::milliseconds transfer_timeout_ = std::chrono::seconds(30);</div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;  std::chrono::seconds connection_lifetime_{0};</div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;  NetworkProxySettings proxy_settings_;</div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;  std::vector&lt;std::string&gt; dns_servers_;</div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;};</div>
-<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160; </div>
-<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;}  <span class="comment">// namespace http</span></div>
-<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00143"></a><span class="lineno"><a class="line" href="classolp_1_1http_1_1NetworkSettings.html#a6ae525fe8b3c865c76120be9a4dad791">  143</a></span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkSettings.html">NetworkSettings</a>&amp; <a class="code" href="classolp_1_1http_1_1NetworkSettings.html#a6ae525fe8b3c865c76120be9a4dad791">WithDNSServers</a>(std::vector&lt;std::string&gt; dns_servers);</div>
+<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160; </div>
+<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;  std::chrono::milliseconds connection_timeout_ = std::chrono::seconds(60);</div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;<span class="preprocessor">#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD</span></div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;  std::chrono::milliseconds background_connection_timeout_ =</div>
+<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;      std::chrono::seconds(600);</div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;<span class="preprocessor">#endif  </span><span class="comment">// OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD</span></div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;<span class="comment"></span>  std::chrono::milliseconds transfer_timeout_ = std::chrono::seconds(30);</div>
+<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;  std::chrono::seconds connection_lifetime_{0};</div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;  <a class="code" href="classolp_1_1http_1_1NetworkProxySettings.html">NetworkProxySettings</a> proxy_settings_;</div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;  std::vector&lt;std::string&gt; dns_servers_;</div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;};</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160; </div>
+<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;}  <span class="comment">// namespace http</span></div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;}  <span class="comment">// namespace olp</span></div>
 <div class="ttc" id="aclassolp_1_1http_1_1NetworkProxySettings_html"><div class="ttname"><a href="classolp_1_1http_1_1NetworkProxySettings.html">olp::http::NetworkProxySettings</a></div><div class="ttdoc">Contains a proxy configuration for the network interface that is applied per request.</div><div class="ttdef"><b>Definition:</b> NetworkProxySettings.h:34</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1NetworkSettings_html"><div class="ttname"><a href="classolp_1_1http_1_1NetworkSettings.html">olp::http::NetworkSettings</a></div><div class="ttdoc">Contains a configuration for the network.</div><div class="ttdef"><b>Definition:</b> NetworkSettings.h:38</div></div>
-<div class="ttc" id="aclassolp_1_1http_1_1NetworkSettings_html_a17b09c2e49b8b19261a5767cfd8fd96a"><div class="ttname"><a href="classolp_1_1http_1_1NetworkSettings.html#a17b09c2e49b8b19261a5767cfd8fd96a">olp::http::NetworkSettings::OLP_SDK_DEPRECATED</a></div><div class="ttdeci">OLP_SDK_DEPRECATED(&quot;Will be removed by 04.2024, use GetTransferTimeoutDuration() instead&quot;) int GetTransferTimeout() const</div><div class="ttdoc">Gets the transfer timeout in seconds.</div></div>
-<div class="ttc" id="aclassolp_1_1http_1_1NetworkSettings_html_adc459ed117c71e873a218d4613c6d832"><div class="ttname"><a href="classolp_1_1http_1_1NetworkSettings.html#adc459ed117c71e873a218d4613c6d832">olp::http::NetworkSettings::OLP_SDK_DEPRECATED</a></div><div class="ttdeci">OLP_SDK_DEPRECATED(&quot;Will be removed by 04.2024, use &quot; &quot;WithConnectionTimeout(std::chrono::milliseconds) instead&quot;) NetworkSettings &amp;WithConnectionTimeout(int timeout)</div><div class="ttdoc">Sets the connection timeout in seconds.</div></div>
+<div class="ttc" id="aclassolp_1_1http_1_1NetworkSettings_html_a0ee12bc18c2a3541155af4e7f8dbf208"><div class="ttname"><a href="classolp_1_1http_1_1NetworkSettings.html#a0ee12bc18c2a3541155af4e7f8dbf208">olp::http::NetworkSettings::WithProxySettings</a></div><div class="ttdeci">NetworkSettings &amp; WithProxySettings(NetworkProxySettings settings)</div><div class="ttdoc">Sets the proxy settings.</div></div>
+<div class="ttc" id="aclassolp_1_1http_1_1NetworkSettings_html_a19fd0ddf8cc59fa183e07093fa2a2856"><div class="ttname"><a href="classolp_1_1http_1_1NetworkSettings.html#a19fd0ddf8cc59fa183e07093fa2a2856">olp::http::NetworkSettings::GetDNSServers</a></div><div class="ttdeci">const std::vector&lt; std::string &gt; &amp; GetDNSServers() const</div><div class="ttdoc">Gets the DNS list.</div></div>
+<div class="ttc" id="aclassolp_1_1http_1_1NetworkSettings_html_a23a1770d404e16e400bcb434052a942b"><div class="ttname"><a href="classolp_1_1http_1_1NetworkSettings.html#a23a1770d404e16e400bcb434052a942b">olp::http::NetworkSettings::GetTransferTimeoutDuration</a></div><div class="ttdeci">std::chrono::milliseconds GetTransferTimeoutDuration() const</div><div class="ttdoc">Gets the transfer timeout.</div></div>
+<div class="ttc" id="aclassolp_1_1http_1_1NetworkSettings_html_a54a024e2598b3eed8a390043a2cd326a"><div class="ttname"><a href="classolp_1_1http_1_1NetworkSettings.html#a54a024e2598b3eed8a390043a2cd326a">olp::http::NetworkSettings::GetConnectionTimeoutDuration</a></div><div class="ttdeci">std::chrono::milliseconds GetConnectionTimeoutDuration() const</div><div class="ttdoc">Gets the connection timeout.</div></div>
+<div class="ttc" id="aclassolp_1_1http_1_1NetworkSettings_html_a5e900bb264b00741f9b056a89b2dd6ce"><div class="ttname"><a href="classolp_1_1http_1_1NetworkSettings.html#a5e900bb264b00741f9b056a89b2dd6ce">olp::http::NetworkSettings::GetMaxConnectionLifetime</a></div><div class="ttdeci">std::chrono::seconds GetMaxConnectionLifetime() const</div><div class="ttdoc">Gets max lifetime (since creation) allowed for reusing a connection.</div></div>
+<div class="ttc" id="aclassolp_1_1http_1_1NetworkSettings_html_a6ae525fe8b3c865c76120be9a4dad791"><div class="ttname"><a href="classolp_1_1http_1_1NetworkSettings.html#a6ae525fe8b3c865c76120be9a4dad791">olp::http::NetworkSettings::WithDNSServers</a></div><div class="ttdeci">NetworkSettings &amp; WithDNSServers(std::vector&lt; std::string &gt; dns_servers)</div><div class="ttdoc">Sets the DNS servers to use. Works only with CURL implementation. The order is important....</div></div>
+<div class="ttc" id="aclassolp_1_1http_1_1NetworkSettings_html_aaffbe52e579428f0ff871522ec860f33"><div class="ttname"><a href="classolp_1_1http_1_1NetworkSettings.html#aaffbe52e579428f0ff871522ec860f33">olp::http::NetworkSettings::WithConnectionTimeout</a></div><div class="ttdeci">NetworkSettings &amp; WithConnectionTimeout(std::chrono::milliseconds timeout)</div><div class="ttdoc">Sets the connection timeout.</div></div>
+<div class="ttc" id="aclassolp_1_1http_1_1NetworkSettings_html_ab59e6bd5defd48871d722edc8af954bc"><div class="ttname"><a href="classolp_1_1http_1_1NetworkSettings.html#ab59e6bd5defd48871d722edc8af954bc">olp::http::NetworkSettings::GetProxySettings</a></div><div class="ttdeci">const NetworkProxySettings &amp; GetProxySettings() const</div><div class="ttdoc">Gets the proxy settings.</div></div>
+<div class="ttc" id="aclassolp_1_1http_1_1NetworkSettings_html_ac221bd4b5ab05318ad8a40844d4d70f7"><div class="ttname"><a href="classolp_1_1http_1_1NetworkSettings.html#ac221bd4b5ab05318ad8a40844d4d70f7">olp::http::NetworkSettings::WithMaxConnectionLifetime</a></div><div class="ttdeci">NetworkSettings &amp; WithMaxConnectionLifetime(std::chrono::seconds lifetime)</div><div class="ttdoc">Sets max lifetime (since creation) allowed for reusing a connection. Supported only for CURL implemen...</div></div>
+<div class="ttc" id="aclassolp_1_1http_1_1NetworkSettings_html_ad0c299f69c02fcb7907e63663f6248fe"><div class="ttname"><a href="classolp_1_1http_1_1NetworkSettings.html#ad0c299f69c02fcb7907e63663f6248fe">olp::http::NetworkSettings::WithTransferTimeout</a></div><div class="ttdeci">NetworkSettings &amp; WithTransferTimeout(std::chrono::milliseconds timeout)</div><div class="ttdoc">Sets the transfer timeout.</div></div>
 <div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">Rules all the other namespaces.</div><div class="ttdef"><b>Definition:</b> AppleSignInProperties.h:24</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->

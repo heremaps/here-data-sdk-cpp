@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.20.1</span>
+   &#160;<span id="projectnumber">1.21.0</span>
    </div>
   </td>
  </tr>
@@ -71,7 +71,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/*</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2023 HERE Europe B.V.</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2024 HERE Europe B.V.</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment"> * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment"> * you may not use this file except in compliance with the License.</span></div>
@@ -128,37 +128,37 @@ $(function() {
 <div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160; </div>
 <div class="line"><a name="l00093"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1OlpClient.html#a05421cde7911a8bc0a9eaaf2036873ae">   93</a></span>&#160;  <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a>&amp; GetMutableDefaultHeaders();</div>
 <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
-<div class="line"><a name="l00108"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1OlpClient.html#a6957f92bcad5cfc30e5d857eb228b293">  108</a></span>&#160;  <span class="keywordtype">void</span> SetSettings(const <a class="code" href="structolp_1_1client_1_1OlpClientSettings.html">OlpClientSettings</a>&amp; settings);</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160; </div>
-<div class="line"><a name="l00129"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1OlpClient.html#a42bbea769f7a27f9727ce271102b4473">  129</a></span>&#160;  <a class="code" href="classolp_1_1client_1_1CancellationToken.html">CancellationToken</a> CallApi(const std::<span class="keywordtype">string</span>&amp; path, const std::<span class="keywordtype">string</span>&amp; method,</div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;                            const <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a>&amp; query_params,</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;                            const <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a>&amp; header_params,</div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;                            const <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a>&amp; form_params,</div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;                            const <a class="code" href="classolp_1_1client_1_1OlpClient.html#a859cddf8f5ccf4c47ae7cd20e12ab876">RequestBodyType</a>&amp; post_body,</div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;                            const std::<span class="keywordtype">string</span>&amp; content_type,</div>
-<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;                            const <a class="code" href="namespaceolp_1_1client.html#ada2eeb2b0e0ac4d50d42d51df6bc9e2b">NetworkAsyncCallback</a>&amp; callback) const;</div>
-<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160; </div>
-<div class="line"><a name="l00157"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1OlpClient.html#a1c186e74a78b16761f3f153f59b0c46b">  157</a></span>&#160;  <a class="code" href="classolp_1_1client_1_1HttpResponse.html">HttpResponse</a> CallApi(std::<span class="keywordtype">string</span> path, std::<span class="keywordtype">string</span> method,</div>
-<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;                       <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> query_params,</div>
-<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;                       <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> header_params, <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> form_params,</div>
-<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;                       <a class="code" href="classolp_1_1client_1_1OlpClient.html#a859cddf8f5ccf4c47ae7cd20e12ab876">RequestBodyType</a> post_body, std::<span class="keywordtype">string</span> content_type,</div>
-<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;                       <a class="code" href="classolp_1_1client_1_1CancellationContext.html">CancellationContext</a> context) const;</div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160; </div>
-<div class="line"><a name="l00182"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1OlpClient.html#a5046ff6c22e3350c25494655e43e6559">  182</a></span>&#160;  <a class="code" href="classolp_1_1client_1_1HttpResponse.html">HttpResponse</a> CallApiStream(std::<span class="keywordtype">string</span> path, std::<span class="keywordtype">string</span> method,</div>
-<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;                             <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> query_params,</div>
-<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;                             <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> header_params,</div>
-<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;                             http::Network::DataCallback data_callback,</div>
-<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;                             <a class="code" href="classolp_1_1client_1_1OlpClient.html#a859cddf8f5ccf4c47ae7cd20e12ab876">RequestBodyType</a> post_body,</div>
-<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;                             std::<span class="keywordtype">string</span> content_type,</div>
-<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;                             <a class="code" href="classolp_1_1client_1_1CancellationContext.html">CancellationContext</a> context) const;</div>
-<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160; </div>
-<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160; private:</div>
-<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;  class OlpClientImpl;</div>
-<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;  std::shared_ptr&lt;OlpClientImpl&gt; impl_;</div>
-<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;};</div>
-<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160; </div>
-<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;}  <span class="comment">// namespace client</span></div>
-<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00100"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1OlpClient.html#a0a73bd888e9507e42d0a88a8e37fbb6c">  100</a></span>&#160;  const <a class="code" href="structolp_1_1client_1_1OlpClientSettings.html">OlpClientSettings</a>&amp; GetSettings() const;</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160; </div>
+<div class="line"><a name="l00121"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1OlpClient.html#a42bbea769f7a27f9727ce271102b4473">  121</a></span>&#160;  <a class="code" href="classolp_1_1client_1_1CancellationToken.html">CancellationToken</a> CallApi(const std::<span class="keywordtype">string</span>&amp; path, const std::<span class="keywordtype">string</span>&amp; method,</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;                            const <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a>&amp; query_params,</div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;                            const <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a>&amp; header_params,</div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;                            const <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a>&amp; form_params,</div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;                            const <a class="code" href="classolp_1_1client_1_1OlpClient.html#a859cddf8f5ccf4c47ae7cd20e12ab876">RequestBodyType</a>&amp; post_body,</div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;                            const std::<span class="keywordtype">string</span>&amp; content_type,</div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;                            const <a class="code" href="namespaceolp_1_1client.html#ada2eeb2b0e0ac4d50d42d51df6bc9e2b">NetworkAsyncCallback</a>&amp; callback) const;</div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160; </div>
+<div class="line"><a name="l00149"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1OlpClient.html#a1c186e74a78b16761f3f153f59b0c46b">  149</a></span>&#160;  <a class="code" href="classolp_1_1client_1_1HttpResponse.html">HttpResponse</a> CallApi(std::<span class="keywordtype">string</span> path, std::<span class="keywordtype">string</span> method,</div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;                       <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> query_params,</div>
+<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;                       <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> header_params, <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> form_params,</div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;                       <a class="code" href="classolp_1_1client_1_1OlpClient.html#a859cddf8f5ccf4c47ae7cd20e12ab876">RequestBodyType</a> post_body, std::<span class="keywordtype">string</span> content_type,</div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;                       <a class="code" href="classolp_1_1client_1_1CancellationContext.html">CancellationContext</a> context) const;</div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160; </div>
+<div class="line"><a name="l00174"></a><span class="lineno"><a class="line" href="classolp_1_1client_1_1OlpClient.html#a5046ff6c22e3350c25494655e43e6559">  174</a></span>&#160;  <a class="code" href="classolp_1_1client_1_1HttpResponse.html">HttpResponse</a> CallApiStream(std::<span class="keywordtype">string</span> path, std::<span class="keywordtype">string</span> method,</div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;                             <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> query_params,</div>
+<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;                             <a class="code" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> header_params,</div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;                             http::Network::DataCallback data_callback,</div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;                             <a class="code" href="classolp_1_1client_1_1OlpClient.html#a859cddf8f5ccf4c47ae7cd20e12ab876">RequestBodyType</a> post_body,</div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;                             std::<span class="keywordtype">string</span> content_type,</div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;                             <a class="code" href="classolp_1_1client_1_1CancellationContext.html">CancellationContext</a> context) const;</div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160; </div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160; private:</div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;  class OlpClientImpl;</div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;  std::shared_ptr&lt;OlpClientImpl&gt; impl_;</div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;};</div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160; </div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;}  <span class="comment">// namespace client</span></div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;}  <span class="comment">// namespace olp</span></div>
 <div class="ttc" id="aclassolp_1_1client_1_1CancellationContext_html"><div class="ttname"><a href="classolp_1_1client_1_1CancellationContext.html">olp::client::CancellationContext</a></div><div class="ttdoc">A wrapper that manages the cancellation state of an asynchronous operation in a thread-safe way.</div><div class="ttdef"><b>Definition:</b> CancellationContext.h:40</div></div>
 <div class="ttc" id="aclassolp_1_1client_1_1CancellationToken_html"><div class="ttname"><a href="classolp_1_1client_1_1CancellationToken.html">olp::client::CancellationToken</a></div><div class="ttdoc">Cancels service requests.</div><div class="ttdef"><b>Definition:</b> CancellationToken.h:33</div></div>
 <div class="ttc" id="aclassolp_1_1client_1_1HttpResponse_html"><div class="ttname"><a href="classolp_1_1client_1_1HttpResponse.html">olp::client::HttpResponse</a></div><div class="ttdoc">This class represents the HTTP response created from the NetworkResponse and the request body.</div><div class="ttdef"><b>Definition:</b> HttpResponse.h:89</div></div>

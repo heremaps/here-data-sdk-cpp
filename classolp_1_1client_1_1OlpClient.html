@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.20.1</span>
+   &#160;<span id="projectnumber">1.21.0</span>
    </div>
   </td>
  </tr>
@@ -121,9 +121,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a05421cde7911a8bc0a9eaaf2036873ae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1OlpClient.html#a05421cde7911a8bc0a9eaaf2036873ae">GetMutableDefaultHeaders</a> ()</td></tr>
 <tr class="memdesc:a05421cde7911a8bc0a9eaaf2036873ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the default headers that are added to each request.  <a href="classolp_1_1client_1_1OlpClient.html#a05421cde7911a8bc0a9eaaf2036873ae">More...</a><br /></td></tr>
 <tr class="separator:a05421cde7911a8bc0a9eaaf2036873ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6957f92bcad5cfc30e5d857eb228b293"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1OlpClient.html#a6957f92bcad5cfc30e5d857eb228b293">SetSettings</a> (const <a class="el" href="structolp_1_1client_1_1OlpClientSettings.html">OlpClientSettings</a> &amp;settings)</td></tr>
-<tr class="memdesc:a6957f92bcad5cfc30e5d857eb228b293"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the client settings.  <a href="classolp_1_1client_1_1OlpClient.html#a6957f92bcad5cfc30e5d857eb228b293">More...</a><br /></td></tr>
-<tr class="separator:a6957f92bcad5cfc30e5d857eb228b293"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a73bd888e9507e42d0a88a8e37fbb6c"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structolp_1_1client_1_1OlpClientSettings.html">OlpClientSettings</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1OlpClient.html#a0a73bd888e9507e42d0a88a8e37fbb6c">GetSettings</a> () const</td></tr>
+<tr class="memdesc:a0a73bd888e9507e42d0a88a8e37fbb6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Getter function to retrieve client settings.  <a href="classolp_1_1client_1_1OlpClient.html#a0a73bd888e9507e42d0a88a8e37fbb6c">More...</a><br /></td></tr>
+<tr class="separator:a0a73bd888e9507e42d0a88a8e37fbb6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a42bbea769f7a27f9727ce271102b4473"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1client_1_1CancellationToken.html">CancellationToken</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1OlpClient.html#a42bbea769f7a27f9727ce271102b4473">CallApi</a> (const std::string &amp;path, const std::string &amp;method, const <a class="el" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> &amp;query_params, const <a class="el" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> &amp;header_params, const <a class="el" href="classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247">ParametersType</a> &amp;form_params, const <a class="el" href="classolp_1_1client_1_1OlpClient.html#a859cddf8f5ccf4c47ae7cd20e12ab876">RequestBodyType</a> &amp;post_body, const std::string &amp;content_type, const <a class="el" href="namespaceolp_1_1client.html#ada2eeb2b0e0ac4d50d42d51df6bc9e2b">NetworkAsyncCallback</a> &amp;callback) const</td></tr>
 <tr class="memdesc:a42bbea769f7a27f9727ce271102b4473"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes the HTTP request through the network stack.  <a href="classolp_1_1client_1_1OlpClient.html#a42bbea769f7a27f9727ce271102b4473">More...</a><br /></td></tr>
 <tr class="separator:a42bbea769f7a27f9727ce271102b4473"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -456,6 +456,26 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a0a73bd888e9507e42d0a88a8e37fbb6c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a73bd888e9507e42d0a88a8e37fbb6c">&#9670;&nbsp;</a></span>GetSettings()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="structolp_1_1client_1_1OlpClientSettings.html">OlpClientSettings</a>&amp; olp::client::OlpClient::GetSettings </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Getter function to retrieve client settings. </p>
+<dl class="section return"><dt>Returns</dt><dd>The client settings </dd></dl>
+
+</div>
+</div>
 <a id="a39c229bcbd6a4a7b7b0bacb7da2d10dc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a39c229bcbd6a4a7b7b0bacb7da2d10dc">&#9670;&nbsp;</a></span>SetBaseUrl()</h2>
 
@@ -480,34 +500,6 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="a6957f92bcad5cfc30e5d857eb228b293"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6957f92bcad5cfc30e5d857eb228b293">&#9670;&nbsp;</a></span>SetSettings()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void olp::client::OlpClient::SetSettings </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="structolp_1_1client_1_1OlpClientSettings.html">OlpClientSettings</a> &amp;&#160;</td>
-          <td class="paramname"><em>settings</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Sets the client settings. </p>
-<dl class="section note"><dt>Note</dt><dd>Handle with care and do not change while requests are ongoing. Ideally the settings would not change during the lifecycle of this instance.</dd></dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">settings</td><td>The client settings.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000005">Deprecated:</a></b></dt><dd>This method will be removed by 05.2021. Please use the constructor instead. The settings should not change during the lifetime of the instance. </dd></dl>
 
 </div>
 </div>
