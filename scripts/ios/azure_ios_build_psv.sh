@@ -26,7 +26,7 @@ if [[ ${USE_LATEST_XCODE} == 0 ]]; then
   # Due to some bug which is cmake cannot detect compiler while called
   # from cmake itself when project is compiled with XCode 12.4 we must
   # switch to old XCode as a workaround.
-  sudo xcode-select -s /Applications/Xcode_13.1.app
+  sudo xcode-select -s /Applications/Xcode_14.3.app
 fi
 
 mkdir -p build && cd build
