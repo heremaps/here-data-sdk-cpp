@@ -21,7 +21,6 @@
 mkdir -p build
 cd build
 cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-    -DCMAKE_CXX_FLAGS="-Wno-deprecated-builtins -Wno-deprecated-declarations -Wno-deprecated-copy" \
     -DOLP_SDK_BUILD_EXAMPLES=ON \
     -DBUILD_SHARED_LIBS=ON \
     -DOLP_SDK_ENABLE_TESTING=NO \
