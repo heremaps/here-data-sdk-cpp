@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,8 @@ constexpr int kCancelledStatus =
 constexpr http::RequestId kRequestId = 1234u;
 constexpr auto kSleepFor = std::chrono::seconds(1);
 constexpr auto kWaitFor = std::chrono::seconds(5);
+constexpr uint64_t kBytesDownloaded = 568234u;
+constexpr uint64_t kBytesUploaded = 42342u;
 
 client::HttpResponse GetHttpResponse(ErrorCode error, std::string status) {
   return client::HttpResponse(static_cast<int>(error), status);
@@ -70,6 +72,12 @@ TEST(HttpResponseTest, Copy) {
     SCOPED_TRACE("Error response");
 
     auto response = GetHttpResponse(ErrorCode::CANCELLED_ERROR, kBadResponse);
+    response.SetNetworkStatistics({kBytesUploaded, kBytesDownloaded});
+    EXPECT_EQ(response.GetNetworkStatistics().GetBytesUploaded(),
+              kBytesUploaded);
+    EXPECT_EQ(response.GetNetworkStatistics().GetBytesDownloaded(),
+              kBytesDownloaded);
+
     auto copy_response = response;
 
     std::string status;
@@ -86,6 +94,10 @@ TEST(HttpResponseTest, Copy) {
               static_cast<int>(ErrorCode::CANCELLED_ERROR));
     EXPECT_EQ(copy_response.GetStatus(), response.GetStatus());
     EXPECT_EQ(status, copy_status);
+    EXPECT_EQ(copy_response.GetNetworkStatistics().GetBytesUploaded(),
+              kBytesUploaded);
+    EXPECT_EQ(copy_response.GetNetworkStatistics().GetBytesDownloaded(),
+              kBytesDownloaded);
   }
 
   {
@@ -94,6 +106,12 @@ TEST(HttpResponseTest, Copy) {
     http::Headers headers = {{"header1", "value1"}, {"header2", "value2"}};
     auto response =
         GetHttpResponse(http::HttpStatusCode::OK, kGoodResponse, headers);
+    response.SetNetworkStatistics({kBytesUploaded, kBytesDownloaded});
+    EXPECT_EQ(response.GetNetworkStatistics().GetBytesUploaded(),
+              kBytesUploaded);
+    EXPECT_EQ(response.GetNetworkStatistics().GetBytesDownloaded(),
+              kBytesDownloaded);
+
     auto copy_response = response;
 
     std::string status;
@@ -109,6 +127,43 @@ TEST(HttpResponseTest, Copy) {
     EXPECT_EQ(response.GetStatus(), http::HttpStatusCode::OK);
     EXPECT_EQ(copy_response.GetStatus(), response.GetStatus());
     EXPECT_EQ(status, copy_status);
+    EXPECT_EQ(copy_response.GetNetworkStatistics().GetBytesUploaded(),
+              kBytesUploaded);
+    EXPECT_EQ(copy_response.GetNetworkStatistics().GetBytesDownloaded(),
+              kBytesDownloaded);
+  }
+
+  {
+    SCOPED_TRACE("Copy assign");
+
+    auto response = GetHttpResponse(ErrorCode::CANCELLED_ERROR, kBadResponse);
+    response.SetNetworkStatistics({kBytesUploaded, kBytesDownloaded});
+    EXPECT_EQ(response.GetNetworkStatistics().GetBytesUploaded(),
+              kBytesUploaded);
+    EXPECT_EQ(response.GetNetworkStatistics().GetBytesDownloaded(),
+              kBytesDownloaded);
+
+    HttpResponse copy_response;
+    copy_response = response;
+
+    std::string status;
+    std::string copy_status;
+    response.GetResponse(status);
+    copy_response.GetResponse(copy_status);
+
+    EXPECT_FALSE(status.empty());
+    EXPECT_FALSE(copy_status.empty());
+    EXPECT_TRUE(response.GetHeaders().empty());
+    EXPECT_TRUE(copy_response.GetHeaders().empty());
+    EXPECT_EQ(kBadResponse, status);
+    EXPECT_EQ(response.GetStatus(),
+              static_cast<int>(ErrorCode::CANCELLED_ERROR));
+    EXPECT_EQ(copy_response.GetStatus(), response.GetStatus());
+    EXPECT_EQ(status, copy_status);
+    EXPECT_EQ(copy_response.GetNetworkStatistics().GetBytesUploaded(),
+              kBytesUploaded);
+    EXPECT_EQ(copy_response.GetNetworkStatistics().GetBytesDownloaded(),
+              kBytesDownloaded);
   }
 }
 

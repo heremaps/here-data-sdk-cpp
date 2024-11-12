@@ -132,7 +132,9 @@ class CORE_API HttpResponse {
    * @param other The instance of `HttpStatus` to copy from.
    */
   HttpResponse(const HttpResponse& other)
-      : status_(other.status_), headers_(other.headers_) {
+      : status_(other.status_),
+        headers_(other.headers_),
+        network_statistics_(other.network_statistics_) {
     response_ << other.response_.rdbuf();
     if (!response_.good()) {
       // Depending on the users handling of the stringstream it might be that
@@ -157,6 +159,7 @@ class CORE_API HttpResponse {
       response_ = std::stringstream{};
       response_ << other.response_.rdbuf();
       headers_ = other.headers_;
+      network_statistics_ = other.network_statistics_;
     }
 
     return *this;
