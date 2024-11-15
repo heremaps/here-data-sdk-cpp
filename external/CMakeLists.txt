@@ -52,7 +52,7 @@ set(OLP_SDK_CPP_RAPIDJSON_URL "https://github.com/Tencent/rapidjson.git")
 set(OLP_SDK_CPP_RAPIDJSON_TAG "master")
 
 set(OLP_SDK_CPP_BOOST_URL "https://github.com/boostorg/boost.git")
-set(OLP_SDK_CPP_BOOST_TAG "boost-1.72.0")
+set(OLP_SDK_CPP_BOOST_TAG "boost-1.82.0")
 
 set(OLP_SDK_CPP_LMDB_URL "https://github.com/LMDB/lmdb.git")
 set(OLP_SDK_CPP_LMDB_TAG "LMDB_0.9.29")
