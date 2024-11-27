@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022-2023 HERE Europe B.V.
+ * Copyright (C) 2022-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,10 +37,13 @@ namespace auth = olp::authentication;
 namespace client = olp::client;
 namespace http = olp::http;
 using testing::_;
+using testing::AllOf;
+using testing::Not;
 
 namespace {
 constexpr auto kKey = "key";
 constexpr auto kSecret = "secret";
+constexpr auto kScope = "scope";
 
 constexpr auto kTimestampUrl = "https://authentication.server.url/timestamp";
 constexpr auto kTokenEndpointUrl = "https://authentication.server.url";
@@ -251,6 +254,100 @@ TEST_F(TokenEndpointTest, RequestTokenUsingServerTime) {
   EXPECT_LT(token_result.GetExpiryTime(), now + kMaxExpiryTime);
   EXPECT_GE(token_result.GetExpiryTime(), now + kMinExpiryTime);
   EXPECT_EQ(token_result.GetAccessToken(), kResponseToken);
+}
+
+TEST_F(TokenEndpointTest, RequestTokenUsingNoScope) {
+  PrepareEndpoint(false);
+  ExpectTimestampRequest(*network_);
+
+  EXPECT_CALL(*network_, Send(AllOf(IsPostRequest(kRequestAuth),
+                                    Not(BodyContains("\"scope\":"))),
+                              _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kResponseValidJson));
+
+  client::CancellationContext context;
+  const auto token_response = endpoint_->RequestToken(context);
+
+  ASSERT_TRUE(token_response);
+  const auto& token_result = token_response.GetResult();
+  EXPECT_EQ(token_result.GetAccessToken(), kResponseToken);
+  EXPECT_FALSE(token_result.GetScope());
+}
+
+TEST_F(TokenEndpointTest, RequestTokenUsingScope) {
+  settings_.scope = kScope;
+  PrepareEndpoint(false);
+  ExpectTimestampRequest(*network_);
+
+  EXPECT_CALL(*network_, Send(AllOf(IsPostRequest(kRequestAuth),
+                                    BodyContains("\"scope\":\"scope\"")),
+                              _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kResponseWithScope));
+
+  client::CancellationContext context;
+  const auto token_response = endpoint_->RequestToken(context);
+
+  ASSERT_TRUE(token_response);
+  const auto& token_result = token_response.GetResult();
+  EXPECT_EQ(token_result.GetAccessToken(), kResponseToken);
+  EXPECT_EQ(token_result.GetScope().value_or("-"), kScope);
+}
+
+TEST_F(TokenEndpointTest, RequestTokenUsingNoScopeAsync) {
+  PrepareEndpoint(false);
+  ExpectTimestampRequest(*network_);
+
+  EXPECT_CALL(*network_, Send(AllOf(IsPostRequest(kRequestAuth),
+                                    Not(BodyContains("\"scope\":\"scope\""))),
+                              _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kResponseValidJson));
+
+  std::promise<auth::TokenResponse> token_promise;
+  auto token_future = token_promise.get_future();
+
+  endpoint_->RequestToken(auth::TokenRequest{},
+                          [&](auth::TokenResponse response) {
+                            token_promise.set_value(std::move(response));
+                          });
+
+  ASSERT_EQ(token_future.wait_for(kWaitTimeout), std::future_status::ready);
+  const auto token_response = token_future.get();
+
+  ASSERT_TRUE(token_response);
+  const auto& token_result = token_response.GetResult();
+  EXPECT_EQ(token_result.GetAccessToken(), kResponseToken);
+  EXPECT_FALSE(token_result.GetScope());
+}
+
+TEST_F(TokenEndpointTest, RequestTokenUsingScopeAsync) {
+  settings_.scope = kScope;
+  PrepareEndpoint(false);
+  ExpectTimestampRequest(*network_);
+
+  EXPECT_CALL(*network_, Send(AllOf(IsPostRequest(kRequestAuth),
+                                    BodyContains("\"scope\":\"scope\"")),
+                              _, _, _, _))
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kResponseWithScope));
+
+  std::promise<auth::TokenResponse> token_promise;
+  auto token_future = token_promise.get_future();
+
+  endpoint_->RequestToken(auth::TokenRequest{},
+                          [&](auth::TokenResponse response) {
+                            token_promise.set_value(std::move(response));
+                          });
+
+  ASSERT_EQ(token_future.wait_for(kWaitTimeout), std::future_status::ready);
+  const auto token_response = token_future.get();
+
+  ASSERT_TRUE(token_response);
+  const auto& token_result = token_response.GetResult();
+  EXPECT_EQ(token_result.GetAccessToken(), kResponseToken);
+  EXPECT_EQ(token_result.GetScope().value_or("-"), kScope);
 }
 
 TEST_F(TokenEndpointTest, TestInvalidResponses) {

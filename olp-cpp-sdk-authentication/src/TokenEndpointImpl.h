@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 HERE Europe B.V.
+ * Copyright (C) 2021-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@
  */
 
 #pragma once
+
+#include <boost/optional.hpp>
+#include <string>
 
 #include <olp/authentication/AuthenticationClient.h>
 #include <olp/authentication/AuthenticationCredentials.h>
@@ -87,6 +90,7 @@ class TokenEndpointImpl {
                                   client::CancellationContext& context) const;
 
   const AuthenticationCredentials credentials_;
+  const boost::optional<std::string> scope_;
   const AuthenticationSettings settings_;
   AuthenticationClient auth_client_;
 };
