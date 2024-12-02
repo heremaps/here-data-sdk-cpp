@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2023 HERE Europe B.V.
+ * Copyright (C) 2021-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@
 
 #include "TokenEndpointImpl.h"
 
+#include <memory>
 #include <thread>
+#include <utility>
 
 #include <olp/authentication/SignInResult.h>
 #include <olp/core/http/HttpStatusCode.h>
@@ -52,6 +54,7 @@ constexpr auto kGrantType = "grantType";
 constexpr auto kClientGrantType = "client_credentials";
 constexpr auto kLogTag = "TokenEndpointImpl";
 constexpr auto kErrorWrongTimestamp = 401204;
+constexpr auto kScope = "scope";
 
 std::string GetBasePath(const std::string& base_string) {
   // Remove /oauth2/token from url to make sure only the base url is used
@@ -125,7 +128,8 @@ std::string GenerateUid() {
 }
 
 client::OlpClient::RequestBodyType GenerateClientBody(
-    const TokenRequest& token_request) {
+    const TokenRequest& token_request,
+    const boost::optional<std::string>& scope) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();
@@ -138,6 +142,11 @@ client::OlpClient::RequestBodyType GenerateClientBody(
   if (expires_in > 0) {
     writer.Key(Constants::EXPIRES_IN);
     writer.Uint(expires_in);
+  }
+
+  if (scope) {
+    writer.Key(kScope);
+    writer.String(scope.get().c_str());
   }
 
   writer.EndObject();
@@ -177,6 +186,7 @@ TimeResponse GetTimeFromServer(client::CancellationContext& context,
 
 TokenEndpointImpl::TokenEndpointImpl(Settings settings)
     : credentials_(std::move(settings.credentials)),
+      scope_(std::move(settings.scope)),
       settings_(ConvertSettings(std::move(settings))),
       auth_client_(settings_) {}
 
@@ -184,6 +194,7 @@ client::CancellationToken TokenEndpointImpl::RequestToken(
     const TokenRequest& token_request, const RequestTokenCallback& callback) {
   AuthenticationClient::SignInProperties properties;
   properties.expires_in = token_request.GetExpiresIn();
+  properties.scope = scope_;
   return auth_client_.SignInClient(
       credentials_, properties,
       [callback](
@@ -200,8 +211,10 @@ client::CancellationToken TokenEndpointImpl::RequestToken(
           return;
         }
 
-        callback(TokenResult{sign_in_result.GetAccessToken(),
-                             sign_in_result.GetExpiresIn()});
+        callback(TokenResult{
+            sign_in_result.GetAccessToken(), sign_in_result.GetExpiresIn(),
+            sign_in_result.GetScope().empty() ? boost::optional<std::string>{}
+                                              : sign_in_result.GetScope()});
       });
 }
 
@@ -236,8 +249,10 @@ TokenResponse TokenEndpointImpl::RequestToken(
     return client::ApiError{sign_in_result.GetStatus(), std::move(message)};
   }
 
-  return TokenResult{sign_in_result.GetAccessToken(),
-                     sign_in_result.GetExpiresIn()};
+  return TokenResult{
+      sign_in_result.GetAccessToken(), sign_in_result.GetExpiresIn(),
+      sign_in_result.GetScope().empty() ? boost::optional<std::string>{}
+                                        : sign_in_result.GetScope()};
 }
 
 SignInResponse TokenEndpointImpl::SignInClient(
@@ -255,7 +270,7 @@ SignInResponse TokenEndpointImpl::SignInClient(
 
   RequestTimer timer = CreateRequestTimer(client, context);
 
-  const auto request_body = GenerateClientBody(token_request);
+  const auto request_body = GenerateClientBody(token_request, scope_);
 
   SignInResult response;
 

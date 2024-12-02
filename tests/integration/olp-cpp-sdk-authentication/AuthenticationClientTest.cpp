@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2022 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -410,7 +410,10 @@ TEST_F(AuthenticationClientTest, SignInClientUseWrongLocalTime) {
 TEST_F(AuthenticationClientTest, SignInClientScope) {
   ExpectTimestampRequest(*network_);
 
-  EXPECT_CALL(*network_, Send(IsPostRequest(kRequestAuth), _, _, _, _))
+  EXPECT_CALL(*network_,
+              Send(testing::AllOf(IsPostRequest(kRequestAuth),
+                                  BodyContains("\"scope\":\"scope\"")),
+                   _, _, _, _))
       .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
                                    kResponseWithScope));
 

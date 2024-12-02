@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,6 +91,13 @@ MATCHER_P(BodyEq, expected_body, "") {
              ? std::equal(expected_body_str.begin(), expected_body_str.end(),
                           arg.GetBody()->begin())
              : expected_body_str.empty();
+}
+
+MATCHER_P(BodyContains, expected_substring, "") {
+  const std::string sstr(expected_substring);
+  const auto& body = arg.GetBody();
+  return std::search(body->cbegin(), body->cend(), sstr.cbegin(),
+                     sstr.cend()) != body->cend();
 }
 
 MATCHER_P(HeadersContain, expected_header, "") {

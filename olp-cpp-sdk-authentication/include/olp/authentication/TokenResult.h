@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <boost/optional.hpp>
 #include <chrono>
 #include <ctime>
 #include <string>
@@ -43,16 +44,20 @@ class AUTHENTICATION_API TokenResult {
    * @param access_token The access token issued by the authorization server.
    * @param expiry_time The Epoch time when the token expires, or -1 if
    * the token is invalid.
+   * @param scope The scope assigned to the access token.
    */
-  TokenResult(std::string access_token, time_t expiry_time);
+  TokenResult(std::string access_token, time_t expiry_time,
+              boost::optional<std::string> scope);
 
   /**
    * @brief Creates the `TokenResult` instance.
    *
    * @param access_token The access token issued by the authorization server.
    * @param expires_in The expiry time of the access token.
+   * @param scop The scope assigned to the access token.
    */
-  TokenResult(std::string access_token, std::chrono::seconds expires_in);
+  TokenResult(std::string access_token, std::chrono::seconds expires_in,
+              boost::optional<std::string> scope);
   /**
    * @brief Creates the default `TokenResult` instance.
    */
@@ -81,10 +86,19 @@ class AUTHENTICATION_API TokenResult {
    */
   std::chrono::seconds GetExpiresIn() const;
 
+  /**
+   * @brief Gets the scope that is assigned to the access token.
+   *
+   * @return The optional string that contains the scope assigned to the access
+   * token.
+   */
+  const boost::optional<std::string>& GetScope() const;
+
  private:
   std::string access_token_;
   time_t expiry_time_{};
   std::chrono::seconds expires_in_{};
+  boost::optional<std::string> scope_;
 };
 
 }  // namespace authentication
