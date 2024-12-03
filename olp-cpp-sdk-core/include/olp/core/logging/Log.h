@@ -19,19 +19,18 @@
 
 #pragma once
 
+#include <cinttypes>
+#include <cstdlib>
+#include <sstream>
+#include <string>
+
 #include <olp/core/logging/Format.h>
 #include <olp/core/logging/Level.h>
 
 #include <olp/core/CoreApi.h>
 #include <olp/core/utils/WarningWorkarounds.h>
 
-#include <boost/none.hpp>
 #include <boost/optional.hpp>
-
-#include <cinttypes>
-#include <cstdlib>
-#include <sstream>
-#include <string>
 
 /**
  * @file
@@ -41,6 +40,15 @@
 /**
  * @brief Gets the current function signature for different compilers.
  */
+#ifdef LOGGING_DISABLE_LOCATION
+
+#define OLP_SDK_LOG_FUNCTION_SIGNATURE ""
+#define OLP_SDK_LOG_FILE ""
+#define OLP_SDK_LOG_LINE 0
+#define OLP_SDK_LOG_FUNCTION ""
+
+#else  // LOGGING_DISABLE_LOCATION
+
 #if __GNUC__ >= 3 || defined(__clang__)
 #define OLP_SDK_LOG_FUNCTION_SIGNATURE __PRETTY_FUNCTION__
 #elif defined(_MSC_VER)
@@ -48,6 +56,12 @@
 #else
 #define OLP_SDK_LOG_FUNCTION_SIGNATURE __FUNCTION__
 #endif
+
+#define OLP_SDK_LOG_FILE __FILE__
+#define OLP_SDK_LOG_LINE __LINE__
+#define OLP_SDK_LOG_FUNCTION __FUNCTION__
+
+#endif  // LOGGING_DISABLE_LOCATION
 
 /**
  * @brief Logs a message using C++ style streams.
@@ -59,14 +73,14 @@
  * @param tag The tag for the log component.
  * @param message The log message.
  */
-#define OLP_SDK_DO_LOG(level, tag, message)                             \
-  do {                                                                  \
-    std::ostringstream __strm;                                          \
-    __strm << message;                                                  \
-    ::olp::logging::Log::logMessage(level, tag, __strm.str(), __FILE__, \
-                                    __LINE__, __FUNCTION__,             \
-                                    OLP_SDK_LOG_FUNCTION_SIGNATURE);    \
-  }                                                                     \
+#define OLP_SDK_DO_LOG(level, tag, message)                           \
+  do {                                                                \
+    std::ostringstream __strm;                                        \
+    __strm << message;                                                \
+    ::olp::logging::Log::logMessage(                                  \
+        level, tag, __strm.str(), OLP_SDK_LOG_FILE, OLP_SDK_LOG_LINE, \
+        OLP_SDK_LOG_FUNCTION, OLP_SDK_LOG_FUNCTION_SIGNATURE);        \
+  }                                                                   \
   OLP_SDK_CORE_LOOP_ONCE()
 
 /**
@@ -153,13 +167,13 @@
  * @param level The log level.
  * @param tag The tag for the log component.
  */
-#define OLP_SDK_DO_LOG_F(level, tag, ...)                                      \
-  do {                                                                         \
-    std::string __message = ::olp::logging::format(__VA_ARGS__);               \
-    ::olp::logging::Log::logMessage(level, tag, __message, __FILE__, __LINE__, \
-                                    __FUNCTION__,                              \
-                                    OLP_SDK_LOG_FUNCTION_SIGNATURE);           \
-  }                                                                            \
+#define OLP_SDK_DO_LOG_F(level, tag, ...)                                    \
+  do {                                                                       \
+    std::string __message = ::olp::logging::format(__VA_ARGS__);             \
+    ::olp::logging::Log::logMessage(level, tag, __message, OLP_SDK_LOG_FILE, \
+                                    OLP_SDK_LOG_LINE, OLP_SDK_LOG_FUNCTION,  \
+                                    OLP_SDK_LOG_FUNCTION_SIGNATURE);         \
+  }                                                                          \
   OLP_SDK_CORE_LOOP_ONCE()
 
 /**
@@ -208,7 +222,8 @@
   OLP_SDK_LOG_CRITICAL_F(::olp::logging::Level::Error, tag, __VA_ARGS__)
 
 /**
- * @brief Logs a "Critical fatal error" message using the printf-style formatting.
+ * @brief Logs a "Critical fatal error" message using the printf-style
+ * formatting.
  *
  * `OLP_SDK_LOGGING_DISABLED` does not disable this functionality.
  * Additionally, it does not check to see if the tag is disabled.
@@ -219,8 +234,8 @@
   OLP_SDK_LOG_CRITICAL_F(::olp::logging::Level::Fatal, tag, __VA_ARGS__)
 
 /**
- * @brief Logs a "Critical fatal error" message using the printf-style formatting,
- * and then abort sthe program.
+ * @brief Logs a "Critical fatal error" message using the printf-style
+ * formatting, and then abort sthe program.
  *
  * @param tag The tag for the log component.
  */
@@ -480,7 +495,8 @@ class CORE_API Log {
    * @param tag The tag for the log component. If empty, it sets the
    * default level.
    *
-   * @return The log level for the tag or `core::None` if the log level is unset.
+   * @return The log level for the tag or `core::None` if the log level is
+   * unset.
    */
   static boost::optional<Level> getLevel(const std::string& tag);
 
@@ -540,13 +556,13 @@ class CORE_API Log {
    * @param file The file that generated the message.
    * @param line The line in the file where the message was logged.
    * @param function The function that generated the message.
-   * @param fullFunction The fully qualified function that generated the message.
+   * @param fullFunction The fully qualified function that generated the
+   * message.
    */
   static void logMessage(Level level, const std::string& tag,
                          const std::string& message, const char* file,
                          unsigned int line, const char* function,
                          const char* fullFunction);
 };
-
 }  // namespace logging
 }  // namespace olp
