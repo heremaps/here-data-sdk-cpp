@@ -491,7 +491,7 @@ client::CancellationToken VersionedLayerClientImpl::PrefetchTiles(
             return;
           }
 
-          OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles: subquads=%zu, key=%s",
+          OLP_SDK_LOG_TRACE_F(kLogTag, "PrefetchTiles: subquads=%zu, key=%s",
                               sliced_tiles.size(), key.c_str());
 
           const bool aggregation_enabled = request.GetDataAggregationEnabled();

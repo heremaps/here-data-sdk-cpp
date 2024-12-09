@@ -74,7 +74,7 @@ client::ApiNoResponse PartitionsCacheRepository::Put(
   for (const auto& partition : partitions_list) {
     const auto key = cache::KeyGenerator::CreatePartitionKey(
         catalog_, layer_id_, partition.GetPartition(), version);
-    OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
+    OLP_SDK_LOG_TRACE_F(kLogTag, "Put -> '%s'", key.c_str());
 
     const auto put_result =
         cache_->Write(key, serializer::serialize_bytes(partition),
@@ -93,7 +93,7 @@ client::ApiNoResponse PartitionsCacheRepository::Put(
   if (layer_metadata) {
     const auto key =
         cache::KeyGenerator::CreatePartitionsKey(catalog_, layer_id_, version);
-    OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
+    OLP_SDK_LOG_TRACE_F(kLogTag, "Put -> '%s'", key.c_str());
 
     const auto put_result =
         cache_->Write(key, serializer::serialize_bytes(partition_ids),
@@ -118,7 +118,7 @@ model::Partitions PartitionsCacheRepository::Get(
   for (const auto& partition_id : partition_ids) {
     const auto key = cache::KeyGenerator::CreatePartitionKey(
         catalog_, layer_id_, partition_id, version);
-    OLP_SDK_LOG_DEBUG_F(kLogTag, "Get '%s'", key.c_str());
+    OLP_SDK_LOG_TRACE_F(kLogTag, "Get '%s'", key.c_str());
 
     auto read_response = cache_->Read(key);
     if (read_response) {
@@ -166,7 +166,7 @@ bool PartitionsCacheRepository::Put(
     int64_t catalog_version, const model::LayerVersions& layer_versions) {
   const auto key =
       cache::KeyGenerator::CreateLayerVersionsKey(catalog_, catalog_version);
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Put -> '%s'", key.c_str());
 
   return cache_->Put(key, layer_versions,
                      [&]() { return serializer::serialize(layer_versions); },
@@ -177,7 +177,7 @@ boost::optional<model::LayerVersions> PartitionsCacheRepository::Get(
     int64_t catalog_version) {
   const auto key =
       cache::KeyGenerator::CreateLayerVersionsKey(catalog_, catalog_version);
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Get -> '%s'", key.c_str());
 
   auto cached_layer_versions =
       cache_->Get(key, [](const std::string& serialized_object) {
@@ -204,7 +204,7 @@ client::ApiNoResponse PartitionsCacheRepository::Put(
     return {client::ApiNoResult{}};
   }
 
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Put -> '%s'", key.c_str());
 
   auto write_response =
       cache_->Write(key, quad_tree.GetRawData(), default_expiry_);
@@ -221,7 +221,7 @@ bool PartitionsCacheRepository::Get(geo::TileKey tile_key, int32_t depth,
                                     QuadTreeIndex& tree) {
   const auto key = cache::KeyGenerator::CreateQuadTreeKey(
       catalog_, layer_id_, tile_key, version, depth);
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Get -> '%s'", key.c_str());
 
   auto read_response = cache_->Read(key);
   if (read_response) {
@@ -263,7 +263,7 @@ client::ApiNoResponse PartitionsCacheRepository::ClearQuadTree(
     const boost::optional<int64_t>& version) {
   const auto key = cache::KeyGenerator::CreateQuadTreeKey(
       catalog_, layer_id_, tile_key, version, depth);
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "ClearQuadTree -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "ClearQuadTree -> '%s'", key.c_str());
 
   return cache_->DeleteByPrefix(key);
 }
@@ -292,7 +292,7 @@ bool PartitionsCacheRepository::GetPartitionHandle(
     const boost::optional<int64_t>& catalog_version, std::string& data_handle) {
   const auto key = cache::KeyGenerator::CreatePartitionKey(
       catalog_, layer_id_, partition_id, catalog_version);
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "IsPartitionCached -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "IsPartitionCached -> '%s'", key.c_str());
 
   auto read_response = cache_->Read(key);
   if (!read_response) {
@@ -311,7 +311,7 @@ bool PartitionsCacheRepository::FindQuadTree(geo::TileKey key,
     const auto& root_tile_key = key.ChangedLevelBy(-i);
     QuadTreeIndex cached_tree;
     if (Get(root_tile_key, kMaxQuadTreeIndexDepth, version, cached_tree)) {
-      OLP_SDK_LOG_DEBUG_F(kLogTag,
+      OLP_SDK_LOG_TRACE_F(kLogTag,
                           "FindQuadTree found in cache, tile='%s', "
                           "root='%s', depth='%" PRId32 "'",
                           key.ToHereTile().c_str(),

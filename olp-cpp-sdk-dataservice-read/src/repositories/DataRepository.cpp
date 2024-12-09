@@ -170,7 +170,7 @@ BlobApi::DataResponse DataRepository::GetBlobData(
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_data = repository.Get(layer, data_handle);
     if (cached_data) {
-      OLP_SDK_LOG_DEBUG_F(
+      OLP_SDK_LOG_TRACE_F(
           kLogTag, "GetBlobData found in cache, hrn='%s', key='%s'",
           catalog_.ToCatalogHRNString().c_str(), data_handle.c_str());
       return cached_data.value();
