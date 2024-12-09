@@ -74,7 +74,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
   if (options != OnlineOnly && options != CacheWithUpdate) {
     auto url = repository.Get(service, service_version);
     if (url) {
-      OLP_SDK_LOG_DEBUG_F(kLogTag, "LookupApi(%s/%s) found in cache, hrn='%s'",
+      OLP_SDK_LOG_TRACE_F(kLogTag, "LookupApi(%s/%s) found in cache, hrn='%s'",
                           service.c_str(), service_version.c_str(),
                           hrn.c_str());
       client::OlpClient client(settings, *url);
@@ -132,7 +132,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApi(
 
   const auto& service_url = it->GetBaseUrl();
 
-  OLP_SDK_LOG_DEBUG_F(kLogTag,
+  OLP_SDK_LOG_TRACE_F(kLogTag,
                       "LookupApi(%s/%s) found, hrn='%s', service_url='%s'",
                       service.c_str(), service_version.c_str(), hrn.c_str(),
                       service_url.c_str());

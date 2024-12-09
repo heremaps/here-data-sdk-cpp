@@ -250,12 +250,12 @@ PartitionsRepository::GetPartitionsExtendedResponse(
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_partitions = cache_.Get(request, version);
     if (cached_partitions) {
-      OLP_SDK_LOG_DEBUG_F(kLogTag,
+      OLP_SDK_LOG_TRACE_F(kLogTag,
                           "GetPartitions found in cache, hrn='%s', key='%s'",
                           catalog_str.c_str(), key.c_str());
       return cached_partitions.get();
     } else if (fetch_option == CacheOnly) {
-      OLP_SDK_LOG_DEBUG_F(
+      OLP_SDK_LOG_TRACE_F(
           kLogTag, "GetPartitions not found in cache, hrn='%s', key='%s'",
           catalog_str.c_str(), key.c_str());
       return client::ApiError::NotFound(
@@ -300,7 +300,7 @@ PartitionsRepository::GetPartitionsExtendedResponse(
   // Save all partitions only when downloaded via metadata API
   const bool is_layer_metadata = partition_ids.empty();
   if (response.IsSuccessful() && fetch_option != OnlineOnly) {
-    OLP_SDK_LOG_DEBUG_F(kLogTag,
+    OLP_SDK_LOG_TRACE_F(kLogTag,
                         "GetPartitions put to cache, hrn='%s', key='%s'",
                         catalog_str.c_str(), key.c_str());
     const auto put_result =
@@ -354,12 +354,12 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
   if (fetch_option != OnlineOnly && fetch_option != CacheWithUpdate) {
     auto cached_partitions = cache_.Get(partitions, version);
     if (cached_partitions.GetPartitions().size() == partitions.size()) {
-      OLP_SDK_LOG_DEBUG_F(kLogTag,
+      OLP_SDK_LOG_TRACE_F(kLogTag,
                           "GetPartitionById found in cache, hrn='%s', key='%s'",
                           catalog_.ToCatalogHRNString().c_str(), key.c_str());
       return cached_partitions;
     } else if (fetch_option == CacheOnly) {
-      OLP_SDK_LOG_DEBUG_F(
+      OLP_SDK_LOG_TRACE_F(
           kLogTag, "GetPartitionById not found in cache, hrn='%s', key='%s'",
           catalog_.ToCatalogHRNString().c_str(), key.c_str());
       return client::ApiError::NotFound(
@@ -381,7 +381,7 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
                                   request.GetBillingTag(), context);
 
   if (query_response.IsSuccessful() && fetch_option != OnlineOnly) {
-    OLP_SDK_LOG_DEBUG_F(kLogTag,
+    OLP_SDK_LOG_TRACE_F(kLogTag,
                         "GetPartitionById put to cache, hrn='%s', key='%s'",
                         catalog_.ToCatalogHRNString().c_str(), key.c_str());
     const auto put_result =
@@ -458,7 +458,7 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
     QuadTreeIndex cached_tree;
     if (cache_.FindQuadTree(tile_key, version, cached_tree)) {
       if (CheckAdditionalFields(required_fields, cached_tree)) {
-        OLP_SDK_LOG_DEBUG_F(kLogTag,
+        OLP_SDK_LOG_TRACE_F(kLogTag,
                             "GetQuadTreeIndexForTile found in cache, "
                             "tile='%s', depth='%" PRId32 "'",
                             tile_key.ToHereTile().c_str(),
@@ -474,7 +474,7 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
             tile_key.ToHereTile().c_str(), kAggregateQuadTreeDepth);
       }
     } else if (fetch_option == CacheOnly) {
-      OLP_SDK_LOG_DEBUG_F(
+      OLP_SDK_LOG_TRACE_F(
           kLogTag, "GetQuadTreeIndexForTile not found in cache, tile='%s'",
           tile_key.ToHereTile().c_str());
       return client::ApiError::NotFound(

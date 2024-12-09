@@ -152,7 +152,7 @@ RootTilesForRequest PrefetchTilesRepository::GetSlicedTiles(
       }
     }
 
-    OLP_SDK_LOG_DEBUG_F(
+    OLP_SDK_LOG_TRACE_F(
         kLogTag, "GetSlicedTiles for tile %s use min='%d', max='%d' levels",
         tile_key.ToHereTile().c_str(), min_level, max_level);
 
@@ -236,7 +236,7 @@ SubQuadsResponse PrefetchTilesRepository::GetVersionedSubQuads(
   std::lock_guard<NamedMutex> lock(mutex);
 
   if (cache_repository_.Get(tile, depth, version, quad_tree)) {
-    OLP_SDK_LOG_DEBUG_F(kLogTag,
+    OLP_SDK_LOG_TRACE_F(kLogTag,
                         "GetSubQuads found in cache, tile='%s', "
                         "depth='%" PRId32 "'",
                         tile.ToHereTile().c_str(), depth);
@@ -291,7 +291,7 @@ SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
   const auto& subquads = quad_tree.GetResult().GetSubQuads();
   partitions.GetMutablePartitions().reserve(subquads.size());
 
-  OLP_SDK_LOG_DEBUG_F(
+  OLP_SDK_LOG_TRACE_F(
       kLogTag, "GetSubQuad finished, key=%s, size=%zu, depth=%" PRId32 ")",
       tile_key.c_str(), subquads.size(), depth);
 
@@ -446,7 +446,7 @@ PrefetchTilesRepository::DownloadVersionedQuadTree(
 
   auto tile_key = tile.ToHereTile();
 
-  OLP_SDK_LOG_DEBUG_F(kLogTag,
+  OLP_SDK_LOG_TRACE_F(kLogTag,
                       "GetSubQuads execute(%s, %" PRId64 ", %" PRId32 ")",
                       tile_key.c_str(), version, depth);
 

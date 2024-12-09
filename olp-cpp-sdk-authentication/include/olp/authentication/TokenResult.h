@@ -54,7 +54,7 @@ class AUTHENTICATION_API TokenResult {
    *
    * @param access_token The access token issued by the authorization server.
    * @param expires_in The expiry time of the access token.
-   * @param scop The scope assigned to the access token.
+   * @param scope The scope assigned to the access token.
    */
   TokenResult(std::string access_token, std::chrono::seconds expires_in,
               boost::optional<std::string> scope);

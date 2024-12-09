@@ -52,7 +52,7 @@ client::ApiNoResponse DataCacheRepository::Put(const model::Data& data,
                                                const std::string& data_handle) {
   const auto key =
       cache::KeyGenerator::CreateDataHandleKey(hrn_, layer_id, data_handle);
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Put -> '%s'", key.c_str());
 
   auto write_result = cache_->Write(key, data, default_expiry_);
   if (!write_result) {
@@ -67,7 +67,7 @@ boost::optional<model::Data> DataCacheRepository::Get(
     const std::string& layer_id, const std::string& data_handle) {
   const auto key =
       cache::KeyGenerator::CreateDataHandleKey(hrn_, layer_id, data_handle);
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "Get '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Get '%s'", key.c_str());
 
   auto cached_data = cache_->Get(key);
   if (!cached_data) {
@@ -87,7 +87,7 @@ client::ApiNoResponse DataCacheRepository::Clear(
     const std::string& layer_id, const std::string& data_handle) {
   const auto key =
       cache::KeyGenerator::CreateDataHandleKey(hrn_, layer_id, data_handle);
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "Clear -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Clear -> '%s'", key.c_str());
   return cache_->DeleteByPrefix(key);
 }
 void DataCacheRepository::PromoteInCache(const std::string& layer_id,

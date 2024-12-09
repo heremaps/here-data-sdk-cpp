@@ -199,7 +199,7 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
           return;
         }
 
-        OLP_SDK_LOG_INFO_F(kLogTag, "PrefetchTiles: using key=%s", key.c_str());
+        OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles: using key=%s", key.c_str());
 
         // Calculate the minimal set of Tile keys and depth to
         // cover tree.
@@ -229,7 +229,7 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
           return;
         }
 
-        OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles, subquads=%zu, key=%s",
+        OLP_SDK_LOG_TRACE_F(kLogTag, "PrefetchTiles, subquads=%zu, key=%s",
                             sliced_tiles.size(), key.c_str());
 
         auto query = [=](geo::TileKey root,
