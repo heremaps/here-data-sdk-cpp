@@ -4,7 +4,7 @@ HERE Data SDK for C++ is a C++ client for the <a href="https://platform.here.com
 
 ## Use the SDK
 
-To learn how to install and use the Data SDK, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/GettingStartedGuide.md" target="_blank">Getting Started Guide</a> and <a href="https://www.here.com/docs/bundle/data-sdk-for-cpp-developer-guide/page/README.html" target="blank">Developer Guide</a>.
+To learn how to install and use the Data SDK, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/get-started.md" target="_blank">Getting Started Guide</a> and <a href="https://www.here.com/docs/bundle/data-sdk-for-cpp-developer-guide/page/README.html" target="blank">Developer Guide</a>.
 
 ## Health check
 
