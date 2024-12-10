@@ -65,7 +65,7 @@ CatalogResponse CatalogRepository::GetCatalog(
   if (fetch_options != OnlineOnly && fetch_options != CacheWithUpdate) {
     auto cached = repository.Get();
     if (cached) {
-      OLP_SDK_LOG_DEBUG_F(kLogTag,
+      OLP_SDK_LOG_TRACE_F(kLogTag,
                           "GetCatalog found in cache, hrn='%s', key='%s'",
                           catalog_str.c_str(), request_key.c_str());
 

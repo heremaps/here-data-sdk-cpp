@@ -549,10 +549,10 @@ uint64_t DefaultCacheImpl::MaybeEvictData() {
     call_evict_method(std::mem_fn(&DefaultCacheImpl::EvictDataPortion));
   }
 
-  OLP_SDK_LOG_INFO_F(kLogTag,
-                     "Evicted from mutable cache, items=%" PRId32
-                     ", time=%" PRId64 "us, size=%" PRIu64,
-                     count, GetElapsedTime(start), evicted);
+  OLP_SDK_LOG_DEBUG_F(kLogTag,
+                      "Evicted from mutable cache, items=%" PRId32
+                      ", time=%" PRId64 "us, size=%" PRIu64,
+                      count, GetElapsedTime(start), evicted);
 
   return evicted;
 }
@@ -594,10 +594,11 @@ DefaultCacheImpl::EvictionResult DefaultCacheImpl::EvictExpiredDataPortion(
     it = mutable_cache_lru_->Erase(it);
   }
 
-  OLP_SDK_LOG_DEBUG_F(kLogTag,
+  OLP_SDK_LOG_TRACE_F(kLogTag,
                       "EvictExpiredDataPortion(): Evicted successfully, "
                       "count=%d, evicted=%" PRIu64,
                       count, evicted);
+
   return {count, evicted};
 }
 
@@ -633,10 +634,11 @@ DefaultCacheImpl::EvictionResult DefaultCacheImpl::EvictDataPortion(
     it = mutable_cache_lru_->rbegin();
   }
 
-  OLP_SDK_LOG_DEBUG_F(
+  OLP_SDK_LOG_TRACE_F(
       kLogTag,
       "EvictDataPortion(): Evicted successfully, count=%u, evicted=%" PRIu64,
       count, evicted);
+
   return {count, evicted};
 }
 
@@ -942,12 +944,13 @@ bool DefaultCacheImpl::Protect(const DefaultCache::KeyListType& keys) {
     memory_cache_->Clear();
   }
 
-  OLP_SDK_LOG_INFO_F(kLogTag,
-                     "Protect, time=%" PRId64 "us, added keys size=%" PRIu64
-                     ", total size=%" PRIu64,
-                     GetElapsedTime(start),
-                     static_cast<std::uint64_t>(keys.size()),
-                     protected_keys_.Count());
+  OLP_SDK_LOG_DEBUG_F(kLogTag,
+                      "Protect, time=%" PRId64 "us, added keys size=%" PRIu64
+                      ", total size=%" PRIu64,
+                      GetElapsedTime(start),
+                      static_cast<std::uint64_t>(keys.size()),
+                      protected_keys_.Count());
+
   return result;
 }
 
@@ -988,12 +991,13 @@ bool DefaultCacheImpl::Release(const DefaultCache::KeyListType& keys) {
     }
   }
 
-  OLP_SDK_LOG_INFO_F(kLogTag,
-                     "Release, time=%" PRId64 "us, released keys size=%" PRIu64
-                     ", total size=%" PRIu64,
-                     GetElapsedTime(start),
-                     static_cast<std::uint64_t>(keys.size()),
-                     protected_keys_.Count());
+  OLP_SDK_LOG_DEBUG_F(kLogTag,
+                      "Release, time=%" PRId64 "us, released keys size=%" PRIu64
+                      ", total size=%" PRIu64,
+                      GetElapsedTime(start),
+                      static_cast<std::uint64_t>(keys.size()),
+                      protected_keys_.Count());
+
   return result;
 }
 

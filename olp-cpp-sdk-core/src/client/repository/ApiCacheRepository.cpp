@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2024 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ void ApiCacheRepository::Put(const std::string& service,
                              const std::string& version, const std::string& url,
                              boost::optional<time_t> expiry) {
   const auto key = cache::KeyGenerator::CreateApiKey(hrn_, service, version);
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Put -> '%s'", key.c_str());
 
   cache_->Put(key, url, [&]() { return url; },
               expiry.get_value_or(kLookupApiExpiryTime));
@@ -48,7 +48,7 @@ void ApiCacheRepository::Put(const std::string& service,
 boost::optional<std::string> ApiCacheRepository::Get(
     const std::string& service, const std::string& version) {
   const auto key = cache::KeyGenerator::CreateApiKey(hrn_, service, version);
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Get -> '%s'", key.c_str());
 
   auto url = cache_->Get(key, [](const std::string& value) { return value; });
   if (url.empty()) {

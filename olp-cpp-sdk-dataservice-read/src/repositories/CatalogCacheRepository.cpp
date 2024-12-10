@@ -57,7 +57,7 @@ CatalogCacheRepository::CatalogCacheRepository(
 bool CatalogCacheRepository::Put(const model::Catalog& catalog) {
   const std::string hrn(hrn_.ToCatalogHRNString());
   const auto key = cache::KeyGenerator::CreateCatalogKey(hrn);
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "Put -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Put -> '%s'", key.c_str());
 
   return cache_->Put(key, catalog,
                      [&]() { return olp::serializer::serialize(catalog); },
@@ -67,7 +67,7 @@ bool CatalogCacheRepository::Put(const model::Catalog& catalog) {
 boost::optional<model::Catalog> CatalogCacheRepository::Get() {
   const std::string hrn(hrn_.ToCatalogHRNString());
   const auto key = cache::KeyGenerator::CreateCatalogKey(hrn);
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "Get -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Get -> '%s'", key.c_str());
 
   auto cached_catalog = cache_->Get(key, [](const std::string& value) {
     return parser::parse<model::Catalog>(value);
@@ -83,7 +83,7 @@ boost::optional<model::Catalog> CatalogCacheRepository::Get() {
 bool CatalogCacheRepository::PutVersion(const model::VersionResponse& version) {
   const std::string hrn(hrn_.ToCatalogHRNString());
   const auto key = cache::KeyGenerator::CreateLatestVersionKey(hrn);
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "PutVersion -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "PutVersion -> '%s'", key.c_str());
 
   return cache_->Put(key, version,
                      [&]() { return olp::serializer::serialize(version); },
@@ -93,7 +93,7 @@ bool CatalogCacheRepository::PutVersion(const model::VersionResponse& version) {
 boost::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
   const std::string hrn(hrn_.ToCatalogHRNString());
   const auto key = cache::KeyGenerator::CreateLatestVersionKey(hrn);
-  OLP_SDK_LOG_DEBUG_F(kLogTag, "GetVersion -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "GetVersion -> '%s'", key.c_str());
 
   auto cached_version = cache_->Get(key, [](const std::string& value) {
     return parser::parse<model::VersionResponse>(value);
