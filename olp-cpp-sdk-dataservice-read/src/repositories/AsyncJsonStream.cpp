@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 HERE Europe B.V.
+ * Copyright (C) 2023-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,26 +19,27 @@
 
 #include "AsyncJsonStream.h"
 
-#include <cstring>
-
 namespace olp {
 namespace dataservice {
 namespace read {
 namespace repository {
 
-RapidJsonByteStream::Ch RapidJsonByteStream::Peek() const {
-  std::unique_lock<std::mutex> lock(mutex_);
-  cv_.wait(lock, [=]() { return !Empty(); });
-  return buffer_[count_];
+RapidJsonByteStream::Ch RapidJsonByteStream::Peek() {
+  if (ReadEmpty()) {
+    SwapBuffers();
+  }
+  return read_buffer_[count_];
 }
 
 RapidJsonByteStream::Ch RapidJsonByteStream::Take() {
-  std::unique_lock<std::mutex> lock(mutex_);
-  cv_.wait(lock, [=]() { return !Empty(); });
-  return buffer_[count_++];
+  if (ReadEmpty()) {
+    SwapBuffers();
+  }
+  full_count_++;
+  return read_buffer_[count_++];
 }
 
-size_t RapidJsonByteStream::Tell() const { return count_; }
+size_t RapidJsonByteStream::Tell() const { return full_count_; }
 
 // Not implemented
 char* RapidJsonByteStream::PutBegin() { return 0; }
@@ -46,22 +47,27 @@ void RapidJsonByteStream::Put(char) {}
 void RapidJsonByteStream::Flush() {}
 size_t RapidJsonByteStream::PutEnd(char*) { return 0; }
 
-bool RapidJsonByteStream::Empty() const { return count_ == buffer_.size(); }
+bool RapidJsonByteStream::ReadEmpty() const {
+  return count_ == read_buffer_.size();
+}
+bool RapidJsonByteStream::WriteEmpty() const { return write_buffer_.empty(); }
 
 void RapidJsonByteStream::AppendContent(const char* content, size_t length) {
   std::unique_lock<std::mutex> lock(mutex_);
 
-  if (Empty()) {
-    buffer_.resize(length);
-    std::memcpy(buffer_.data(), content, length);
-    count_ = 0;
-  } else {
-    const auto buffer_size = buffer_.size();
-    buffer_.resize(buffer_size + length);
-    std::memcpy(buffer_.data() + buffer_size, content, length);
-  }
+  const auto buffer_size = write_buffer_.size();
+  write_buffer_.reserve(buffer_size + length);
+  write_buffer_.insert(write_buffer_.end(), content, content + length);
 
   cv_.notify_one();
+}
+
+void RapidJsonByteStream::SwapBuffers() {
+  std::unique_lock<std::mutex> lock(mutex_);
+  cv_.wait(lock, [&]() { return !WriteEmpty(); });
+  std::swap(read_buffer_, write_buffer_);
+  write_buffer_.clear();
+  count_ = 0;
 }
 
 AsyncJsonStream::AsyncJsonStream()
@@ -97,7 +103,7 @@ void AsyncJsonStream::CloseStream(boost::optional<client::ApiError> error) {
     return;
   }
   current_stream_->AppendContent("\0", 1);
-  error_ = error;
+  error_ = std::move(error);
   closed_ = true;
 }
 
