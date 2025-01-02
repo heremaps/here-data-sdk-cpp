@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -619,7 +619,10 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
     return;
   }
 
-  RequestData* handle = reinterpret_cast<RequestData*>(context);
+  auto* handle = reinterpret_cast<RequestData*>(context);
+
+  logging::ScopedLogContext scope(handle->log_context);
+
   if (!handle->connection_data || !handle->result_data) {
     OLP_SDK_LOG_WARNING(kLogTag, "RequestCallback to inactive handle, id="
                                      << handle->request_id);
@@ -632,8 +635,7 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
 
   if (status == WINHTTP_CALLBACK_STATUS_REQUEST_ERROR) {
     // Error has occurred
-    WINHTTP_ASYNC_RESULT* result =
-        reinterpret_cast<WINHTTP_ASYNC_RESULT*>(status_info);
+    auto* result = reinterpret_cast<WINHTTP_ASYNC_RESULT*>(status_info);
     request_result.status = result->dwError;
     request_result.error = true;
 
@@ -1013,14 +1015,16 @@ NetworkWinHttp::RequestData* NetworkWinHttp::GetHandle(
     std::shared_ptr<std::ostream> payload, const NetworkRequest& request) {
   std::unique_lock<std::recursive_mutex> lock_guard(mutex_);
 
-  auto it =
-      std::find_if(http_requests_.begin(), http_requests_.end(),
-                   [&](const RequestData& request) { return !request.in_use; });
-  if (it != http_requests_.end()) {
-    *it = std::move(RequestData(this, id, connection, callback, header_callback,
-                                data_callback, payload, request));
-    it->in_use = true;
-    return &(*it);
+  auto request_data_it = std::find_if(
+      http_requests_.begin(), http_requests_.end(),
+      [&](const RequestData& request_data) { return !request_data.in_use; });
+  if (request_data_it != http_requests_.end()) {
+    *request_data_it =
+        RequestData(this, id, std::move(connection), std::move(callback),
+                    std::move(header_callback), std::move(data_callback),
+                    std::move(payload), request, logging::GetContext());
+    request_data_it->in_use = true;
+    return &(*request_data_it);
   }
   return nullptr;
 }
@@ -1073,23 +1077,26 @@ NetworkWinHttp::RequestData::RequestData(
     NetworkWinHttp* self, RequestId id,
     std::shared_ptr<ConnectionData> connection, Callback callback,
     HeaderCallback header_callback, DataCallback data_callback,
-    std::shared_ptr<std::ostream> payload, const NetworkRequest& request)
+    std::shared_ptr<std::ostream> payload, const NetworkRequest& request,
+    std::shared_ptr<const logging::LogContext> context)
     : self(self),
       connection_data(std::move(connection)),
-      result_data(new ResultData(id, callback, std::move(payload))),
+      result_data(std::make_shared<ResultData>(id, std::move(callback),
+                                               std::move(payload))),
       body(request.GetBody()),
       header_callback(std::move(header_callback)),
       data_callback(std::move(data_callback)),
-      http_request(NULL),
+      http_request(nullptr),
       request_id(id),
       ignore_data(request.GetVerb() == NetworkRequest::HttpVerb::HEAD),
       no_compression(false),
       uncompress(false),
-      in_use(false) {}
+      in_use(false),
+      log_context(std::move(context)) {}
 
 NetworkWinHttp::RequestData::RequestData()
     : self(nullptr),
-      http_request(NULL),
+      http_request(nullptr),
       request_id(static_cast<RequestId>(RequestIdConstants::RequestIdInvalid)),
       ignore_data(),
       no_compression(false),
@@ -1099,7 +1106,7 @@ NetworkWinHttp::RequestData::RequestData()
 NetworkWinHttp::RequestData::~RequestData() {
   if (http_request) {
     WinHttpCloseHandle(http_request);
-    http_request = NULL;
+    http_request = nullptr;
   }
 }
 

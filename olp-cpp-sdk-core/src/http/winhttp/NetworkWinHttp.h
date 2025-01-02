@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@
 #ifdef NETWORK_HAS_ZLIB
 #include <zlib.h>
 #endif
+
+#include <olp/core/logging/LogContext.h>
 
 #include <atomic>
 #include <memory>
@@ -95,7 +97,8 @@ class NetworkWinHttp : public Network {
                 std::shared_ptr<ConnectionData> connection, Callback callback,
                 HeaderCallback header_callback, DataCallback data_callback,
                 std::shared_ptr<std::ostream> payload,
-                const NetworkRequest& request);
+                const NetworkRequest& request,
+                std::shared_ptr<const logging::LogContext> context);
     ~RequestData();
     void Complete();
     void FreeHandle();
@@ -115,6 +118,7 @@ class NetworkWinHttp : public Network {
     bool no_compression;
     bool uncompress;
     bool in_use;
+    std::shared_ptr<const logging::LogContext> log_context;
 #ifdef NETWORK_HAS_ZLIB
     z_stream strm;
 #endif
@@ -151,4 +155,3 @@ class NetworkWinHttp : public Network {
 
 }  // namespace http
 }  // namespace olp
-
