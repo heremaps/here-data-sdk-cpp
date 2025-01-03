@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 HERE Europe B.V.
+ * Copyright (C) 2023-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,11 +79,13 @@ bool PartitionsSaxHandler::String(const char* str, unsigned int length, bool) {
     case State::kParsingIgnoreAttribute:
       break;
 
-    case State::kWaitForRootObject:     // Not expected
-    case State::kWaitForNextPartition:  // Not expected
-    case State::kWaitForRootObjectEnd:  // Not expected
-    case State::kParsingVersion:        // Version is not a string
-    case State::kParsingDataSize:       // DataSize is not a string
+    case State::kWaitForRootObject:          // Not expected
+    case State::kWaitForNextPartition:       // Not expected
+    case State::kWaitForRootObjectEnd:       // Not expected
+    case State::kParsingVersion:             // Version is not a string
+    case State::kParsingDataSize:            // DataSize is not a string
+    case State::kParsingCompressedDataSize:  // CompressedDataSize is not a
+                                             // string
     default:
       return false;
   }
@@ -98,6 +100,8 @@ bool PartitionsSaxHandler::Uint(unsigned int value) {
     partition_.SetVersion(value);
   } else if (state_ == State::kParsingDataSize) {
     partition_.SetDataSize(value);
+  } else if (state_ == State::kParsingCompressedDataSize) {
+    partition_.SetCompressedDataSize(value);
   } else {
     return false;
   }
@@ -162,6 +166,8 @@ PartitionsSaxHandler::State PartitionsSaxHandler::ProcessNextAttribute(
       return State::kParsingChecksum;
     case HashStringToInt("dataSize"):
       return State::kParsingDataSize;
+    case HashStringToInt("compressedDataSize"):
+      return State::kParsingCompressedDataSize;
     case HashStringToInt("version"):
       return State::kParsingVersion;
     case HashStringToInt("crc"):

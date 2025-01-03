@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 HERE Europe B.V.
+ * Copyright (C) 2023-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ const char* kDataHandle = "dataHandle";
 const char* kPartition = "partition";
 const char* kChecksum = "checksum";
 const char* kDataSize = "dataSize";
+const char* kCompressedDataSize = "compressedDataSize";
 const char* kVersion = "version";
 const char* kCrc = "crc";
 
@@ -65,6 +66,8 @@ TEST(PartitionsSaxHandlerTest, NormalFlow) {
   ASSERT_TRUE(handler.String(kChecksumValue, len(kChecksumValue), true));
   ASSERT_TRUE(handler.String(kDataSize, len(kDataSize), true));
   ASSERT_TRUE(handler.Uint(150));
+  ASSERT_TRUE(handler.String(kCompressedDataSize, len(kCompressedDataSize), true));
+  ASSERT_TRUE(handler.Uint(100));
   ASSERT_TRUE(handler.String(kVersion, len(kVersion), true));
   ASSERT_TRUE(handler.Uint(6));
   ASSERT_TRUE(handler.String(kCrc, len(kCrc), true));
@@ -80,6 +83,7 @@ TEST(PartitionsSaxHandlerTest, NormalFlow) {
             std::string(kChecksumValue));
   EXPECT_EQ(parsed_partition.GetCrc().get_value_or(""), std::string(kCrcValue));
   EXPECT_EQ(parsed_partition.GetDataSize().get_value_or(0), 150);
+  EXPECT_EQ(parsed_partition.GetCompressedDataSize().get_value_or(0), 100);
   EXPECT_EQ(parsed_partition.GetVersion().get_value_or(0), 6);
 }
 
