@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,9 @@ class DATASERVICE_READ_API PartitionsRequest final {
 
   /// Additional field to request partition crc, see GetPartitions
   static constexpr const char* kCrc = "crc";
+
+  /// Additional field to request partition version, see GetPartitions
+  static constexpr const char* kVersion = "version";
 
   /// An alias for the set of additional fields.
   using AdditionalFields = std::vector<std::string>;
