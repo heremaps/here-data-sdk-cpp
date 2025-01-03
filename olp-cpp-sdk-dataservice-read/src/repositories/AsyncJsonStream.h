@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 HERE Europe B.V.
+ * Copyright (C) 2023-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,13 +32,13 @@ namespace dataservice {
 namespace read {
 namespace repository {
 
-// Json byte stream class. Implements rapidjson input stream concept.
+/// Json byte stream class. Implements rapidjson input stream concept.
 class RapidJsonByteStream {
  public:
   typedef char Ch;
 
   /// Read the current character from stream without moving the read cursor.
-  Ch Peek() const;
+  Ch Peek();
 
   /// Read the current character from stream and moving the read cursor to next
   /// character.
@@ -47,19 +47,24 @@ class RapidJsonByteStream {
   /// Get the current read cursor.
   size_t Tell() const;
 
-  // Not needed for reading.
+  /// Not needed for reading.
   char* PutBegin();
   void Put(char);
   void Flush();
   size_t PutEnd(char*);
 
-  bool Empty() const;
+  bool ReadEmpty() const;
+  bool WriteEmpty() const;
 
   void AppendContent(const char* content, size_t length);
 
  private:
+  void SwapBuffers();
+
   mutable std::mutex mutex_;
-  std::vector<char> buffer_;            // Current buffer
+  std::vector<char> read_buffer_;       // Current buffer
+  std::vector<char> write_buffer_;      // Current buffer
+  size_t full_count_{0};                // Bytes read from the buffer
   size_t count_{0};                     // Bytes read from the buffer
   mutable std::condition_variable cv_;  // Condition for next portion of content
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2029,7 +2029,9 @@ TEST_F(PartitionsRepositoryTest, StreamPartitions) {
         [&](const repository::AsyncJsonStream& async_stream) -> std::string {
       std::string result;
       auto stream = async_stream.GetCurrentStream();
-      while (!stream->Empty()) {
+      // Enforce buffers swap
+      OLP_SDK_CORE_UNUSED(stream->Peek());
+      while (!stream->ReadEmpty()) {
         result += stream->Take();
       }
       return result;

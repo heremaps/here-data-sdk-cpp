@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 HERE Europe B.V.
+ * Copyright (C) 2023-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,16 +47,18 @@ TEST(AsyncJsonStreamTest, NormalFlow) {
 
   EXPECT_EQ(current_stream->Peek(), '\0');
   EXPECT_EQ(current_stream->Take(), '\0');
-  EXPECT_TRUE(current_stream->Empty());
+  EXPECT_TRUE(current_stream->ReadEmpty());
 
   EXPECT_EQ(new_current_stream->Peek(), '2');
   EXPECT_EQ(new_current_stream->Take(), '2');
   EXPECT_EQ(new_current_stream->Take(), '3');
   EXPECT_EQ(new_current_stream->Take(), '4');
-  EXPECT_TRUE(new_current_stream->Empty());
+  EXPECT_TRUE(new_current_stream->ReadEmpty());
 
   stream.AppendContent("5", 1);
-  EXPECT_FALSE(new_current_stream->Empty());
+  // Read buffer is empty here because swap is on Take/Peek
+  EXPECT_FALSE(new_current_stream->WriteEmpty());
+  EXPECT_TRUE(new_current_stream->ReadEmpty());
 
   stream.CloseStream(olp::client::ApiError::Cancelled());
 
@@ -73,11 +75,11 @@ TEST(AsyncJsonStreamTest, NormalFlow) {
   EXPECT_TRUE(stream.GetError()->GetErrorCode() ==
               olp::client::ErrorCode::Cancelled);
 
-  EXPECT_TRUE(new_current_stream->Empty());
+  EXPECT_TRUE(new_current_stream->ReadEmpty());
   stream.AppendContent("17", 2);
-  EXPECT_TRUE(new_current_stream->Empty());
+  EXPECT_TRUE(new_current_stream->ReadEmpty());
   stream.ResetStream("4", 1);
-  EXPECT_TRUE(new_current_stream->Empty());
+  EXPECT_TRUE(new_current_stream->ReadEmpty());
 }
 
 }  // namespace
