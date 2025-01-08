@@ -50,7 +50,10 @@ size_t RapidJsonByteStream::PutEnd(char*) { return 0; }
 bool RapidJsonByteStream::ReadEmpty() const {
   return count_ == read_buffer_.size();
 }
-bool RapidJsonByteStream::WriteEmpty() const { return write_buffer_.empty(); }
+bool RapidJsonByteStream::WriteEmpty() const {
+  std::unique_lock<std::mutex> lock(mutex_);
+  return write_buffer_.empty();
+}
 
 void RapidJsonByteStream::AppendContent(const char* content, size_t length) {
   std::unique_lock<std::mutex> lock(mutex_);
@@ -64,7 +67,7 @@ void RapidJsonByteStream::AppendContent(const char* content, size_t length) {
 
 void RapidJsonByteStream::SwapBuffers() {
   std::unique_lock<std::mutex> lock(mutex_);
-  cv_.wait(lock, [&]() { return !WriteEmpty(); });
+  cv_.wait(lock, [&]() { return !write_buffer_.empty(); });
   std::swap(read_buffer_, write_buffer_);
   write_buffer_.clear();
   count_ = 0;
@@ -114,7 +117,7 @@ boost::optional<client::ApiError> AsyncJsonStream::GetError() const {
 
 bool AsyncJsonStream::IsClosed() const {
   std::unique_lock<std::mutex> lock(mutex_);
-  return closed_;
+  return closed_ && (error_ || current_stream_->WriteEmpty());
 }
 
 }  // namespace repository
