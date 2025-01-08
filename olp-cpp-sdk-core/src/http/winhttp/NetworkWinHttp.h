@@ -63,7 +63,8 @@ class NetworkWinHttp : public Network {
  private:
   struct ResultData {
     ResultData(RequestId id, Callback callback,
-               std::shared_ptr<std::ostream> payload);
+               std::shared_ptr<std::ostream> payload,
+               std::shared_ptr<const logging::LogContext> context);
 
     Callback user_callback;
     std::shared_ptr<std::ostream> payload;
@@ -77,6 +78,8 @@ class NetworkWinHttp : public Network {
 
     std::uint64_t bytes_uploaded;
     std::uint64_t bytes_downloaded;
+
+    std::shared_ptr<const logging::LogContext> log_context;
   };
 
   struct ConnectionData {
@@ -118,7 +121,6 @@ class NetworkWinHttp : public Network {
     bool no_compression;
     bool uncompress;
     bool in_use;
-    std::shared_ptr<const logging::LogContext> log_context;
 #ifdef NETWORK_HAS_ZLIB
     z_stream strm;
 #endif

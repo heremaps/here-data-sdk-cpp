@@ -621,8 +621,6 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
 
   auto* handle = reinterpret_cast<RequestData*>(context);
 
-  logging::ScopedLogContext scope(handle->log_context);
-
   if (!handle->connection_data || !handle->result_data) {
     OLP_SDK_LOG_WARNING(kLogTag, "RequestCallback to inactive handle, id="
                                      << handle->request_id);
@@ -632,6 +630,8 @@ void NetworkWinHttp::RequestCallback(HINTERNET, DWORD_PTR context, DWORD status,
   NetworkWinHttp* network = handle->self;
   ResultData& request_result = *handle->result_data;
   handle->connection_data->last_used = GetTickCount64();
+
+  logging::ScopedLogContext scope(request_result.log_context);
 
   if (status == WINHTTP_CALLBACK_STATUS_REQUEST_ERROR) {
     // Error has occurred
@@ -972,6 +972,9 @@ void NetworkWinHttp::CompletionThread() {
           // protect against multiple calls
           std::swap(result->user_callback, callback);
         }
+
+        logging::ScopedLogContext scope(result->log_context);
+
         // must call outside lock to prevent deadlock
         callback(NetworkResponse()
                      .WithError(str)
@@ -1049,8 +1052,9 @@ NetworkWinHttp::RequestData* NetworkWinHttp::FindHandle(RequestId id) {
   return nullptr;
 }
 
-NetworkWinHttp::ResultData::ResultData(RequestId id, Callback callback,
-                                       std::shared_ptr<std::ostream> payload)
+NetworkWinHttp::ResultData::ResultData(
+    RequestId id, Callback callback, std::shared_ptr<std::ostream> payload,
+    std::shared_ptr<const logging::LogContext> context)
     : user_callback(std::move(callback)),
       payload(std::move(payload)),
       content_length(0),
@@ -1061,7 +1065,8 @@ NetworkWinHttp::ResultData::ResultData(RequestId id, Callback callback,
       completed(false),
       error(false),
       bytes_uploaded(0),
-      bytes_downloaded(0) {}
+      bytes_downloaded(0),
+      log_context(std::move(context)) {}
 
 NetworkWinHttp::ConnectionData::ConnectionData(HINTERNET http_connection)
     : http_connection(http_connection) {}
@@ -1081,8 +1086,8 @@ NetworkWinHttp::RequestData::RequestData(
     std::shared_ptr<const logging::LogContext> context)
     : self(self),
       connection_data(std::move(connection)),
-      result_data(std::make_shared<ResultData>(id, std::move(callback),
-                                               std::move(payload))),
+      result_data(std::make_shared<ResultData>(
+          id, std::move(callback), std::move(payload), std::move(context))),
       body(request.GetBody()),
       header_callback(std::move(header_callback)),
       data_callback(std::move(data_callback)),
@@ -1091,8 +1096,7 @@ NetworkWinHttp::RequestData::RequestData(
       ignore_data(request.GetVerb() == NetworkRequest::HttpVerb::HEAD),
       no_compression(false),
       uncompress(false),
-      in_use(false),
-      log_context(std::move(context)) {}
+      in_use(false) {}
 
 NetworkWinHttp::RequestData::RequestData()
     : self(nullptr),
