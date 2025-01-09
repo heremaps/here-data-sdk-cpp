@@ -2076,10 +2076,13 @@ TEST_F(PartitionsRepositoryTest, StreamPartitions) {
 
     repository.StreamPartitions(async_stream, kVersion, additional_fields,
                                 billing_tag, context);
-    EXPECT_TRUE(async_stream->IsClosed());
+    // Not closed since the stream is not empty
+    EXPECT_FALSE(async_stream->IsClosed());
     EXPECT_FALSE(async_stream->GetError());
     EXPECT_STREQ(ref_stream_data.c_str(),
                  get_stream_content(*async_stream).c_str());
+    // Now it's closed as we read all its content
+    EXPECT_TRUE(async_stream->IsClosed());
 
     {
       SCOPED_TRACE("Data with offset is in the stream");
@@ -2091,10 +2094,13 @@ TEST_F(PartitionsRepositoryTest, StreamPartitions) {
       repository.StreamPartitions(second_stream, kVersion, additional_fields,
                                   billing_tag, context);
 
-      EXPECT_TRUE(second_stream->IsClosed());
+      // Not closed since the stream is not empty
+      EXPECT_FALSE(second_stream->IsClosed());
       EXPECT_FALSE(second_stream->GetError());
       EXPECT_STREQ((initial_value + ref_stream_data).c_str(),
                    get_stream_content(*second_stream).c_str());
+      // Now it's closed as we read all its content
+      EXPECT_TRUE(second_stream->IsClosed());
     }
   }
 }
