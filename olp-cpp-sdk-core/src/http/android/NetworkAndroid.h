@@ -105,12 +105,6 @@ class NetworkAndroid : public Network {
                        jstring content_type);
 
   /**
-   * @brief Reset the given message if retry attempt invoked
-   * @param id - Unique Id of the message
-   */
-  void ResetRequest(JNIEnv* env, RequestId request_id);
-
-  /**
    * @brief Setup JavaVM pointer
    *        This must be done before calling initialize
    * @param vm - pointer to JavaVM

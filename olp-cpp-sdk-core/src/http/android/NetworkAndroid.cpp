@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -146,22 +146,6 @@ Java_com_here_olp_network_HttpClient_completeRequest(
   }
   network->CompleteRequest(env, request_id, status, uploaded_bytes,
                            downloaded_bytes, error, content_type);
-}
-
-/*
- * Reset request upon retry
- */
-extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
-Java_com_here_olp_network_HttpClient_resetRequest(JNIEnv* env, jobject obj,
-                                                  jlong request_id) {
-  auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
-  if (!network) {
-    OLP_SDK_LOG_WARNING(
-        kLogTag,
-        "ResetRequest failed - network is invalid, request_id=" << request_id);
-    return;
-  }
-  network->ResetRequest(env, request_id);
 }
 
 NetworkAndroid::NetworkAndroid(size_t max_requests_count)
@@ -396,10 +380,7 @@ bool NetworkAndroid::Initialize() {
              &Java_com_here_olp_network_HttpClient_dataCallback)},
         {"completeRequest", "(JIIILjava/lang/String;Ljava/lang/String;)V",
          reinterpret_cast<void*>(
-             &Java_com_here_olp_network_HttpClient_completeRequest)},
-        {"resetRequest", "(J)V",
-         reinterpret_cast<void*>(
-             &Java_com_here_olp_network_HttpClient_resetRequest)}};
+             &Java_com_here_olp_network_HttpClient_completeRequest)}};
 
     env->RegisterNatives(java_self_class_, methods,
                          sizeof(methods) / sizeof(methods[0]));
@@ -715,21 +696,6 @@ void NetworkAndroid::CompleteRequest(JNIEnv* env, RequestId request_id,
   run_thread_ready_cv_.notify_all();
 }
 
-void NetworkAndroid::ResetRequest(JNIEnv* env, RequestId request_id) {
-  std::lock_guard<std::mutex> lock(requests_mutex_);
-  if (!started_) {
-    return;
-  }
-
-  auto req = requests_.find(request_id);
-  if (req == requests_.end()) {
-    OLP_SDK_LOG_WARNING(kLogTag,
-                        "ResetRequest of unknown request_id=" << request_id);
-    return;
-  }
-  req->second->Reinitialize();
-}
-
 jobjectArray NetworkAndroid::CreateExtraHeaders(
     JNIEnv* env,
     const std::vector<std::pair<std::string, std::string> >& extra_headers) {
@@ -970,7 +936,6 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
                             .count());
   const jint jproxy_port = static_cast<jint>(proxy_settings.GetPort());
   const jint jproxy_type = static_cast<jint>(proxy_settings.GetType());
-  const jint jmax_retries = 1;
   // Do sending
   {
     std::lock_guard<std::mutex> lock(requests_mutex_);
@@ -989,7 +954,7 @@ SendOutcome NetworkAndroid::Send(NetworkRequest request,
     auto task_obj = env.GetEnv()->CallObjectMethod(
         obj_, jni_send_method_, jurl, jhttp_verb, jrequest_id,
         jconnection_timeout, jtransfer_timeout, jheaders, jbody, jproxy,
-        jproxy_port, jproxy_type, jmax_retries);
+        jproxy_port, jproxy_type);
     if (env.GetEnv()->ExceptionOccurred() || !task_obj) {
       OLP_SDK_LOG_ERROR(
           kLogTag, "Send failed - HttpClient error, url=" << request.GetUrl());

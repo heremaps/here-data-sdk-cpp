@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,8 +103,7 @@ public class HttpClient {
             byte[] postData,
             String proxyServer,
             int proxyPort,
-            int proxyType,
-            int maxRetries) {
+            int proxyType) {
       this.url = url;
       this.verb = verb;
       this.requestId = requestId;
@@ -140,7 +139,6 @@ public class HttpClient {
           this.proxyType = Proxy.Type.HTTP;
           break;
       }
-      this.maxRetries = maxRetries;
     }
 
     public final String url() {
@@ -191,10 +189,6 @@ public class HttpClient {
       return (hasProxy() && this.proxyServer.equals("No")) || this.proxyType == Proxy.Type.DIRECT;
     }
 
-    public final int maxRetries() {
-      return this.maxRetries;
-    }
-
     private final String url;
     private final long requestId;
     private final int connectionTimeout;
@@ -205,7 +199,6 @@ public class HttpClient {
     private final String proxyServer;
     private final int proxyPort;
     private final Proxy.Type proxyType;
-    private final int maxRetries;
   }
 
   /**
@@ -232,7 +225,6 @@ public class HttpClient {
         boolean downloadContentSizePresent = false;
 
         try {
-          int retryCount = 0;
           boolean isDone = false;
           final URL url = new URL(request.url());
 
@@ -240,13 +232,6 @@ public class HttpClient {
             final HttpClient httpClient = weakReference.get();
             if (httpClient == null) {
               return null;
-            }
-
-            // TODO: replace with more elegant and controlled approach
-            if (retryCount > 0) {
-              Thread.sleep(100);
-
-              cleanup(httpConn);
             }
 
             URLConnection conn;
@@ -352,21 +337,8 @@ public class HttpClient {
               try {
                 status = httpConn.getResponseCode();
                 error = httpConn.getResponseMessage();
-
-                if ((status > 0)
-                        && ((status < HttpURLConnection.HTTP_OK)
-                        || (status >= HttpURLConnection.HTTP_SERVER_ERROR))) {
-                  if (retryCount++ < request.maxRetries()) {
-                    continue;
-                  }
-                }
               } catch (SocketTimeoutException | UnknownHostException e) {
-                if (retryCount++ < request.maxRetries()) {
-                  httpClient.resetRequest(request.requestId());
-                  continue;
-                } else {
-                  throw e;
-                }
+                throw e;
               }
             }
 
@@ -458,17 +430,12 @@ public class HttpClient {
                 throw e;
               }
             } catch (SocketTimeoutException e) {
-              if (retryCount++ < request.maxRetries()) {
-                httpClient.resetRequest(request.requestId());
-                continue;
-              } else {
-                throw e;
-              }
+              throw e;
             }
 
             checkCancelled();
 
-            // The request is completed, not cancelled or retried
+            // The request is completed and not cancelled
             // Notifies the native (C++) side that request was completed
             isDone = true;
             httpClient.completeRequest(request.requestId(), status, uploadedContentSize, downloadContentSize, error, contentType);
@@ -616,8 +583,7 @@ public class HttpClient {
           byte[] postData,
           String proxyServer,
           int proxyPort,
-          int proxyType,
-          int maxRetries) {
+          int proxyType) {
     final Request request =
             new Request(
                     url,
@@ -629,8 +595,7 @@ public class HttpClient {
                     postData,
                     proxyServer,
                     proxyPort,
-                    proxyType,
-                    maxRetries);
+                    proxyType);
     final HttpTask task = new HttpTask(this);
     task.executeOnExecutor(executor, request);
     return task;
@@ -647,6 +612,4 @@ public class HttpClient {
   private synchronized native void dateAndOffsetCallback(long requestId, long date, long offset);
   // Callback set date and offset
   private synchronized native void headersCallback(long requestId, String[] headers);
-  // Reset request for retry
-  private synchronized native void resetRequest(long requestId);
 }
