@@ -65,15 +65,15 @@ The table below lists the platforms on which the Data SDK has been tested.
 
 The table below lists the dependencies of the Data SDK.
 
-| Library              | Recommended version |
-|:---------------------|:--------------------|
-| Libcurl              | 7.52.1              |
-| OpenSSL              | 1.1.1w              |
-| Boost (headers only) | 1.82.0              |
-| LevelDB              | 1.21                |
-| Snappy               | 1.1.7               |
-| RapidJSON            | latest              |
-| Zlib                 | 1.3.1               |
+| Library              | Minimal version |
+|:---------------------|:----------------|
+| Libcurl              | 7.83.1          |
+| OpenSSL              | 3.1.4           |
+| Boost (headers only) | 1.82.0          |
+| LevelDB              | 1.21            |
+| Snappy               | 1.1.7           |
+| RapidJSON            | latest          |
+| Zlib                 | 1.3.1           |
 
 ### Linux dependencies
 
@@ -92,7 +92,7 @@ For details, see <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/mas
 
 ## LICENSE
 
-Copyright (C) 2019–2024 HERE Europe B.V.
+Copyright (C) 2019–2025 HERE Europe B.V.
 
 For license details, see the <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/LICENSE" target="_blank">LICENSE</a> file in the root of this project.
 

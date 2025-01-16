@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 #
-# Copyright (C) 2020-2024 HERE Europe B.V.
+# Copyright (C) 2020-2025 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ echo "y" | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "emulator" "p
 echo "y" | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --install "system-images;android-$ANDROID_API;google_apis;$ANDROID_ABI"
 
 # Create emulator
-echo "no" | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/avdmanager create avd -n android_emulator -k "system-images;android-$ANDROID_API;google_apis;$ANDROID_ABI" --force
+echo "yes" | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/avdmanager create avd -n android_emulator -k "system-images;android-$ANDROID_API;google_apis;$ANDROID_ABI" --force
 echo "AVD created"
 emulator -list-avds
 

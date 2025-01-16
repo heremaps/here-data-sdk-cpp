@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 #
-# Copyright (C) 2021-2024 HERE Europe B.V.
+# Copyright (C) 2021-2025 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -96,14 +96,14 @@ xcrun simctl list
 xcrun simctl list devices
 xcrun simctl list runtimes
 
-export CurrentDeviceUDID=$(xcrun simctl list devices | grep "iPhone 14 (" | grep -v "unavailable" | grep -v "com.apple.CoreSimulator.SimDeviceType" | cut -d'(' -f2 | cut -d')' -f1 | head -1)
+export CurrentDeviceUDID=$(xcrun simctl list devices | grep "iPhone 15 (" | grep -v "unavailable" | grep -v "com.apple.CoreSimulator.SimDeviceType" | cut -d'(' -f2 | cut -d')' -f1 | head -1)
 
 # Create new Simulator device
 
 xcrun simctl list devices | grep ${CurrentDeviceUDID}
 xcrun simctl boot ${CurrentDeviceUDID} || true
 xcrun simctl list devices | grep ${CurrentDeviceUDID}
-xcrun simctl create ${GITHUB_RUN_ID}_iphone14 "com.apple.CoreSimulator.SimDeviceType.iPhone-14"
+xcrun simctl create ${GITHUB_RUN_ID}_iphone15 "com.apple.CoreSimulator.SimDeviceType.iPhone-15"
 xcrun simctl list devices | grep ${CurrentDeviceUDID}
 echo "Simulator created"
 
