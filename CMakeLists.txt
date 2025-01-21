@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2024 HERE Europe B.V.
+# Copyright (C) 2019-2025 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -50,7 +50,9 @@ option(OLP_SDK_ENABLE_IOS_BACKGROUND_DOWNLOAD "Enable iOS network layer download
 option(OLP_SDK_ENABLE_OFFLINE_MODE "Enable offline mode. Network layer is excluded from the build and all network requests returned with error." OFF)
 
 # C++ standard version. Minimum supported version is 11.
-set(CMAKE_CXX_STANDARD 11)
+if (NOT CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 11)
+endif()
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Set no exception
 if (OLP_SDK_NO_EXCEPTION)
