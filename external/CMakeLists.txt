@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2024 HERE Europe B.V.
+# Copyright (C) 2019-2025 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -61,10 +61,10 @@ set(OLP_SDK_CPP_ZLIB_URL "https://www.zlib.net/zlib-1.3.1.tar.gz")
 set(OLP_SDK_CPP_ZLIB_HASH "SHA256=9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23")
 
 set(OLP_SDK_CPP_OPENSSL_URL "https://github.com/openssl/openssl.git")
-set(OLP_SDK_CPP_OPENSSL_TAG "OpenSSL_1_1_1w")
+set(OLP_SDK_CPP_OPENSSL_TAG "openssl-3.1.4")
 
 set(OLP_SDK_CPP_CURL_URL "https://github.com/bagder/curl.git")
-set(OLP_SDK_CPP_CURL_TAG "curl-7_52_1")
+set(OLP_SDK_CPP_CURL_TAG "curl-7_83_1")
 
 # Add external projects
 find_package(GTest QUIET)
