@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -296,7 +296,8 @@ NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
     : handles_(settings.max_requests_count),
       static_handle_count_(
           std::max(static_cast<size_t>(1u), settings.max_requests_count / 4u)),
-      certificate_settings_(std::move(settings.certificate_settings)) {
+      certificate_settings_(std::move(settings.certificate_settings)),
+      curl_log_path_(settings.log_file_path) {
   OLP_SDK_LOG_TRACE(kLogTag, "Created NetworkCurl with address="
                                  << this << ", handles_count="
                                  << settings.max_requests_count);
@@ -305,6 +306,17 @@ NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
   if (!curl_initialized_) {
     OLP_SDK_LOG_ERROR_F(kLogTag, "Error initializing Curl. Error: %i",
                         static_cast<int>(error));
+  }
+
+  if (curl_log_path_) {
+    stderr_ = fopen(curl_log_path_->c_str(), "w+");
+    if ( stderr_ == nullptr ) {
+      OLP_SDK_LOG_ERROR(
+          kLogTag, "Failed to init curl logging, error: " << strerror(errno));
+    } else {
+      OLP_SDK_LOG_INFO_F(kLogTag, "Curl logs enabled to file: %s",
+                         curl_log_path_->c_str());
+    }
   }
 
 #ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
@@ -609,11 +621,11 @@ ErrorCode NetworkCurl::SendImplementation(
 
   CURL* curl_handle = handle->handle;
 
-  if (verbose_) {
+  curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1L);
+
+  if (stderr_ != nullptr) {
     curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
-    if (stderr_ != nullptr) {
-      curl_easy_setopt(curl_handle, CURLOPT_STDERR, stderr_);
-    }
+    curl_easy_setopt(curl_handle, CURLOPT_STDERR, stderr_);
   } else {
     curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 0L);
   }
@@ -830,7 +842,6 @@ NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
                             "GetHandle - curl_easy_init failed, id=" << id);
           return nullptr;
         }
-        curl_easy_setopt(handle.handle, CURLOPT_NOSIGNAL, 1L);
       }
       handle.in_use = true;
       handle.callback = std::move(callback);

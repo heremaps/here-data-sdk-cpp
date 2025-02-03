@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -391,6 +391,9 @@ class NetworkCurl : public olp::http::Network,
   /// Store original certificate setting in order to reference them in the SSL
   /// blobs so cURL does not need to copy them.
   CertificateSettings certificate_settings_;
+
+  /// The path to store CURL logs
+  boost::optional<std::string> curl_log_path_;
 
 #ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
   /// SSL certificate blobs.

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 HERE Europe B.V.
+ * Copyright (C) 2023-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,10 @@
 
 #pragma once
 
-#include "olp/core/CoreApi.h"
-#include "olp/core/http/CertificateSettings.h"
+#include <boost/optional/optional.hpp>
+
+#include <olp/core/CoreApi.h>
+#include <olp/core/http/CertificateSettings.h>
 
 namespace olp {
 namespace http {
@@ -38,6 +40,12 @@ struct CORE_API NetworkInitializationSettings {
    * @brief The custom certificate settings.
    */
   CertificateSettings certificate_settings;
+
+  /**
+   * @brief Enable the underlying implementation to produce additional logs.
+   * Note: This is EXPERIMENTAL settings, only CURL implementation supports it.
+   */
+  boost::optional<std::string> log_file_path;
 };
 
 }  // namespace http
