@@ -186,17 +186,7 @@ jobs:
       run: scripts/macos/psv/azure_macos_build_psv.sh
       shell: bash
 
-  psv-macos-13-xcode-15-build:
-    name: PSV.MacOS13.Xcode15
-    runs-on: macos-13-xlarge
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-    - name: MacOS Build Xcode15
-      run: scripts/macos/psv/azure_macos_build_psv.sh
-      shell: bash
-
-  psv-macos-14-xcode-15-build:
+  psv-macos-14-arm64-xcode-15-build:
     name: PSV.MacOS14.Xcode15
     runs-on: macos-14
     steps:
@@ -216,7 +206,7 @@ jobs:
       run: scripts/macos/psv/azure_macos_build_psv.sh
       shell: bash
 
-  psv-ios-xcode-15-build:
+  psv-ios-x86_64-xcode-15-build:
     name: PSV.iOS.MacOS13.Xcode15
     runs-on: macOS-13
     steps:
@@ -226,7 +216,7 @@ jobs:
       run: scripts/ios/azure_ios_build_psv.sh
       shell: bash
 
-  psv-ios-xcode-14-build:
+  psv-ios-x86_64-xcode-14-build:
     name: PSV.iOS.MacOS13.Xcode14
     runs-on: macOS-13
     steps:
@@ -238,7 +228,7 @@ jobs:
         env:
           USE_LATEST_XCODE: 0
 
-  psv-ios-os15-xcode-16-build:
+  psv-ios-os15-arm64-xcode-16-build:
     name: PSV.iOS.MacOS13.Xcode16
     runs-on: macOS-15
     steps:
@@ -248,7 +238,7 @@ jobs:
       run: scripts/ios/azure_ios_build_psv.sh
       shell: bash
 
-  psv-ios-os14-xcode-15-build:
+  psv-ios-os14-arm64-xcode-15-build:
     name: PSV.iOS.MacOS14.Xcode15
     runs-on: macOS-14
     steps:
