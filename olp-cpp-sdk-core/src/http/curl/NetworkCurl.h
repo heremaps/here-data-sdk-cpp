@@ -65,7 +65,7 @@ namespace http {
 /**
  * @brief The implementation of Network based on cURL.
  */
-class NetworkCurl : public olp::http::Network,
+class NetworkCurl : public Network,
                     public std::enable_shared_from_this<NetworkCurl> {
  public:
   /**
@@ -112,26 +112,27 @@ class NetworkCurl : public olp::http::Network,
 
  private:
   /**
-   * @brief Context of each individual network request.
+   * @brief Context of each network request.
    */
   struct RequestHandle {
+    std::string request_url;
+    std::string request_method;
+    NetworkRequest::RequestBodyType request_body;
+    std::shared_ptr<curl_slist> request_headers;
+
+    HeaderCallback out_header_callback;
+    DataCallback out_data_callback;
+    Payload out_data_stream;
+    Callback out_completion_callback;
+    std::uint64_t bytes_received{0};
+
     std::chrono::steady_clock::time_point send_time{};
-    NetworkRequest::RequestBodyType body{};
-    Network::Payload payload{};
     std::weak_ptr<NetworkCurl> self{};
-    Callback callback{};
-    HeaderCallback header_callback{};
-    DataCallback data_callback{};
-    std::uint64_t count{};
-    std::uint64_t offset{};
-    CURL* handle{nullptr};
-    struct curl_slist* chunk{nullptr};
-    int index{};
+
+    std::shared_ptr<CURL> curl_handle;
     RequestId id{};
-    bool ignore_offset{};
-    bool in_use{};
-    bool cancelled{};
-    bool skip_content{};
+    bool in_use{false};
+    bool cancelled{false};
     char error_text[CURL_ERROR_SIZE]{};
     std::shared_ptr<const logging::LogContext> log_context;
   };
@@ -186,7 +187,7 @@ class NetworkCurl : public olp::http::Network,
    * @param[out] payload Stream to store response payload data.
    * @param[in]  header_callback Callback that is called for every header from
    * response.
-   * @param[in]  data-callback  Callback to be called when a chunk of data is
+   * @param[in]  data_callback  Callback to be called when a chunk of data is
    * received. This callback can be triggered multiple times all prior to the
    * final Callback call.
    * @param[in]  callback Callback to be called when request is fully processed
@@ -196,9 +197,8 @@ class NetworkCurl : public olp::http::Network,
    */
   ErrorCode SendImplementation(const NetworkRequest& request, RequestId id,
                                const std::shared_ptr<std::ostream>& payload,
-                               Network::HeaderCallback header_callback,
-                               Network::DataCallback data_callback,
-                               Network::Callback callback);
+                               HeaderCallback header_callback,
+                               DataCallback data_callback, Callback callback);
 
   /**
    * @brief Initialize internal data structures, start worker thread.
@@ -232,54 +232,35 @@ class NetworkCurl : public olp::http::Network,
   size_t AmountPending();
 
   /**
-   * @brief Find handle index in handles_ by handle value.
+   * @brief Find a handle in handles_ by curl handle.
    * @param[in] handle CURL handle.
-   * @return index of associated RequestHandle in handles_ array.
+   * @return Pointer to the allocated RequestHandle.
    */
-  int GetHandleIndex(CURL* handle);
+  RequestHandle* FindRequestHandle(const CURL* handle);
 
   /**
    * @brief Allocate new handle RequestHandle.
-   * @param[in] id Unique request id.
-   * @param[in] callback Request's callback.
-   * @param[in] header_callback Request's header callback.
-   * @param[in] data_callback Request's data callback.
-   * @param[in] payload Stream for response body.
-   * @return Pointer to allocated RequestHandle.
+   *
+   * @return Pointer to the allocated RequestHandle.
    */
-  RequestHandle* GetHandle(RequestId id, Network::Callback callback,
-                           Network::HeaderCallback headerCallback,
-                           Network::DataCallback dataCallback,
-                           Network::Payload payload,
-                           NetworkRequest::RequestBodyType body);
+  RequestHandle* InitRequestHandle();
 
   /**
-   * @brief Reset handle after network request is done.
-   * This method handles synchronization between caller's thread and worker
-   * thread.
+   * @brief Reset the handle after network request is done.
    * @param[in] handle Request handle.
-   * @param[in] cleanup_handle If true then handle is completelly release.
-   * Otherwise handle is reset, which preserves DNS cache, Session ID cache,
-   * cookies and so on.
+   * @param[in] cleanup_handle If true, then a handle is completely released.
+   * Otherwise, a handle is reset, which preserves DNS cache, Session ID cache,
+   * cookies, and so on.
    */
-  void ReleaseHandle(RequestHandle* handle, bool cleanup_handle);
-
-  /**
-   * @brief Reset handle after network request is done.
-   * @param[in] handle Request handle.
-   * @param[in] cleanup_handle If true then handle is completelly release.
-   * Otherwise handle is reset, which preserves DNS cache, Session ID cache,
-   * cookies and so on.
-   */
-  void ReleaseHandleUnlocked(RequestHandle* handle, bool cleanup_handle);
+  static void ReleaseHandleUnlocked(RequestHandle* handle, bool cleanup_handle);
 
   /**
    * @brief Routine that is called when the last bit of response is received.
    *
-   * @param[in] handle CURL handle associated with request.
+   * @param[in] curl_handle CURL handle associated with request.
    * @param[in] result CURL return code.
    */
-  void CompleteMessage(CURL* handle, CURLcode result);
+  void CompleteMessage(CURL* curl_handle, CURLcode result);
 
   /**
    * @brief CURL read callback.
@@ -376,11 +357,11 @@ class NetworkCurl : public olp::http::Network,
   /// CURL multi handle. Shared among all network requests.
   CURLM* curl_{nullptr};
 
-  /// Turn on and off verbose mode for CURL.
-  bool verbose_{false};
-
   /// Set custom stderr for CURL.
   FILE* stderr_{nullptr};
+
+  /// Set custom stderr for CURL.
+  FILE* harfile_{nullptr};
 
   /// UNIX Pipe used to notify sleeping worker thread during select() call.
   int pipe_[2]{};

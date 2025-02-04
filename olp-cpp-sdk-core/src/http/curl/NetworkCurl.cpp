@@ -30,7 +30,7 @@
 #include "olp/core/utils/Thread.h"
 
 #if defined(HAVE_SIGNAL_H)
-#include <signal.h>
+#include <csignal>
 #endif
 
 #ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
@@ -142,7 +142,7 @@ int BlockSigpipe() {
     return err;
   }
 
-  err = pthread_sigmask(SIG_BLOCK, &sigset, NULL);
+  err = pthread_sigmask(SIG_BLOCK, &sigset, nullptr);
 
   return err;
 }
@@ -290,6 +290,73 @@ long CountIn(Duration&& duration) {
   return static_cast<long>(count);
 }
 
+std::shared_ptr<curl_slist> SetupHeaders(const Headers& headers) {
+  curl_slist* list{nullptr};
+  std::ostringstream ss;
+  for (const auto& header : headers) {
+    ss << header.first << ": " << header.second;
+    list = curl_slist_append(list, ss.str().c_str());
+    ss.str("");
+    ss.clear();
+  }
+  return {list, curl_slist_free_all};
+}
+
+void SetupProxy(CURL* curl_handle, const NetworkProxySettings& proxy) {
+  if (proxy.GetType() == NetworkProxySettings::Type::NONE) {
+    return;
+  }
+
+  curl_easy_setopt(curl_handle, CURLOPT_PROXY, proxy.GetHostname().c_str());
+  curl_easy_setopt(curl_handle, CURLOPT_PROXYPORT, proxy.GetPort());
+
+  const auto proxy_type = proxy.GetType();
+  if (proxy_type != NetworkProxySettings::Type::HTTP) {
+    curl_easy_setopt(curl_handle, CURLOPT_PROXYTYPE,
+                     ToCurlProxyType(proxy_type));
+  }
+
+  // We expect that both fields are empty or filled
+  const auto& username = proxy.GetUsername();
+  const auto& password = proxy.GetPassword();
+  if (!username.empty() && !password.empty()) {
+    curl_easy_setopt(curl_handle, CURLOPT_PROXYUSERNAME, username.c_str());
+    curl_easy_setopt(curl_handle, CURLOPT_PROXYPASSWORD, password.c_str());
+  }
+}
+
+void SetupRequestBody(CURL* curl_handle, NetworkRequest::RequestBodyType body) {
+  if (body && !body->empty()) {
+    curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, body->size());
+    curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, &body->front());
+  } else {
+    // Some services (eg. Google) require the field size even if zero
+    curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, 0L);
+  }
+}
+
+void SetupDns(CURL* curl_handle, const std::vector<std::string>& dns_servers) {
+#if CURL_AT_LEAST_VERSION(7, 24, 0)
+  if (!dns_servers.empty()) {
+    const std::string& dns_list = dns_servers.size() == 1
+                                      ? dns_servers.front()
+                                      : ConcatenateDnsAddresses(dns_servers);
+    curl_easy_setopt(curl_handle, CURLOPT_DNS_SERVERS, dns_list.c_str());
+  }
+#endif
+}
+
+const char* MethodName(NetworkRequest::HttpVerb verb) {
+  const char* names[] = {"GET", "POST",  "HEAD",   "PUT",
+                         "DEL", "PATCH", "OPTIONS"};
+
+  if (verb >= NetworkRequest::HttpVerb::GET &&
+      verb <= NetworkRequest::HttpVerb::OPTIONS) {
+    return names[static_cast<int>(verb)];
+  }
+  return "UNKNOWN";
+}
+
 }  // anonymous namespace
 
 NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
@@ -310,8 +377,8 @@ NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
 
   if (curl_log_path_) {
     stderr_ = fopen(curl_log_path_->c_str(), "w+");
-    if ( stderr_ == nullptr ) {
-      OLP_SDK_LOG_ERROR(
+    if (stderr_ == nullptr) {
+      OLP_SDK_LOG_WARNING(
           kLogTag, "Failed to init curl logging, error: " << strerror(errno));
     } else {
       OLP_SDK_LOG_INFO_F(kLogTag, "Curl logs enabled to file: %s",
@@ -428,14 +495,6 @@ bool NetworkCurl::Initialize() {
   const auto connects_cache_size = handles_.size() * 4;
   curl_multi_setopt(curl_, CURLMOPT_MAXCONNECTS, connects_cache_size);
 
-  // handles setup
-  std::shared_ptr<NetworkCurl> that = shared_from_this();
-  for (auto& handle : handles_) {
-    handle.handle = nullptr;
-    handle.in_use = false;
-    handle.self = that;
-  }
-
   std::unique_lock<std::mutex> lock(event_mutex_);
   // start worker thread
   thread_ = std::thread(&NetworkCurl::Run, this);
@@ -484,20 +543,20 @@ void NetworkCurl::Deinitialize() {
 }
 
 void NetworkCurl::Teardown() {
-  std::vector<std::pair<RequestId, Network::Callback> > completed_messages;
+  std::vector<std::pair<RequestId, Callback>> completed_messages;
   {
     std::lock_guard<std::mutex> lock(event_mutex_);
     events_.clear();
 
     // handles teardown
     for (auto& handle : handles_) {
-      if (handle.handle) {
+      if (handle.curl_handle) {
         if (handle.in_use) {
-          curl_multi_remove_handle(curl_, handle.handle);
-          completed_messages.emplace_back(handle.id, handle.callback);
+          curl_multi_remove_handle(curl_, handle.curl_handle.get());
+          completed_messages.emplace_back(handle.id,
+                                          handle.out_completion_callback);
         }
-        curl_easy_cleanup(handle.handle);
-        handle.handle = nullptr;
+        handle.curl_handle = nullptr;
       }
       handle.self.reset();
     }
@@ -546,9 +605,8 @@ size_t NetworkCurl::AmountPending() {
 
 SendOutcome NetworkCurl::Send(NetworkRequest request,
                               std::shared_ptr<std::ostream> payload,
-                              Network::Callback callback,
-                              Network::HeaderCallback header_callback,
-                              Network::DataCallback data_callback) {
+                              Callback callback, HeaderCallback header_callback,
+                              DataCallback data_callback) {
   if (!Initialized()) {
     if (!Initialize()) {
       OLP_SDK_LOG_ERROR(kLogTag, "Send failed - network is uninitialized, url="
@@ -586,8 +644,8 @@ SendOutcome NetworkCurl::Send(NetworkRequest request,
 ErrorCode NetworkCurl::SendImplementation(
     const NetworkRequest& request, RequestId id,
     const std::shared_ptr<std::ostream>& payload,
-    Network::HeaderCallback header_callback,
-    Network::DataCallback data_callback, Network::Callback callback) {
+    HeaderCallback header_callback, DataCallback data_callback,
+    Callback callback) {
   if (!IsStarted()) {
     OLP_SDK_LOG_ERROR(
         kLogTag, "Send failed - network is offline, url=" << request.GetUrl());
@@ -596,30 +654,30 @@ ErrorCode NetworkCurl::SendImplementation(
 
   const auto& config = request.GetSettings();
 
-  RequestHandle* handle =
-      GetHandle(id, std::move(callback), std::move(header_callback),
-                std::move(data_callback), payload, request.GetBody());
+  RequestHandle* handle = InitRequestHandle();
   if (!handle) {
     return ErrorCode::NETWORK_OVERLOAD_ERROR;
   }
+
+  // Set request output callbacks
+  handle->out_completion_callback = std::move(callback);
+  handle->out_header_callback = std::move(header_callback);
+  handle->out_data_callback = std::move(data_callback);
+  handle->out_data_stream = payload;
+
+  handle->id = id;
+
+  handle->request_url = request.GetUrl();
+  handle->request_method = MethodName(request.GetVerb());
+  handle->request_body = request.GetBody();
+  handle->request_headers = SetupHeaders(request.GetHeaders());
 
   OLP_SDK_LOG_DEBUG(kLogTag,
                     "Send request with url="
                         << utils::CensorCredentialsInUrl(request.GetUrl())
                         << ", id=" << id);
 
-  handle->ignore_offset = false;  // request.IgnoreOffset();
-  handle->skip_content = false;   // config->SkipContentWhenError();
-
-  for (const auto& header : request.GetHeaders()) {
-    std::ostringstream sstrm;
-    sstrm << header.first;
-    sstrm << ": ";
-    sstrm << header.second;
-    handle->chunk = curl_slist_append(handle->chunk, sstrm.str().c_str());
-  }
-
-  CURL* curl_handle = handle->handle;
+  CURL* curl_handle = handle->curl_handle.get();
 
   curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1L);
 
@@ -634,18 +692,15 @@ ErrorCode NetworkCurl::SendImplementation(
 
   const std::string& url = request.GetUrl();
   curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
+
   auto verb = request.GetVerb();
-  if (verb == NetworkRequest::HttpVerb::POST ||
-      verb == NetworkRequest::HttpVerb::PUT ||
-      verb == NetworkRequest::HttpVerb::PATCH) {
-    if (verb == NetworkRequest::HttpVerb::POST) {
-      curl_easy_setopt(curl_handle, CURLOPT_POST, 1L);
-    } else if (verb == NetworkRequest::HttpVerb::PUT) {
-      // http://stackoverflow.com/questions/7569826/send-string-in-put-request-with-libcurl
-      curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, "PUT");
-    } else if (verb == NetworkRequest::HttpVerb::PATCH) {
-      curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, "PATCH");
-    }
+  if (verb == NetworkRequest::HttpVerb::POST) {
+    curl_easy_setopt(curl_handle, CURLOPT_POST, 1L);
+  } else if (verb == NetworkRequest::HttpVerb::PUT) {
+    // http://stackoverflow.com/questions/7569826/send-string-in-put-request-with-libcurl
+    curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, "PUT");
+  } else if (verb == NetworkRequest::HttpVerb::PATCH) {
+    curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, "PATCH");
   } else if (verb == NetworkRequest::HttpVerb::DEL) {
     curl_easy_setopt(curl_handle, CURLOPT_CUSTOMREQUEST, "DELETE");
   } else if (verb == NetworkRequest::HttpVerb::OPTIONS) {
@@ -662,47 +717,15 @@ ErrorCode NetworkCurl::SendImplementation(
       verb != NetworkRequest::HttpVerb::HEAD) {
     // These can also be used to add body data to a CURLOPT_CUSTOMREQUEST
     // such as delete.
-    if (handle->body && !handle->body->empty()) {
-      curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE,
-                       handle->body->size());
-      curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, &handle->body->front());
-    } else {
-      // Some services (eg. Google) require the field size even if zero
-      curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, 0L);
-    }
+    SetupRequestBody(curl_handle, handle->request_body);
   }
 
-  const auto& proxy = config.GetProxySettings();
-  if (proxy.GetType() != NetworkProxySettings::Type::NONE) {
-    curl_easy_setopt(curl_handle, CURLOPT_PROXY, proxy.GetHostname().c_str());
-    curl_easy_setopt(curl_handle, CURLOPT_PROXYPORT, proxy.GetPort());
-    const auto proxy_type = proxy.GetType();
-    if (proxy_type != NetworkProxySettings::Type::HTTP) {
-      curl_easy_setopt(curl_handle, CURLOPT_PROXYTYPE,
-                       ToCurlProxyType(proxy_type));
-    }
+  SetupProxy(curl_handle, config.GetProxySettings());
+  SetupDns(curl_handle, config.GetDNSServers());
 
-    // We expect that both fields are empty or filled
-    if (!proxy.GetUsername().empty() && !proxy.GetPassword().empty()) {
-      curl_easy_setopt(curl_handle, CURLOPT_PROXYUSERNAME,
-                       proxy.GetUsername().c_str());
-      curl_easy_setopt(curl_handle, CURLOPT_PROXYPASSWORD,
-                       proxy.GetPassword().c_str());
-    }
-  }
-
-#if CURL_AT_LEAST_VERSION(7, 24, 0)
-  const auto& dns_servers = config.GetDNSServers();
-  if (!dns_servers.empty()) {
-    const std::string& dns_list = dns_servers.size() == 1
-                                      ? dns_servers.front()
-                                      : ConcatenateDnsAddresses(dns_servers);
-    curl_easy_setopt(curl_handle, CURLOPT_DNS_SERVERS, dns_list.c_str());
-  }
-#endif
-
-  if (handle->chunk) {
-    curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, handle->chunk);
+  if (handle->request_headers) {
+    curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER,
+                     handle->request_headers.get());
   }
 
 #ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
@@ -822,71 +845,44 @@ void NetworkCurl::AddEvent(EventInfo::Type type, RequestHandle* handle) {
 #endif
 }
 
-NetworkCurl::RequestHandle* NetworkCurl::GetHandle(
-    RequestId id, Network::Callback callback,
-    Network::HeaderCallback header_callback,
-    Network::DataCallback data_callback, Network::Payload payload,
-    NetworkRequest::RequestBodyType body) {
-  if (!IsStarted()) {
-    OLP_SDK_LOG_ERROR(kLogTag,
-                      "GetHandle failed - network is offline, id=" << id);
+NetworkCurl::RequestHandle* NetworkCurl::InitRequestHandle() {
+  std::lock_guard<std::mutex> lock(event_mutex_);
+
+  const auto unused_handle_it =
+      std::find_if(handles_.begin(), handles_.end(),
+                   [](const RequestHandle& request_handle) {
+                     return request_handle.in_use == false;
+                   });
+
+  if (unused_handle_it == handles_.end()) {
     return nullptr;
   }
-  std::lock_guard<std::mutex> lock(event_mutex_);
-  for (auto& handle : handles_) {
-    if (!handle.in_use) {
-      if (!handle.handle) {
-        handle.handle = curl_easy_init();
-        if (!handle.handle) {
-          OLP_SDK_LOG_ERROR(kLogTag,
-                            "GetHandle - curl_easy_init failed, id=" << id);
-          return nullptr;
-        }
-      }
-      handle.in_use = true;
-      handle.callback = std::move(callback);
-      handle.header_callback = std::move(header_callback);
-      handle.data_callback = std::move(data_callback);
-      handle.id = id;
-      handle.count = 0u;
-      handle.offset = 0u;
-      handle.chunk = nullptr;
-      handle.cancelled = false;
-      handle.payload = std::move(payload);
-      handle.body = std::move(body);
-      handle.send_time = std::chrono::steady_clock::now();
-      handle.error_text[0] = 0;
-      handle.skip_content = false;
-      handle.log_context = logging::GetContext();
 
-      return &handle;
-    }
+  if (!unused_handle_it->curl_handle) {
+    unused_handle_it->curl_handle = {curl_easy_init(), curl_easy_cleanup};
   }
 
-  OLP_SDK_LOG_DEBUG(kLogTag,
-                    "GetHandle failed - all CURL handles are busy, id=" << id);
-  return nullptr;
-}
+  if (!unused_handle_it->curl_handle) {
+    return nullptr;
+  }
 
-void NetworkCurl::ReleaseHandle(RequestHandle* handle,
-                                bool cleanup_easy_handle) {
-  std::lock_guard<std::mutex> lock(event_mutex_);
-  ReleaseHandleUnlocked(handle, cleanup_easy_handle);
+  unused_handle_it->in_use = true;
+  unused_handle_it->self = shared_from_this();
+  unused_handle_it->send_time = std::chrono::steady_clock::now();
+  unused_handle_it->log_context = logging::GetContext();
+
+  return &*unused_handle_it;
 }
 
 void NetworkCurl::ReleaseHandleUnlocked(RequestHandle* handle,
                                         bool cleanup_easy_handle) {
-  curl_easy_reset(handle->handle);
-  if (handle->chunk) {
-    curl_slist_free_all(handle->chunk);
-    handle->chunk = nullptr;
-  }
-  handle->in_use = false;
-  handle->callback = nullptr;
-  handle->header_callback = nullptr;
-  handle->data_callback = nullptr;
-  handle->payload.reset();
-  handle->body.reset();
+  std::shared_ptr<CURL> curl_handle;
+  std::swap(curl_handle, handle->curl_handle);
+
+  curl_easy_reset(curl_handle.get());
+  *handle = RequestHandle{};
+
+  std::swap(curl_handle, handle->curl_handle);
 
   // When using C-Ares on Android, DNS parameters are calculated in
   // curl_easy_init(). Those parameters are not reset in curl_easy_reset(...),
@@ -899,7 +895,6 @@ void NetworkCurl::ReleaseHandleUnlocked(RequestHandle* handle,
 
 #if defined(ANDROID)
   if (cleanup_easy_handle) {
-    curl_easy_cleanup(handle->handle);
     handle->handle = nullptr;
   }
 #endif
@@ -917,48 +912,46 @@ size_t NetworkCurl::RxFunction(void* ptr, size_t size, size_t nmemb,
   if (!that) {
     return len;
   }
-  long status = 0L;
-  curl_easy_getinfo(handle->handle, CURLINFO_RESPONSE_CODE, &status);
-  if (handle->skip_content && status != http::HttpStatusCode::OK &&
-      status != http::HttpStatusCode::PARTIAL_CONTENT &&
-      status != http::HttpStatusCode::CREATED && status != 0L) {
-    return len;
-  }
 
   if (that->IsStarted() && !handle->cancelled) {
-    if (handle->data_callback) {
-      handle->data_callback(reinterpret_cast<uint8_t*>(ptr),
-                            handle->offset + handle->count, len);
+    if (handle->out_data_callback) {
+      handle->out_data_callback(static_cast<uint8_t*>(ptr),
+                                handle->bytes_received, len);
     }
-    if (handle->payload) {
-      if (!handle->ignore_offset) {
-        if (handle->payload->tellp() != std::streampos(handle->count)) {
-          handle->payload->seekp(handle->count);
-          if (handle->payload->fail()) {
-            OLP_SDK_LOG_WARNING(kLogTag,
-                                "Payload seekp() failed, id=" << handle->id);
-            handle->payload->clear();
-          }
+
+    const auto& stream = handle->out_data_stream;
+    if (stream) {
+      if (stream->tellp() !=
+          static_cast<std::streamoff>(handle->bytes_received)) {
+        stream->seekp(static_cast<std::streamoff>(handle->bytes_received));
+        if (stream->fail()) {
+          OLP_SDK_LOG_WARNING(kLogTag,
+                              "Payload seekp() failed, id=" << handle->id);
+          stream->clear();
         }
       }
 
-      const char* data = reinterpret_cast<const char*>(ptr);
-      handle->payload->write(data, len);
+      stream->write(static_cast<const char*>(ptr),
+                    static_cast<std::streamsize>(len));
     }
-    handle->count += len;
+
+    handle->bytes_received += len;
   }
 
-  // In case we have curl verbose and stderr enabled log the error content
+  // In case we have curl verbose and stderr enabled to log the error content
   if (that->stderr_) {
     long http_status = 0L;
-    curl_easy_getinfo(handle->handle, CURLINFO_RESPONSE_CODE, &http_status);
+    curl_easy_getinfo(handle->curl_handle.get(), CURLINFO_RESPONSE_CODE,
+                      &http_status);
     if (http_status >= http::HttpStatusCode::BAD_REQUEST) {
       // Log the error content to help troubleshooting
-      fprintf(that->stderr_, "\n---ERRORCONTENT BEGIN HANDLE=%p BLOCKSIZE=%u\n",
-              handle, (uint32_t)(size * nmemb));
+      fprintf(that->stderr_,
+              "\n---ERROR CONTENT BEGIN HANDLE: %p, BLOCK SIZE: %u\n", handle,
+              static_cast<uint32_t>(size * nmemb));
       fwrite(ptr, size, nmemb, that->stderr_);
-      fprintf(that->stderr_, "\n---ERRORCONTENT END HANDLE=%p BLOCKSIZE=%u\n",
-              handle, (uint32_t)(size * nmemb));
+      fprintf(that->stderr_,
+              "\n---ERROR CONTENT END HANDLE: %p, BLOCK SIZE: %u\n", handle,
+              static_cast<uint32_t>(size * nmemb));
     }
   }
 
@@ -974,7 +967,7 @@ size_t NetworkCurl::HeaderFunction(char* ptr, size_t size, size_t nitems,
     return len;
   }
 
-  if (!handle->header_callback) {
+  if (!handle->out_header_callback) {
     return len;
   }
 
@@ -1000,12 +993,12 @@ size_t NetworkCurl::HeaderFunction(char* ptr, size_t size, size_t nitems,
   }
 
   // Callback with header key+value
-  handle->header_callback(key, value);
+  handle->out_header_callback(key, value);
 
   return len;
 }
 
-void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
+void NetworkCurl::CompleteMessage(CURL* curl_handle, CURLcode result) {
   std::unique_lock<std::mutex> lock(event_mutex_);
 
   // When curl returns an error of the handle, it is possible that error
@@ -1015,96 +1008,98 @@ void NetworkCurl::CompleteMessage(CURL* handle, CURLcode result) {
   // handle.
   const bool cleanup_easy_handle = result != CURLE_OK;
 
-  int index = GetHandleIndex(handle);
-  if (index >= 0 && index < static_cast<int>(handles_.size())) {
-    RequestHandle& rhandle = handles_[index];
-    logging::ScopedLogContext scopedLogContext(rhandle.log_context);
-    auto callback = rhandle.callback;
+  RequestHandle* request_handle = FindRequestHandle(curl_handle);
+  if (!request_handle) {
+    OLP_SDK_LOG_WARNING(kLogTag, "Message completed to unknown request");
+    return;
+  }
 
-    if (!callback) {
-      OLP_SDK_LOG_WARNING(
-          kLogTag,
-          "CompleteMessage - message without callback, id=" << rhandle.id);
-      ReleaseHandleUnlocked(&rhandle, cleanup_easy_handle);
-      return;
-    }
+  logging::ScopedLogContext scopedLogContext(request_handle->log_context);
+  auto callback = std::move(request_handle->out_completion_callback);
 
-    uint64_t upload_bytes = 0u;
-    uint64_t download_bytes = 0u;
-    GetTrafficData(rhandle.handle, upload_bytes, download_bytes);
+  if (!callback) {
+    OLP_SDK_LOG_WARNING(kLogTag,
+                        "CompleteMessage - message without callback, id="
+                            << request_handle->id);
+    return ReleaseHandleUnlocked(request_handle, cleanup_easy_handle);
+  }
 
-    auto response = NetworkResponse()
-                        .WithRequestId(rhandle.id)
-                        .WithBytesDownloaded(download_bytes)
-                        .WithBytesUploaded(upload_bytes);
+  uint64_t upload_bytes = 0u;
+  uint64_t download_bytes = 0u;
+  GetTrafficData(curl_handle, upload_bytes, download_bytes);
 
-    if (rhandle.cancelled) {
-      response.WithStatus(static_cast<int>(ErrorCode::CANCELLED_ERROR))
-          .WithError("Cancelled");
-      ReleaseHandleUnlocked(&rhandle, cleanup_easy_handle);
+  auto response = NetworkResponse()
+                      .WithRequestId(request_handle->id)
+                      .WithBytesDownloaded(download_bytes)
+                      .WithBytesUploaded(upload_bytes);
 
-      lock.unlock();
-      callback(response);
-      return;
-    }
-
-    std::string error("Success");
-    int status;
-    if ((result == CURLE_OK) || (result == CURLE_HTTP_RETURNED_ERROR)) {
-      long http_status = 0L;
-      curl_easy_getinfo(rhandle.handle, CURLINFO_RESPONSE_CODE, &http_status);
-      status = static_cast<int>(http_status);
-
-      if ((rhandle.offset == 0u) &&
-          (status == HttpStatusCode::PARTIAL_CONTENT)) {
-        status = HttpStatusCode::OK;
-      }
-
-      // For local file there is no server response so status is 0
-      if ((status == 0) && (result == CURLE_OK)) {
-        status = HttpStatusCode::OK;
-      }
-
-      error = HttpErrorToString(status);
-    } else {
-      rhandle.error_text[CURL_ERROR_SIZE - 1u] = '\0';
-      if (std::strlen(rhandle.error_text) > 0u) {
-        error = rhandle.error_text;
-      } else {
-        error = curl_easy_strerror(result);
-      }
-
-      status = ConvertErrorCode(result);
-    }
-
-    const char* url;
-    curl_easy_getinfo(rhandle.handle, CURLINFO_EFFECTIVE_URL, &url);
-
-    OLP_SDK_LOG_DEBUG(kLogTag,
-                      "Message completed, id="
-                          << rhandle.id << ", url='"
-                          << utils::CensorCredentialsInUrl(url) << "', status=("
-                          << status << ") " << error
-                          << ", time=" << GetElapsedTime(rhandle.send_time)
-                          << "ms, bytes=" << download_bytes + upload_bytes);
-
-    response.WithStatus(status).WithError(error);
-    ReleaseHandleUnlocked(&rhandle, cleanup_easy_handle);
+  if (request_handle->cancelled) {
+    response.WithStatus(static_cast<int>(ErrorCode::CANCELLED_ERROR))
+        .WithError("Cancelled");
+    ReleaseHandleUnlocked(request_handle, cleanup_easy_handle);
 
     lock.unlock();
     callback(response);
-  } else {
-    OLP_SDK_LOG_WARNING(kLogTag, "Message completed to unknown request");
+    return;
   }
+
+  std::string error("Success");
+  int status;
+  if ((result == CURLE_OK) || (result == CURLE_HTTP_RETURNED_ERROR)) {
+    long http_status = 0L;
+    curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &http_status);
+    status = static_cast<int>(http_status);
+
+    if (status == HttpStatusCode::PARTIAL_CONTENT) {
+      status = HttpStatusCode::OK;
+    }
+
+    // For local file, there is no server response so status is 0
+    if ((status == 0) && (result == CURLE_OK)) {
+      status = HttpStatusCode::OK;
+    }
+
+    error = HttpErrorToString(status);
+  } else {
+    request_handle->error_text[CURL_ERROR_SIZE - 1u] = '\0';
+    if (std::strlen(request_handle->error_text) > 0u) {
+      error = request_handle->error_text;
+    } else {
+      error = curl_easy_strerror(result);
+    }
+
+    status = ConvertErrorCode(result);
+  }
+
+  const char* url;
+  curl_easy_getinfo(curl_handle, CURLINFO_EFFECTIVE_URL, &url);
+
+  OLP_SDK_LOG_DEBUG(
+      kLogTag, "Message completed, id="
+                   << request_handle->id << ", url='"
+                   << utils::CensorCredentialsInUrl(url) << "', status=("
+                   << status << ") " << error
+                   << ", time=" << GetElapsedTime(request_handle->send_time)
+                   << "ms, bytes=" << download_bytes + upload_bytes);
+
+  response.WithStatus(status).WithError(error);
+
+  if (harfile_ != nullptr) {
+  }
+
+  ReleaseHandleUnlocked(request_handle, cleanup_easy_handle);
+
+  lock.unlock();
+  callback(response);
 }
 
-int NetworkCurl::GetHandleIndex(CURL* handle) {
-  for (size_t index = 0u; index < handles_.size(); index++) {
-    if (handles_[index].in_use && (handles_[index].handle == handle)) {
-      return static_cast<int>(index);
+NetworkCurl::RequestHandle* NetworkCurl::FindRequestHandle(const CURL* handle) {
+  for (auto& request_handle : handles_) {
+    if (request_handle.in_use && request_handle.curl_handle.get() == handle) {
+      return &request_handle;
     }
   }
-  return -1;
+  return nullptr;
 }
 
 void NetworkCurl::Run() {
@@ -1128,36 +1123,38 @@ void NetworkCurl::Run() {
         events_.pop_front();
 
         // Only handle handles that are actually used
-        auto* rhandle = event.handle;
-        if (!rhandle->in_use) {
+        auto* request_handle = event.handle;
+        if (!request_handle->in_use) {
           continue;
         }
 
+        const auto curl_handle = request_handle->curl_handle.get();
+
         if (event.type == EventInfo::Type::SEND_EVENT) {
-          auto res = curl_multi_add_handle(curl_, rhandle->handle);
+          auto res = curl_multi_add_handle(curl_, curl_handle);
           if ((res != CURLM_OK) && (res != CURLM_CALL_MULTI_PERFORM)) {
-            OLP_SDK_LOG_ERROR(kLogTag,
-                              "Send failed, id=" << rhandle->id << ", error="
-                                                 << curl_multi_strerror(res));
+            OLP_SDK_LOG_ERROR(
+                kLogTag, "Send failed, id=" << request_handle->id << ", error="
+                                            << curl_multi_strerror(res));
 
             // Do not add the handle to msgs vector in case it is a duplicate
             // handle error as it will be reset in CompleteMessage handler,
             // and curl will crash in the next call of curl_multi_perform
             // function. In any other case, lets complete the message.
             if (res != CURLM_ADDED_ALREADY) {
-              msgs.push_back(rhandle->handle);
+              msgs.push_back(curl_handle);
             }
           }
         } else {
-          // Request was cancelled, so lets remove it from curl
-          auto code = curl_multi_remove_handle(curl_, rhandle->handle);
+          // The Request was canceled, so let's remove it from a multi handle
+          auto code = curl_multi_remove_handle(curl_, curl_handle);
           if (code != CURLM_OK) {
             OLP_SDK_LOG_ERROR(kLogTag, "curl_multi_remove_handle failed, error="
                                            << curl_multi_strerror(code));
           }
 
           lock.unlock();
-          CompleteMessage(rhandle->handle, CURLE_OPERATION_TIMEDOUT);
+          CompleteMessage(curl_handle, CURLE_OPERATION_TIMEDOUT);
           lock.lock();
         }
       }
@@ -1193,52 +1190,56 @@ void NetworkCurl::Run() {
       std::unique_lock<std::mutex> lock(event_mutex_);
 
       while (IsStarted() &&
-             (msg = curl_multi_info_read(curl_, &msgs_in_queue))) {
-        CURL* handle = msg->easy_handle;
-        uint64_t upload_bytes = 0u;
-        uint64_t download_bytes = 0u;
-        GetTrafficData(handle, upload_bytes, download_bytes);
+             ((msg = curl_multi_info_read(curl_, &msgs_in_queue)))) {
+        CURL* curl_handle = msg->easy_handle;
 
         if (msg->msg == CURLMSG_DONE) {
-          curl_multi_remove_handle(curl_, handle);
+          curl_multi_remove_handle(curl_, curl_handle);
           lock.unlock();
-          CompleteMessage(handle, msg->data.result);
+          CompleteMessage(curl_handle, msg->data.result);
           lock.lock();
         } else {
-          // Actually this part should never be executed
+          // Actually, this part should never be executed
           OLP_SDK_LOG_ERROR(
               kLogTag,
               "Request completed with unknown state, error=" << msg->msg);
 
-          int handle_index = GetHandleIndex(handle);
-          if (handle_index >= 0) {
-            RequestHandle& rhandle = handles_[handle_index];
-            logging::ScopedLogContext scopedLogContext(rhandle.log_context);
-
-            auto callback = rhandle.callback;
-            if (!callback) {
-              OLP_SDK_LOG_WARNING(
-                  kLogTag,
-                  "Request completed without callback, id=" << rhandle.id);
-            } else {
-              lock.unlock();
-              auto response =
-                  NetworkResponse()
-                      .WithRequestId(rhandle.id)
-                      .WithStatus(static_cast<int>(ErrorCode::IO_ERROR))
-                      .WithError("CURL error")
-                      .WithBytesDownloaded(download_bytes)
-                      .WithBytesUploaded(upload_bytes);
-              callback(response);
-              lock.lock();
-            }
-
-            curl_multi_remove_handle(curl_, rhandle.handle);
-            const bool cleanup_easy_handle = true;
-            ReleaseHandleUnlocked(&rhandle, cleanup_easy_handle);
-          } else {
+          auto* request_handle = FindRequestHandle(curl_handle);
+          if (!request_handle) {
             OLP_SDK_LOG_ERROR(kLogTag, "Unknown handle completed");
+            continue;
           }
+
+          logging::ScopedLogContext scopedLogContext(
+              request_handle->log_context);
+
+          auto callback = std::move(request_handle->out_completion_callback);
+
+          if (!callback) {
+            OLP_SDK_LOG_WARNING(kLogTag,
+                                "Request completed without callback, id="
+                                    << request_handle->id);
+          } else {
+            lock.unlock();
+
+            uint64_t upload_bytes = 0u;
+            uint64_t download_bytes = 0u;
+            GetTrafficData(curl_handle, upload_bytes, download_bytes);
+
+            auto response =
+                NetworkResponse()
+                    .WithRequestId(request_handle->id)
+                    .WithStatus(static_cast<int>(ErrorCode::IO_ERROR))
+                    .WithError("CURL error")
+                    .WithBytesDownloaded(download_bytes)
+                    .WithBytesUploaded(upload_bytes);
+            callback(response);
+            lock.lock();
+          }
+
+          curl_multi_remove_handle(curl_, curl_handle);
+          constexpr bool cleanup_easy_handle = true;
+          ReleaseHandleUnlocked(request_handle, cleanup_easy_handle);
         }
       }
     }
@@ -1248,7 +1249,7 @@ void NetworkCurl::Run() {
     }
 
     //
-    // Wait for next action or upload/download
+    // Wait for the next action or upload/download
     //
     {
       // NOTE: curl_multi_wait has a fatal flow in it and it was corrected by
