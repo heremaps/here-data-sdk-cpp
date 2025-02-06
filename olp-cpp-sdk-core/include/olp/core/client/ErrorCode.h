@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,6 +96,11 @@ enum class ErrorCode {
    * The device is full and cannot store more data.
    */
   NoSpaceLeft,
+
+  /**
+   * Absence of network connectivity.
+   */
+  Offline,
 };
 
 }  // namespace client
