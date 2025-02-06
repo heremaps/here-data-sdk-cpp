@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,10 +40,10 @@
 #error cURL enabled network implementation for Android requires MD5 from OpenSSL
 #endif
 
-// Android uses MD5 to encode certificates name, but OpenSSL uses SHA1 for
-// certificates lookup -> so OpenSSL won't be able to get appropriate
+// Android uses MD5 to encode certificate name, but OpenSSL uses SHA1 for
+// certificate lookup, so OpenSSL won't be able to get the appropriate
 // certificate as it won't be able to locate one. We need to add our custom
-// lookup method that uses MD5. Old SHA1 lookup will be left as is.
+// lookup method that uses MD5. Old SHA1 lookup will be left as it is.
 #define OLP_SDK_USE_MD5_CERT_LOOKUP
 #endif
 
@@ -65,7 +65,7 @@ namespace http {
 /**
  * @brief The implementation of Network based on cURL.
  */
-class NetworkCurl : public olp::http::Network,
+class NetworkCurl : public Network,
                     public std::enable_shared_from_this<NetworkCurl> {
  public:
   /**
@@ -102,8 +102,8 @@ class NetworkCurl : public olp::http::Network,
    * @brief Implementation of Send method from Network abstract class.
    */
   SendOutcome Send(NetworkRequest request, Payload payload, Callback callback,
-                   HeaderCallback header_callback = nullptr,
-                   DataCallback data_callback = nullptr) override;
+                   HeaderCallback header_callback,
+                   DataCallback data_callback) override;
 
   /**
    * @brief Implementation of Cancel method from Network abstract class.
@@ -112,26 +112,26 @@ class NetworkCurl : public olp::http::Network,
 
  private:
   /**
-   * @brief Context of each individual network request.
+   * @brief Context of each network request.
    */
   struct RequestHandle {
+    NetworkRequest::RequestBodyType request_body;
+    std::shared_ptr<curl_slist> request_headers;
+
+    HeaderCallback out_header_callback;
+    DataCallback out_data_callback;
+    Payload out_data_stream;
+    Callback out_completion_callback;
+    std::uint64_t bytes_received{0};
+
     std::chrono::steady_clock::time_point send_time{};
-    NetworkRequest::RequestBodyType body{};
-    Network::Payload payload{};
     std::weak_ptr<NetworkCurl> self{};
-    Callback callback{};
-    HeaderCallback header_callback{};
-    DataCallback data_callback{};
-    std::uint64_t count{};
-    std::uint64_t offset{};
-    CURL* handle{nullptr};
-    struct curl_slist* chunk{nullptr};
-    int index{};
+
+    std::shared_ptr<CURL> curl_handle;
     RequestId id{};
-    bool ignore_offset{};
-    bool in_use{};
-    bool cancelled{};
-    bool skip_content{};
+
+    bool in_use{false};
+    bool is_cancelled{false};
     char error_text[CURL_ERROR_SIZE]{};
     std::shared_ptr<const logging::LogContext> log_context;
   };
@@ -186,19 +186,18 @@ class NetworkCurl : public olp::http::Network,
    * @param[out] payload Stream to store response payload data.
    * @param[in]  header_callback Callback that is called for every header from
    * response.
-   * @param[in]  data-callback  Callback to be called when a chunk of data is
+   * @param[in]  data_callback  Callback to be called when a chunk of data is
    * received. This callback can be triggered multiple times all prior to the
    * final Callback call.
    * @param[in]  callback Callback to be called when request is fully processed
-   * or cancelled. After this call there will be no more callbacks triggered and
+   * or canceled. After this call, there will be no more callbacks triggered and
    * users can consider the request as done.
    * @return ErrorCode.
    */
   ErrorCode SendImplementation(const NetworkRequest& request, RequestId id,
                                const std::shared_ptr<std::ostream>& payload,
-                               Network::HeaderCallback header_callback,
-                               Network::DataCallback data_callback,
-                               Network::Callback callback);
+                               HeaderCallback header_callback,
+                               DataCallback data_callback, Callback callback);
 
   /**
    * @brief Initialize internal data structures, start worker thread.
@@ -213,7 +212,7 @@ class NetworkCurl : public olp::http::Network,
   void Deinitialize();
 
   /**
-   * @brief Check whether network is initialized.
+   * @brief Check whether the network is initialized.
    * @return @c true if initialized, @c false otherwise.
    */
   bool Initialized() const;
@@ -232,54 +231,35 @@ class NetworkCurl : public olp::http::Network,
   size_t AmountPending();
 
   /**
-   * @brief Find handle index in handles_ by handle value.
+   * @brief Find a handle in handles_ by curl handle.
    * @param[in] handle CURL handle.
-   * @return index of associated RequestHandle in handles_ array.
+   * @return Pointer to the RequestHandle.
    */
-  int GetHandleIndex(CURL* handle);
+  RequestHandle* FindRequestHandle(const CURL* handle);
 
   /**
    * @brief Allocate new handle RequestHandle.
-   * @param[in] id Unique request id.
-   * @param[in] callback Request's callback.
-   * @param[in] header_callback Request's header callback.
-   * @param[in] data_callback Request's data callback.
-   * @param[in] payload Stream for response body.
-   * @return Pointer to allocated RequestHandle.
+   *
+   * @return Pointer to the allocated RequestHandle.
    */
-  RequestHandle* GetHandle(RequestId id, Network::Callback callback,
-                           Network::HeaderCallback headerCallback,
-                           Network::DataCallback dataCallback,
-                           Network::Payload payload,
-                           NetworkRequest::RequestBodyType body);
+  RequestHandle* InitRequestHandle();
 
   /**
-   * @brief Reset handle after network request is done.
-   * This method handles synchronization between caller's thread and worker
-   * thread.
+   * @brief Reset the handle after network request is done.
    * @param[in] handle Request handle.
    * @param[in] cleanup_handle If true then handle is completelly release.
-   * Otherwise handle is reset, which preserves DNS cache, Session ID cache,
-   * cookies and so on.
+   * Otherwise, a handle is reset, which preserves DNS cache, Session ID cache,
+   * cookies, and so on.
    */
-  void ReleaseHandle(RequestHandle* handle, bool cleanup_handle);
-
-  /**
-   * @brief Reset handle after network request is done.
-   * @param[in] handle Request handle.
-   * @param[in] cleanup_handle If true then handle is completelly release.
-   * Otherwise handle is reset, which preserves DNS cache, Session ID cache,
-   * cookies and so on.
-   */
-  void ReleaseHandleUnlocked(RequestHandle* handle, bool cleanup_handle);
+  static void ReleaseHandleUnlocked(RequestHandle* handle, bool cleanup_handle);
 
   /**
    * @brief Routine that is called when the last bit of response is received.
    *
-   * @param[in] handle CURL handle associated with request.
+   * @param[in] curl_handle CURL handle associated with request.
    * @param[in] result CURL return code.
    */
-  void CompleteMessage(CURL* handle, CURLcode result);
+  void CompleteMessage(CURL* curl_handle, CURLcode result);
 
   /**
    * @brief CURL read callback.
