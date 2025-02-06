@@ -203,22 +203,18 @@ int ConvertErrorCode(CURLcode curl_code) {
   }
 }
 
-/**
- * @brief CURL get upload/download data.
- * @param[in] handle CURL easy handle.
- * @param[out] upload_bytes uploaded bytes(headers+data).
- * @param[out] download_bytes downloaded bytes(headers+data).
- */
 void GetTrafficData(CURL* handle, uint64_t& upload_bytes,
-                    uint64_t& download_bytes) {
+                    uint64_t& download_headers_size,
+                    uint64_t& download_body_bytes) {
   upload_bytes = 0;
-  download_bytes = 0;
+  download_headers_size = 0;
+  download_body_bytes = 0;
 
   long headers_size;
   if (curl_easy_getinfo(handle, CURLINFO_HEADER_SIZE, &headers_size) ==
           CURLE_OK &&
       headers_size > 0) {
-    download_bytes += headers_size;
+    download_headers_size = headers_size;
   }
 
 #if CURL_AT_LEAST_VERSION(7, 55, 0)
@@ -226,14 +222,14 @@ void GetTrafficData(CURL* handle, uint64_t& upload_bytes,
   if (curl_easy_getinfo(handle, CURLINFO_SIZE_DOWNLOAD_T, &length_downloaded) ==
           CURLE_OK &&
       length_downloaded > 0) {
-    download_bytes += length_downloaded;
+    download_body_bytes = length_downloaded;
   }
 #else
   double length_downloaded;
   if (curl_easy_getinfo(handle, CURLINFO_SIZE_DOWNLOAD, &length_downloaded) ==
           CURLE_OK &&
       length_downloaded > 0.0) {
-    download_bytes += length_downloaded;
+    download_body_bytes += length_downloaded;
   }
 #endif
 
@@ -357,6 +353,85 @@ const char* MethodName(NetworkRequest::HttpVerb verb) {
   return "UNKNOWN";
 }
 
+SessionRecording::Timings GetTimings(CURL* handle) {
+  using Microseconds = SessionRecording::MicroSeconds;
+
+  SessionRecording::Timings timings{};
+
+  long queue_time_us = 0;
+#if CURL_AT_LEAST_VERSION(8, 6, 0)
+  if (curl_easy_getinfo(handle, CURLINFO_QUEUE_TIME_T, &queue_time_us) ==
+          CURLE_OK &&
+      queue_time_us > 0) {
+    timings.queue_time = Microseconds(queue_time_us);
+  }
+#else
+  timings.queue_time = Microseconds(queue_time_us);
+#endif
+
+  // 7.61.0
+  long name_lookup_us = 0;
+  if (curl_easy_getinfo(handle, CURLINFO_NAMELOOKUP_TIME_T, &name_lookup_us) ==
+          CURLE_OK &&
+      name_lookup_us > 0) {
+    timings.name_lookup_time = Microseconds(name_lookup_us);
+  }
+
+  // 7.61.0
+  long connect_time_us = 0;
+  if (curl_easy_getinfo(handle, CURLINFO_CONNECT_TIME_T, &connect_time_us) ==
+          CURLE_OK &&
+      connect_time_us > 0) {
+    timings.connect_time = Microseconds(connect_time_us);
+  }
+
+  // 7.61.0
+  long app_connect_time_us = 0;
+  if (curl_easy_getinfo(handle, CURLINFO_APPCONNECT_TIME_T,
+                        &app_connect_time_us) == CURLE_OK &&
+      app_connect_time_us > 0) {
+    timings.app_connect_time = Microseconds(app_connect_time_us);
+  }
+
+  // 7.61.0
+  long pre_transfer_time_us = 0;
+  if (curl_easy_getinfo(handle, CURLINFO_PRETRANSFER_TIME_T,
+                        &pre_transfer_time_us) == CURLE_OK &&
+      pre_transfer_time_us > 0) {
+    timings.pre_transfer_time = Microseconds(pre_transfer_time_us);
+  }
+
+  // 7.61.0
+  long start_transfer_time_us = 0;
+  if (curl_easy_getinfo(handle, CURLINFO_STARTTRANSFER_TIME_T,
+                        &start_transfer_time_us) == CURLE_OK &&
+      start_transfer_time_us > 0) {
+    timings.start_transfer_time = Microseconds(start_transfer_time_us);
+  }
+
+  // 8.10.0
+#if CURL_AT_LEAST_VERSION(8, 10, 0)
+  long post_transfer_time_us = 0;
+  if (curl_easy_getinfo(handle, CURLINFO_POSTTRANSFER_TIME_T,
+                        &post_transfer_time_us) == CURLE_OK &&
+      post_transfer_time_us > 0) {
+    timings.post_transfer_time = Microseconds(post_transfer_time_us);
+  }
+#else
+  timings.post_transfer_time = timings.start_transfer_time;
+#endif
+
+  // 7.61.0
+  long total_time_us = 0;
+  if (curl_easy_getinfo(handle, CURLINFO_TOTAL_TIME_T, &total_time_us) ==
+          CURLE_OK &&
+      total_time_us > 0) {
+    timings.total_time = Microseconds(total_time_us);
+  }
+
+  return timings;
+}
+
 }  // anonymous namespace
 
 NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
@@ -385,6 +460,8 @@ NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
                          curl_log_path_->c_str());
     }
   }
+
+  session_recording_.emplace(SessionRecording());
 
 #ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
   SetupCertificateBlobs();
@@ -436,6 +513,11 @@ NetworkCurl::~NetworkCurl() {
   }
   if (stderr_) {
     fclose(stderr_);
+  }
+  if (session_recording_) {
+    session_recording_->locked([](const SessionRecording& recording) {
+      recording.ArchiveToFile("/tmp/test.har");
+    });
   }
 }
 
@@ -672,6 +754,14 @@ ErrorCode NetworkCurl::SendImplementation(
   handle->request_body = request.GetBody();
   handle->request_headers = SetupHeaders(request.GetHeaders());
 
+  if (session_recording_) {
+    session_recording_->locked([&](SessionRecording& recording) {
+      recording.SetRequestParameters(
+          id, handle->request_url, request.GetVerb(), request.GetHeaders(),
+          handle->request_body ? handle->request_body->size() : 0);
+    });
+  }
+
   OLP_SDK_LOG_DEBUG(kLogTag,
                     "Send request with url="
                         << utils::CensorCredentialsInUrl(request.GetUrl())
@@ -876,13 +966,21 @@ NetworkCurl::RequestHandle* NetworkCurl::InitRequestHandle() {
 
 void NetworkCurl::ReleaseHandleUnlocked(RequestHandle* handle,
                                         bool cleanup_easy_handle) {
+  // Reset the RequestHandle to defaults, but keep the curl_handle and
+  // response_headers allocated buffer.
   std::shared_ptr<CURL> curl_handle;
-  std::swap(curl_handle, handle->curl_handle);
+  std::vector<std::pair<std::string, std::string>> response_headers;
 
+  std::swap(curl_handle, handle->curl_handle);
+  std::swap(response_headers, handle->response_headers);
+
+  response_headers.clear();
   curl_easy_reset(curl_handle.get());
+
   *handle = RequestHandle{};
 
   std::swap(curl_handle, handle->curl_handle);
+  std::swap(response_headers, handle->response_headers);
 
   // When using C-Ares on Android, DNS parameters are calculated in
   // curl_easy_init(). Those parameters are not reset in curl_easy_reset(...),
@@ -895,7 +993,7 @@ void NetworkCurl::ReleaseHandleUnlocked(RequestHandle* handle,
 
 #if defined(ANDROID)
   if (cleanup_easy_handle) {
-    handle->handle = nullptr;
+    handle->curl_handle = nullptr;
   }
 #endif
   OLP_SDK_CORE_UNUSED(cleanup_easy_handle);
@@ -994,6 +1092,7 @@ size_t NetworkCurl::HeaderFunction(char* ptr, size_t size, size_t nitems,
 
   // Callback with header key+value
   handle->out_header_callback(key, value);
+  handle->response_headers.emplace_back(std::move(key), std::move(value));
 
   return len;
 }
@@ -1025,13 +1124,16 @@ void NetworkCurl::CompleteMessage(CURL* curl_handle, CURLcode result) {
   }
 
   uint64_t upload_bytes = 0u;
-  uint64_t download_bytes = 0u;
-  GetTrafficData(curl_handle, upload_bytes, download_bytes);
+  uint64_t download_headers_bytes = 0u;
+  uint64_t download_body_bytes = 0u;
+  GetTrafficData(curl_handle, upload_bytes, download_headers_bytes,
+                 download_body_bytes);
 
-  auto response = NetworkResponse()
-                      .WithRequestId(request_handle->id)
-                      .WithBytesDownloaded(download_bytes)
-                      .WithBytesUploaded(upload_bytes);
+  auto response =
+      NetworkResponse()
+          .WithRequestId(request_handle->id)
+          .WithBytesDownloaded(download_headers_bytes + download_body_bytes)
+          .WithBytesUploaded(upload_bytes);
 
   if (request_handle->cancelled) {
     response.WithStatus(static_cast<int>(ErrorCode::CANCELLED_ERROR))
@@ -1074,18 +1176,43 @@ void NetworkCurl::CompleteMessage(CURL* curl_handle, CURLcode result) {
   const char* url;
   curl_easy_getinfo(curl_handle, CURLINFO_EFFECTIVE_URL, &url);
 
+  if (session_recording_) {
+    long http_version = 0;
+    curl_easy_getinfo(curl_handle, CURLINFO_HTTP_VERSION, &http_version);
+
+    if (http_version == CURL_HTTP_VERSION_1_0 ||
+        http_version == CURL_HTTP_VERSION_1_1) {
+      http_version = 1;
+    } else if (http_version == CURL_HTTP_VERSION_2_0 ||
+               http_version == CURL_HTTP_VERSION_2TLS ||
+               http_version == CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE) {
+      http_version = 2;
+    } else {
+      http_version = 0;
+    }
+
+    const char* content_type;
+    curl_easy_getinfo(curl_handle, CURLINFO_CONTENT_TYPE, &content_type);
+
+    session_recording_->locked([&](SessionRecording& recording) {
+      recording.SetResponseParameters(
+          request_handle->id, static_cast<int>(http_version), status,
+          request_handle->response_headers, content_type,
+          download_headers_bytes, download_body_bytes);
+      recording.SetRequestTimings(request_handle->id, GetTimings(curl_handle));
+    });
+  }
+
   OLP_SDK_LOG_DEBUG(
-      kLogTag, "Message completed, id="
-                   << request_handle->id << ", url='"
-                   << utils::CensorCredentialsInUrl(url) << "', status=("
-                   << status << ") " << error
-                   << ", time=" << GetElapsedTime(request_handle->send_time)
-                   << "ms, bytes=" << download_bytes + upload_bytes);
+      kLogTag,
+      "Message completed, id="
+          << request_handle->id << ", url='"
+          << utils::CensorCredentialsInUrl(url) << "', status=(" << status
+          << ") " << error << ", time="
+          << GetElapsedTime(request_handle->send_time) << "ms, bytes="
+          << download_headers_bytes + download_body_bytes + upload_bytes);
 
   response.WithStatus(status).WithError(error);
-
-  if (harfile_ != nullptr) {
-  }
 
   ReleaseHandleUnlocked(request_handle, cleanup_easy_handle);
 
@@ -1223,15 +1350,18 @@ void NetworkCurl::Run() {
             lock.unlock();
 
             uint64_t upload_bytes = 0u;
-            uint64_t download_bytes = 0u;
-            GetTrafficData(curl_handle, upload_bytes, download_bytes);
+            uint64_t download_headers_bytes = 0u;
+            uint64_t download_body_bytes = 0u;
+            GetTrafficData(curl_handle, upload_bytes, download_headers_bytes,
+                           download_body_bytes);
 
             auto response =
                 NetworkResponse()
                     .WithRequestId(request_handle->id)
                     .WithStatus(static_cast<int>(ErrorCode::IO_ERROR))
                     .WithError("CURL error")
-                    .WithBytesDownloaded(download_bytes)
+                    .WithBytesDownloaded(download_headers_bytes +
+                                         download_body_bytes)
                     .WithBytesUploaded(upload_bytes);
             callback(response);
             lock.lock();

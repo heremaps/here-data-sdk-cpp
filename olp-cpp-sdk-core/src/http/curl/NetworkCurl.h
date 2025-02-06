@@ -27,10 +27,13 @@
 #include <deque>
 #include <memory>
 #include <mutex>
+#include <sstream>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
+#include <rapidjson/ostreamwrapper.h>
 #include <boost/optional.hpp>
 
 #if defined(OLP_SDK_ENABLE_ANDROID_CURL) && !defined(ANDROID_HOST)
@@ -59,8 +62,326 @@
 #include "olp/core/http/NetworkRequest.h"
 #include "olp/core/logging/LogContext.h"
 
+#include <olp/core/thread/Atomic.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/writer.h>
+#include <array>
+#include <fstream>
+#include <iomanip>
+
 namespace olp {
 namespace http {
+
+class SessionRecording {
+ public:
+  static constexpr RequestId max_value = 100000;
+
+  // Chrono microseconds type but with a lower range to save some memory.
+  using MicroSeconds = std::chrono::duration<uint32_t, std::micro>;
+
+  struct Timings {
+    MicroSeconds queue_time;
+    MicroSeconds name_lookup_time;
+    MicroSeconds connect_time;
+    MicroSeconds app_connect_time;
+    MicroSeconds pre_transfer_time;
+    MicroSeconds post_transfer_time;
+    MicroSeconds start_transfer_time;
+    MicroSeconds total_time;
+  };
+
+  void SetRequestParameters(
+      const RequestId request_id, const std::string& url,
+      const NetworkRequest::HttpVerb method,
+      const std::vector<std::pair<std::string, std::string>>& headers,
+      const size_t body_size) {
+    if (request_id >= max_value) {
+      return;
+    }
+
+    const auto url_hash = hash_(url);
+    cache_[url_hash] = url;
+
+    auto* entry = GetEntry(request_id);
+
+    entry->url = url_hash;
+    entry->method = static_cast<uint8_t>(method);
+
+    entry->request_headers_offset = headers_.size();
+    entry->request_headers_count = headers.size();
+
+    for (const auto& header : headers) {
+      cache_[hash_(header.first)] = header.first;
+      cache_[hash_(header.second)] = header.second;
+      headers_.emplace_back(hash_(header.first), hash_(header.second));
+      entry->request_headers_size +=
+          header.first.size() + header.second.size() + 4;
+    }
+
+    entry->request_body_size = body_size;
+
+    entry->start_time = std::chrono::system_clock::now();
+  }
+
+  void SetResponseParameters(
+      const RequestId request_id, const int http_version, const int status_code,
+      const std::vector<std::pair<std::string, std::string>>& headers,
+      const std::string& content_type, const unsigned long headers_size,
+      const unsigned long body_size) {
+    if (request_id >= max_value) {
+      return;
+    }
+
+    auto* entry = GetEntry(request_id);
+
+    entry->status_code = static_cast<uint8_t>(status_code);
+    entry->http_version = static_cast<uint8_t>(http_version);
+
+    entry->response_headers_offset = headers_.size();
+    entry->response_headers_count = headers.size();
+
+    for (const auto& header : headers) {
+      cache_[hash_(header.first)] = header.first;
+      cache_[hash_(header.second)] = header.second;
+      headers_.emplace_back(hash_(header.first), hash_(header.second));
+    }
+
+    entry->response_headers_size = static_cast<uint16_t>(headers_size);
+    entry->response_body_size = static_cast<uint32_t>(body_size);
+
+    entry->duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now() - entry->start_time);
+
+    cache_[hash_(content_type)] = content_type;
+    entry->content_type = hash_(content_type);
+  }
+
+  void SetRequestTimings(const RequestId request_id, const Timings& timings) {
+    if (request_id > timings_.size()) {
+      timings_.resize(request_id);
+    }
+
+    timings_[request_id - 1] = timings;
+  }
+
+  void ArchiveToFile(const std::string& out_file_path) const {
+    std::ofstream file(out_file_path);
+
+    rapidjson::OStreamWrapper os(file);
+    rapidjson::PrettyWriter<rapidjson::OStreamWrapper> writer(os);
+    writer.StartObject();
+    writer.Key("log");
+    writer.StartObject();
+
+    // Version
+    writer.Key("version");
+    writer.String("1.2");
+
+    // Creator
+    writer.Key("creator");
+    writer.StartObject();
+    writer.Key("name");
+    writer.String("DataSDK");
+    writer.Key("version");
+    writer.String("1.0");
+    writer.EndObject();
+
+    // Entries
+    writer.Key("entries");
+    writer.StartArray();
+    for (auto request_index = 0u; request_index < requests_.size();
+         ++request_index) {
+      const auto& request = requests_[request_index];
+      writer.StartObject();
+      // startedDateTime
+      writer.Key("startedDateTime");
+
+      std::stringstream ss;
+      std::time_t t = std::chrono::system_clock::to_time_t(request.start_time);
+      auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    request.start_time.time_since_epoch()) %
+                1000;
+      ss << std::put_time(std::localtime(&t), "%FT%T") << '.'
+         << std::setfill('0') << std::setw(3) << ms.count() << "Z";
+
+      writer.String(ss.str().c_str());
+
+      // time
+      writer.Key("time");
+      writer.Int(request.duration.count());
+      // writer.Int(timings_[request_index].total_time.count() / 1000);
+
+      // request
+      writer.Key("request");
+      writer.StartObject();
+      {
+        // method
+        writer.Key("method");
+        writer.String("GET");
+        // url
+        writer.Key("url");
+        writer.String(cache_.at(request.url).c_str());
+        // httpVersion
+        writer.Key("httpVersion");
+        writer.String("HTTP/1.1");
+        // cookies  []
+        writer.Key("cookies");
+        writer.StartArray();
+        writer.EndArray();
+        // headers  []
+        writer.Key("headers");
+        writer.StartArray();
+        for (auto i = 0u; i < request.request_headers_count; ++i) {
+          auto header = headers_[request.request_headers_offset + i];
+          writer.StartObject();
+          writer.Key("name");
+          writer.Key(cache_.at(header.first).c_str());
+          writer.Key("value");
+          writer.Key(cache_.at(header.second).c_str());
+          writer.EndObject();
+        }
+        writer.EndArray();
+        // queryString []
+        writer.Key("queryString");
+        writer.StartArray();
+        writer.EndArray();
+        // headersSize   int
+        writer.Key("headersSize");
+        writer.Int(request.request_headers_size);
+        // bodySize  int
+        writer.Key("bodySize");
+        writer.Int(request.request_body_size);
+      }
+      writer.EndObject();
+
+      // response
+      writer.Key("response");
+      writer.StartObject();
+      {
+        writer.Key("status");
+        writer.Int(request.status_code);
+
+        writer.Key("httpVersion");
+        if (request.http_version == 1) {
+          writer.String("HTTP/1.1");
+        } else if (request.http_version == 2) {
+          writer.String("HTTP/2");
+        } else {
+          writer.String("UNKNOWN");
+        }
+
+        writer.Key("cookies");
+        writer.StartArray();
+        writer.EndArray();
+
+        writer.Key("headers");
+        writer.StartArray();
+        for (auto i = 0u; i < request.response_headers_count; ++i) {
+          auto header = headers_[request.response_headers_offset + i];
+          writer.StartObject();
+          writer.Key("name");
+          writer.String(cache_.at(header.first).c_str());
+          writer.Key("value");
+          writer.String(cache_.at(header.second).c_str());
+          writer.EndObject();
+        }
+        writer.EndArray();
+
+        writer.Key("content");
+        writer.StartObject();
+        writer.Key("size");
+        writer.Int(request.response_body_size);
+        writer.Key("mimeType");
+        writer.String(cache_.at(request.content_type).c_str());
+        writer.EndObject();
+
+        writer.Key("redirectURL");
+        writer.String("");
+
+        writer.Key("headersSize");
+        writer.Int(request.response_headers_size);
+
+        writer.Key("bodySize");
+        writer.Int(request.response_body_size);
+      }
+      writer.EndObject();
+
+      // timings
+      writer.Key("timings");
+      writer.StartObject();
+      if (!timings_.empty()) {
+        const auto& timings = timings_[request_index];
+        writer.Key("blocked");
+        writer.Double(timings.queue_time.count() / 1000.0);
+        writer.Key("dns");
+        writer.Double((timings.name_lookup_time - timings.queue_time).count() /
+                      1000.0);
+        writer.Key("connect");
+        writer.Double(
+            (timings.connect_time - timings.name_lookup_time).count() / 1000.0);
+        writer.Key("ssl");
+        writer.Double(
+            (timings.app_connect_time - timings.connect_time).count() / 1000.0);
+        writer.Key("send");
+        writer.Double(
+            (timings.pre_transfer_time - timings.app_connect_time).count() /
+            1000.0);
+        writer.Key("wait");
+        writer.Double(
+            (timings.start_transfer_time - timings.pre_transfer_time).count() /
+            1000.0);
+        writer.Key("receive");
+        writer.Double(
+            (timings.total_time - timings.start_transfer_time).count() /
+            1000.0);
+      }
+      writer.EndObject();
+
+      writer.EndObject();
+    }
+    writer.EndArray();
+
+    writer.EndObject();
+    writer.EndObject();
+  }
+
+ private:
+  struct RequestEntry {
+    size_t url{};
+    size_t content_type{};
+
+    std::chrono::time_point<std::chrono::system_clock> start_time;
+    std::chrono::milliseconds duration{};
+
+    uint16_t request_headers_offset{};
+    uint16_t request_headers_size{};
+    uint16_t response_headers_offset{};
+    uint16_t response_headers_size{};
+    uint8_t request_headers_count{};
+    uint8_t response_headers_count{};
+    uint32_t request_body_size{};
+    uint32_t response_body_size{};
+
+    uint8_t method{};
+    uint8_t http_version{};
+    uint8_t status_code{};
+  };
+
+  RequestEntry* GetEntry(const RequestId request_id) {
+    if (request_id > requests_.size()) {
+      requests_.resize(request_id);
+    }
+
+    return &requests_[request_id - 1];
+  }
+
+  std::string out_file_path_;
+  std::unordered_map<size_t, std::string> cache_{};
+  std::vector<RequestEntry> requests_{};
+  std::vector<Timings> timings_{};
+  std::vector<std::pair<size_t, size_t>> headers_{};
+  std::hash<std::string> hash_;
+};
 
 /**
  * @brief The implementation of Network based on cURL.
@@ -125,6 +446,8 @@ class NetworkCurl : public Network,
     Payload out_data_stream;
     Callback out_completion_callback;
     std::uint64_t bytes_received{0};
+
+    std::vector<std::pair<std::string, std::string>> response_headers;
 
     std::chrono::steady_clock::time_point send_time{};
     std::weak_ptr<NetworkCurl> self{};
@@ -360,9 +683,6 @@ class NetworkCurl : public Network,
   /// Set custom stderr for CURL.
   FILE* stderr_{nullptr};
 
-  /// Set custom stderr for CURL.
-  FILE* harfile_{nullptr};
-
   /// UNIX Pipe used to notify sleeping worker thread during select() call.
   int pipe_[2]{};
 
@@ -375,6 +695,8 @@ class NetworkCurl : public Network,
 
   /// The path to store CURL logs
   boost::optional<std::string> curl_log_path_;
+
+  boost::optional<thread::Atomic<SessionRecording>> session_recording_;
 
 #ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
   /// SSL certificate blobs.
