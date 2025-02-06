@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,6 +154,7 @@ class CORE_API HttpStatusCode {
     if (http_code < 0) {
       switch (static_cast<olp::http::ErrorCode>(http_code)) {
         case olp::http::ErrorCode::OFFLINE_ERROR:
+          return olp::client::ErrorCode::Offline;
         case olp::http::ErrorCode::IO_ERROR:
           return olp::client::ErrorCode::NetworkConnection;
         case olp::http::ErrorCode::TIMEOUT_ERROR:
