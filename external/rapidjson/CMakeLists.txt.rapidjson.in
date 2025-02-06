@@ -23,7 +23,7 @@ include(ExternalProject)
 ExternalProject_Add(rapidjson
   GIT_REPOSITORY    @OLP_SDK_CPP_RAPIDJSON_URL@
   GIT_TAG           @OLP_SDK_CPP_RAPIDJSON_TAG@
-  GIT_SHALLOW       1
+  GIT_SHALLOW       0
   INSTALL_DIR       "@EXTERNAL_BINARY_INSTALL_DIR@"
   CMAKE_ARGS        @COMMON_PLATFORM_FLAGS@
                     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>

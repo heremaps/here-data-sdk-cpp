@@ -49,7 +49,8 @@ set(OLP_SDK_CPP_LEVELDB_URL "https://github.com/google/leveldb.git")
 set(OLP_SDK_CPP_LEVELDB_TAG "1.21")
 
 set(OLP_SDK_CPP_RAPIDJSON_URL "https://github.com/Tencent/rapidjson.git")
-set(OLP_SDK_CPP_RAPIDJSON_TAG "master")
+# Next commit after that breaks our build
+set(OLP_SDK_CPP_RAPIDJSON_TAG "d621dc9e9c77f81e5c8a35b8dcc16dcd63351321")
 
 set(OLP_SDK_CPP_BOOST_URL "https://github.com/boostorg/boost.git")
 set(OLP_SDK_CPP_BOOST_TAG "boost-1.82.0")
