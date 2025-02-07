@@ -348,6 +348,49 @@ void SetupDns(CURL* curl_handle, const std::vector<std::string>& dns_servers) {
 #endif
 }
 
+Diagnostics GetDiagnostics(CURL* handle) {
+  Diagnostics diagnostics;
+
+  static const std::pair<Diagnostics::Timings, CURLINFO> available_timings[] = {
+#if CURL_AT_LEAST_VERSION(8, 6, 0)
+    {Diagnostics::Queue, CURLINFO_QUEUE_TIME_T},
+#endif
+    {Diagnostics::NameLookup, CURLINFO_NAMELOOKUP_TIME_T},
+    {Diagnostics::Connect, CURLINFO_CONNECT_TIME_T},
+    {Diagnostics::SSL_Handshake, CURLINFO_APPCONNECT_TIME_T},
+#if CURL_AT_LEAST_VERSION(8, 10, 0)
+    {Diagnostics::Send, CURLINFO_POSTTRANSFER_TIME_T},
+    {Diagnostics::Wait, CURLINFO_STARTTRANSFER_TIME_T},
+#else
+    {Diagnostics::Send, CURLINFO_STARTTRANSFER_TIME_T},
+#endif
+    {Diagnostics::Receive, CURLINFO_TOTAL_TIME_T},
+  };
+
+  curl_off_t last_time_point{0};
+
+  auto add_timing = [&](Diagnostics::Timings timing,
+                        Diagnostics::MicroSeconds time) {
+    diagnostics.timings[timing] = time;
+    diagnostics.available_timings.set(timing);
+  };
+
+  for (const auto& available_timing : available_timings) {
+    curl_off_t time_point_us = 0;
+    if (curl_easy_getinfo(handle, available_timing.second, &time_point_us) ==
+            CURLE_OK &&
+        time_point_us > 0) {
+      add_timing(available_timing.first,
+                 Diagnostics::MicroSeconds(time_point_us - last_time_point));
+      last_time_point = time_point_us;
+    }
+  }
+
+  add_timing(Diagnostics::Total, Diagnostics::MicroSeconds(last_time_point));
+
+  return diagnostics;
+}
+
 }  // anonymous namespace
 
 NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
@@ -1004,7 +1047,8 @@ void NetworkCurl::CompleteMessage(CURL* curl_handle, CURLcode result) {
   auto response = NetworkResponse()
                       .WithRequestId(request_handle->id)
                       .WithBytesDownloaded(download_bytes)
-                      .WithBytesUploaded(upload_bytes);
+                      .WithBytesUploaded(upload_bytes)
+                      .WithDiagnostics(GetDiagnostics(curl_handle));
 
   if (request_handle->is_cancelled) {
     response.WithStatus(static_cast<int>(ErrorCode::CANCELLED_ERROR))
@@ -1199,7 +1243,9 @@ void NetworkCurl::Run() {
                     .WithStatus(static_cast<int>(ErrorCode::IO_ERROR))
                     .WithError("CURL error")
                     .WithBytesDownloaded(download_bytes)
-                    .WithBytesUploaded(upload_bytes);
+                    .WithBytesUploaded(upload_bytes)
+                    .WithDiagnostics(GetDiagnostics(curl_handle));
+
             callback(response);
             lock.lock();
           }

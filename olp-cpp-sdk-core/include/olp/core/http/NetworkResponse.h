@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,44 @@
 
 #pragma once
 
+#include <array>
+#include <bitset>
+#include <chrono>
 #include <string>
+
+#include <boost/optional/optional.hpp>
 
 #include <olp/core/CoreApi.h>
 #include <olp/core/http/NetworkTypes.h>
 
 namespace olp {
 namespace http {
+
+/**
+ * @brief Network request timings.
+ */
+struct Diagnostics {
+  using MicroSeconds = std::chrono::duration<uint32_t, std::micro>;
+
+  enum Timings {
+    Queue = 0,      // Delay until the request is processed
+    NameLookup,     // Time taken for DNS name lookup
+    Connect,        // Time taken to establish connection
+    SSL_Handshake,  // Time taken to establish a secured connection
+    Send,           // Time taken to send the request
+    Wait,           // Time delay until server starts responding
+    Receive,        // Time taken to receive the response
+    Total,          // Total time taken for reqeust
+    Count
+  };
+
+  /// Timing values
+  std::array<MicroSeconds, Count> timings{};
+
+  /// Availability flag, specify which timing is available
+  std::bitset<Count> available_timings{};
+};
+
 /**
  * @brief A network response abstraction for the HTTP request.
  */
@@ -126,6 +157,22 @@ class CORE_API NetworkResponse final {
    */
   NetworkResponse& WithBytesDownloaded(uint64_t bytes_downloaded);
 
+  /**
+   * @brief Gets the optional diagnostics if set.
+   *
+   * @return Diagnostic values.
+   */
+  const boost::optional<Diagnostics>& GetDiagnostics() const;
+
+  /**
+   * @brief Sets the request diagnostics.
+   *
+   * @param diagnostics Diagnostics values.
+   *
+   * @return A reference to *this.
+   */
+  NetworkResponse& WithDiagnostics(Diagnostics diagnostics);
+
  private:
   /// The associated request ID.
   RequestId request_id_{0};
@@ -134,9 +181,11 @@ class CORE_API NetworkResponse final {
   /// The human-readable error message if the associated request failed.
   std::string error_;
   /// The number of bytes uploaded during the network request.
-  uint64_t bytes_uploaded_;
+  uint64_t bytes_uploaded_{0};
   /// The number of bytes downloaded during the network request.
-  uint64_t bytes_downloaded_;
+  uint64_t bytes_downloaded_{0};
+  /// Diagnostics
+  boost::optional<Diagnostics> diagnostics_;
 };
 
 }  // namespace http
