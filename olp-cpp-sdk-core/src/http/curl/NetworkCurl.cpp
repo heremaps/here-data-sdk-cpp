@@ -348,9 +348,9 @@ void SetupDns(CURL* curl_handle, const std::vector<std::string>& dns_servers) {
 #endif
 }
 
-Diagnostics GetDiagnostics(CURL* handle) {
+void WithDiagnostics(NetworkResponse& response, CURL* handle) {
+#if CURL_AT_LEAST_VERSION(7, 61, 0)
   Diagnostics diagnostics;
-
   static const std::pair<Diagnostics::Timings, CURLINFO> available_timings[] = {
 #if CURL_AT_LEAST_VERSION(8, 6, 0)
     {Diagnostics::Queue, CURLINFO_QUEUE_TIME_T},
@@ -388,7 +388,10 @@ Diagnostics GetDiagnostics(CURL* handle) {
 
   add_timing(Diagnostics::Total, Diagnostics::MicroSeconds(last_time_point));
 
-  return diagnostics;
+  response.WithDiagnostics(diagnostics);
+#else
+  OLP_SDK_CORE_UNUSED(response, handle);
+#endif
 }
 
 }  // anonymous namespace
@@ -1047,8 +1050,9 @@ void NetworkCurl::CompleteMessage(CURL* curl_handle, CURLcode result) {
   auto response = NetworkResponse()
                       .WithRequestId(request_handle->id)
                       .WithBytesDownloaded(download_bytes)
-                      .WithBytesUploaded(upload_bytes)
-                      .WithDiagnostics(GetDiagnostics(curl_handle));
+                      .WithBytesUploaded(upload_bytes);
+
+  WithDiagnostics(response, curl_handle);
 
   if (request_handle->is_cancelled) {
     response.WithStatus(static_cast<int>(ErrorCode::CANCELLED_ERROR))
@@ -1243,8 +1247,9 @@ void NetworkCurl::Run() {
                     .WithStatus(static_cast<int>(ErrorCode::IO_ERROR))
                     .WithError("CURL error")
                     .WithBytesDownloaded(download_bytes)
-                    .WithBytesUploaded(upload_bytes)
-                    .WithDiagnostics(GetDiagnostics(curl_handle));
+                    .WithBytesUploaded(upload_bytes);
+
+            WithDiagnostics(response, curl_handle);
 
             callback(response);
             lock.lock();
