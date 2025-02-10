@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,15 @@ NetworkResponse& NetworkResponse::WithBytesDownloaded(
     uint64_t bytes_downloaded) {
   bytes_downloaded_ = bytes_downloaded;
   return *this;
+}
+
+NetworkResponse& NetworkResponse::WithDiagnostics(Diagnostics diagnostics) {
+  diagnostics_ = diagnostics;
+  return *this;
+}
+
+const boost::optional<Diagnostics>& NetworkResponse::GetDiagnostics() const {
+  return diagnostics_;
 }
 
 }  // namespace http
