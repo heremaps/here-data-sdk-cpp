@@ -23,7 +23,7 @@
 
 namespace olp {
 namespace parser {
-using namespace olp::dataservice::read;
+namespace model = olp::dataservice::read::model;
 
 void from_json(const boost::json::value& value, model::VersionResponse& x) {
   x.SetVersion(parse<int64_t>(value, "version"));

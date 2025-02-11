@@ -29,25 +29,25 @@ void to_json(const dataservice::write::model::Index &x,
 
   boost::json::object indexFields;
   for (auto &field_pair : x.GetIndexFields()) {
-    using namespace dataservice::write::model;
+    namespace model = dataservice::write::model;
     const auto &field = field_pair.second;
     const auto &key = field_pair.first;
     auto index_type = field->getIndexType();
-    if (index_type == IndexType::String) {
-      auto s = std::static_pointer_cast<StringIndexValue>(field);
+    if (index_type == model::IndexType::String) {
+      auto s = std::static_pointer_cast<model::StringIndexValue>(field);
       boost::json::string str_val{s->GetValue()};
       indexFields.emplace(key, std::move(str_val));
-    } else if (index_type == IndexType::Int) {
-      auto s = std::static_pointer_cast<IntIndexValue>(field);
+    } else if (index_type == model::IndexType::Int) {
+      auto s = std::static_pointer_cast<model::IntIndexValue>(field);
       indexFields.emplace(key, s->GetValue());
-    } else if (index_type == IndexType::Bool) {
-      auto s = std::static_pointer_cast<BooleanIndexValue>(field);
+    } else if (index_type == model::IndexType::Bool) {
+      auto s = std::static_pointer_cast<model::BooleanIndexValue>(field);
       indexFields.emplace(key, s->GetValue());
-    } else if (index_type == IndexType::Heretile) {
-      auto s = std::static_pointer_cast<HereTileIndexValue>(field);
+    } else if (index_type == model::IndexType::Heretile) {
+      auto s = std::static_pointer_cast<model::HereTileIndexValue>(field);
       indexFields.emplace(key, s->GetValue());
-    } else if (index_type == IndexType::TimeWindow) {
-      auto s = std::static_pointer_cast<TimeWindowIndexValue>(field);
+    } else if (index_type == model::IndexType::TimeWindow) {
+      auto s = std::static_pointer_cast<model::TimeWindowIndexValue>(field);
       indexFields.emplace(key, s->GetValue());
     }
   }

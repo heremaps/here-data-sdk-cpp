@@ -26,8 +26,6 @@
 #include "AuthenticationTestUtils.h"
 #include "TestConstants.h"
 
-using namespace ::olp::authentication;
-
 namespace {
 
 class FederatedAuthenticationTest : public AuthenticationCommonTestFixture {

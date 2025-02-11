@@ -23,7 +23,7 @@
 
 namespace olp {
 namespace parser {
-using namespace olp::dataservice::write;
+namespace model = olp::dataservice::write::model;
 
 void from_json(const boost::json::value& value, model::Coverage& x) {
   x.SetAdminAreas(parse<std::vector<std::string> >(value, "adminAreas"));

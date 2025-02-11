@@ -23,7 +23,8 @@
 
 namespace olp {
 namespace parser {
-using namespace olp::dataservice::read;
+
+namespace model = olp::dataservice::read::model;
 
 void from_json(const boost::json::value& value,
                std::shared_ptr<model::SubQuad>& x) {

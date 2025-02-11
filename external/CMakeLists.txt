@@ -88,7 +88,7 @@ if(OLP_SDK_ENABLE_DEFAULT_CACHE_LMDB)
     endif()
 endif()
 
-find_package(Boost QUIET)
+find_package(Boost 1.82.0 QUIET)
 if(NOT TARGET Boost AND NOT Boost_FOUND)
     add_subdirectory(boost)
     set(BOOST_ROOT ${EXTERNAL_BOOST_ROOT} PARENT_SCOPE)

@@ -21,17 +21,17 @@
 
 #include <olp/core/generated/parser/ParserWrapper.h>
 
-using namespace olp::dataservice::write::model;
+namespace model = olp::dataservice::write::model;
 
 namespace olp {
 namespace parser {
-void from_json(const boost::json::value& value, TraceID& x) {
+void from_json(const boost::json::value& value, model::TraceID& x) {
   x.SetParentID(parse<std::string>(value, "ParentID"));
   x.SetGeneratedIDs(parse<std::vector<std::string> >(value, "GeneratedIDs"));
 }
 
-void from_json(const boost::json::value& value, ResponseOk& x) {
-  x.SetTraceID(parse<TraceID>(value, "TraceID"));
+void from_json(const boost::json::value& value, model::ResponseOk& x) {
+  x.SetTraceID(parse<model::TraceID>(value, "TraceID"));
 }
 
 }  // namespace parser
