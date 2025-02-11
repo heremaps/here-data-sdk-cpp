@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 
 namespace olp {
 namespace parser {
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::write::model::PublishPartition& x) {
   x.SetPartition(parse<std::string>(value, "partition"));
   x.SetChecksum(parse<std::string>(value, "checksum"));

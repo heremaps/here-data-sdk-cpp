@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,23 +40,24 @@ SignInUserResultImpl::SignInUserResultImpl() noexcept
 
 SignInUserResultImpl::SignInUserResultImpl(
     int status, std::string error,
-    std::shared_ptr<rapidjson::Document> json_document) noexcept
+    std::shared_ptr<boost::json::object> json_document) noexcept
     : SignInResultImpl(status, std::move(error), json_document) {
   if (BaseResult::IsValid()) {
-    if (json_document->HasMember(kTermsReacceptanceToken))
+    if (json_document->contains(kTermsReacceptanceToken))
       term_acceptance_token_ =
-          (*json_document)[kTermsReacceptanceToken].GetString();
-    if (json_document->HasMember(kTermsUrls)) {
-      rapidjson::Document::Object obj =
-          (*json_document)[kTermsUrls].GetObject();
-      if (obj.HasMember(kTermsOfServiceUrl))
-        terms_of_service_url_ = obj[kTermsOfServiceUrl].GetString();
-      if (obj.HasMember(kTermsOfServiceUrlJson))
-        terms_of_service_url_json_ = obj[kTermsOfServiceUrlJson].GetString();
-      if (obj.HasMember(kPrivatePolicyUrl))
-        private_policy_url_ = obj[kPrivatePolicyUrl].GetString();
-      if (obj.HasMember(kPrivatePolicyUrlJson))
-        private_policy_url_json_ = obj[kPrivatePolicyUrlJson].GetString();
+          (*json_document)[kTermsReacceptanceToken].get_string().c_str();
+    if (json_document->contains(kTermsUrls)) {
+      auto& obj = (*json_document)[kTermsUrls].get_object();
+      if (obj.contains(kTermsOfServiceUrl))
+        terms_of_service_url_ = obj[kTermsOfServiceUrl].get_string().c_str();
+      if (obj.contains(kTermsOfServiceUrlJson))
+        terms_of_service_url_json_ =
+            obj[kTermsOfServiceUrlJson].get_string().c_str();
+      if (obj.contains(kPrivatePolicyUrl))
+        private_policy_url_ = obj[kPrivatePolicyUrl].get_string().c_str();
+      if (obj.contains(kPrivatePolicyUrlJson))
+        private_policy_url_json_ =
+            obj[kPrivatePolicyUrlJson].get_string().c_str();
     }
   }
 }

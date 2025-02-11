@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,61 +19,50 @@
 
 #pragma once
 
-#include <rapidjson/document.h>
+#include <boost/json/value.hpp>
 
 #include "../model/Catalog.h"
 
 namespace olp {
 namespace serializer {
 void to_json(const dataservice::write::model::Coverage& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+             boost::json::value& value);
 
 void to_json(const dataservice::write::model::IndexDefinition& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+             boost::json::value& value);
 
 void to_json(const dataservice::write::model::IndexProperties& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+             boost::json::value& value);
 
 void to_json(const dataservice::write::model::Creator& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+             boost::json::value& value);
 
-void to_json(const dataservice::write::model::Owner& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+void to_json(const dataservice::write::model::Owner& x,
+             boost::json::value& value);
 
 void to_json(const dataservice::write::model::Partitioning& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+             boost::json::value& value);
 
 void to_json(const dataservice::write::model::Schema& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+             boost::json::value& value);
 
 void to_json(const dataservice::write::model::StreamProperties& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+             boost::json::value& value);
 
 void to_json(const dataservice::write::model::Encryption& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+             boost::json::value& value);
 
 void to_json(const dataservice::write::model::Volume& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+             boost::json::value& value);
 
-void to_json(const dataservice::write::model::Layer& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+void to_json(const dataservice::write::model::Layer& x,
+             boost::json::value& value);
 
 void to_json(const dataservice::write::model::Notifications& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+             boost::json::value& value);
 
 void to_json(const dataservice::write::model::Catalog& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+             boost::json::value& value);
 
 }  // namespace serializer
 }  // namespace olp

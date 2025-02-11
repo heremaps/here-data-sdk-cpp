@@ -19,7 +19,6 @@
 project(olp-cpp-sdk-core VERSION 1.21.0)
 set(DESCRIPTION "Core network and utility library for the HERE OLP SDK C++")
 
-find_package(RapidJSON 1.1.0 REQUIRED)
 find_package(Boost REQUIRED)
 find_package(Threads REQUIRED)
 
@@ -350,6 +349,7 @@ endif()
 set(OLP_SDK_UTILS_SOURCES
     ./src/utils/Base64.cpp
     ./src/utils/BoostExceptionHandle.cpp
+    ./src/utils/BoostJsonSrc.cpp
     ./src/utils/Credentials.cpp
     ./src/utils/Dir.cpp
     ./src/utils/Thread.cpp
@@ -441,8 +441,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
     $<BUILD_INTERFACE:${Boost_INCLUDE_DIR}>
-
-    $<BUILD_INTERFACE:${RapidJSON_INCLUDE_DIRS}/..>
 
     $<INSTALL_INTERFACE:include>)
 

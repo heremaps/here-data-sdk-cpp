@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2024 HERE Europe B.V.
+ * Copyright (C) 2021-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,9 @@
 #include <olp/core/http/NetworkUtils.h>
 #include <olp/core/logging/Log.h>
 #include <olp/core/thread/Atomic.h>
-#include <rapidjson/document.h>
-#include <rapidjson/istreamwrapper.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
+#include <boost/json/parse.hpp>
+#include <boost/json/serialize.hpp>
+#include <boost/json/value.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include "AuthenticationClientUtils.h"
@@ -102,22 +101,24 @@ void RetryDelay(const client::RetrySettings& retry_settings, size_t retry) {
 }
 
 TimeResponse ParseTimeResponse(const std::string& payload) {
-  rapidjson::Document document;
-  document.Parse(payload.c_str());
+  boost::json::error_code ec;
+  auto document = boost::json::parse(payload, ec);
 
-  if (!document.IsObject()) {
+  if (!document.is_object()) {
     return client::ApiError(client::ErrorCode::InternalFailure,
                             "JSON document root is not an Object type");
   }
 
-  const auto timestamp_it = document.FindMember("timestamp");
-  if (timestamp_it == document.MemberEnd() || !timestamp_it->value.IsUint()) {
+  const auto timestamp_it = document.as_object().find("timestamp");
+  if (timestamp_it == document.as_object().end() ||
+      (!timestamp_it->value().is_uint64() &&
+       !timestamp_it->value().is_int64())) {
     return client::ApiError(
         client::ErrorCode::InternalFailure,
         "JSON document must contain timestamp integer field");
   }
 
-  return timestamp_it->value.GetUint();
+  return timestamp_it->value().to_number<uint64_t>();
 }
 
 std::string GenerateUid() {
@@ -130,28 +131,22 @@ std::string GenerateUid() {
 client::OlpClient::RequestBodyType GenerateClientBody(
     const TokenRequest& token_request,
     const boost::optional<std::string>& scope) {
-  rapidjson::StringBuffer data;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
-  writer.StartObject();
+  boost::json::object object;
 
-  writer.Key(kGrantType);
-  writer.String(kClientGrantType);
+  object[kGrantType] = kClientGrantType;
 
   auto expires_in =
       static_cast<unsigned int>(token_request.GetExpiresIn().count());
   if (expires_in > 0) {
-    writer.Key(Constants::EXPIRES_IN);
-    writer.Uint(expires_in);
+    object[Constants::EXPIRES_IN] = expires_in;
   }
 
   if (scope) {
-    writer.Key(kScope);
-    writer.String(scope.get().c_str());
+    object[kScope] = scope.get();
   }
 
-  writer.EndObject();
-  auto content = data.GetString();
-  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
+  auto content = boost::json::serialize(object);
+  return std::make_shared<RequestBodyData>(content.begin(), content.end());
 }
 
 TimeResponse GetTimeFromServer(client::CancellationContext& context,
@@ -333,11 +328,13 @@ SignInResponse TokenEndpointImpl::SignInClient(
 
 SignInResult TokenEndpointImpl::ParseAuthResponse(
     int status, std::stringstream& auth_response) {
-  auto document = std::make_shared<rapidjson::Document>();
-  rapidjson::IStreamWrapper stream(auth_response);
-  document->ParseStream(stream);
+  boost::json::error_code ec;
+  auto document = boost::json::parse(auth_response, ec);
   return std::make_shared<SignInResultImpl>(
-      status, http::HttpErrorToString(status), document);
+      status, http::HttpErrorToString(status),
+      ec.failed() || !document.is_object()
+          ? nullptr
+          : std::make_shared<boost::json::object>(document.as_object()));
 }
 
 client::HttpResponse TokenEndpointImpl::CallAuth(

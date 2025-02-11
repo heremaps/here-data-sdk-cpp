@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,8 @@
 #include <utility>
 #include <vector>
 
-#include <olp/dataservice/write/generated/model/Publication.h>
 #include <olp/core/generated/serializer/SerializerWrapper.h>
-#include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
+#include <olp/dataservice/write/generated/model/Publication.h>
 
 #include "generated/model/Api.h"
 
@@ -87,7 +84,8 @@ class DefaultResponses {
   static olp::dataservice::write::model::Publication
   GeneratePublicationResponse(
       const std::vector<std::string>& layer_ids,
-      const std::vector<olp::dataservice::write::model::VersionDependency> dependencies) {
+      const std::vector<olp::dataservice::write::model::VersionDependency>
+          dependencies) {
     olp::dataservice::write::model::Publication publication;
 
     std::string id = "abcdefghijklmnopqrstuvwxyz0123456789-";

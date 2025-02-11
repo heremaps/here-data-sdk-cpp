@@ -72,7 +72,6 @@ The table below lists the dependencies of the Data SDK.
 | Boost (headers only) | 1.82.0              |
 | LevelDB              | 1.21                |
 | Snappy               | 1.1.7               |
-| RapidJSON            | latest              |
 | Zlib                 | 1.3.1               |
 
 ### Linux dependencies

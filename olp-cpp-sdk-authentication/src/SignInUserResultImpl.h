@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ class SignInUserResultImpl : public SignInResultImpl {
 
   SignInUserResultImpl(
       int status, std::string error,
-      std::shared_ptr<rapidjson::Document> json_document = nullptr) noexcept;
+      std::shared_ptr<boost::json::object> json_document = nullptr) noexcept;
 
   ~SignInUserResultImpl() override;
 

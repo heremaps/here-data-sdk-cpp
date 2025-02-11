@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2024 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@
 #include <string>
 
 #include <boost/any.hpp>
+#include <boost/json/serialize.hpp>
+#include <boost/json/value.hpp>
 #include <boost/optional.hpp>
 
 #include "JsonHelpers.h"
@@ -68,108 +70,88 @@ struct Expectation {
   boost::optional<ResponseTimes> times = boost::none;
 };
 
-void to_json(const Expectation& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+void to_json(const Expectation& x, boost::json::value& value);
 void to_json(const Expectation::QueryStringParameter& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
-void to_json(const Expectation::RequestMatcher& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
-void to_json(const Expectation::BinaryResponse& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
-void to_json(const Expectation::ResponseDelay& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
-void to_json(const Expectation::ResponseAction& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
-void to_json(const Expectation::ResponseTimes& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+             boost::json::value& value);
+void to_json(const Expectation::RequestMatcher& x, boost::json::value& value);
+void to_json(const Expectation::BinaryResponse& x, boost::json::value& value);
+void to_json(const Expectation::ResponseDelay& x, boost::json::value& value);
+void to_json(const Expectation::ResponseAction& x, boost::json::value& value);
+void to_json(const Expectation::ResponseTimes& x, boost::json::value& value);
 
 std::string serialize(const Expectation& object);
 
-inline void to_json(const Expectation& x, rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("httpRequest", x.request, value, allocator);
+inline void to_json(const Expectation& x, boost::json::value& value) {
+  value.emplace_object();
+  serialize("httpRequest", x.request, value);
 
   if (x.action != boost::none) {
-    serialize("httpResponse", x.action, value, allocator);
+    serialize("httpResponse", x.action, value);
   }
   if (x.times != boost::none) {
-    serialize("times", x.times, value, allocator);
+    serialize("times", x.times, value);
   }
 }
 
 inline void to_json(const Expectation::QueryStringParameter& x,
-                    rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("name", x.name, value, allocator);
-  serialize("values", x.values, value, allocator);
+                    boost::json::value& value) {
+  value.emplace_object();
+  serialize("name", x.name, value);
+  serialize("values", x.values, value);
 }
 
 inline void to_json(const Expectation::RequestMatcher& x,
-                    rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("path", x.path, value, allocator);
-  serialize("method", x.method, value, allocator);
-  serialize("queryStringParameters", x.query_string_parameters, value,
-            allocator);
+                    boost::json::value& value) {
+  value.emplace_object();
+  serialize("path", x.path, value);
+  serialize("method", x.method, value);
+  serialize("queryStringParameters", x.query_string_parameters, value);
 }
 
 inline void to_json(const Expectation::BinaryResponse& x,
-                    rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("type", x.type, value, allocator);
-  serialize("base64Bytes", x.base64_string, value, allocator);
+                    boost::json::value& value) {
+  value.emplace_object();
+  serialize("type", x.type, value);
+  serialize("base64Bytes", x.base64_string, value);
 }
 
 inline void to_json(const Expectation::ResponseDelay& x,
-                    rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("timeUnit", x.time_unit, value, allocator);
-  serialize("value", x.value, value, allocator);
+                    boost::json::value& value) {
+  value.emplace_object();
+  serialize("timeUnit", x.time_unit, value);
+  serialize("value", x.value, value);
 }
 
 inline void to_json(const Expectation::ResponseAction& x,
-                    rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("statusCode", x.status_code, value, allocator);
+                    boost::json::value& value) {
+  value.emplace_object();
+  serialize("statusCode", x.status_code, value);
 
   if (x.body.type() == typeid(std::string)) {
-    serialize("body", boost::any_cast<std::string>(x.body), value, allocator);
+    serialize("body", boost::any_cast<std::string>(x.body), value);
   } else if (x.body.type() == typeid(Expectation::BinaryResponse)) {
     serialize("body", boost::any_cast<Expectation::BinaryResponse>(x.body),
-              value, allocator);
+              value);
   }
 
   if (x.delay) {
-    serialize("delay", x.delay.get(), value, allocator);
+    serialize("delay", x.delay.get(), value);
   }
 }
 
 inline void to_json(const Expectation::ResponseTimes& x,
-                    rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("remainingTimes", x.remaining_times, value, allocator);
-  serialize("unlimited", x.unlimited, value, allocator);
+                    boost::json::value& value) {
+  value.emplace_object();
+  serialize("remainingTimes", x.remaining_times, value);
+  serialize("unlimited", x.unlimited, value);
 }
 
 inline std::string serialize(const Expectation& object) {
-  rapidjson::Document doc;
-  auto& allocator = doc.GetAllocator();
+  boost::json::value doc;
+  doc.emplace_object();
+  to_json(object, doc);
 
-  doc.SetObject();
-  to_json(object, doc, allocator);
-
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-  doc.Accept(writer);
-  return buffer.GetString();
+  return boost::json::serialize(doc);
 };
 
 }  // namespace mockserver

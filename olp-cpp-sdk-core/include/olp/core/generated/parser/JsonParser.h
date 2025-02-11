@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@
 #include <string>
 #include <vector>
 
-#include <rapidjson/document.h>
-#include <rapidjson/istreamwrapper.h>
+#include <boost/json/parse.hpp>
 
 #include "ParserWrapper.h"
 
@@ -33,11 +32,11 @@ namespace olp {
 namespace parser {
 template <typename T>
 inline T parse(const std::string& json) {
-  rapidjson::Document doc;
-  doc.Parse(json.c_str());
+  boost::json::error_code ec;
+  auto value = boost::json::parse(json, ec);
   T result{};
-  if (doc.IsObject() || doc.IsArray()) {
-    from_json(doc, result);
+  if (value.is_object() || value.is_array()) {
+    from_json(value, result);
   }
   return result;
 }
@@ -45,12 +44,11 @@ inline T parse(const std::string& json) {
 template <typename T>
 inline T parse(std::stringstream& json_stream, bool& res) {
   res = false;
-  rapidjson::Document doc;
-  rapidjson::IStreamWrapper stream(json_stream);
-  doc.ParseStream(stream);
+  boost::json::error_code ec;
+  auto value = boost::json::parse(json_stream, ec);
   T result{};
-  if (doc.IsObject() || doc.IsArray()) {
-    from_json(doc, result);
+  if (value.is_object() || value.is_array()) {
+    from_json(value, result);
     res = true;
   }
   return result;
@@ -64,11 +62,13 @@ inline T parse(std::stringstream& json_stream) {
 
 template <typename T>
 inline T parse(const std::shared_ptr<std::vector<unsigned char>>& json_bytes) {
-  rapidjson::Document doc;
-  doc.Parse(reinterpret_cast<char*>(json_bytes->data()), json_bytes->size());
+  boost::json::string_view json(reinterpret_cast<char*>(json_bytes->data()),
+                                json_bytes->size());
+  boost::json::error_code ec;
+  auto value = boost::json::parse(json, ec);
   T result{};
-  if (doc.IsObject() || doc.IsArray()) {
-    from_json(doc, result);
+  if (value.is_object() || value.is_array()) {
+    from_json(value, result);
   }
   return result;
 }

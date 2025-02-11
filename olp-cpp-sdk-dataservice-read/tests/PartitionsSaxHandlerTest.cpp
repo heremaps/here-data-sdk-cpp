@@ -51,31 +51,33 @@ TEST(PartitionsSaxHandlerTest, NormalFlow) {
     parsed_partition = partition;
   };
 
+  boost::json::error_code ec;
   repository::PartitionsSaxHandler handler(callback);
 
-  ASSERT_TRUE(handler.StartObject());
-  ASSERT_TRUE(handler.String(kPartitions, len(kPartitions), true));
-  ASSERT_TRUE(handler.StartArray());
+  ASSERT_TRUE(handler.on_object_begin(ec));
+  ASSERT_TRUE(handler.on_key(kPartitions, len(kPartitions), ec));
+  ASSERT_TRUE(handler.on_array_begin(ec));
 
-  ASSERT_TRUE(handler.StartObject());
-  ASSERT_TRUE(handler.String(kDataHandle, len(kDataHandle), true));
-  ASSERT_TRUE(handler.String(kDataHandleValue, len(kDataHandleValue), true));
-  ASSERT_TRUE(handler.String(kPartition, len(kPartition), true));
-  ASSERT_TRUE(handler.String(kPartitionValue, len(kPartitionValue), true));
-  ASSERT_TRUE(handler.String(kChecksum, len(kChecksum), true));
-  ASSERT_TRUE(handler.String(kChecksumValue, len(kChecksumValue), true));
-  ASSERT_TRUE(handler.String(kDataSize, len(kDataSize), true));
-  ASSERT_TRUE(handler.Uint(150));
-  ASSERT_TRUE(handler.String(kCompressedDataSize, len(kCompressedDataSize), true));
-  ASSERT_TRUE(handler.Uint(100));
-  ASSERT_TRUE(handler.String(kVersion, len(kVersion), true));
-  ASSERT_TRUE(handler.Uint(6));
-  ASSERT_TRUE(handler.String(kCrc, len(kCrc), true));
-  ASSERT_TRUE(handler.String(kCrcValue, len(kCrcValue), true));
-  ASSERT_TRUE(handler.EndObject(0));
+  ASSERT_TRUE(handler.on_object_begin(ec));
+  ASSERT_TRUE(handler.on_key(kDataHandle, len(kDataHandle), ec));
+  ASSERT_TRUE(handler.on_string(kDataHandleValue, len(kDataHandleValue), ec));
+  ASSERT_TRUE(handler.on_key(kPartition, len(kPartition), ec));
+  ASSERT_TRUE(handler.on_string(kPartitionValue, len(kPartitionValue), ec));
+  ASSERT_TRUE(handler.on_key(kChecksum, len(kChecksum), ec));
+  ASSERT_TRUE(handler.on_string(kChecksumValue, len(kChecksumValue), ec));
+  ASSERT_TRUE(handler.on_key(kDataSize, len(kDataSize), ec));
+  ASSERT_TRUE(handler.on_uint64(150, {}, ec));
+  ASSERT_TRUE(
+      handler.on_key(kCompressedDataSize, len(kCompressedDataSize), ec));
+  ASSERT_TRUE(handler.on_uint64(100, {}, ec));
+  ASSERT_TRUE(handler.on_key(kVersion, len(kVersion), ec));
+  ASSERT_TRUE(handler.on_uint64(6, {}, ec));
+  ASSERT_TRUE(handler.on_key(kCrc, len(kCrc), ec));
+  ASSERT_TRUE(handler.on_string(kCrcValue, len(kCrcValue), ec));
+  ASSERT_TRUE(handler.on_object_end(0, ec));
 
-  ASSERT_TRUE(handler.EndArray(0));
-  ASSERT_TRUE(handler.EndObject(0));
+  ASSERT_TRUE(handler.on_array_end(0, ec));
+  ASSERT_TRUE(handler.on_object_end(0, ec));
 
   EXPECT_EQ(parsed_partition.GetDataHandle(), std::string(kDataHandleValue));
   EXPECT_EQ(parsed_partition.GetPartition(), std::string(kPartitionValue));
@@ -90,93 +92,94 @@ TEST(PartitionsSaxHandlerTest, NormalFlow) {
 TEST(PartitionsSaxHandlerTest, WrongJSONStructure) {
   auto callback = [&](model::Partition) {};
 
+  boost::json::error_code ec;
   repository::PartitionsSaxHandler handler(callback);
 
   // Initial state expects an object
-  ASSERT_FALSE(handler.String(kPartitions, len(kPartitions), true));
-  ASSERT_FALSE(handler.Uint(6));
-  ASSERT_FALSE(handler.StartArray());
-  ASSERT_FALSE(handler.EndArray(0));
-  ASSERT_FALSE(handler.EndObject(0));
+  ASSERT_FALSE(handler.on_key(kPartitions, len(kPartitions), ec));
+  ASSERT_FALSE(handler.on_uint64(6, {}, ec));
+  ASSERT_FALSE(handler.on_array_begin(ec));
+  ASSERT_FALSE(handler.on_array_end(0, ec));
+  ASSERT_FALSE(handler.on_object_end(0, ec));
 
-  ASSERT_TRUE(handler.StartObject());
+  ASSERT_TRUE(handler.on_object_begin(ec));
 
   // next state expects a partitions string
-  ASSERT_FALSE(handler.String(kDataHandle, len(kDataHandle), true));
-  ASSERT_FALSE(handler.Uint(6));
-  ASSERT_FALSE(handler.StartArray());
-  ASSERT_FALSE(handler.StartObject());
-  ASSERT_FALSE(handler.EndObject(0));
-  ASSERT_FALSE(handler.EndArray(0));
+  ASSERT_FALSE(handler.on_key(kDataHandle, len(kDataHandle), ec));
+  ASSERT_FALSE(handler.on_uint64(6, {}, ec));
+  ASSERT_FALSE(handler.on_array_begin(ec));
+  ASSERT_FALSE(handler.on_object_begin(ec));
+  ASSERT_FALSE(handler.on_object_end(0, ec));
+  ASSERT_FALSE(handler.on_array_end(0, ec));
 
-  ASSERT_TRUE(handler.String(kPartitions, len(kPartitions), true));
+  ASSERT_TRUE(handler.on_key(kPartitions, len(kPartitions), ec));
 
   // expect partitions array
-  ASSERT_FALSE(handler.String(kDataHandle, len(kDataHandle), true));
-  ASSERT_FALSE(handler.Uint(6));
-  ASSERT_FALSE(handler.StartObject());
-  ASSERT_FALSE(handler.EndObject(0));
-  ASSERT_FALSE(handler.EndArray(0));
+  ASSERT_FALSE(handler.on_key(kDataHandle, len(kDataHandle), ec));
+  ASSERT_FALSE(handler.on_uint64(6, {}, ec));
+  ASSERT_FALSE(handler.on_object_begin(ec));
+  ASSERT_FALSE(handler.on_object_end(0, ec));
+  ASSERT_FALSE(handler.on_array_end(0, ec));
 
-  ASSERT_TRUE(handler.StartArray());
+  ASSERT_TRUE(handler.on_array_begin(ec));
 
   // expect partition object
-  ASSERT_FALSE(handler.String(kDataHandle, len(kDataHandle), true));
-  ASSERT_FALSE(handler.Uint(6));
-  ASSERT_FALSE(handler.StartArray());
-  ASSERT_FALSE(handler.EndObject(0));
+  ASSERT_FALSE(handler.on_key(kDataHandle, len(kDataHandle), ec));
+  ASSERT_FALSE(handler.on_uint64(6, {}, ec));
+  ASSERT_FALSE(handler.on_array_begin(ec));
+  ASSERT_FALSE(handler.on_object_end(0, ec));
 
-  ASSERT_TRUE(handler.StartObject());
+  ASSERT_TRUE(handler.on_object_begin(ec));
 
   // object is not valid
-  ASSERT_FALSE(handler.EndObject(0));
+  ASSERT_FALSE(handler.on_object_end(0, ec));
 
   // expect partition attribute
-  ASSERT_FALSE(handler.Uint(6));
-  ASSERT_FALSE(handler.StartArray());
+  ASSERT_FALSE(handler.on_uint64(6, {}, ec));
+  ASSERT_FALSE(handler.on_array_begin(ec));
 
-  ASSERT_TRUE(handler.String(kDataHandle, len(kDataHandle), true));
+  ASSERT_TRUE(handler.on_key(kDataHandle, len(kDataHandle), ec));
 
   // expect string attribute value
-  ASSERT_FALSE(handler.Uint(6));
-  ASSERT_FALSE(handler.StartArray());
-  ASSERT_FALSE(handler.EndObject(0));
+  ASSERT_FALSE(handler.on_uint64(6, {}, ec));
+  ASSERT_FALSE(handler.on_array_begin(ec));
+  ASSERT_FALSE(handler.on_object_end(0, ec));
 
-  ASSERT_TRUE(handler.String(kDataHandleValue, len(kDataHandleValue), true));
+  ASSERT_TRUE(handler.on_string(kDataHandleValue, len(kDataHandleValue), ec));
 
   // object is not valid
-  ASSERT_FALSE(handler.EndObject(0));
+  ASSERT_FALSE(handler.on_object_end(0, ec));
 
   // integer properties
-  ASSERT_TRUE(handler.String(kDataSize, len(kDataSize), true));
+  ASSERT_TRUE(handler.on_key(kDataSize, len(kDataSize), ec));
 
-  ASSERT_FALSE(handler.String(kDataHandle, len(kDataHandle), true));
-  ASSERT_FALSE(handler.StartArray());
-  ASSERT_FALSE(handler.EndArray(0));
-  ASSERT_FALSE(handler.StartObject());
-  ASSERT_FALSE(handler.EndObject(0));
+  ASSERT_FALSE(handler.on_key(kDataHandle, len(kDataHandle), ec));
+  ASSERT_FALSE(handler.on_array_begin(ec));
+  ASSERT_FALSE(handler.on_array_end(0, ec));
+  ASSERT_FALSE(handler.on_object_begin(ec));
+  ASSERT_FALSE(handler.on_object_end(0, ec));
 
-  ASSERT_TRUE(handler.Uint(6));
+  ASSERT_TRUE(handler.on_uint64(6, {}, ec));
 
-  ASSERT_TRUE(handler.String(kPartition, len(kPartition), true));
-  ASSERT_TRUE(handler.String(kPartitionValue, len(kPartitionValue), true));
+  ASSERT_TRUE(handler.on_key(kPartition, len(kPartition), ec));
+  ASSERT_TRUE(handler.on_string(kPartitionValue, len(kPartitionValue), ec));
 
   // complete partition
-  ASSERT_TRUE(handler.EndObject(0));
+  ASSERT_TRUE(handler.on_object_end(0, ec));
 
   // complete partitions array
-  ASSERT_TRUE(handler.EndArray(0));
+  ASSERT_TRUE(handler.on_array_end(0, ec));
 
   // complete the json
-  ASSERT_TRUE(handler.EndObject(0));
+  ASSERT_TRUE(handler.on_object_end(0, ec));
 
   // nothing works anymore
-  ASSERT_FALSE(handler.String(kDataHandle, len(kDataHandle), true));
-  ASSERT_FALSE(handler.Uint(6));
-  ASSERT_FALSE(handler.StartArray());
-  ASSERT_FALSE(handler.EndArray(0));
-  ASSERT_FALSE(handler.StartObject());
-  ASSERT_FALSE(handler.EndObject(0));
+  ASSERT_FALSE(handler.on_key(kDataHandle, len(kDataHandle), ec));
+  ASSERT_FALSE(handler.on_uint64(6, {}, ec));
+  ASSERT_FALSE(handler.on_array_begin(ec));
+  ASSERT_FALSE(handler.on_array_end(0, ec));
+  ASSERT_FALSE(handler.on_object_begin(ec));
+  ASSERT_FALSE(handler.on_object_end(0, ec));
 }
 
 }  // namespace

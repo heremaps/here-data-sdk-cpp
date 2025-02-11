@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,20 +19,19 @@
 
 #include "AuthenticationTestUtils.h"
 
-#include <thread>
 #include <future>
+#include <thread>
 
 #ifndef WIN32
 #include <unistd.h>
 #endif
 
-#include <rapidjson/document.h>
-#include <rapidjson/istreamwrapper.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/http/Network.h>
 #include <olp/core/logging/Log.h>
+
+#include <boost/json/parse.hpp>
+#include <boost/json/system_error.hpp>
 #include <testutils/CustomParameters.hpp>
 #include "TestConstants.h"
 
@@ -79,8 +78,8 @@ bool AuthenticationTestUtils::CreateFacebookTestUser(
   unsigned int retry = 0u;
   do {
     if (retry > 0u) {
-      OLP_SDK_LOG_WARNING(__func__, "Request retry attempted (" << retry
-                                                                << ")");
+      OLP_SDK_LOG_WARNING(__func__,
+                          "Request retry attempted (" << retry << ")");
       std::this_thread::sleep_for(
           std::chrono::seconds(retry * kRetryDelayInSecs));
     }
@@ -89,27 +88,26 @@ bool AuthenticationTestUtils::CreateFacebookTestUser(
 
     std::promise<void> promise;
     auto future = promise.get_future();
-    network.Send(request, payload,
-                 [payload, &promise,
-                  &user](const olp::http::NetworkResponse &network_response) {
-                   user.token.status = network_response.GetStatus();
-                   if (user.token.status == olp::http::HttpStatusCode::OK) {
-                     auto document = std::make_shared<rapidjson::Document>();
-                     rapidjson::IStreamWrapper stream(*payload);
-                     document->ParseStream(stream);
-                     const bool is_valid =
-                         !document->HasParseError() &&
-                         document->HasMember(kAccessToken.c_str()) &&
-                         document->HasMember(kId);
+    network.Send(
+        request, payload,
+        [payload, &promise,
+         &user](const olp::http::NetworkResponse &network_response) {
+          user.token.status = network_response.GetStatus();
+          if (user.token.status == olp::http::HttpStatusCode::OK) {
+            boost::json::error_code ec;
+            auto document = boost::json::parse(*payload, ec);
+            const bool is_valid = !ec.failed() && document.is_object() &&
+                                  document.as_object().contains(kAccessToken) &&
+                                  document.as_object().contains(kId);
 
-                     if (is_valid) {
-                       user.token.access_token =
-                           (*document)[kAccessToken.c_str()].GetString();
-                       user.id = (*document)[kId].GetString();
-                     }
-                   }
-                   promise.set_value();
-                 });
+            if (is_valid) {
+              user.token.access_token =
+                  document.as_object()[kAccessToken].get_string().c_str();
+              user.id = document.as_object()[kId].get_string().c_str();
+            }
+          }
+          promise.set_value();
+        });
     future.wait();
   } while ((user.token.status < 0) && (++retry < kMaxRetryCount));
 
@@ -132,8 +130,8 @@ bool AuthenticationTestUtils::DeleteFacebookTestUser(
   unsigned int retry = 0u;
   do {
     if (retry > 0u) {
-      OLP_SDK_LOG_WARNING(__func__, "Request retry attempted (" << retry
-                                                                << ")");
+      OLP_SDK_LOG_WARNING(__func__,
+                          "Request retry attempted (" << retry << ")");
       std::this_thread::sleep_for(
           std::chrono::seconds(retry * kRetryDelayInSecs));
     }
@@ -220,8 +218,8 @@ bool AuthenticationTestUtils::GetAccessTokenImpl(
   unsigned int retry = 0u;
   do {
     if (retry > 0u) {
-      OLP_SDK_LOG_WARNING(__func__, "Request retry attempted (" << retry
-                                                                << ")");
+      OLP_SDK_LOG_WARNING(__func__,
+                          "Request retry attempted (" << retry << ")");
       std::this_thread::sleep_for(
           std::chrono::seconds(retry * kRetryDelayInSecs));
     }
@@ -230,23 +228,23 @@ bool AuthenticationTestUtils::GetAccessTokenImpl(
 
     std::promise<void> promise;
     auto future = promise.get_future();
-    network.Send(request, payload,
-                 [payload, &promise,
-                  &token](const olp::http::NetworkResponse &network_response) {
-                   token.status = network_response.GetStatus();
-                   if (token.status == olp::http::HttpStatusCode::OK) {
-                     auto document = std::make_shared<rapidjson::Document>();
-                     rapidjson::IStreamWrapper stream(*payload);
-                     document->ParseStream(stream);
-                     bool is_valid = !document->HasParseError() &&
-                                     document->HasMember(kAccessToken.c_str());
-                     if (is_valid) {
-                       token.access_token =
-                           (*document)[kAccessToken.c_str()].GetString();
-                     }
-                   }
-                   promise.set_value();
-                 });
+    network.Send(
+        request, payload,
+        [payload, &promise,
+         &token](const olp::http::NetworkResponse &network_response) {
+          token.status = network_response.GetStatus();
+          if (token.status == olp::http::HttpStatusCode::OK) {
+            boost::json::error_code ec;
+            auto document = boost::json::parse(*payload, ec);
+            bool is_valid = !ec.failed() && document.is_object() &&
+                            document.as_object().contains(kAccessToken);
+            if (is_valid) {
+              token.access_token =
+                  document.as_object()[kAccessToken].get_string().c_str();
+            }
+          }
+          promise.set_value();
+        });
     future.wait();
   } while ((token.status < 0) && (++retry < kMaxRetryCount));
 

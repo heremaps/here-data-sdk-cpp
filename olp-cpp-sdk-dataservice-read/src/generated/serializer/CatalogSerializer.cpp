@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include <rapidjson/document.h>
+#include <boost/json/value.hpp>
 
 #include "CatalogSerializer.h"
 
@@ -26,131 +26,120 @@
 namespace olp {
 namespace serializer {
 void to_json(const dataservice::read::model::Coverage& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("adminAreas", x.GetAdminAreas(), value, allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("adminAreas", x.GetAdminAreas(), object);
 }
 
 void to_json(const dataservice::read::model::IndexDefinition& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("name", x.GetName(), value, allocator);
-  serialize("type", x.GetType(), value, allocator);
-  serialize("duration", x.GetDuration(), value, allocator);
-  serialize("zoomLevel", x.GetZoomLevel(), value, allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("name", x.GetName(), object);
+  serialize("type", x.GetType(), object);
+  serialize("duration", x.GetDuration(), object);
+  serialize("zoomLevel", x.GetZoomLevel(), object);
 }
 
 void to_json(const dataservice::read::model::IndexProperties& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("ttl", x.GetTtl(), value, allocator);
-  serialize("indexDefinitions", x.GetIndexDefinitions(), value, allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("ttl", x.GetTtl(), object);
+  serialize("indexDefinitions", x.GetIndexDefinitions(), object);
 }
 
 void to_json(const dataservice::read::model::Creator& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("id", x.GetId(), value, allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("id", x.GetId(), object);
 }
 
-void to_json(const dataservice::read::model::Owner& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("creator", x.GetCreator(), value, allocator);
-  serialize("organisation", x.GetOrganisation(), value, allocator);
+void to_json(const dataservice::read::model::Owner& x,
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("creator", x.GetCreator(), object);
+  serialize("organisation", x.GetOrganisation(), object);
 }
 
 void to_json(const dataservice::read::model::Partitioning& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("scheme", x.GetScheme(), value, allocator);
-  serialize("tileLevels", x.GetTileLevels(), value, allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("scheme", x.GetScheme(), object);
+  serialize("tileLevels", x.GetTileLevels(), object);
 }
 
-void to_json(const dataservice::read::model::Schema& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("hrn", x.GetHrn(), value, allocator);
+void to_json(const dataservice::read::model::Schema& x,
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("hrn", x.GetHrn(), object);
 }
 
 void to_json(const dataservice::read::model::StreamProperties& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("dataInThroughputMbps", x.GetDataInThroughputMbps(), value,
-            allocator);
-  serialize("dataOutThroughputMbps", x.GetDataOutThroughputMbps(), value,
-            allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("dataInThroughputMbps", x.GetDataInThroughputMbps(), object);
+  serialize("dataOutThroughputMbps", x.GetDataOutThroughputMbps(), object);
 }
 
 void to_json(const dataservice::read::model::Encryption& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("algorithm", x.GetAlgorithm(), value, allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("algorithm", x.GetAlgorithm(), object);
 }
 
-void to_json(const dataservice::read::model::Volume& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("volumeType", x.GetVolumeType(), value, allocator);
-  serialize("maxMemoryPolicy", x.GetMaxMemoryPolicy(), value, allocator);
-  serialize("packageType", x.GetPackageType(), value, allocator);
-  serialize("encryption", x.GetEncryption(), value, allocator);
+void to_json(const dataservice::read::model::Volume& x,
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("volumeType", x.GetVolumeType(), object);
+  serialize("maxMemoryPolicy", x.GetMaxMemoryPolicy(), object);
+  serialize("packageType", x.GetPackageType(), object);
+  serialize("encryption", x.GetEncryption(), object);
 }
 
-void to_json(const dataservice::read::model::Layer& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("id", x.GetId(), value, allocator);
-  serialize("name", x.GetName(), value, allocator);
-  serialize("summary", x.GetSummary(), value, allocator);
-  serialize("description", x.GetDescription(), value, allocator);
-  serialize("owner", x.GetOwner(), value, allocator);
-  serialize("coverage", x.GetCoverage(), value, allocator);
-  serialize("schema", x.GetSchema(), value, allocator);
-  serialize("contentType", x.GetContentType(), value, allocator);
-  serialize("contentEncoding", x.GetContentEncoding(), value, allocator);
-  serialize("partitioning", x.GetPartitioning(), value, allocator);
-  serialize("layerType", x.GetLayerType(), value, allocator);
-  serialize("digest", x.GetDigest(), value, allocator);
-  serialize("tags", x.GetTags(), value, allocator);
-  serialize("billingTags", x.GetBillingTags(), value, allocator);
-  serialize("ttl", x.GetTtl(), value, allocator);
-  serialize("indexProperties", x.GetIndexProperties(), value, allocator);
-  serialize("streamProperties", x.GetStreamProperties(), value, allocator);
-  serialize("volume", x.GetVolume(), value, allocator);
+void to_json(const dataservice::read::model::Layer& x,
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("id", x.GetId(), object);
+  serialize("name", x.GetName(), object);
+  serialize("summary", x.GetSummary(), object);
+  serialize("description", x.GetDescription(), object);
+  serialize("owner", x.GetOwner(), object);
+  serialize("coverage", x.GetCoverage(), object);
+  serialize("schema", x.GetSchema(), object);
+  serialize("contentType", x.GetContentType(), object);
+  serialize("contentEncoding", x.GetContentEncoding(), object);
+  serialize("partitioning", x.GetPartitioning(), object);
+  serialize("layerType", x.GetLayerType(), object);
+  serialize("digest", x.GetDigest(), object);
+  serialize("tags", x.GetTags(), object);
+  serialize("billingTags", x.GetBillingTags(), object);
+  serialize("ttl", x.GetTtl(), object);
+  serialize("indexProperties", x.GetIndexProperties(), object);
+  serialize("streamProperties", x.GetStreamProperties(), object);
+  serialize("volume", x.GetVolume(), object);
 }
 
 void to_json(const dataservice::read::model::Notifications& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("enabled", x.GetEnabled(), value, allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("enabled", x.GetEnabled(), object);
 }
 
 void to_json(const dataservice::read::model::Catalog& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("id", x.GetId(), value, allocator);
-  serialize("hrn", x.GetHrn(), value, allocator);
-  serialize("name", x.GetName(), value, allocator);
-  serialize("summary", x.GetSummary(), value, allocator);
-  serialize("description", x.GetDescription(), value, allocator);
-  serialize("coverage", x.GetCoverage(), value, allocator);
-  serialize("owner", x.GetOwner(), value, allocator);
-  serialize("tags", x.GetTags(), value, allocator);
-  serialize("billingTags", x.GetBillingTags(), value, allocator);
-  serialize("created", x.GetCreated(), value, allocator);
-  serialize("layers", x.GetLayers(), value, allocator);
-  serialize("version", x.GetVersion(), value, allocator);
-  serialize("notifications", x.GetNotifications(), value, allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("id", x.GetId(), object);
+  serialize("hrn", x.GetHrn(), object);
+  serialize("name", x.GetName(), object);
+  serialize("summary", x.GetSummary(), object);
+  serialize("description", x.GetDescription(), object);
+  serialize("coverage", x.GetCoverage(), object);
+  serialize("owner", x.GetOwner(), object);
+  serialize("tags", x.GetTags(), object);
+  serialize("billingTags", x.GetBillingTags(), object);
+  serialize("created", x.GetCreated(), object);
+  serialize("layers", x.GetLayers(), object);
+  serialize("version", x.GetVersion(), object);
+  serialize("notifications", x.GetNotifications(), object);
 }
 
 }  // namespace serializer
