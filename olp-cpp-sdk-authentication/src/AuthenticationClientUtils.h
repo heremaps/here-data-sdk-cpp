@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 #include <utility>
 #include <vector>
 
-#include <rapidjson/document.h>
+#include <boost/json/value.hpp>
 
 #include "olp/authentication/AuthenticationCredentials.h"
 #include "olp/authentication/AuthenticationSettings.h"
@@ -78,7 +78,7 @@ boost::optional<std::time_t> GetTimestampFromHeaders(
  * @param doc json document.
  * @return result for introspect app.
  */
-IntrospectAppResult GetIntrospectAppResult(const rapidjson::Document& doc);
+IntrospectAppResult GetIntrospectAppResult(const boost::json::object& value);
 
 /*
  * @brief Convert string representation of decision to DecisionType.
@@ -92,14 +92,14 @@ DecisionType GetDecision(const std::string& str);
  * @param doc json document.
  * @return result of ActionResults.
  */
-std::vector<ActionResult> GetDiagnostics(rapidjson::Document& doc);
+std::vector<ActionResult> GetDiagnostics(boost::json::object& value);
 
 /*
  * @brief Parse json document to AuthorizeResult type.
  * @param doc json document.
  * @return result for authorize.
  */
-AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc);
+AuthorizeResult GetAuthorizeResult(boost::json::object& value);
 
 /*
  * @brief Parse HTTP response to UserAccountInfoResponse type or error message.

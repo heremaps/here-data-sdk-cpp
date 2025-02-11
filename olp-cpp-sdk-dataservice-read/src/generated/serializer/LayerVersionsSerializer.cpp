@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include <rapidjson/document.h>
+#include <boost/json/value.hpp>
 
 #include "LayerVersionsSerializer.h"
 
@@ -26,19 +26,17 @@
 namespace olp {
 namespace serializer {
 void to_json(const dataservice::read::model::LayerVersion& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("layer", x.GetLayer(), value, allocator);
-  serialize("version", x.GetVersion(), value, allocator);
-  serialize("timestamp", x.GetTimestamp(), value, allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("layer", x.GetLayer(), object);
+  serialize("version", x.GetVersion(), object);
+  serialize("timestamp", x.GetTimestamp(), object);
 }
 void to_json(const dataservice::read::model::LayerVersions& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("layerVersions", x.GetLayerVersions(), value, allocator);
-  serialize("version", x.GetVersion(), value, allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("layerVersions", x.GetLayerVersions(), object);
+  serialize("version", x.GetVersion(), object);
 }
 }  // namespace serializer
 }  // namespace olp

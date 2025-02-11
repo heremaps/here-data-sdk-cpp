@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2024 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,65 +25,57 @@
 #include <vector>
 
 #include <olp/core/generated/serializer/SerializerWrapper.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
+
+#include <boost/json/serialize.hpp>
+#include <boost/json/value.hpp>
 
 namespace {
 
 void WriteSubquadsToJson(
-    rapidjson::Document& doc, const olp::geo::TileKey& root_tile,
-    const std::map<std::uint64_t, mockserver::TileMetadata>& sub_quads,
-    rapidjson::Document::AllocatorType& allocator) {
-  rapidjson::Value sub_quads_value;
-  sub_quads_value.SetArray();
+    boost::json::object& doc, const olp::geo::TileKey& root_tile,
+    const std::map<std::uint64_t, mockserver::TileMetadata>& sub_quads) {
+  boost::json::array sub_quads_value;
   for (const auto& quad : sub_quads) {
     const mockserver::TileMetadata& metadata = quad.second;
 
     const auto partition = root_tile.AddedSubkey64(quad.first).ToHereTile();
 
-    rapidjson::Value item;
-    item.SetObject();
-    olp::serializer::serialize("subQuadKey", std::to_string(quad.first), item,
-                               allocator);
-    olp::serializer::serialize("version", metadata.version, item, allocator);
-    olp::serializer::serialize("dataHandle", metadata.data_handle, item,
-                               allocator);
-    olp::serializer::serialize("crc", metadata.crc, item, allocator);
-    olp::serializer::serialize("checksum", metadata.checksum, item, allocator);
-    olp::serializer::serialize("dataSize", metadata.data_size, item, allocator);
+    boost::json::object item;
+    olp::serializer::serialize("subQuadKey", std::to_string(quad.first), item);
+    olp::serializer::serialize("version", metadata.version, item);
+    olp::serializer::serialize("dataHandle", metadata.data_handle, item);
+    olp::serializer::serialize("crc", metadata.crc, item);
+    olp::serializer::serialize("checksum", metadata.checksum, item);
+    olp::serializer::serialize("dataSize", metadata.data_size, item);
     olp::serializer::serialize("compressedDataSize",
-                               metadata.compressed_data_size, item, allocator);
+                               metadata.compressed_data_size, item);
 
-    sub_quads_value.PushBack(std::move(item), allocator);
+    sub_quads_value.emplace_back(std::move(item));
   }
-  doc.AddMember("subQuads", std::move(sub_quads_value), allocator);
+  doc.emplace("subQuads", std::move(sub_quads_value));
 }
 
 void WriteParentquadsToJson(
-    rapidjson::Document& doc,
-    const std::map<std::uint64_t, mockserver::TileMetadata>& parent_quads,
-    rapidjson::Document::AllocatorType& allocator) {
-  rapidjson::Value parent_quads_value;
-  parent_quads_value.SetArray();
+    boost::json::object& doc,
+    const std::map<std::uint64_t, mockserver::TileMetadata>& parent_quads) {
+  boost::json::array parent_quads_value;
   for (const auto& parent : parent_quads) {
     const auto partition = std::to_string(parent.first);
     const mockserver::TileMetadata& metadata = parent.second;
 
-    rapidjson::Value item;
-    item.SetObject();
-    olp::serializer::serialize("partition", partition, item, allocator);
-    olp::serializer::serialize("version", metadata.version, item, allocator);
-    olp::serializer::serialize("dataHandle", metadata.data_handle, item,
-                               allocator);
-    olp::serializer::serialize("crc", metadata.crc, item, allocator);
-    olp::serializer::serialize("checksum", metadata.checksum, item, allocator);
-    olp::serializer::serialize("dataSize", metadata.data_size, item, allocator);
+    boost::json::object item;
+    olp::serializer::serialize("partition", partition, item);
+    olp::serializer::serialize("version", metadata.version, item);
+    olp::serializer::serialize("dataHandle", metadata.data_handle, item);
+    olp::serializer::serialize("crc", metadata.crc, item);
+    olp::serializer::serialize("checksum", metadata.checksum, item);
+    olp::serializer::serialize("dataSize", metadata.data_size, item);
     olp::serializer::serialize("compressedDataSize",
-                               metadata.compressed_data_size, item, allocator);
-    parent_quads_value.PushBack(std::move(item), allocator);
+                               metadata.compressed_data_size, item);
+    parent_quads_value.emplace_back(std::move(item));
   }
 
-  doc.AddMember("parentQuads", std::move(parent_quads_value), allocator);
+  doc.emplace("parentQuads", std::move(parent_quads_value));
 }
 
 std::string GenerateRandomString(size_t length) {
@@ -160,16 +152,11 @@ std::string ReadDefaultResponses::GenerateQuadTreeResponse(
     }
   }
 
-  rapidjson::Document doc;
-  auto& allocator = doc.GetAllocator();
-  doc.SetObject();
-  WriteSubquadsToJson(doc, root_tile, sub_quads, allocator);
-  WriteParentquadsToJson(doc, parent_quads, allocator);
+  boost::json::object doc;
+  WriteSubquadsToJson(doc, root_tile, sub_quads);
+  WriteParentquadsToJson(doc, parent_quads);
 
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-  doc.Accept(writer);
-  return buffer.GetString();
+  return boost::json::serialize(doc);
 }
 
 QuadTreeBuilder::QuadTreeBuilder(olp::geo::TileKey root_tile,
@@ -228,16 +215,11 @@ QuadTreeBuilder& QuadTreeBuilder::WithSubQuad(
 }
 
 std::string QuadTreeBuilder::BuildJson() const {
-  rapidjson::Document doc;
-  auto& allocator = doc.GetAllocator();
-  doc.SetObject();
-  WriteSubquadsToJson(doc, root_tile_, sub_quads_, allocator);
-  WriteParentquadsToJson(doc, parent_quads_, allocator);
+  boost::json::object doc;
+  WriteSubquadsToJson(doc, root_tile_, sub_quads_);
+  WriteParentquadsToJson(doc, parent_quads_);
 
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-  doc.Accept(writer);
-  return buffer.GetString();
+  return boost::json::serialize(doc);
 }
 
 olp::geo::TileKey QuadTreeBuilder::Root() const { return root_tile_; }

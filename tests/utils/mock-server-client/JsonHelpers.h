@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,126 +19,109 @@
 
 #pragma once
 
+#include <boost/json/parse.hpp>
 #include <string>
 
-#include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
-#include <rapidjson/istreamwrapper.h>
+#include <boost/json/value.hpp>
 
 namespace mockserver {
 
-inline void to_json(const std::string& x, rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
-  value.SetString(rapidjson::StringRef(x.c_str(), x.size()), allocator);
+inline void to_json(const std::string& x, boost::json::value& value) {
+  value.emplace_string() = x;
 }
 
-inline void to_json(int32_t x, rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType&) {
-  value.SetInt(x);
+inline void to_json(int32_t x, boost::json::value& value) {
+  value.emplace_int64() = x;
 }
 
-inline void to_json(int64_t x, rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType&) {
-  value.SetInt64(x);
+inline void to_json(int64_t x, boost::json::value& value) {
+  value.emplace_int64() = x;
 }
 
-inline void to_json(double x, rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType&) {
-  value.SetDouble(x);
+inline void to_json(double x, boost::json::value& value) {
+  value.emplace_double() = x;
 }
 
-inline void to_json(bool x, rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType&) {
-  value.SetBool(x);
+inline void to_json(bool x, boost::json::value& value) {
+  value.emplace_bool() = x;
 }
 
 inline void to_json(const std::shared_ptr<std::vector<unsigned char>>& x,
-                    rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
-  value.SetString(reinterpret_cast<char*>(x->data()),
-                  static_cast<rapidjson::SizeType>(x->size()), allocator);
+                    boost::json::value& value) {
+  value.emplace_string() =
+      boost::json::string_view{reinterpret_cast<char*>(x->data()), x->size()};
 }
 
 template <typename T>
-inline void to_json(const boost::optional<T>& x, rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
+inline void to_json(const boost::optional<T>& x, boost::json::value& value) {
   if (x) {
-    to_json(x.get(), value, allocator);
+    to_json(x.get(), value);
   } else {
-    value.SetNull();
+    value.emplace_null();
   }
 }
 
 template <typename T>
-inline void to_json(const std::map<std::string, T>& x, rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  for (auto itr = x.begin(); itr != x.end(); ++itr) {
-    const auto& key = itr->first;
-    rapidjson::Value item_value;
-    to_json(itr->second, item_value, allocator);
-    value.AddMember(rapidjson::StringRef(key.c_str(), key.size()),
-                    std::move(item_value), allocator);
+inline void to_json(const std::map<std::string, T>& x,
+                    boost::json::value& value) {
+  auto& object = value.emplace_object();
+  for (const auto& entry : x) {
+    boost::json::value item_value;
+    to_json(entry.second, item_value);
+    object.emplace(entry.first, std::move(item_value));
   }
 }
 
 template <typename T>
-inline void to_json(const std::vector<T>& x, rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
-  value.SetArray();
-  for (typename std::vector<T>::const_iterator itr = x.begin(); itr != x.end();
-       ++itr) {
-    rapidjson::Value item_value;
-    to_json(*itr, item_value, allocator);
-    value.PushBack(std::move(item_value), allocator);
+inline void to_json(const std::vector<T>& x, boost::json::value& value) {
+  auto& array = value.emplace_array();
+  for (const auto& entry : x) {
+    boost::json::value item_value;
+    to_json(entry, item_value);
+    array.emplace_back(std::move(item_value));
   }
 }
 
 template <typename T>
 inline void serialize(const std::string& key, const T& x,
-                      rapidjson::Value& value,
-                      rapidjson::Document::AllocatorType& allocator) {
-  rapidjson::Value key_value;
-  to_json(key, key_value, allocator);
-  rapidjson::Value item_value;
-  to_json(x, item_value, allocator);
-  if (!item_value.IsNull()) {
-    value.AddMember(std::move(key_value), std::move(item_value), allocator);
+                      boost::json::value& value) {
+  boost::json::value item_value;
+  to_json(x, item_value);
+  if (!item_value.is_null()) {
+    value.emplace_object().emplace(key, std::move(item_value));
   }
 }
 
-inline void from_json(const rapidjson::Value& value, int32_t& x) {
-  x = value.GetInt();
+inline void from_json(const boost::json::value& value, int32_t& x) {
+  x = static_cast<int32_t>(value.to_number<int64_t>());
 }
 
 template <typename T>
-inline void from_json(const rapidjson::Value& value, std::vector<T>& results) {
-  for (rapidjson::Value::ConstValueIterator itr = value.Begin();
-       itr != value.End(); ++itr) {
+inline void from_json(const boost::json::value& value,
+                      std::vector<T>& results) {
+  const auto& array = value.get_array();
+  for (const auto& array_value : array) {
     T result;
-    from_json(*itr, result);
-    results.push_back(result);
+    from_json(array_value, result);
+    results.emplace_back(std::move(result));
   }
 }
 
 template <typename T>
-inline T parse(const rapidjson::Value& value, const std::string& name) {
+inline T parse(const boost::json::value& value, const std::string& name) {
   T result = T();
-  rapidjson::Value::ConstMemberIterator itr = value.FindMember(name.c_str());
-  if (itr != value.MemberEnd()) {
-    from_json(itr->value, result);
+  if (auto* found_value = value.as_object().if_contains(name)) {
+    from_json(*found_value, result);
   }
   return result;
 }
 
 template <typename T>
 inline T parse(std::stringstream& json_stream) {
-  rapidjson::Document doc;
-  rapidjson::IStreamWrapper stream(json_stream);
-  doc.ParseStream(stream);
+  boost::json::error_code ec;
+  auto doc = boost::json::parse(json_stream, ec);
   T result{};
-  if (doc.IsObject() || doc.IsArray()) {
+  if (doc.is_object() || doc.is_array()) {
     from_json(doc, result);
   }
   return result;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@
 
 #pragma once
 
+#include <chrono>
 #include <ctime>
 #include <memory>
 #include <string>
-#include <chrono>
 
 #include "BaseResult.h"
 
@@ -34,7 +34,7 @@ class SignInResultImpl : public BaseResult {
 
   SignInResultImpl(
       int status, std::string error,
-      std::shared_ptr<rapidjson::Document> json_document = nullptr) noexcept;
+      std::shared_ptr<boost::json::object> json_document = nullptr) noexcept;
 
   ~SignInResultImpl() override;
 
@@ -65,7 +65,7 @@ class SignInResultImpl : public BaseResult {
    */
   time_t GetExpiryTime() const;
 
-    /**
+  /**
    * @brief Gets the access token expiry time in seconds.
    * @return Duration for which token stays valid.
    */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,44 +22,37 @@
 namespace olp {
 namespace serializer {
 void to_json(const dataservice::write::model::PublishPartition& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
   if (x.GetPartition()) {
-    value.AddMember("partition",
-                    rapidjson::StringRef(x.GetPartition().get().c_str()),
-                    allocator);
+    object.emplace("partition", x.GetPartition().get());
   }
 
   if (x.GetChecksum()) {
-    value.AddMember("checksum",
-                    rapidjson::StringRef(x.GetChecksum().get().c_str()),
-                    allocator);
+    object.emplace("checksum", x.GetChecksum().get());
   }
 
   if (x.GetCompressedDataSize()) {
-    value.AddMember("compressedDataSize", x.GetCompressedDataSize().get(),
-                    allocator);
+    object.emplace("compressedDataSize", x.GetCompressedDataSize().get());
   }
 
   if (x.GetDataSize()) {
-    value.AddMember("dataSize", x.GetDataSize().get(), allocator);
+    object.emplace("dataSize", x.GetDataSize().get());
   }
 
   if (x.GetData()) {
     const auto& data = x.GetData().get();
-    auto data_stringref = rapidjson::StringRef(
+    auto data_stringref = boost::json::string_view(
         reinterpret_cast<char*>(data->data()), data->size());
-    value.AddMember("data", std::move(data_stringref), allocator);
+    object.emplace("data", data_stringref);
   }
 
   if (x.GetDataHandle()) {
-    value.AddMember("dataHandle",
-                    rapidjson::StringRef(x.GetDataHandle().get().c_str()),
-                    allocator);
+    object.emplace("dataHandle", x.GetDataHandle().get());
   }
 
   if (x.GetTimestamp()) {
-    value.AddMember("timestamp", x.GetTimestamp().get(), allocator);
+    object.emplace("timestamp", x.GetTimestamp().get());
   }
 }
 

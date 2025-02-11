@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
+#include <boost/json/serialize.hpp>
+#include <boost/json/serializer.hpp>
+#include <boost/json/value.hpp>
 
 #include "ByteVectorBuffer.h"
 
@@ -29,30 +29,28 @@ namespace olp {
 namespace serializer {
 template <typename T>
 inline std::string serialize(const T& object) {
-  rapidjson::Document doc;
-  auto& allocator = doc.GetAllocator();
-
-  doc.SetObject();
-  to_json(object, doc, allocator);
-
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-  doc.Accept(writer);
-  return buffer.GetString();
+  boost::json::value value;
+  to_json(object, value);
+  return boost::json::serialize(value);
 }
 
 template <typename T>
 inline ByteVectorBuffer::Buffer serialize_bytes(const T& object) {
-  rapidjson::Document doc;
-  auto& allocator = doc.GetAllocator();
+  boost::json::value value;
+  to_json(object, value);
 
-  doc.SetObject();
-  to_json(object, doc, allocator);
+  boost::json::serializer serializer;
+  serializer.reset(&value);
 
-  ByteVectorBuffer buffer;
-  rapidjson::Writer<ByteVectorBuffer> writer(buffer);
-  doc.Accept(writer);
-  return buffer.GetBuffer();
+  auto buffer = std::make_shared<std::vector<unsigned char>>();
+
+  while (!serializer.done()) {
+    char temp[4096];
+    auto result = serializer.read(temp);
+    buffer->insert(buffer->end(), temp, temp + result.size());
+  }
+
+  return buffer;
 }
 
 }  // namespace serializer

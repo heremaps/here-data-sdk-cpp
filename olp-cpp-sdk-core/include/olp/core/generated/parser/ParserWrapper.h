@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,72 +24,74 @@
 #include <string>
 #include <vector>
 
-#include <rapidjson/rapidjson.h>
+#include <boost/json/value.hpp>
 #include <boost/optional.hpp>
 
 namespace olp {
 namespace parser {
 
-inline void from_json(const rapidjson::Value& value, std::string& x) {
-  x = value.GetString();
+inline void from_json(const boost::json::value& value, std::string& x) {
+  const auto& str = value.get_string();
+  x.assign(str.begin(), str.end());
 }
 
-inline void from_json(const rapidjson::Value& value, int32_t& x) {
-  x = value.GetInt();
+inline void from_json(const boost::json::value& value, int32_t& x) {
+  x = static_cast<int32_t>(value.to_number<int64_t>());
 }
 
-inline void from_json(const rapidjson::Value& value, int64_t& x) {
-  x = value.GetInt64();
+inline void from_json(const boost::json::value& value, int64_t& x) {
+  x = value.to_number<int64_t>();
 }
 
-inline void from_json(const rapidjson::Value& value, double& x) {
-  x = value.GetDouble();
+inline void from_json(const boost::json::value& value, double& x) {
+  x = value.to_number<double>();
 }
 
-inline void from_json(const rapidjson::Value& value, bool& x) {
-  x = value.GetBool();
+inline void from_json(const boost::json::value& value, bool& x) {
+  x = value.get_bool();
 }
 
-inline void from_json(const rapidjson::Value& value,
+inline void from_json(const boost::json::value& value,
                       std::shared_ptr<std::vector<unsigned char>>& x) {
-  std::string s = value.GetString();
+  const auto& s = value.get_string();
   x = std::make_shared<std::vector<unsigned char>>(s.begin(), s.end());
 }
 
 template <typename T>
-inline void from_json(const rapidjson::Value& value, boost::optional<T>& x) {
+inline void from_json(const boost::json::value& value, boost::optional<T>& x) {
   T result = T();
   from_json(value, result);
   x = result;
 }
 
 template <typename T>
-inline void from_json(const rapidjson::Value& value,
+inline void from_json(const boost::json::value& value,
                       std::map<std::string, T>& results) {
-  for (rapidjson::Value::ConstMemberIterator itr = value.MemberBegin();
-       itr != value.MemberEnd(); ++itr) {
-    std::string key;
-    from_json(itr->name, key);
-    from_json(itr->value, results[key]);
+  const auto& object = value.get_object();
+  for (const auto& object_value : object) {
+    std::string key = object_value.key();
+    from_json(object_value.value(), results[key]);
   }
 }
 
 template <typename T>
-inline void from_json(const rapidjson::Value& value, std::vector<T>& results) {
-  for (rapidjson::Value::ConstValueIterator itr = value.Begin();
-       itr != value.End(); ++itr) {
+inline void from_json(const boost::json::value& value,
+                      std::vector<T>& results) {
+  const auto& array = value.get_array();
+  for (const auto& array_value : array) {
     T result;
-    from_json(*itr, result);
+    from_json(array_value, result);
     results.emplace_back(std::move(result));
   }
 }
 
 template <typename T>
-inline T parse(const rapidjson::Value& value, const std::string& name) {
+inline T parse(const boost::json::value& value, const std::string& name) {
   T result = T();
-  rapidjson::Value::ConstMemberIterator itr = value.FindMember(name.c_str());
-  if (itr != value.MemberEnd()) {
-    from_json(itr->value, result);
+  const auto& object = value.get_object();
+  auto itr = object.find(name);
+  if (itr != object.end()) {
+    from_json(itr->value(), result);
   }
   return result;
 }

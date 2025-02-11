@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +19,17 @@
 
 #pragma once
 
-#include <rapidjson/document.h>
 #include <olp/dataservice/read/model/StreamOffsets.h>
+#include <boost/json/value.hpp>
 
 namespace olp {
 namespace serializer {
 
 void to_json(const dataservice::read::model::StreamOffset& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+             boost::json::value& value);
 
 void to_json(const dataservice::read::model::StreamOffsets& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+             boost::json::value& value);
 
 }  // namespace serializer
 }  // namespace olp

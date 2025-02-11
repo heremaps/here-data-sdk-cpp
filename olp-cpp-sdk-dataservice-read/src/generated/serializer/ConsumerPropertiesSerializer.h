@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include <rapidjson/document.h>
 #include <olp/core/generated/serializer/SerializerWrapper.h>
 #include <olp/dataservice/read/ConsumerProperties.h>
+#include <boost/json/value.hpp>
 
 namespace olp {
 namespace serializer {
@@ -29,18 +29,17 @@ namespace serializer {
 template <>
 inline void to_json<dataservice::read::ConsumerOption>(
     const std::vector<dataservice::read::ConsumerOption>& x,
-    rapidjson::Value& value, rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  for (auto itr = x.begin(); itr != x.end(); ++itr) {
-    serialize(itr->GetKey(), itr->GetValue(), value, allocator);
+    boost::json::value& value) {
+  auto& object = value.emplace_object();
+  for (const auto& option : x) {
+    serialize(option.GetKey(), option.GetValue(), object);
   }
 }
 
 inline void to_json(const dataservice::read::ConsumerProperties& x,
-                    rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("kafkaConsumerProperties", x.GetProperties(), value, allocator);
+                    boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("kafkaConsumerProperties", x.GetProperties(), object);
 }
 
 }  // namespace serializer

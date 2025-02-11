@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <rapidjson/document.h>
+#include <boost/json/value.hpp>
 #include "generated/model/Index.h"
 
 #include <string>
@@ -27,11 +27,11 @@
 namespace olp {
 namespace parser {
 
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                std::shared_ptr<olp::dataservice::read::model::SubQuad>& x);
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                std::shared_ptr<olp::dataservice::read::model::ParentQuad>& x);
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::read::model::Index& x);
 }  // namespace parser
 }  // namespace olp

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,57 +22,49 @@
 namespace olp {
 namespace serializer {
 void to_json(const dataservice::write::model::Publication& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
   if (x.GetId()) {
-    value.AddMember("id", rapidjson::StringRef(x.GetId().get().c_str()),
-                    allocator);
+    object.emplace("id", x.GetId().get());
   }
 
   // TODO: Separate Details Model serializtion into it's own file when needed by
   // another model.
   if (x.GetDetails()) {
-    rapidjson::Value details(rapidjson::kObjectType);
-    details.AddMember("state",
-                      rapidjson::StringRef(x.GetDetails()->GetState().c_str()),
-                      allocator);
-    details.AddMember(
-        "message", rapidjson::StringRef(x.GetDetails()->GetMessage().c_str()),
-        allocator);
-    details.AddMember("started", x.GetDetails()->GetStarted(), allocator);
-    details.AddMember("modified", x.GetDetails()->GetModified(), allocator);
-    details.AddMember("expires", x.GetDetails()->GetExpires(), allocator);
-    value.AddMember("details", details, allocator);
+    boost::json::object details;
+    details.emplace("state", x.GetDetails()->GetState());
+    details.emplace("message", x.GetDetails()->GetMessage());
+    details.emplace("started", x.GetDetails()->GetStarted());
+    details.emplace("modified", x.GetDetails()->GetModified());
+    details.emplace("expires", x.GetDetails()->GetExpires());
+    object.emplace("details", std::move(details));
   }
 
   if (x.GetLayerIds()) {
-    rapidjson::Value layer_ids(rapidjson::kArrayType);
+    boost::json::array layer_ids;
     for (auto& layer_id : x.GetLayerIds().get()) {
-      layer_ids.PushBack(rapidjson::StringRef(layer_id.c_str()), allocator);
+      layer_ids.emplace_back(layer_id);
     }
-    value.AddMember("layerIds", layer_ids, allocator);
+    object.emplace("layerIds", std::move(layer_ids));
   }
 
   if (x.GetCatalogVersion()) {
-    value.AddMember("catalogVersion", x.GetCatalogVersion().get(), allocator);
+    object.emplace("catalogVersion", x.GetCatalogVersion().get());
   }
 
   if (x.GetVersionDependencies()) {
-    rapidjson::Value version_dependencies(rapidjson::kArrayType);
+    boost::json::array version_dependencies;
     for (auto& version_dependency : x.GetVersionDependencies().get()) {
       // TODO: Separate VersionDependency Model serializtion into it's own file
       // when needed by another model.
-      rapidjson::Value version_dependency_json(rapidjson::kObjectType);
-      version_dependency_json.AddMember(
-          "direct", version_dependency.GetDirect(), allocator);
-      version_dependency_json.AddMember(
-          "hrn", rapidjson::StringRef(version_dependency.GetHrn().c_str()),
-          allocator);
-      version_dependency_json.AddMember(
-          "version", version_dependency.GetVersion(), allocator);
-      version_dependencies.PushBack(version_dependency_json, allocator);
+      boost::json::object version_dependency_json;
+      version_dependency_json.emplace("direct", version_dependency.GetDirect());
+      version_dependency_json.emplace("hrn", version_dependency.GetHrn());
+      version_dependency_json.emplace("version",
+                                      version_dependency.GetVersion());
+      version_dependencies.emplace_back(std::move(version_dependency_json));
     }
-    value.AddMember("versionDependencies", version_dependencies, allocator);
+    object.emplace("versionDependencies", std::move(version_dependencies));
   }
 }
 

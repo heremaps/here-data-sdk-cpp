@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@
 
 namespace olp {
 namespace parser {
-using namespace olp::dataservice::read;
+namespace model = olp::dataservice::read::model;
 
-void from_json(const rapidjson::Value& value, model::SubscribeResponse& x) {
+void from_json(const boost::json::value& value, model::SubscribeResponse& x) {
   x.SetNodeBaseURL(parse<std::string>(value, "nodeBaseURL"));
   x.SetSubscriptionId(parse<std::string>(value, "subscriptionId"));
 }

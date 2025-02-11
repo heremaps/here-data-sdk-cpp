@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,24 +19,17 @@
 
 #pragma once
 
-#include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
+#include <boost/json/serialize.hpp>
+#include <boost/json/value.hpp>
 
 namespace olp {
 namespace serializer {
 template <typename T>
 inline std::string serialize(const T& object) {
-  rapidjson::Document doc;
-  auto& allocator = doc.GetAllocator();
-
-  doc.SetObject();
-  to_json(object, doc, allocator);
-
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-  doc.Accept(writer);
-  return buffer.GetString();
+  boost::json::value value;
+  value.emplace_object();
+  to_json(object, value);
+  return boost::json::serialize(value);
 }
 
 }  // namespace serializer

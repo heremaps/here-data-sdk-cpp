@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,10 +78,12 @@ MetadataApi::LayerVersionsResponse MetadataApi::GetLayerVersions(
                      {}, nullptr, "", context);
 
   if (api_response.GetStatus() != http::HttpStatusCode::OK) {
-    return client::ApiError(api_response.GetStatus(), api_response.GetResponseAsString());
+    return client::ApiError(api_response.GetStatus(),
+                            api_response.GetResponseAsString());
   }
 
-  return parser::parse_result<LayerVersionsResponse>(api_response.GetRawResponse());
+  return parser::parse_result<LayerVersionsResponse>(
+      api_response.GetRawResponse());
 }
 
 MetadataApi::PartitionsExtendedResponse MetadataApi::GetPartitions(
@@ -117,7 +119,8 @@ MetadataApi::PartitionsExtendedResponse MetadataApi::GetPartitions(
 
   if (http_response.GetStatus() != olp::http::HttpStatusCode::OK) {
     return PartitionsExtendedResponse(
-        client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString()),
+        client::ApiError(http_response.GetStatus(),
+                         http_response.GetResponseAsString()),
         http_response.GetNetworkStatistics());
   }
 
@@ -192,7 +195,8 @@ MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
     return {{api_response.GetStatus(), api_response.GetResponseAsString()}};
   }
 
-  return parser::parse_result<CatalogVersionResponse>(api_response.GetRawResponse());
+  return parser::parse_result<CatalogVersionResponse>(
+      api_response.GetRawResponse());
 }
 
 MetadataApi::VersionsResponse MetadataApi::ListVersions(
@@ -230,8 +234,6 @@ MetadataApi::CompatibleVersionsResponse MetadataApi::GetCompatibleVersions(
 
   std::multimap<std::string, std::string> query_params;
   query_params.emplace("limit", std::to_string(limit));
-
-  rapidjson::Value value;
 
   const auto serialized_dependencies = serializer::serialize(dependencies);
 

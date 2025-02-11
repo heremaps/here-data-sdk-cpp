@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,13 @@
 
 #include <string>
 
-#include <rapidjson/document.h>
+#include <boost/json/value.hpp>
 #include "generated/model/Api.h"
 
 namespace olp {
 namespace serializer {
 void to_json(const dataservice::write::model::Api& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+             boost::json::value& value);
 
 }  // namespace serializer
 }  // namespace olp

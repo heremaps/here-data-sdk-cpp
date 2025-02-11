@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,9 @@
 #include <olp/core/client/Condition.h>
 #include <olp/core/logging/Log.h>
 #include <boost/functional/hash.hpp>
+#include <boost/json/basic_parser_impl.hpp>
+#include <boost/json/parse.hpp>
+
 #include "CatalogRepository.h"
 #include "generated/api/MetadataApi.h"
 #include "generated/api/QueryApi.h"
@@ -170,6 +173,35 @@ bool CheckAdditionalFields(
 
   return true;
 }
+
+class StreamParser {
+ public:
+  explicit StreamParser(const olp::dataservice::read::PartitionsStreamCallback&
+                            partition_callback)
+      : parser_({}, partition_callback) {}
+
+  boost::json::error_code ParseStream(
+      olp::dataservice::read::repository::RapidJsonByteStream& stream) {
+    parser_.reset();
+
+    // Default error to handle empty stream
+    auto result = boost::json::make_error_code(boost::json::error::incomplete);
+
+    while (stream.Peek() != '\0') {
+      auto ch = stream.Take();
+      parser_.write_some(true, &ch, 1u, result);
+    }
+    return result;
+  }
+
+  void Abort() { parser_.handler().Abort(); }
+
+ private:
+  boost::json::basic_parser<
+      olp::dataservice::read::repository::PartitionsSaxHandler>
+      parser_;
+};
+
 }  // namespace
 
 namespace olp {
@@ -232,8 +264,8 @@ PartitionsRepository::GetPartitionsExtendedResponse(
 
   const auto& partition_ids = request.GetPartitionIds();
 
-  // Temporary workaround for merging the same requests. Should be removed after
-  // OlpClient could handle that.
+  // Temporary workaround for merging the same requests. Should be removed
+  // after OlpClient could handle that.
   const auto detail =
       partition_ids.empty() ? "" : HashPartitions(partition_ids);
   const auto version_str = version ? std::to_string(*version) : "";
@@ -649,16 +681,14 @@ client::ApiNoResponse PartitionsRepository::ParsePartitionsStream(
     const std::shared_ptr<AsyncJsonStream>& async_stream,
     const PartitionsStreamCallback& partition_callback,
     client::CancellationContext context) {
-  rapidjson::ParseResult parse_result;
+  boost::json::error_code parse_result;
 
   // We must perform at least one attempt to parse.
   do {
-    rapidjson::Reader reader;
-    auto partitions_handler =
-        std::make_shared<repository::PartitionsSaxHandler>(partition_callback);
+    auto parser = std::make_shared<StreamParser>(partition_callback);
 
     auto reader_cancellation_token = client::CancellationToken([=]() {
-      partitions_handler->Abort();
+      parser->Abort();
       async_stream->CloseStream(client::ApiError::Cancelled());
     });
 
@@ -668,21 +698,23 @@ client::ApiNoResponse PartitionsRepository::ParsePartitionsStream(
     }
 
     auto json_stream = async_stream->GetCurrentStream();
+    parse_result = parser->ParseStream(*json_stream);
 
-    parse_result = reader.Parse<rapidjson::kParseIterativeFlag>(
-        *json_stream, *partitions_handler);
     // Retry to parse the stream until it's closed.
   } while (!async_stream->IsClosed());
 
-  auto error = async_stream->GetError();
-
-  if (error) {
+  if (auto error = async_stream->GetError()) {
     return {*error};
-  } else if (!parse_result) {
-    return client::ApiError(parse_result.Code(), "Parsing error");
-  } else {
-    return client::ApiNoResult{};
   }
+
+  if (parse_result.failed()) {
+    OLP_SDK_LOG_WARNING_F(
+        kLogTag, "ParsePartitionsStream: Failed to parse the stream, error=%s",
+        parse_result.message().c_str());
+    return client::ApiError(parse_result.value(), "Parsing error");
+  }
+
+  return client::ApiNoResult{};
 }
 
 void PartitionsRepository::StreamPartitions(
@@ -701,8 +733,8 @@ void PartitionsRepository::StreamPartitions(
                            std::size_t length) mutable {
     const char* json_chunk = reinterpret_cast<const char*>(data);
     if (!offset) {
-      // TODO: we can use ranges to avoid reseting the stream, instead continue
-      // download from the last offset + length.
+      // TODO: we can use ranges to avoid reseting the stream, instead
+      // continue download from the last offset + length.
       async_stream->ResetStream(json_chunk, length);
     } else {
       async_stream->AppendContent(json_chunk, length);
