@@ -104,6 +104,7 @@ set(OLP_SDK_GENERATED_HEADERS
 )
 
 set(OLP_SDK_HTTP_HEADERS
+    ./include/olp/core/http/adapters/HarCaptureAdapter.h
     ./include/olp/core/http/CertificateSettings.h
     ./include/olp/core/http/HttpStatusCode.h
     ./include/olp/core/http/Network.h
@@ -288,6 +289,7 @@ set(OLP_SDK_CLIENT_SOURCES
 )
 
 set(OLP_SDK_HTTP_SOURCES
+    ./src/http/adapters/HarCaptureAdapter.cpp
     ./src/http/DefaultNetwork.cpp
     ./src/http/DefaultNetwork.h
     ./src/http/Network.cpp
