@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.21.0</span>
+   &#160;<span id="projectnumber">1.22.0</span>
    </div>
   </td>
  </tr>
@@ -71,7 +71,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/*</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2023 HERE Europe B.V.</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2024 HERE Europe B.V.</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment"> * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment"> * you may not use this file except in compliance with the License.</span></div>
@@ -130,13 +130,16 @@ $(function() {
 <div class="line"><a name="l00100"></a><span class="lineno"><a class="line" href="structolp_1_1authentication_1_1Settings.html#a8c84932b2de8aba35107522c643e5b83">  100</a></span>&#160;  <span class="keywordtype">bool</span> use_system_time{<span class="keyword">true</span>};</div>
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160; </div>
 <div class="line"><a name="l00106"></a><span class="lineno"><a class="line" href="structolp_1_1authentication_1_1Settings.html#ae32992a5a7144fb781292699d487f6d9">  106</a></span>&#160;  <a class="code" href="structolp_1_1client_1_1RetrySettings.html">client::RetrySettings</a> <a class="code" href="structolp_1_1authentication_1_1Settings.html#ae32992a5a7144fb781292699d487f6d9">retry_settings</a>;</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;};</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160; </div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;}  <span class="comment">// namespace authentication</span></div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160; </div>
+<div class="line"><a name="l00111"></a><span class="lineno"><a class="line" href="structolp_1_1authentication_1_1Settings.html#a4524179dfacd25cea246b32baf92a444">  111</a></span>&#160;  boost::optional&lt;std::string&gt; <a class="code" href="structolp_1_1authentication_1_1Settings.html#a4524179dfacd25cea246b32baf92a444">scope</a>;</div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;};</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160; </div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;}  <span class="comment">// namespace authentication</span></div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;}  <span class="comment">// namespace olp</span></div>
 <div class="ttc" id="aclassolp_1_1authentication_1_1AuthenticationCredentials_html"><div class="ttname"><a href="classolp_1_1authentication_1_1AuthenticationCredentials.html">olp::authentication::AuthenticationCredentials</a></div><div class="ttdoc">The access key ID and access key secret that you got from the HERE Account as a part of the onboardin...</div><div class="ttdef"><b>Definition:</b> AuthenticationCredentials.h:45</div></div>
 <div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">Rules all the other namespaces.</div><div class="ttdef"><b>Definition:</b> AppleSignInProperties.h:24</div></div>
 <div class="ttc" id="astructolp_1_1authentication_1_1Settings_html"><div class="ttname"><a href="structolp_1_1authentication_1_1Settings.html">olp::authentication::Settings</a></div><div class="ttdoc">Configures the TokenEndpoint instance.</div><div class="ttdef"><b>Definition:</b> Settings.h:50</div></div>
+<div class="ttc" id="astructolp_1_1authentication_1_1Settings_html_a4524179dfacd25cea246b32baf92a444"><div class="ttname"><a href="structolp_1_1authentication_1_1Settings.html#a4524179dfacd25cea246b32baf92a444">olp::authentication::Settings::scope</a></div><div class="ttdeci">boost::optional&lt; std::string &gt; scope</div><div class="ttdoc">(Optional) The scope to be assigned to an access token requests.</div><div class="ttdef"><b>Definition:</b> Settings.h:111</div></div>
 <div class="ttc" id="astructolp_1_1authentication_1_1Settings_html_a613b8ae683f2288b6b03b3692f1485a7"><div class="ttname"><a href="structolp_1_1authentication_1_1Settings.html#a613b8ae683f2288b6b03b3692f1485a7">olp::authentication::Settings::task_scheduler</a></div><div class="ttdeci">std::shared_ptr&lt; thread::TaskScheduler &gt; task_scheduler</div><div class="ttdoc">(Optional) The TaskScheduler class that is used to manage the callbacks enqueue.</div><div class="ttdef"><b>Definition:</b> Settings.h:75</div></div>
 <div class="ttc" id="astructolp_1_1authentication_1_1Settings_html_a9d7c2483ed47f7e4da2cc78b636c54e1"><div class="ttname"><a href="structolp_1_1authentication_1_1Settings.html#a9d7c2483ed47f7e4da2cc78b636c54e1">olp::authentication::Settings::network_request_handler</a></div><div class="ttdeci">std::shared_ptr&lt; http::Network &gt; network_request_handler</div><div class="ttdoc">The network instance that is used to internally operate with the HERE platform Services.</div><div class="ttdef"><b>Definition:</b> Settings.h:69</div></div>
 <div class="ttc" id="astructolp_1_1authentication_1_1Settings_html_ab38fa9097326c25051f981b62ab2bca0"><div class="ttname"><a href="structolp_1_1authentication_1_1Settings.html#ab38fa9097326c25051f981b62ab2bca0">olp::authentication::Settings::Settings</a></div><div class="ttdeci">Settings(AuthenticationCredentials credentials)</div><div class="ttdoc">Creates the Settings instance.</div></div>

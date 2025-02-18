@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.21.0</span>
+   &#160;<span id="projectnumber">1.22.0</span>
    </div>
   </td>
  </tr>
@@ -71,7 +71,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/*</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2021 HERE Europe B.V.</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2025 HERE Europe B.V.</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment"> * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment"> * you may not use this file except in compliance with the License.</span></div>
@@ -202,58 +202,59 @@ $(function() {
 <div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;    <span class="keywordflow">if</span> (http_code &lt; 0) {</div>
 <div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;      <span class="keywordflow">switch</span> (<span class="keyword">static_cast&lt;</span><a class="code" href="namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17">olp::http::ErrorCode</a><span class="keyword">&gt;</span>(http_code)) {</div>
 <div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;        <span class="keywordflow">case</span> olp::http::ErrorCode::OFFLINE_ERROR:</div>
-<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;        <span class="keywordflow">case</span> olp::http::ErrorCode::IO_ERROR:</div>
-<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a3deb8bdcfe75a4deb1b6e06dcf0fb443">olp::client::ErrorCode::NetworkConnection</a>;</div>
-<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;        <span class="keywordflow">case</span> <a class="code" href="namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17ace94bad90093a6a2538689ddfbb5462f">olp::http::ErrorCode::TIMEOUT_ERROR</a>:</div>
-<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a3632c2e4e6225d4d9fcd2a6fd2c65048">olp::client::ErrorCode::RequestTimeout</a>;</div>
-<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;        <span class="keywordflow">case</span> olp::http::ErrorCode::CANCELLED_ERROR:</div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59aa149e85a44aeec9140e92733d9ed694e">olp::client::ErrorCode::Cancelled</a>;</div>
-<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;        <span class="keywordflow">case</span> olp::http::ErrorCode::AUTHORIZATION_ERROR:</div>
-<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;        <span class="keywordflow">case</span> olp::http::ErrorCode::AUTHENTICATION_ERROR:</div>
-<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59acbcc0759909213e7cdba1f0cbf253126">olp::client::ErrorCode::AccessDenied</a>;</div>
-<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;        <span class="keywordflow">case</span> olp::http::ErrorCode::INVALID_URL_ERROR:</div>
-<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a2a4581043d849bcb0e4747970ef1489b">olp::client::ErrorCode::ServiceUnavailable</a>;</div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;        <span class="keywordflow">case</span> <a class="code" href="namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17a61b3ad176dc0deca3eba62ca264a8355">olp::http::ErrorCode::NETWORK_OVERLOAD_ERROR</a>:</div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a20d4b2a77c2ccdf5bb124ca75ed8edd9">olp::client::ErrorCode::SlowDown</a>;</div>
-<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;        <span class="keywordflow">case</span> <a class="code" href="namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17a9a10f345b0f755d461a8673a5e9ef6b4">olp::http::ErrorCode::UNKNOWN_ERROR</a>:</div>
-<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;        <span class="keywordflow">default</span>:</div>
-<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a88183b946cc5f0e8c96b2e66e1c74a7e">olp::client::ErrorCode::Unknown</a>;</div>
-<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;      }</div>
-<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;    }</div>
-<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160; </div>
-<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;    <span class="comment">// `HttpStatusCode`</span></div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;    <span class="keywordflow">switch</span> (http_code) {</div>
-<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::BAD_REQUEST:</div>
-<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a9edf8fbf00a57d95a0af4923c9a1ec6f">olp::client::ErrorCode::BadRequest</a>;</div>
-<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::UNAUTHORIZED:</div>
-<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::FORBIDDEN:</div>
-<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59acbcc0759909213e7cdba1f0cbf253126">olp::client::ErrorCode::AccessDenied</a>;</div>
-<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::NOT_FOUND:</div>
-<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a38c300f4fc9ce8a77aad4a30de05cad8">olp::client::ErrorCode::NotFound</a>;</div>
-<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::PRECONDITION_FAILED:</div>
-<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a3542a02d18f11f46d53990d91752a6d4">olp::client::ErrorCode::PreconditionFailed</a>;</div>
-<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::TOO_MANY_REQUESTS:</div>
-<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::BANDWIDTH_LIMIT_EXCEEDED:</div>
-<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a20d4b2a77c2ccdf5bb124ca75ed8edd9">olp::client::ErrorCode::SlowDown</a>;</div>
-<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::INTERNAL_SERVER_ERROR:</div>
-<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59aa247b21f40c7c83496ed67cc742c2524">olp::client::ErrorCode::InternalFailure</a>;</div>
-<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::SERVICE_UNAVAILABLE:</div>
-<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a2a4581043d849bcb0e4747970ef1489b">olp::client::ErrorCode::ServiceUnavailable</a>;</div>
-<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::REQUEST_TIMEOUT:</div>
-<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::AUTHENTICATION_TIMEOUT:</div>
-<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::LOGIN_TIMEOUT:</div>
-<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::GATEWAY_TIMEOUT:</div>
-<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::NETWORK_READ_TIMEOUT:</div>
-<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::NETWORK_CONNECT_TIMEOUT:</div>
-<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a3632c2e4e6225d4d9fcd2a6fd2c65048">olp::client::ErrorCode::RequestTimeout</a>;</div>
-<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;      <span class="keywordflow">default</span>:</div>
-<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a88183b946cc5f0e8c96b2e66e1c74a7e">olp::client::ErrorCode::Unknown</a>;</div>
-<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;    }</div>
-<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;  }</div>
-<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;};</div>
-<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160; </div>
-<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;}  <span class="comment">// namespace http</span></div>
-<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a8d9da4bc0e49a50e09ac9f7e56789d39">olp::client::ErrorCode::Offline</a>;</div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;        <span class="keywordflow">case</span> olp::http::ErrorCode::IO_ERROR:</div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a3deb8bdcfe75a4deb1b6e06dcf0fb443">olp::client::ErrorCode::NetworkConnection</a>;</div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;        <span class="keywordflow">case</span> <a class="code" href="namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17ace94bad90093a6a2538689ddfbb5462f">olp::http::ErrorCode::TIMEOUT_ERROR</a>:</div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a3632c2e4e6225d4d9fcd2a6fd2c65048">olp::client::ErrorCode::RequestTimeout</a>;</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;        <span class="keywordflow">case</span> olp::http::ErrorCode::CANCELLED_ERROR:</div>
+<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59aa149e85a44aeec9140e92733d9ed694e">olp::client::ErrorCode::Cancelled</a>;</div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;        <span class="keywordflow">case</span> olp::http::ErrorCode::AUTHORIZATION_ERROR:</div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;        <span class="keywordflow">case</span> olp::http::ErrorCode::AUTHENTICATION_ERROR:</div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59acbcc0759909213e7cdba1f0cbf253126">olp::client::ErrorCode::AccessDenied</a>;</div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;        <span class="keywordflow">case</span> olp::http::ErrorCode::INVALID_URL_ERROR:</div>
+<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a2a4581043d849bcb0e4747970ef1489b">olp::client::ErrorCode::ServiceUnavailable</a>;</div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;        <span class="keywordflow">case</span> <a class="code" href="namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17a61b3ad176dc0deca3eba62ca264a8355">olp::http::ErrorCode::NETWORK_OVERLOAD_ERROR</a>:</div>
+<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a20d4b2a77c2ccdf5bb124ca75ed8edd9">olp::client::ErrorCode::SlowDown</a>;</div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;        <span class="keywordflow">case</span> <a class="code" href="namespaceolp_1_1http.html#a61c765861938a212070d01911a6b6a17a9a10f345b0f755d461a8673a5e9ef6b4">olp::http::ErrorCode::UNKNOWN_ERROR</a>:</div>
+<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;        <span class="keywordflow">default</span>:</div>
+<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;          <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a88183b946cc5f0e8c96b2e66e1c74a7e">olp::client::ErrorCode::Unknown</a>;</div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;      }</div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;    }</div>
+<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160; </div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;    <span class="comment">// `HttpStatusCode`</span></div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;    <span class="keywordflow">switch</span> (http_code) {</div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::BAD_REQUEST:</div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a9edf8fbf00a57d95a0af4923c9a1ec6f">olp::client::ErrorCode::BadRequest</a>;</div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::UNAUTHORIZED:</div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::FORBIDDEN:</div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59acbcc0759909213e7cdba1f0cbf253126">olp::client::ErrorCode::AccessDenied</a>;</div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::NOT_FOUND:</div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a38c300f4fc9ce8a77aad4a30de05cad8">olp::client::ErrorCode::NotFound</a>;</div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::PRECONDITION_FAILED:</div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a3542a02d18f11f46d53990d91752a6d4">olp::client::ErrorCode::PreconditionFailed</a>;</div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::TOO_MANY_REQUESTS:</div>
+<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::BANDWIDTH_LIMIT_EXCEEDED:</div>
+<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a20d4b2a77c2ccdf5bb124ca75ed8edd9">olp::client::ErrorCode::SlowDown</a>;</div>
+<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::INTERNAL_SERVER_ERROR:</div>
+<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59aa247b21f40c7c83496ed67cc742c2524">olp::client::ErrorCode::InternalFailure</a>;</div>
+<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::SERVICE_UNAVAILABLE:</div>
+<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a2a4581043d849bcb0e4747970ef1489b">olp::client::ErrorCode::ServiceUnavailable</a>;</div>
+<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::REQUEST_TIMEOUT:</div>
+<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::AUTHENTICATION_TIMEOUT:</div>
+<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::LOGIN_TIMEOUT:</div>
+<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::GATEWAY_TIMEOUT:</div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::NETWORK_READ_TIMEOUT:</div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;      <span class="keywordflow">case</span> HttpStatusCode::NETWORK_CONNECT_TIMEOUT:</div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a3632c2e4e6225d4d9fcd2a6fd2c65048">olp::client::ErrorCode::RequestTimeout</a>;</div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;      <span class="keywordflow">default</span>:</div>
+<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a88183b946cc5f0e8c96b2e66e1c74a7e">olp::client::ErrorCode::Unknown</a>;</div>
+<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;    }</div>
+<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;  }</div>
+<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;};</div>
+<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160; </div>
+<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;}  <span class="comment">// namespace http</span></div>
+<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;}  <span class="comment">// namespace olp</span></div>
 <div class="ttc" id="aclassolp_1_1http_1_1HttpStatusCode_html"><div class="ttname"><a href="classolp_1_1http_1_1HttpStatusCode.html">olp::http::HttpStatusCode</a></div><div class="ttdoc">HTTP status codes, as specified in RFC7231.</div><div class="ttdef"><b>Definition:</b> HttpStatusCode.h:34</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1HttpStatusCode_html_a12d459a2dc6386360b93f91a4e2310ba"><div class="ttname"><a href="classolp_1_1http_1_1HttpStatusCode.html#a12d459a2dc6386360b93f91a4e2310ba">olp::http::HttpStatusCode::GetErrorCode</a></div><div class="ttdeci">static olp::client::ErrorCode GetErrorCode(int http_code)</div><div class="ttdoc">Maps an HTTP status code or olp::http::ErrorCode to olp::client::ErrorCode.</div><div class="ttdef"><b>Definition:</b> HttpStatusCode.h:152</div></div>
 <div class="ttc" id="aclassolp_1_1http_1_1HttpStatusCode_html_ac41ef32fc379cb5135a8ae2327bbc2ed"><div class="ttname"><a href="classolp_1_1http_1_1HttpStatusCode.html#ac41ef32fc379cb5135a8ae2327bbc2ed">olp::http::HttpStatusCode::IsRetryable</a></div><div class="ttdeci">static bool IsRetryable(int http_code)</div><div class="ttdoc">Checks if the given error code is a temporary error.</div><div class="ttdef"><b>Definition:</b> HttpStatusCode.h:123</div></div>
@@ -265,6 +266,7 @@ $(function() {
 <div class="ttc" id="anamespaceolp_1_1client_html_a05a3686fba885b7bded9d98d8dd97e59a38c300f4fc9ce8a77aad4a30de05cad8"><div class="ttname"><a href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a38c300f4fc9ce8a77aad4a30de05cad8">olp::client::ErrorCode::NotFound</a></div><div class="ttdeci">@ NotFound</div></div>
 <div class="ttc" id="anamespaceolp_1_1client_html_a05a3686fba885b7bded9d98d8dd97e59a3deb8bdcfe75a4deb1b6e06dcf0fb443"><div class="ttname"><a href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a3deb8bdcfe75a4deb1b6e06dcf0fb443">olp::client::ErrorCode::NetworkConnection</a></div><div class="ttdeci">@ NetworkConnection</div></div>
 <div class="ttc" id="anamespaceolp_1_1client_html_a05a3686fba885b7bded9d98d8dd97e59a88183b946cc5f0e8c96b2e66e1c74a7e"><div class="ttname"><a href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a88183b946cc5f0e8c96b2e66e1c74a7e">olp::client::ErrorCode::Unknown</a></div><div class="ttdeci">@ Unknown</div></div>
+<div class="ttc" id="anamespaceolp_1_1client_html_a05a3686fba885b7bded9d98d8dd97e59a8d9da4bc0e49a50e09ac9f7e56789d39"><div class="ttname"><a href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a8d9da4bc0e49a50e09ac9f7e56789d39">olp::client::ErrorCode::Offline</a></div><div class="ttdeci">@ Offline</div></div>
 <div class="ttc" id="anamespaceolp_1_1client_html_a05a3686fba885b7bded9d98d8dd97e59a9edf8fbf00a57d95a0af4923c9a1ec6f"><div class="ttname"><a href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59a9edf8fbf00a57d95a0af4923c9a1ec6f">olp::client::ErrorCode::BadRequest</a></div><div class="ttdeci">@ BadRequest</div></div>
 <div class="ttc" id="anamespaceolp_1_1client_html_a05a3686fba885b7bded9d98d8dd97e59aa149e85a44aeec9140e92733d9ed694e"><div class="ttname"><a href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59aa149e85a44aeec9140e92733d9ed694e">olp::client::ErrorCode::Cancelled</a></div><div class="ttdeci">@ Cancelled</div></div>
 <div class="ttc" id="anamespaceolp_1_1client_html_a05a3686fba885b7bded9d98d8dd97e59aa247b21f40c7c83496ed67cc742c2524"><div class="ttname"><a href="namespaceolp_1_1client.html#a05a3686fba885b7bded9d98d8dd97e59aa247b21f40c7c83496ed67cc742c2524">olp::client::ErrorCode::InternalFailure</a></div><div class="ttdeci">@ InternalFailure</div></div>

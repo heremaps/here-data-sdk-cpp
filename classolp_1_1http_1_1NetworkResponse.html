@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.21.0</span>
+   &#160;<span id="projectnumber">1.22.0</span>
    </div>
   </td>
  </tr>
@@ -114,6 +114,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a10dcef0e7cf56439745014237a6dec4f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1http_1_1NetworkResponse.html">NetworkResponse</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkResponse.html#a10dcef0e7cf56439745014237a6dec4f">WithBytesDownloaded</a> (uint64_t bytes_downloaded)</td></tr>
 <tr class="memdesc:a10dcef0e7cf56439745014237a6dec4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the number of bytes downloaded during the associated network request.  <a href="classolp_1_1http_1_1NetworkResponse.html#a10dcef0e7cf56439745014237a6dec4f">More...</a><br /></td></tr>
 <tr class="separator:a10dcef0e7cf56439745014237a6dec4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac87b10bae303411e36cd260cd37d68ce"><td class="memItemLeft" align="right" valign="top">const boost::optional&lt; <a class="el" href="structolp_1_1http_1_1Diagnostics.html">Diagnostics</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkResponse.html#ac87b10bae303411e36cd260cd37d68ce">GetDiagnostics</a> () const</td></tr>
+<tr class="memdesc:ac87b10bae303411e36cd260cd37d68ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the optional diagnostics if set.  <a href="classolp_1_1http_1_1NetworkResponse.html#ac87b10bae303411e36cd260cd37d68ce">More...</a><br /></td></tr>
+<tr class="separator:ac87b10bae303411e36cd260cd37d68ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa0320e5045b7541be117fb42697324f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classolp_1_1http_1_1NetworkResponse.html">NetworkResponse</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1http_1_1NetworkResponse.html#afa0320e5045b7541be117fb42697324f">WithDiagnostics</a> (<a class="el" href="structolp_1_1http_1_1Diagnostics.html">Diagnostics</a> diagnostics)</td></tr>
+<tr class="memdesc:afa0320e5045b7541be117fb42697324f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the request diagnostics.  <a href="classolp_1_1http_1_1NetworkResponse.html#afa0320e5045b7541be117fb42697324f">More...</a><br /></td></tr>
+<tr class="separator:afa0320e5045b7541be117fb42697324f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A network response abstraction for the HTTP request. </p>
@@ -155,6 +161,26 @@ Public Member Functions</h2></td></tr>
 
 <p>Gets the number of bytes uploaded during the associated network request. </p>
 <dl class="section return"><dt>Returns</dt><dd>The number of bytes uploaded during the associated network request. </dd></dl>
+
+</div>
+</div>
+<a id="ac87b10bae303411e36cd260cd37d68ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac87b10bae303411e36cd260cd37d68ce">&#9670;&nbsp;</a></span>GetDiagnostics()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const boost::optional&lt;<a class="el" href="structolp_1_1http_1_1Diagnostics.html">Diagnostics</a>&gt;&amp; olp::http::NetworkResponse::GetDiagnostics </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets the optional diagnostics if set. </p>
+<dl class="section return"><dt>Returns</dt><dd>Diagnostic values. </dd></dl>
 
 </div>
 </div>
@@ -285,6 +311,33 @@ Public Member Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">bytes_uploaded</td><td>The number of uploaded bytes.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A reference to *this. </dd></dl>
+
+</div>
+</div>
+<a id="afa0320e5045b7541be117fb42697324f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa0320e5045b7541be117fb42697324f">&#9670;&nbsp;</a></span>WithDiagnostics()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classolp_1_1http_1_1NetworkResponse.html">NetworkResponse</a>&amp; olp::http::NetworkResponse::WithDiagnostics </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structolp_1_1http_1_1Diagnostics.html">Diagnostics</a>&#160;</td>
+          <td class="paramname"><em>diagnostics</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the request diagnostics. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">diagnostics</td><td><a class="el" href="structolp_1_1http_1_1Diagnostics.html" title="Network request timings.">Diagnostics</a> values.</td></tr>
   </table>
   </dd>
 </dl>

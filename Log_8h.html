@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.21.0</span>
+   &#160;<span id="projectnumber">1.22.0</span>
    </div>
   </td>
  </tr>
@@ -77,36 +77,34 @@ $(function() {
 
 <p>Provides the main interface for the logging library.  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &lt;olp/core/logging/Format.h&gt;</code><br />
-<code>#include &lt;olp/core/logging/Level.h&gt;</code><br />
-<code>#include &lt;olp/core/CoreApi.h&gt;</code><br />
-<code>#include &lt;<a class="el" href="WarningWorkarounds_8h_source.html">olp/core/utils/WarningWorkarounds.h</a>&gt;</code><br />
-<code>#include &lt;boost/none.hpp&gt;</code><br />
-<code>#include &lt;boost/optional.hpp&gt;</code><br />
-<code>#include &lt;cinttypes&gt;</code><br />
+<div class="textblock"><code>#include &lt;cinttypes&gt;</code><br />
 <code>#include &lt;cstdlib&gt;</code><br />
 <code>#include &lt;sstream&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
+<code>#include &lt;olp/core/logging/Format.h&gt;</code><br />
+<code>#include &lt;olp/core/logging/Level.h&gt;</code><br />
+<code>#include &lt;olp/core/CoreApi.h&gt;</code><br />
+<code>#include &lt;<a class="el" href="WarningWorkarounds_8h_source.html">olp/core/utils/WarningWorkarounds.h</a>&gt;</code><br />
+<code>#include &lt;boost/optional.hpp&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for Log.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="Log_8h__incl.png" border="0" usemap="#aolp-cpp-sdk-core_2include_2olp_2core_2logging_2Log_8h" alt=""/></div>
 <map name="aolp-cpp-sdk-core_2include_2olp_2core_2logging_2Log_8h" id="aolp-cpp-sdk-core_2include_2olp_2core_2logging_2Log_8h">
-<area shape="rect" title="Provides the main interface for the logging library." alt="" coords="773,5,936,47"/>
-<area shape="rect" href="Format_8h_source.html" title=" " alt="" coords="210,95,379,121"/>
-<area shape="rect" href="CoreApi_8h_source.html" title=" " alt="" coords="21,169,152,196"/>
-<area shape="rect" title=" " alt="" coords="435,169,490,196"/>
-<area shape="rect" href="Level_8h_source.html" title=" " alt="" coords="455,95,614,121"/>
-<area shape="rect" href="WarningWorkarounds_8h.html" title="Contains utilities used to work around compiler warnings." alt="" coords="638,95,874,121"/>
-<area shape="rect" title=" " alt="" coords="898,95,1009,121"/>
-<area shape="rect" title=" " alt="" coords="1033,95,1161,121"/>
-<area shape="rect" title=" " alt="" coords="1185,95,1260,121"/>
-<area shape="rect" title=" " alt="" coords="1285,95,1345,121"/>
-<area shape="rect" title=" " alt="" coords="1369,95,1439,121"/>
-<area shape="rect" title=" " alt="" coords="176,169,237,196"/>
-<area shape="rect" title=" " alt="" coords="262,169,327,196"/>
-<area shape="rect" title=" " alt="" coords="352,169,411,196"/>
-<area shape="rect" href="export_8h_source.html" title=" " alt="" coords="5,244,168,271"/>
+<area shape="rect" title="Provides the main interface for the logging library." alt="" coords="265,5,428,47"/>
+<area shape="rect" title=" " alt="" coords="5,95,80,121"/>
+<area shape="rect" title=" " alt="" coords="105,95,165,121"/>
+<area shape="rect" title=" " alt="" coords="189,95,259,121"/>
+<area shape="rect" title=" " alt="" coords="205,169,259,196"/>
+<area shape="rect" href="Format_8h_source.html" title=" " alt="" coords="385,95,554,121"/>
+<area shape="rect" href="CoreApi_8h_source.html" title=" " alt="" coords="284,169,415,196"/>
+<area shape="rect" href="Level_8h_source.html" title=" " alt="" coords="578,95,737,121"/>
+<area shape="rect" href="WarningWorkarounds_8h.html" title="Contains utilities used to work around compiler warnings." alt="" coords="761,95,997,121"/>
+<area shape="rect" title=" " alt="" coords="1021,95,1149,121"/>
+<area shape="rect" title=" " alt="" coords="439,169,500,196"/>
+<area shape="rect" title=" " alt="" coords="525,169,590,196"/>
+<area shape="rect" title=" " alt="" coords="615,169,673,196"/>
+<area shape="rect" href="export_8h_source.html" title=" " alt="" coords="268,244,431,271"/>
 </map>
 </div>
 </div>
@@ -133,6 +131,15 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Log_8h.html#a598d874919ef914c3303d5ce3de5cce9">OLP_SDK_LOG_FUNCTION_SIGNATURE</a>&#160;&#160;&#160;__FUNCTION__</td></tr>
 <tr class="memdesc:a598d874919ef914c3303d5ce3de5cce9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the current function signature for different compilers. <br /></td></tr>
 <tr class="separator:a598d874919ef914c3303d5ce3de5cce9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae993b08374d1f5ae6f6cbbea8f3e13da"><td class="memItemLeft" align="right" valign="top"><a id="ae993b08374d1f5ae6f6cbbea8f3e13da"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OLP_SDK_LOG_FILE</b>&#160;&#160;&#160;__FILE__</td></tr>
+<tr class="separator:ae993b08374d1f5ae6f6cbbea8f3e13da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06007b849b989ba02166b60adbf54cce"><td class="memItemLeft" align="right" valign="top"><a id="a06007b849b989ba02166b60adbf54cce"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OLP_SDK_LOG_LINE</b>&#160;&#160;&#160;__LINE__</td></tr>
+<tr class="separator:a06007b849b989ba02166b60adbf54cce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4de24bee199e417ba4602330f340cbb"><td class="memItemLeft" align="right" valign="top"><a id="ad4de24bee199e417ba4602330f340cbb"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>OLP_SDK_LOG_FUNCTION</b>&#160;&#160;&#160;__FUNCTION__</td></tr>
+<tr class="separator:ad4de24bee199e417ba4602330f340cbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a41119f0bb55148ede97b503b78c67982"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Log_8h.html#a41119f0bb55148ede97b503b78c67982">OLP_SDK_DO_LOG</a>(level,  tag,  message)</td></tr>
 <tr class="memdesc:a41119f0bb55148ede97b503b78c67982"><td class="mdescLeft">&#160;</td><td class="mdescRight">Logs a message using C++ style streams.  <a href="Log_8h.html#a41119f0bb55148ede97b503b78c67982">More...</a><br /></td></tr>
 <tr class="separator:a41119f0bb55148ede97b503b78c67982"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -246,15 +253,15 @@ Macros</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line">  <span class="keywordflow">do</span> {                                                                  \</div>
-<div class="line">    std::ostringstream __strm;                                          \</div>
-<div class="line">    __strm &lt;&lt; message;                                                  <a class="code" href="classolp_1_1logging_1_1Log.html#aee9be9f1987e972f2f3f34bb074f59eb">\</a></div>
-<div class="line"><a class="code" href="classolp_1_1logging_1_1Log.html#aee9be9f1987e972f2f3f34bb074f59eb">    ::olp::logging::Log::logMessage</a>(level, tag, __strm.str(), __FILE__, \</div>
-<div class="line">                                    __LINE__, __FUNCTION__,             \</div>
-<div class="line">                                    <a class="code" href="Log_8h.html#a598d874919ef914c3303d5ce3de5cce9">OLP_SDK_LOG_FUNCTION_SIGNATURE</a>);    \</div>
-<div class="line">  }                                                                     \</div>
+<b>Value:</b><div class="fragment"><div class="line">  <span class="keywordflow">do</span> {                                                                \</div>
+<div class="line">    std::ostringstream __strm;                                        \</div>
+<div class="line">    __strm &lt;&lt; message;                                                <a class="code" href="classolp_1_1logging_1_1Log.html#aee9be9f1987e972f2f3f34bb074f59eb">\</a></div>
+<div class="line"><a class="code" href="classolp_1_1logging_1_1Log.html#aee9be9f1987e972f2f3f34bb074f59eb">    ::olp::logging::Log::logMessage</a>(                                  \</div>
+<div class="line">        level, tag, __strm.str(), OLP_SDK_LOG_FILE, OLP_SDK_LOG_LINE, \</div>
+<div class="line">        OLP_SDK_LOG_FUNCTION, <a class="code" href="Log_8h.html#a598d874919ef914c3303d5ce3de5cce9">OLP_SDK_LOG_FUNCTION_SIGNATURE</a>);        \</div>
+<div class="line">  }                                                                   \</div>
 <div class="line">  OLP_SDK_CORE_LOOP_ONCE()</div>
-<div class="ttc" id="aLog_8h_html_a598d874919ef914c3303d5ce3de5cce9"><div class="ttname"><a href="Log_8h.html#a598d874919ef914c3303d5ce3de5cce9">OLP_SDK_LOG_FUNCTION_SIGNATURE</a></div><div class="ttdeci">#define OLP_SDK_LOG_FUNCTION_SIGNATURE</div><div class="ttdoc">Gets the current function signature for different compilers.</div><div class="ttdef"><b>Definition:</b> Log.h:49</div></div>
+<div class="ttc" id="aLog_8h_html_a598d874919ef914c3303d5ce3de5cce9"><div class="ttname"><a href="Log_8h.html#a598d874919ef914c3303d5ce3de5cce9">OLP_SDK_LOG_FUNCTION_SIGNATURE</a></div><div class="ttdeci">#define OLP_SDK_LOG_FUNCTION_SIGNATURE</div><div class="ttdoc">Gets the current function signature for different compilers.</div><div class="ttdef"><b>Definition:</b> Log.h:57</div></div>
 <div class="ttc" id="aclassolp_1_1logging_1_1Log_html_aee9be9f1987e972f2f3f34bb074f59eb"><div class="ttname"><a href="classolp_1_1logging_1_1Log.html#aee9be9f1987e972f2f3f34bb074f59eb">olp::logging::Log::logMessage</a></div><div class="ttdeci">static void logMessage(Level level, const std::string &amp;tag, const std::string &amp;message, const char *file, unsigned int line, const char *function, const char *fullFunction)</div><div class="ttdoc">Logs a message to the registered appenders.</div></div>
 </div><!-- fragment -->
 <p>Logs a message using C++ style streams. </p>
@@ -301,12 +308,12 @@ Macros</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line">  <span class="keywordflow">do</span> {                                                                         \</div>
-<div class="line">    std::string __message = ::olp::logging::format(__VA_ARGS__);               <a class="code" href="classolp_1_1logging_1_1Log.html#aee9be9f1987e972f2f3f34bb074f59eb">\</a></div>
-<div class="line"><a class="code" href="classolp_1_1logging_1_1Log.html#aee9be9f1987e972f2f3f34bb074f59eb">    ::olp::logging::Log::logMessage</a>(level, tag, __message, __FILE__, __LINE__, \</div>
-<div class="line">                                    __FUNCTION__,                              \</div>
-<div class="line">                                    <a class="code" href="Log_8h.html#a598d874919ef914c3303d5ce3de5cce9">OLP_SDK_LOG_FUNCTION_SIGNATURE</a>);           \</div>
-<div class="line">  }                                                                            \</div>
+<b>Value:</b><div class="fragment"><div class="line">  <span class="keywordflow">do</span> {                                                                       \</div>
+<div class="line">    std::string __message = ::olp::logging::format(__VA_ARGS__);             <a class="code" href="classolp_1_1logging_1_1Log.html#aee9be9f1987e972f2f3f34bb074f59eb">\</a></div>
+<div class="line"><a class="code" href="classolp_1_1logging_1_1Log.html#aee9be9f1987e972f2f3f34bb074f59eb">    ::olp::logging::Log::logMessage</a>(level, tag, __message, OLP_SDK_LOG_FILE, \</div>
+<div class="line">                                    OLP_SDK_LOG_LINE, OLP_SDK_LOG_FUNCTION,  \</div>
+<div class="line">                                    <a class="code" href="Log_8h.html#a598d874919ef914c3303d5ce3de5cce9">OLP_SDK_LOG_FUNCTION_SIGNATURE</a>);         \</div>
+<div class="line">  }                                                                          \</div>
 <div class="line">  OLP_SDK_CORE_LOOP_ONCE()</div>
 </div><!-- fragment -->
 <p>Logs a message using the printf-style formatting. </p>

@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.21.0</span>
+   &#160;<span id="projectnumber">1.22.0</span>
    </div>
   </td>
  </tr>
@@ -71,7 +71,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/*</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2023 HERE Europe B.V.</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> * Copyright (C) 2019-2024 HERE Europe B.V.</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment"> *</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment"> * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment"> * you may not use this file except in compliance with the License.</span></div>
@@ -91,42 +91,49 @@ $(function() {
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160; </div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="preprocessor">#pragma once</span></div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160; </div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="preprocessor">#include &lt;chrono&gt;</span></div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="preprocessor">#include &lt;ctime&gt;</span></div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160; </div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="preprocessor">#include &quot;AuthenticationApi.h&quot;</span></div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="preprocessor">#include &quot;ErrorResponse.h&quot;</span></div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160; </div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="keyword">namespace </span>authentication {</div>
-<div class="line"><a name="l00038"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1TokenResult.html">   38</a></span>&#160;<span class="keyword">class </span>AUTHENTICATION_API <a class="code" href="classolp_1_1authentication_1_1TokenResult.html">TokenResult</a> {</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00047"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1TokenResult.html#a688fffea480350ec2cc4de1a5595fda8">   47</a></span>&#160;  <a class="code" href="classolp_1_1authentication_1_1TokenResult.html#a688fffea480350ec2cc4de1a5595fda8">TokenResult</a>(std::string access_token, time_t expiry_time);</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160; </div>
-<div class="line"><a name="l00055"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1TokenResult.html#acbe14858d246153aab7af5807e83719b">   55</a></span>&#160;  <a class="code" href="classolp_1_1authentication_1_1TokenResult.html#acbe14858d246153aab7af5807e83719b">TokenResult</a>(std::string access_token, std::chrono::seconds expires_in);</div>
-<div class="line"><a name="l00059"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1TokenResult.html#ab9d782b2173a488484965e8efd59bc0c">   59</a></span>&#160;  <a class="code" href="classolp_1_1authentication_1_1TokenResult.html#ab9d782b2173a488484965e8efd59bc0c">TokenResult</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160; </div>
-<div class="line"><a name="l00066"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1TokenResult.html#adf0668a51c4a78899c2b221e4730f959">   66</a></span>&#160;  <span class="keyword">const</span> std::string&amp; <a class="code" href="classolp_1_1authentication_1_1TokenResult.html#adf0668a51c4a78899c2b221e4730f959">GetAccessToken</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
-<div class="line"><a name="l00075"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1TokenResult.html#a17394be02ae07648efc4a6a2fea11edb">   75</a></span>&#160;  time_t <a class="code" href="classolp_1_1authentication_1_1TokenResult.html#a17394be02ae07648efc4a6a2fea11edb">GetExpiryTime</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160; </div>
-<div class="line"><a name="l00082"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1TokenResult.html#a3686b5bc4086ac3e1bcc4a5b34dc4a6a">   82</a></span>&#160;  std::chrono::seconds <a class="code" href="classolp_1_1authentication_1_1TokenResult.html#a3686b5bc4086ac3e1bcc4a5b34dc4a6a">GetExpiresIn</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160; </div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160; <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;  std::string access_token_;</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;  time_t expiry_time_{};</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;  std::chrono::seconds expires_in_{};</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;};</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;}  <span class="comment">// namespace authentication</span></div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;}  <span class="comment">// namespace olp</span></div>
-<div class="ttc" id="aclassolp_1_1authentication_1_1TokenResult_html"><div class="ttname"><a href="classolp_1_1authentication_1_1TokenResult.html">olp::authentication::TokenResult</a></div><div class="ttdoc">A parsed response received from the OAuth2.0 token endpoint.</div><div class="ttdef"><b>Definition:</b> TokenResult.h:38</div></div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="preprocessor">#include &lt;boost/optional.hpp&gt;</span></div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="preprocessor">#include &lt;chrono&gt;</span></div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="preprocessor">#include &lt;ctime&gt;</span></div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160; </div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="preprocessor">#include &quot;AuthenticationApi.h&quot;</span></div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="preprocessor">#include &quot;ErrorResponse.h&quot;</span></div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160; </div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespaceolp.html">olp</a> {</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="keyword">namespace </span>authentication {</div>
+<div class="line"><a name="l00039"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1TokenResult.html">   39</a></span>&#160;<span class="keyword">class </span>AUTHENTICATION_API <a class="code" href="classolp_1_1authentication_1_1TokenResult.html">TokenResult</a> {</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00049"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1TokenResult.html#a3ce2b47bb3c5bfcd74d82cbe25485318">   49</a></span>&#160;  <a class="code" href="classolp_1_1authentication_1_1TokenResult.html#a3ce2b47bb3c5bfcd74d82cbe25485318">TokenResult</a>(std::string access_token, time_t expiry_time,</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;              boost::optional&lt;std::string&gt; scope);</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
+<div class="line"><a name="l00059"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1TokenResult.html#a567a43230c3c873faf5e3b89c3dda6d2">   59</a></span>&#160;  <a class="code" href="classolp_1_1authentication_1_1TokenResult.html#a567a43230c3c873faf5e3b89c3dda6d2">TokenResult</a>(std::string access_token, std::chrono::seconds expires_in,</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;              boost::optional&lt;std::string&gt; scope);</div>
+<div class="line"><a name="l00064"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1TokenResult.html#ab9d782b2173a488484965e8efd59bc0c">   64</a></span>&#160;  <a class="code" href="classolp_1_1authentication_1_1TokenResult.html#ab9d782b2173a488484965e8efd59bc0c">TokenResult</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160; </div>
+<div class="line"><a name="l00071"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1TokenResult.html#adf0668a51c4a78899c2b221e4730f959">   71</a></span>&#160;  <span class="keyword">const</span> std::string&amp; <a class="code" href="classolp_1_1authentication_1_1TokenResult.html#adf0668a51c4a78899c2b221e4730f959">GetAccessToken</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160; </div>
+<div class="line"><a name="l00080"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1TokenResult.html#a17394be02ae07648efc4a6a2fea11edb">   80</a></span>&#160;  time_t <a class="code" href="classolp_1_1authentication_1_1TokenResult.html#a17394be02ae07648efc4a6a2fea11edb">GetExpiryTime</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160; </div>
+<div class="line"><a name="l00087"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1TokenResult.html#a3686b5bc4086ac3e1bcc4a5b34dc4a6a">   87</a></span>&#160;  std::chrono::seconds <a class="code" href="classolp_1_1authentication_1_1TokenResult.html#a3686b5bc4086ac3e1bcc4a5b34dc4a6a">GetExpiresIn</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160; </div>
+<div class="line"><a name="l00095"></a><span class="lineno"><a class="line" href="classolp_1_1authentication_1_1TokenResult.html#aa83e65efc153d4922de3681f7684bc11">   95</a></span>&#160;  <span class="keyword">const</span> boost::optional&lt;std::string&gt;&amp; <a class="code" href="classolp_1_1authentication_1_1TokenResult.html#aa83e65efc153d4922de3681f7684bc11">GetScope</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160; <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;  std::string access_token_;</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;  time_t expiry_time_{};</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;  std::chrono::seconds expires_in_{};</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;  boost::optional&lt;std::string&gt; scope_;</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;};</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160; </div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;}  <span class="comment">// namespace authentication</span></div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;}  <span class="comment">// namespace olp</span></div>
+<div class="ttc" id="aclassolp_1_1authentication_1_1TokenResult_html"><div class="ttname"><a href="classolp_1_1authentication_1_1TokenResult.html">olp::authentication::TokenResult</a></div><div class="ttdoc">A parsed response received from the OAuth2.0 token endpoint.</div><div class="ttdef"><b>Definition:</b> TokenResult.h:39</div></div>
 <div class="ttc" id="aclassolp_1_1authentication_1_1TokenResult_html_a17394be02ae07648efc4a6a2fea11edb"><div class="ttname"><a href="classolp_1_1authentication_1_1TokenResult.html#a17394be02ae07648efc4a6a2fea11edb">olp::authentication::TokenResult::GetExpiryTime</a></div><div class="ttdeci">time_t GetExpiryTime() const</div><div class="ttdoc">Gets the Epoch time when the token expires, or -1 if the token is invalid.</div></div>
 <div class="ttc" id="aclassolp_1_1authentication_1_1TokenResult_html_a3686b5bc4086ac3e1bcc4a5b34dc4a6a"><div class="ttname"><a href="classolp_1_1authentication_1_1TokenResult.html#a3686b5bc4086ac3e1bcc4a5b34dc4a6a">olp::authentication::TokenResult::GetExpiresIn</a></div><div class="ttdeci">std::chrono::seconds GetExpiresIn() const</div><div class="ttdoc">Gets the access token expiry time.</div></div>
-<div class="ttc" id="aclassolp_1_1authentication_1_1TokenResult_html_a688fffea480350ec2cc4de1a5595fda8"><div class="ttname"><a href="classolp_1_1authentication_1_1TokenResult.html#a688fffea480350ec2cc4de1a5595fda8">olp::authentication::TokenResult::TokenResult</a></div><div class="ttdeci">TokenResult(std::string access_token, time_t expiry_time)</div><div class="ttdoc">Creates the TokenResult instance.</div></div>
+<div class="ttc" id="aclassolp_1_1authentication_1_1TokenResult_html_a3ce2b47bb3c5bfcd74d82cbe25485318"><div class="ttname"><a href="classolp_1_1authentication_1_1TokenResult.html#a3ce2b47bb3c5bfcd74d82cbe25485318">olp::authentication::TokenResult::TokenResult</a></div><div class="ttdeci">TokenResult(std::string access_token, time_t expiry_time, boost::optional&lt; std::string &gt; scope)</div><div class="ttdoc">Creates the TokenResult instance.</div></div>
+<div class="ttc" id="aclassolp_1_1authentication_1_1TokenResult_html_a567a43230c3c873faf5e3b89c3dda6d2"><div class="ttname"><a href="classolp_1_1authentication_1_1TokenResult.html#a567a43230c3c873faf5e3b89c3dda6d2">olp::authentication::TokenResult::TokenResult</a></div><div class="ttdeci">TokenResult(std::string access_token, std::chrono::seconds expires_in, boost::optional&lt; std::string &gt; scope)</div><div class="ttdoc">Creates the TokenResult instance.</div></div>
+<div class="ttc" id="aclassolp_1_1authentication_1_1TokenResult_html_aa83e65efc153d4922de3681f7684bc11"><div class="ttname"><a href="classolp_1_1authentication_1_1TokenResult.html#aa83e65efc153d4922de3681f7684bc11">olp::authentication::TokenResult::GetScope</a></div><div class="ttdeci">const boost::optional&lt; std::string &gt; &amp; GetScope() const</div><div class="ttdoc">Gets the scope that is assigned to the access token.</div></div>
 <div class="ttc" id="aclassolp_1_1authentication_1_1TokenResult_html_ab9d782b2173a488484965e8efd59bc0c"><div class="ttname"><a href="classolp_1_1authentication_1_1TokenResult.html#ab9d782b2173a488484965e8efd59bc0c">olp::authentication::TokenResult::TokenResult</a></div><div class="ttdeci">TokenResult()=default</div><div class="ttdoc">Creates the default TokenResult instance.</div></div>
-<div class="ttc" id="aclassolp_1_1authentication_1_1TokenResult_html_acbe14858d246153aab7af5807e83719b"><div class="ttname"><a href="classolp_1_1authentication_1_1TokenResult.html#acbe14858d246153aab7af5807e83719b">olp::authentication::TokenResult::TokenResult</a></div><div class="ttdeci">TokenResult(std::string access_token, std::chrono::seconds expires_in)</div><div class="ttdoc">Creates the TokenResult instance.</div></div>
 <div class="ttc" id="aclassolp_1_1authentication_1_1TokenResult_html_adf0668a51c4a78899c2b221e4730f959"><div class="ttname"><a href="classolp_1_1authentication_1_1TokenResult.html#adf0668a51c4a78899c2b221e4730f959">olp::authentication::TokenResult::GetAccessToken</a></div><div class="ttdeci">const std::string &amp; GetAccessToken() const</div><div class="ttdoc">Gets the access token issued by the authorization server.</div></div>
 <div class="ttc" id="anamespaceolp_html"><div class="ttname"><a href="namespaceolp.html">olp</a></div><div class="ttdoc">Rules all the other namespaces.</div><div class="ttdef"><b>Definition:</b> AppleSignInProperties.h:24</div></div>
 </div><!-- fragment --></div><!-- contents -->

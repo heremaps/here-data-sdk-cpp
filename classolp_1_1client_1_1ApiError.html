@@ -22,7 +22,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">olp-cpp-sdk
-   &#160;<span id="projectnumber">1.21.0</span>
+   &#160;<span id="projectnumber">1.22.0</span>
    </div>
   </td>
  </tr>
@@ -121,6 +121,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:ac71fb9a032e53d44a5b84de6e9c19750"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classolp_1_1client_1_1ApiError.html">ApiError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiError.html#ac71fb9a032e53d44a5b84de6e9c19750">CacheIO</a> (const char *description=&quot;Cache IO&quot;)</td></tr>
 <tr class="memdesc:ac71fb9a032e53d44a5b84de6e9c19750"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance with the cache IO error code and description.  <a href="classolp_1_1client_1_1ApiError.html#ac71fb9a032e53d44a5b84de6e9c19750">More...</a><br /></td></tr>
 <tr class="separator:ac71fb9a032e53d44a5b84de6e9c19750"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1443ded530d1316b8d6c6faa1aac996a"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classolp_1_1client_1_1ApiError.html">ApiError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiError.html#a1443ded530d1316b8d6c6faa1aac996a">Offline</a> (const char *description=&quot;Offline&quot;)</td></tr>
+<tr class="memdesc:a1443ded530d1316b8d6c6faa1aac996a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance with the offline error code and description.  <a href="classolp_1_1client_1_1ApiError.html#a1443ded530d1316b8d6c6faa1aac996a">More...</a><br /></td></tr>
+<tr class="separator:a1443ded530d1316b8d6c6faa1aac996a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adaf5a003b0bc8b7f9914a2b9d83307c9"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classolp_1_1client_1_1ApiError.html">ApiError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classolp_1_1client_1_1ApiError.html#adaf5a003b0bc8b7f9914a2b9d83307c9">Unknown</a> (const char *message=&quot;Unknown&quot;)</td></tr>
 <tr class="memdesc:adaf5a003b0bc8b7f9914a2b9d83307c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates the <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance with the unknown error code and description.  <a href="classolp_1_1client_1_1ApiError.html#adaf5a003b0bc8b7f9914a2b9d83307c9">More...</a><br /></td></tr>
 <tr class="separator:adaf5a003b0bc8b7f9914a2b9d83307c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -477,6 +480,41 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Creates the <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance with the not found error code and description. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">description</td><td>The optional description.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance. </dd></dl>
+
+</div>
+</div>
+<a id="a1443ded530d1316b8d6c6faa1aac996a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1443ded530d1316b8d6c6faa1aac996a">&#9670;&nbsp;</a></span>Offline()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="classolp_1_1client_1_1ApiError.html">ApiError</a> olp::client::ApiError::Offline </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>description</em> = <code>&quot;Offline&quot;</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Creates the <code><a class="el" href="classolp_1_1client_1_1ApiError.html" title="A wrapper around an internal error or HTTP status code.">ApiError</a></code> instance with the offline error code and description. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">description</td><td>The optional description.</td></tr>
