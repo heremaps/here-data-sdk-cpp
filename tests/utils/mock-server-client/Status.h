@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,9 @@ struct Status {
   Ports ports;
 };
 
-void from_json(const rapidjson::Value& value, Status& x);
+void from_json(const boost::json::value& value, Status& x);
 
-inline void from_json(const rapidjson::Value& value, Status& x) {
+inline void from_json(const boost::json::value& value, Status& x) {
   x.ports = parse<Status::Ports>(value, "ports");
 }
 

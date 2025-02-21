@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,49 +21,49 @@
 
 #include <string>
 
-#include <rapidjson/document.h>
+#include <boost/json/value.hpp>
 
 #include <generated/model/Catalog.h>
 
 namespace olp {
 namespace parser {
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::write::model::Coverage& x);
 
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::write::model::IndexDefinition& x);
 
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::write::model::IndexProperties& x);
 
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::write::model::Creator& x);
 
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::write::model::Owner& x);
 
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::write::model::Partitioning& x);
 
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::write::model::Schema& x);
 
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::write::model::StreamProperties& x);
 
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::write::model::Encryption& x);
 
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::write::model::Volume& x);
 
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::write::model::Layer& x);
 
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::write::model::Notifications& x);
 
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::write::model::Catalog& x);
 }  // namespace parser
 }  // namespace olp

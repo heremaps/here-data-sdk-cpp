@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,13 @@
 
 #pragma once
 
-#include <rapidjson/document.h>
+#include <boost/json/value.hpp>
 
 #include <olp/dataservice/write/generated/model/Publication.h>
 
 namespace olp {
 namespace serializer {
 void to_json(const dataservice::write::model::Publication& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator);
+             boost::json::value& value);
 }  // namespace serializer
 }  // namespace olp

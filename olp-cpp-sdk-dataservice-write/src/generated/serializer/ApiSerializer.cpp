@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include <rapidjson/document.h>
+#include <boost/json/value.hpp>
 
 #include "ApiSerializer.h"
 
@@ -25,13 +25,13 @@
 
 namespace olp {
 namespace serializer {
-void to_json(const dataservice::write::model::Api& x, rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("api", x.GetApi(), value, allocator);
-  serialize("version", x.GetVersion(), value, allocator);
-  serialize("baseURL", x.GetBaseUrl(), value, allocator);
-  serialize("parameters", x.GetParameters(), value, allocator);
+void to_json(const dataservice::write::model::Api& x,
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("api", x.GetApi(), object);
+  serialize("version", x.GetVersion(), object);
+  serialize("baseURL", x.GetBaseUrl(), object);
+  serialize("parameters", x.GetParameters(), object);
 }
 }  // namespace serializer
 }  // namespace olp

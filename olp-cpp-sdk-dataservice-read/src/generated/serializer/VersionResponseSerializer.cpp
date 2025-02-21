@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include <rapidjson/document.h>
+#include <boost/json/value.hpp>
 
 #include "VersionResponseSerializer.h"
 
@@ -26,10 +26,9 @@
 namespace olp {
 namespace serializer {
 void to_json(const dataservice::read::model::VersionResponse& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("version", x.GetVersion(), value, allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("version", x.GetVersion(), object);
 }
 }  // namespace serializer
 }  // namespace olp

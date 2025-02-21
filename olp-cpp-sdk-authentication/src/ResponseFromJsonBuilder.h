@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,8 @@ struct Identity {
 
 template <typename ResponseType>
 class ResponseFromJsonBuilder {
-  using JsonValue = rapidjson::Document::ValueType;
+  using JsonDoc = boost::json::object;
+  using JsonValue = boost::json::value;
 
  public:
   template <typename TargetType>
@@ -46,16 +47,16 @@ class ResponseFromJsonBuilder {
     const std::string kLogTag = "ResponseFromJsonBuilder";
 
    public:
-    explicit BuilderHelper(const JsonValue& json_value) : json_{json_value} {}
+    explicit BuilderHelper(const JsonDoc& json_value) : json_{json_value} {}
 
     template <typename ArgType, typename Projection = detail::Identity>
     BuilderHelper& Value(const char* name, void (TargetType::*set_fn)(ArgType),
                          Projection projection = {}) {
       using CompatibleType = decltype(GetCompatibleType<ArgType>());
       fields_.emplace(name, [=](TargetType& target_obj,
-                                const JsonValue& value) {
-        if (value.Is<CompatibleType>()) {
-          (target_obj.*set_fn)(projection(value.Get<CompatibleType>()));
+                                const JsonValue& json_value) {
+        if (auto value = If<CompatibleType>(json_value)) {
+          (target_obj.*set_fn)(projection(*value));
         } else {
           OLP_SDK_LOG_WARNING_F(kLogTag, "Wrong type, response=%s, field=%s",
                                 kTargetTypeName.c_str(), name);
@@ -71,13 +72,13 @@ class ResponseFromJsonBuilder {
           decltype(GetCompatibleType<typename ArrayType::value_type>());
       fields_.emplace(name, [=](TargetType& target_obj,
                                 const JsonValue& value) {
-        if (value.IsArray()) {
-          const auto& array = value.GetArray();
+        if (value.is_array()) {
+          const auto& array = value.get_array();
           ArrayType array_result;
-          array_result.reserve(array.Size());
+          array_result.reserve(array.size());
           for (const auto& element : array) {
-            if (element.Is<CompatibleType>()) {
-              array_result.push_back(element.Get<CompatibleType>());
+            if (auto element_value = If<CompatibleType>(element)) {
+              array_result.push_back(*element_value);
             }
           }
           (target_obj.*set_fn)(std::move(array_result));
@@ -92,12 +93,12 @@ class ResponseFromJsonBuilder {
     TargetType Finish() {
       TargetType result;
 
-      auto it = json_.MemberBegin();
-      auto it_end = json_.MemberEnd();
+      auto it = json_.cbegin();
+      auto it_end = json_.cend();
       for (; it != it_end; ++it) {
-        auto find_it = fields_.find(std::string{it->name.GetString()});
+        auto find_it = fields_.find(std::string{it->key_c_str()});
         if (find_it != fields_.end()) {
-          find_it->second(result, it->value);
+          find_it->second(result, it->value());
           // erasing already processed value
           fields_.erase(find_it);
           continue;
@@ -105,7 +106,7 @@ class ResponseFromJsonBuilder {
 
         OLP_SDK_LOG_WARNING_F(kLogTag,
                               "Unexpected value, response=%s, field=%s",
-                              kTargetTypeName.c_str(), it->name.GetString());
+                              kTargetTypeName.c_str(), it->key_c_str());
       }
 
       // in the ideal scenario all fields should be processed
@@ -133,11 +134,39 @@ class ResponseFromJsonBuilder {
                               std::is_same<T, long>::value>::type>
     int64_t GetCompatibleType();
 
+    template <typename T, typename = typename std::enable_if<
+                              std::is_same<T, bool>::value>::type>
+    const bool* If(const JsonValue& value) {
+      return value.if_bool();
+    }
+
+    template <typename T, typename = typename std::enable_if<
+                              std::is_same<T, int64_t>::value ||
+                              std::is_same<T, int>::value>::type>
+    const int64_t* If(const JsonValue& value) {
+      return value.if_int64();
+    }
+
+    template <typename T, typename = typename std::enable_if<
+                              std::is_same<T, uint64_t>::value>::type>
+    const uint64_t* If(const JsonValue& value) {
+      return value.if_uint64();
+    }
+
+    template <typename T, typename = typename std::enable_if<
+                              std::is_same<T, const char*>::value>::type>
+    boost::optional<const char*> If(const JsonValue& value) {
+      if (auto* str = value.if_string()) {
+        return str->c_str();
+      }
+      return nullptr;
+    }
+
     using Fields =
         std::unordered_map<std::string,
                            std::function<void(TargetType&, const JsonValue&)>>;
 
-    const JsonValue& json_;
+    const JsonDoc& json_;
     Fields fields_;
   };
 

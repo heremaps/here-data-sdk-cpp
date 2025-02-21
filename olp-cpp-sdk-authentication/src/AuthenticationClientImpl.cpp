@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2024 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,9 @@
 #include <thread>
 #include <utility>
 
-#include <rapidjson/document.h>
-#include <rapidjson/istreamwrapper.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
+#include <boost/json/parse.hpp>
+#include <boost/json/serialize.hpp>
+#include <boost/json/value.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -116,17 +115,13 @@ void RetryDelay(const client::RetrySettings& retry_settings, size_t retry) {
 
 client::OlpClient::RequestBodyType GenerateAppleSignInBody(
     const AppleSignInProperties& sign_in_properties) {
-  rapidjson::StringBuffer data;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
-  writer.StartObject();
+  boost::json::object json_object;
 
-  writer.Key(kGrantType);
-  writer.String(kAppleGrantType);
+  json_object[kGrantType] = kAppleGrantType;
 
-  auto write_field = [&writer](const char* key, const std::string& value) {
+  auto write_field = [&json_object](const char* key, const std::string& value) {
     if (!value.empty()) {
-      writer.Key(key);
-      writer.String(value.c_str());
+      json_object[key] = value;
     }
   };
 
@@ -137,9 +132,8 @@ client::OlpClient::RequestBodyType GenerateAppleSignInBody(
   write_field(kCountryCode, sign_in_properties.GetCountryCode());
   write_field(kLanguage, sign_in_properties.GetLanguage());
 
-  writer.EndObject();
-  auto content = data.GetString();
-  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
+  auto content = boost::json::serialize(json_object);
+  return std::make_shared<RequestBodyData>(content.begin(), content.end());
 }
 
 client::HttpResponse CallApi(const client::OlpClient& client,
@@ -203,20 +197,26 @@ olp::client::HttpResponse AuthenticationClientImpl::CallAuth(
 
 SignInResult AuthenticationClientImpl::ParseAuthResponse(
     int status, std::stringstream& auth_response) {
-  auto document = std::make_shared<rapidjson::Document>();
-  rapidjson::IStreamWrapper stream(auth_response);
-  document->ParseStream(stream);
+  boost::json::error_code ec;
+  auto document = boost::json::parse(auth_response, ec);
   return std::make_shared<SignInResultImpl>(
-      status, olp::http::HttpErrorToString(status), document);
+      status, olp::http::HttpErrorToString(status),
+      ec.failed() || !document.is_object()
+          ? nullptr
+          : std::make_shared<boost::json::object>(
+                std::move(document.as_object())));
 }
 
 SignInUserResult AuthenticationClientImpl::ParseUserAuthResponse(
     int status, std::stringstream& auth_response) {
-  auto document = std::make_shared<rapidjson::Document>();
-  rapidjson::IStreamWrapper stream(auth_response);
-  document->ParseStream(stream);
+  boost::json::error_code ec;
+  auto document = boost::json::parse(auth_response, ec);
   return std::make_shared<SignInUserResultImpl>(
-      status, olp::http::HttpErrorToString(status), document);
+      status, olp::http::HttpErrorToString(status),
+      ec.failed() || !document.is_object()
+          ? nullptr
+          : std::make_shared<boost::json::object>(
+                std::move(document.as_object())));
 }
 
 template <typename SignInResponseType>
@@ -361,23 +361,24 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
 
 TimeResponse AuthenticationClientImpl::ParseTimeResponse(
     std::stringstream& payload) {
-  rapidjson::Document document;
-  rapidjson::IStreamWrapper stream(payload);
-  document.ParseStream(stream);
+  boost::json::error_code ec;
+  auto json_value = boost::json::parse(payload, ec);
 
-  if (!document.IsObject()) {
+  if (ec.failed() || !json_value.is_object()) {
     return client::ApiError(client::ErrorCode::InternalFailure,
                             "JSON document root is not an Object type");
   }
 
-  const auto timestamp_it = document.FindMember("timestamp");
-  if (timestamp_it == document.MemberEnd() || !timestamp_it->value.IsUint()) {
+  auto& object = json_value.as_object();
+  const auto timestamp_it = object.find("timestamp");
+  if (timestamp_it == object.end() || (!timestamp_it->value().is_uint64() &&
+                                       !timestamp_it->value().is_int64())) {
     return client::ApiError(
         client::ErrorCode::InternalFailure,
         "JSON document must contain timestamp integer field");
   }
 
-  return timestamp_it->value.GetUint();
+  return timestamp_it->value().to_number<uint64_t>();
 }
 
 TimeResponse AuthenticationClientImpl::GetTimeFromServer(
@@ -586,10 +587,14 @@ client::CancellationToken AuthenticationClientImpl::SignUpHereUser(
       return client::ApiError(status, response_text);
     }
 
-    auto document = std::make_shared<rapidjson::Document>();
-    document->Parse(response_text.c_str());
+    boost::json::error_code ec;
+    auto document = boost::json::parse(response_text, ec);
     return {std::make_shared<SignUpResultImpl>(
-        status, olp::http::HttpErrorToString(status), document)};
+        status, olp::http::HttpErrorToString(status),
+        ec.failed() || !document.is_object()
+            ? nullptr
+            : std::make_shared<boost::json::object>(
+                  std::move(document.as_object())))};
   };
 
   return AddTask(settings_.task_scheduler, pending_requests_,
@@ -631,10 +636,14 @@ client::CancellationToken AuthenticationClientImpl::SignOut(
       return client::ApiError(status, response_text);
     }
 
-    auto document = std::make_shared<rapidjson::Document>();
-    document->Parse(response_text.c_str());
+    boost::json::error_code ec;
+    auto document = boost::json::parse(response_text, ec);
     return {std::make_shared<SignOutResultImpl>(
-        status, olp::http::HttpErrorToString(status), document)};
+        status, olp::http::HttpErrorToString(status),
+        ec.failed() || !document.is_object()
+            ? nullptr
+            : std::make_shared<boost::json::object>(
+                  std::move(document.as_object())))};
   };
 
   return AddTask(settings_.task_scheduler, pending_requests_,
@@ -664,24 +673,23 @@ client::CancellationToken AuthenticationClientImpl::IntrospectApp(
     auto http_result = client.CallApi(kIntrospectAppEndpoint, "GET", {}, {}, {},
                                       nullptr, {}, context);
 
-    rapidjson::Document document;
-    rapidjson::IStreamWrapper stream(http_result.GetRawResponse());
-    document.ParseStream(stream);
+    boost::json::error_code ec;
+    auto document = boost::json::parse(http_result.GetRawResponse(), ec);
     if (http_result.GetStatus() != http::HttpStatusCode::OK) {
       // HttpResult response can be error message or valid json with it.
       std::string msg = http_result.GetResponseAsString();
-      if (!document.HasParseError() && document.HasMember(Constants::MESSAGE)) {
-        msg = document[Constants::MESSAGE].GetString();
+      if (!ec.failed() && document.as_object().contains(Constants::MESSAGE)) {
+        msg = document.as_object()[Constants::MESSAGE].as_string().c_str();
       }
       return client::ApiError({http_result.GetStatus(), msg});
     }
 
-    if (document.HasParseError()) {
+    if (ec.failed() || !document.is_object()) {
       return client::ApiError({static_cast<int>(http::ErrorCode::UNKNOWN_ERROR),
                                "Failed to parse response"});
     }
 
-    return GetIntrospectAppResult(document);
+    return GetIntrospectAppResult(document.as_object());
   };
 
   return AddTask(settings_.task_scheduler, pending_requests_,
@@ -711,25 +719,27 @@ client::CancellationToken AuthenticationClientImpl::Authorize(
                                       GenerateAuthorizeBody(request),
                                       kApplicationJson, context);
 
-    rapidjson::Document document;
-    rapidjson::IStreamWrapper stream(http_result.GetRawResponse());
-    document.ParseStream(stream);
+    boost::json::error_code ec;
+    auto document = boost::json::parse(http_result.GetRawResponse(), ec);
     if (http_result.GetStatus() != http::HttpStatusCode::OK) {
       // HttpResult response can be error message or valid json with it.
       std::string msg = http_result.GetResponseAsString();
-      if (!document.HasParseError() && document.HasMember(Constants::MESSAGE)) {
-        msg = document[Constants::MESSAGE].GetString();
+      if (!ec.failed() && document.as_object().contains(Constants::MESSAGE)) {
+        msg = document.as_object()[Constants::MESSAGE].as_string().c_str();
       }
       return client::ApiError({http_result.GetStatus(), msg});
-    } else if (!document.HasParseError() &&
-               document.HasMember(Constants::ERROR_CODE) &&
-               document[Constants::ERROR_CODE].IsInt()) {
+    }
+
+    if (!ec.failed() && document.as_object().contains(Constants::ERROR_CODE) &&
+        document.as_object()[Constants::ERROR_CODE].is_int64()) {
       std::string msg =
           "Error code: " +
-          std::to_string(document[Constants::ERROR_CODE].GetInt());
-      if (document.HasMember(Constants::MESSAGE)) {
+          std::to_string(
+              document.as_object()[Constants::ERROR_CODE].as_int64());
+      if (document.as_object().contains(Constants::MESSAGE)) {
         msg.append(" (");
-        msg.append(document[Constants::MESSAGE].GetString());
+        msg.append(
+            document.as_object()[Constants::MESSAGE].as_string().c_str());
         msg.append(")");
       }
 
@@ -737,12 +747,12 @@ client::CancellationToken AuthenticationClientImpl::Authorize(
           {static_cast<int>(http::ErrorCode::UNKNOWN_ERROR), msg});
     }
 
-    if (document.HasParseError()) {
+    if (ec.failed() || !document.is_object()) {
       return client::ApiError({static_cast<int>(http::ErrorCode::UNKNOWN_ERROR),
                                "Failed to parse response"});
     }
 
-    return GetAuthorizeResult(document);
+    return GetAuthorizeResult(document.as_object());
   };
 
   return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
@@ -778,237 +788,186 @@ client::CancellationToken AuthenticationClientImpl::GetMyAccount(
 
 client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateClientBody(
     const SignInProperties& properties) {
-  rapidjson::StringBuffer data;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
-  writer.StartObject();
+  boost::json::object object;
 
-  writer.Key(kGrantType);
-  writer.String(kClientGrantType);
+  object[kGrantType] = kClientGrantType;
 
   auto expires_in = static_cast<unsigned int>(properties.expires_in.count());
   if (expires_in > 0) {
-    writer.Key(Constants::EXPIRES_IN);
-    writer.Uint(expires_in);
+    object[Constants::EXPIRES_IN] = expires_in;
   }
 
   if (properties.scope) {
-    writer.Key(kScope);
-    writer.String(properties.scope.get().c_str());
+    object[kScope] = properties.scope.get();
   }
 
   if (properties.device_id) {
-    writer.Key(kDeviceId);
-    writer.String(properties.device_id.get().c_str());
+    object[kDeviceId] = properties.device_id.get();
   }
 
-  writer.EndObject();
-  auto content = data.GetString();
-  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
+  auto content = boost::json::serialize(object);
+  return std::make_shared<RequestBodyData>(content.begin(), content.end());
 }
 
 client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateUserBody(
     const UserProperties& properties) {
-  rapidjson::StringBuffer data;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
-  writer.StartObject();
+  boost::json::object object;
 
-  writer.Key(kGrantType);
-  writer.String(kUserGrantType);
+  object[kGrantType] = kUserGrantType;
 
   if (!properties.email.empty()) {
-    writer.Key(kEmail);
-    writer.String(properties.email.c_str());
+    object[kEmail] = properties.email;
   }
   if (!properties.password.empty()) {
-    writer.Key(kPassword);
-    writer.String(properties.password.c_str());
+    object[kPassword] = properties.password;
   }
   if (properties.expires_in > 0) {
-    writer.Key(Constants::EXPIRES_IN);
-    writer.Uint(properties.expires_in);
+    object[Constants::EXPIRES_IN] = properties.expires_in;
   }
-  writer.EndObject();
-  auto content = data.GetString();
-  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
+
+  auto content = boost::json::serialize(object);
+  return std::make_shared<RequestBodyData>(content.begin(), content.end());
 }
 
 client::OlpClient::RequestBodyType
 AuthenticationClientImpl::GenerateFederatedBody(
     const FederatedSignInType type, const FederatedProperties& properties) {
-  rapidjson::StringBuffer data;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
-  writer.StartObject();
+  boost::json::object object;
 
-  writer.Key(kGrantType);
   switch (type) {
     case FederatedSignInType::FacebookSignIn:
-      writer.String(kFacebookGrantType);
+      object[kGrantType] = kFacebookGrantType;
       break;
     case FederatedSignInType::ArcgisSignIn:
-      writer.String(kArcgisGrantType);
+      object[kGrantType] = kArcgisGrantType;
       break;
     default:
       return nullptr;
   }
 
   if (!properties.access_token.empty()) {
-    writer.Key(Constants::ACCESS_TOKEN);
-    writer.String(properties.access_token.c_str());
+    object[Constants::ACCESS_TOKEN] = properties.access_token;
   }
   if (!properties.country_code.empty()) {
-    writer.Key(kCountryCode);
-    writer.String(properties.country_code.c_str());
+    object[kCountryCode] = properties.country_code;
   }
   if (!properties.language.empty()) {
-    writer.Key(kLanguage);
-    writer.String(properties.language.c_str());
+    object[kLanguage] = properties.language;
   }
   if (!properties.email.empty()) {
-    writer.Key(kEmail);
-    writer.String(properties.email.c_str());
+    object[kEmail] = properties.email;
   }
   if (properties.expires_in > 0) {
-    writer.Key(Constants::EXPIRES_IN);
-    writer.Uint(properties.expires_in);
+    object[Constants::EXPIRES_IN] = properties.expires_in;
   }
 
-  writer.EndObject();
-  auto content = data.GetString();
-  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
+  auto content = boost::json::serialize(object);
+  return std::make_shared<RequestBodyData>(content.begin(), content.end());
 }
 
 client::OlpClient::RequestBodyType
 AuthenticationClientImpl::GenerateRefreshBody(
     const RefreshProperties& properties) {
-  rapidjson::StringBuffer data;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
-  writer.StartObject();
+  boost::json::object object;
 
-  writer.Key(kGrantType);
-  writer.String(kRefreshGrantType);
+  object[kGrantType] = kRefreshGrantType;
 
   if (!properties.access_token.empty()) {
-    writer.Key(Constants::ACCESS_TOKEN);
-    writer.String(properties.access_token.c_str());
+    object[Constants::ACCESS_TOKEN] = properties.access_token;
   }
   if (!properties.refresh_token.empty()) {
-    writer.Key(Constants::REFRESH_TOKEN);
-    writer.String(properties.refresh_token.c_str());
+    object[Constants::REFRESH_TOKEN] = properties.refresh_token;
   }
   if (properties.expires_in > 0) {
-    writer.Key(Constants::EXPIRES_IN);
-    writer.Uint(properties.expires_in);
+    object[Constants::EXPIRES_IN] = properties.expires_in;
   }
-  writer.EndObject();
-  auto content = data.GetString();
-  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
+
+  auto content = boost::json::serialize(object);
+  return std::make_shared<RequestBodyData>(content.begin(), content.end());
 }
 
 client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateSignUpBody(
     const SignUpProperties& properties) {
-  rapidjson::StringBuffer data;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
-  writer.StartObject();
+  boost::json::object object;
 
   if (!properties.email.empty()) {
-    writer.Key(kEmail);
-    writer.String(properties.email.c_str());
+    object[kEmail] = properties.email;
   }
   if (!properties.password.empty()) {
-    writer.Key(kPassword);
-    writer.String(properties.password.c_str());
+    object[kPassword] = properties.password;
   }
   if (!properties.date_of_birth.empty()) {
-    writer.Key(kDateOfBirth);
-    writer.String(properties.date_of_birth.c_str());
+    object[kDateOfBirth] = properties.date_of_birth;
   }
   if (!properties.first_name.empty()) {
-    writer.Key(kFirstName);
-    writer.String(properties.first_name.c_str());
+    object[kFirstName] = properties.first_name;
   }
   if (!properties.last_name.empty()) {
-    writer.Key(kLastName);
-    writer.String(properties.last_name.c_str());
+    object[kLastName] = properties.last_name;
   }
   if (!properties.country_code.empty()) {
-    writer.Key(kCountryCode);
-    writer.String(properties.country_code.c_str());
+    object[kCountryCode] = properties.country_code;
   }
   if (!properties.language.empty()) {
-    writer.Key(kLanguage);
-    writer.String(properties.language.c_str());
+    object[kLanguage] = properties.language;
   }
   if (properties.marketing_enabled) {
-    writer.Key(kMarketingEnabled);
-    writer.Bool(true);
+    object[kMarketingEnabled] = true;
   }
   if (!properties.phone_number.empty()) {
-    writer.Key(kPhoneNumber);
-    writer.String(properties.phone_number.c_str());
+    object[kPhoneNumber] = properties.phone_number;
   }
   if (!properties.realm.empty()) {
-    writer.Key(kRealm);
-    writer.String(properties.realm.c_str());
+    object[kRealm] = properties.realm;
   }
   if (!properties.invite_token.empty()) {
-    writer.Key(kInviteToken);
-    writer.String(properties.invite_token.c_str());
+    object[kInviteToken] = properties.invite_token;
   }
 
-  writer.EndObject();
-  auto content = data.GetString();
-  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
+  auto content = boost::json::serialize(object);
+  return std::make_shared<RequestBodyData>(content.begin(), content.end());
 }
 
 client::OlpClient::RequestBodyType
 AuthenticationClientImpl::GenerateAcceptTermBody(
     const std::string& reacceptance_token) {
-  rapidjson::StringBuffer data;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
-  writer.StartObject();
+  boost::json::object object;
 
-  writer.Key(kTermsReacceptanceToken);
-  writer.String(reacceptance_token.c_str());
+  object[kTermsReacceptanceToken] = reacceptance_token;
 
-  writer.EndObject();
-  auto content = data.GetString();
-  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
+  auto content = boost::json::serialize(object);
+  return std::make_shared<RequestBodyData>(content.begin(), content.end());
 }
 
 client::OlpClient::RequestBodyType
 AuthenticationClientImpl::GenerateAuthorizeBody(
     const AuthorizeRequest& properties) {
-  rapidjson::StringBuffer data;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(data);
-  writer.StartObject();
-  writer.Key(kServiceId);
-  writer.String(properties.GetServiceId().c_str());
-  writer.Key(kActions);
-  writer.StartArray();
-  for (const auto& action : properties.GetActions()) {
-    writer.StartObject();
-    writer.Key(kAction);
-    writer.String(action.first.c_str());
-    if (!action.second.empty()) {
-      writer.Key(kResource);
-      writer.String(action.second.c_str());
+  boost::json::object object;
+
+  object[kServiceId] = properties.GetServiceId();
+
+  {
+    boost::json::array actions;
+    for (const auto& action : properties.GetActions()) {
+      boost::json::object action_value;
+      action_value[kAction] = action.first;
+      if (!action.second.empty()) {
+        action_value.emplace(kResource, action.second);
+      }
+      actions.emplace_back(std::move(action_value));
     }
-    writer.EndObject();
+    object.emplace(kActions, std::move(actions));
   }
 
-  writer.EndArray();
-  writer.Key(kDiagnostics);
-  writer.Bool(properties.GetDiagnostics());
+  object[kDiagnostics] = properties.GetDiagnostics();
   // default value is 'and', ignore parameter if operator type is 'and'
   if (properties.GetOperatorType() ==
       AuthorizeRequest::DecisionOperatorType::kOr) {
-    writer.Key(kOperator);
-    writer.String("or");
+    object[kOperator] = "or";
   }
 
-  writer.EndObject();
-  auto content = data.GetString();
-  return std::make_shared<RequestBodyData>(content, content + data.GetSize());
+  auto content = boost::json::serialize(object);
+  return std::make_shared<RequestBodyData>(content.begin(), content.end());
 }
 
 std::string AuthenticationClientImpl::GenerateUid() const {

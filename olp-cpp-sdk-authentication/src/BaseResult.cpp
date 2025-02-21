@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@
 
 #include "BaseResult.h"
 
-#include <rapidjson/document.h>
-#include <rapidjson/writer.h>
+#include <boost/json/serialize.hpp>
+#include <boost/json/value.hpp>
 
 #include "Constants.h"
 #include "olp/core/http/HttpStatusCode.h"
@@ -35,52 +35,49 @@ static const char* ERROR_MESSAGE = "message";
 static const char* LINE_END = ".";
 
 BaseResult::BaseResult(int status, std::string error,
-                       std::shared_ptr<rapidjson::Document> json_document)
+                       std::shared_ptr<boost::json::object> json_document)
     : status_()
 
 {
   status_ = status;
   error_.message = std::move(error);
-  is_valid_ = (json_document && !json_document->HasParseError());
+  is_valid_ = json_document != nullptr;
 
   // If HTTP error, try to get error details
-  if (!HasError() || !is_valid_ || !json_document->HasMember(ERROR_CODE)) {
+  if (!HasError() || !is_valid_ || !json_document->contains(ERROR_CODE)) {
     return;
   }
 
   // The JSON document has an error code member, so save full JSON content to
   // the `full_message_` string.
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-  json_document->Accept(writer);
-  full_message_ = buffer.GetString();
+  full_message_ = boost::json::serialize(*json_document);
 
-  if (json_document->HasMember(ERROR_ID)) {
-    error_.error_id = (*json_document)[ERROR_ID].GetString();
+  if (json_document->contains(ERROR_ID)) {
+    error_.error_id = (*json_document)[ERROR_ID].get_string().c_str();
   }
 
   // Enhance error message with network response error details
-  error_.code = (*json_document)[ERROR_CODE].GetUint();
+  error_.code = (*json_document)[ERROR_CODE].to_number<uint64_t>();
 
-  if (!json_document->HasMember(ERROR_MESSAGE)) {
+  if (!json_document->contains(ERROR_MESSAGE)) {
     return;
   }
-  std::string message = (*json_document)[ERROR_MESSAGE].GetString();
-  if (!json_document->HasMember(ERROR_FIELDS)) {
+  std::string message = (*json_document)[ERROR_MESSAGE].get_string().c_str();
+  if (!json_document->contains(ERROR_FIELDS)) {
     error_.message = message;
     return;
   }
 
   error_.message = message.substr(0, message.find_first_of(LINE_END) + 1);
-  const rapidjson::Value& fields = (*json_document)[ERROR_FIELDS];
-  if (fields.GetType() == rapidjson::kArrayType) {
-    for (rapidjson::SizeType i = 0u; i < fields.Size(); i++) {
-      const rapidjson::Value& field = fields[i];
-      if (field.HasMember(ERROR_MESSAGE)) {
+  auto& fields = (*json_document)[ERROR_FIELDS];
+  if (auto* fields_array = fields.if_array()) {
+    for (auto& field : *fields_array) {
+      if (field.is_object() && field.as_object().contains(ERROR_MESSAGE)) {
         ErrorField error_field;
-        error_field.name = field[FIELD_NAME].GetString();
-        error_field.code = field[ERROR_CODE].GetUint();
-        error_field.message = field[ERROR_MESSAGE].GetString();
+        error_field.name = field.as_object()[FIELD_NAME].get_string().c_str();
+        error_field.code = field.as_object()[ERROR_CODE].to_number<uint64_t>();
+        error_field.message =
+            field.as_object()[ERROR_MESSAGE].get_string().c_str();
         error_fields_.emplace_back(error_field);
       }
     }

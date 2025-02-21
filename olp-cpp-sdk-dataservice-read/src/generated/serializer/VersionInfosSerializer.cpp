@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,29 +25,26 @@ namespace olp {
 namespace serializer {
 
 void to_json(const dataservice::read::model::VersionDependency& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("hrn", x.GetHrn(), value, allocator);
-  serialize("version", x.GetVersion(), value, allocator);
-  serialize("direct", x.GetDirect(), value, allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("hrn", x.GetHrn(), object);
+  serialize("version", x.GetVersion(), object);
+  serialize("direct", x.GetDirect(), object);
 }
 
 void to_json(const dataservice::read::model::VersionInfo& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("dependencies", x.GetDependencies(), value, allocator);
-  serialize("timestamp", x.GetTimestamp(), value, allocator);
-  serialize("version", x.GetVersion(), value, allocator);
-  serialize("partitionCounts", x.GetPartitionCounts(), value, allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("dependencies", x.GetDependencies(), object);
+  serialize("timestamp", x.GetTimestamp(), object);
+  serialize("version", x.GetVersion(), object);
+  serialize("partitionCounts", x.GetPartitionCounts(), object);
 }
 
 void to_json(const dataservice::read::model::VersionInfos& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("versions", x.GetVersions(), value, allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("versions", x.GetVersions(), object);
 }
 }  // namespace serializer
 }  // namespace olp

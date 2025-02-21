@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,11 +35,11 @@ SignUpResultImpl::SignUpResultImpl() noexcept
 
 SignUpResultImpl::SignUpResultImpl(
     int status, std::string error,
-    std::shared_ptr<rapidjson::Document> json_document) noexcept
+    std::shared_ptr<boost::json::object> json_document) noexcept
     : BaseResult(status, std::move(error), json_document) {
   if (BaseResult::IsValid()) {
-    if (json_document->HasMember(kUserId))
-      user_identifier_ = (*json_document)[kUserId].GetString();
+    if (json_document->contains(kUserId))
+      user_identifier_ = (*json_document)[kUserId].get_string().c_str();
   }
 }
 
