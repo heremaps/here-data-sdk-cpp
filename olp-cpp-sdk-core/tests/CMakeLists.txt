@@ -16,61 +16,62 @@
 # License-Filename: LICENSE
 
 set(OLP_CPP_SDK_CORE_TESTS_SOURCES
-    ./cache/DefaultCacheImplTest.cpp
-    ./cache/DefaultCacheTest.cpp
-    ./cache/Helpers.cpp
-    ./cache/Helpers.h
-    ./cache/InMemoryCacheTest.cpp
-    ./cache/KeyGeneratorTest.cpp
-    ./cache/ProtectedKeyListTest.cpp
+        ./cache/DefaultCacheImplTest.cpp
+        ./cache/DefaultCacheTest.cpp
+        ./cache/Helpers.cpp
+        ./cache/Helpers.h
+        ./cache/InMemoryCacheTest.cpp
+        ./cache/KeyGeneratorTest.cpp
+        ./cache/ProtectedKeyListTest.cpp
 
-    ./client/ApiLookupClientImplTest.cpp
-    ./client/ApiResponseTest.cpp
-    ./client/BackdownStrategyTest.cpp
-    ./client/CancellationContextTest.cpp
-    ./client/ConditionTest.cpp
-    ./client/DefaultLookupEndpointProviderTest.cpp
-    ./client/HRNTest.cpp
-    ./client/OlpClientSettingsFactoryTest.cpp
-    ./client/OlpClientTest.cpp
-    ./client/PendingUrlRequestsTest.cpp
-    ./client/TaskContextTest.cpp
+        ./client/ApiLookupClientImplTest.cpp
+        ./client/ApiResponseTest.cpp
+        ./client/BackdownStrategyTest.cpp
+        ./client/CancellationContextTest.cpp
+        ./client/ConditionTest.cpp
+        ./client/DefaultLookupEndpointProviderTest.cpp
+        ./client/HRNTest.cpp
+        ./client/OlpClientSettingsFactoryTest.cpp
+        ./client/OlpClientTest.cpp
+        ./client/PendingUrlRequestsTest.cpp
+        ./client/TaskContextTest.cpp
 
-    ./context/ContextTest.cpp
+        ./context/ContextTest.cpp
 
-    ./geo/coordinates/GeoCoordinates3dTest.cpp
-    ./geo/coordinates/GeoCoordinatesTest.cpp
-    ./geo/coordinates/GeoPointTest.cpp
-    ./geo/coordinates/GeoRectangleTest.cpp
-    ./geo/projection/EquirectangularProjectionTest.cpp
-    ./geo/projection/IdentityProjectionTest.cpp
-    ./geo/projection/SphereProjectionTest.cpp
-    ./geo/projection/WebMercatorProjectionTest.cpp
-    ./geo/tiling/SubdivisionSchemeTest.cpp
-    ./geo/tiling/SubTilesTest.cpp
-    ./geo/tiling/TileKeyTest.cpp
-    ./geo/tiling/TileKeyUtilsTest.cpp
+        ./geo/coordinates/GeoCoordinates3dTest.cpp
+        ./geo/coordinates/GeoCoordinatesTest.cpp
+        ./geo/coordinates/GeoPointTest.cpp
+        ./geo/coordinates/GeoRectangleTest.cpp
+        ./geo/projection/EquirectangularProjectionTest.cpp
+        ./geo/projection/IdentityProjectionTest.cpp
+        ./geo/projection/SphereProjectionTest.cpp
+        ./geo/projection/WebMercatorProjectionTest.cpp
+        ./geo/tiling/PathTilingTest.cpp
+        ./geo/tiling/SubdivisionSchemeTest.cpp
+        ./geo/tiling/SubTilesTest.cpp
+        ./geo/tiling/TileKeyTest.cpp
+        ./geo/tiling/TileKeyUtilsTest.cpp
 
-    ./logging/ConfigurationTest.cpp
-    ./logging/DisabledLoggingTest.cpp
-    ./logging/FileAppenderTest.cpp
-    ./logging/FilterGroupTest.cpp
-    ./logging/FormatTest.cpp
-    ./logging/LogTest.cpp
-    ./logging/MessageFormatterTest.cpp
-    ./logging/MockAppender.cpp
+        ./logging/ConfigurationTest.cpp
+        ./logging/DisabledLoggingTest.cpp
+        ./logging/FileAppenderTest.cpp
+        ./logging/FilterGroupTest.cpp
+        ./logging/FormatTest.cpp
+        ./logging/LogTest.cpp
+        ./logging/MessageFormatterTest.cpp
+        ./logging/MockAppender.cpp
 
-    ./thread/ContinuationTest.cpp
-    ./thread/ExecutionContextTest.cpp
-    ./thread/PriorityQueueExtendedTest.cpp
-    ./thread/SyncQueueTest.cpp
-    ./thread/TaskContinuationTest.cpp
-    ./thread/ThreadPoolTaskSchedulerTest.cpp
+        ./thread/ContinuationTest.cpp
+        ./thread/ExecutionContextTest.cpp
+        ./thread/PriorityQueueExtendedTest.cpp
+        ./thread/SyncQueueTest.cpp
+        ./thread/TaskContinuationTest.cpp
+        ./thread/ThreadPoolTaskSchedulerTest.cpp
 
-    ./http/NetworkSettingsTest.cpp
-    ./http/NetworkUtils.cpp
+        ./http/NetworkSettingsTest.cpp
+        ./http/NetworkUtils.cpp
 
-    ./utils/UtilsTest.cpp
+        ./utils/UtilsTest.cpp
 )
 
 if (ANDROID OR IOS)
@@ -78,7 +79,7 @@ if (ANDROID OR IOS)
 
     add_library(${OLP_SDK_CORE_TESTS_LIB} ${OLP_CPP_SDK_CORE_TESTS_SOURCES})
     target_link_libraries(${OLP_SDK_CORE_TESTS_LIB}
-        PRIVATE
+            PRIVATE
             custom-params
             gmock
             gtest
@@ -89,29 +90,29 @@ if (ANDROID OR IOS)
     # Some tests include private headers of core. This should be fixed in tests,
     # only then here.
     target_include_directories(${OLP_SDK_CORE_TESTS_LIB}
-        PRIVATE
+            PRIVATE
             ../src/cache
             ../src/client
     )
     if (ANDROID)
         include(${CMAKE_SOURCE_DIR}/cmake/android/gen_android_test.cmake)
         gen_android_test_runner(olp-cpp-sdk-core-tests
-            ${OLP_SDK_CORE_TESTS_LIB})
+                ${OLP_SDK_CORE_TESTS_LIB})
         add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/android
-            ${CMAKE_CURRENT_BINARY_DIR}/android)
+                ${CMAKE_CURRENT_BINARY_DIR}/android)
 
-    else()
+    else ()
         include(${CMAKE_SOURCE_DIR}/cmake/ios/gen_ios_test.cmake)
         gen_ios_test_runner(olp-cpp-sdk-core-tests ${OLP_SDK_CORE_TESTS_LIB})
         add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/ios
-            ${CMAKE_CURRENT_BINARY_DIR}/ios)
+                ${CMAKE_CURRENT_BINARY_DIR}/ios)
 
-    endif()
+    endif ()
 
-else()
+else ()
     add_executable(olp-cpp-sdk-core-tests ${OLP_CPP_SDK_CORE_TESTS_SOURCES})
     target_link_libraries(olp-cpp-sdk-core-tests
-        PRIVATE
+            PRIVATE
             custom-params
             gmock
             gtest
@@ -122,8 +123,8 @@ else()
     # Some tests include private headers of core. This should be fixed in tests,
     # only then here.
     target_include_directories(olp-cpp-sdk-core-tests
-    PRIVATE
-        ../src/cache
+            PRIVATE
+            ../src/cache
     )
 
-endif()
+endif ()
