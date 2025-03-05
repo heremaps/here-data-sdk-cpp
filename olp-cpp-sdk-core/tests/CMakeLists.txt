@@ -46,6 +46,7 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./geo/projection/IdentityProjectionTest.cpp
     ./geo/projection/SphereProjectionTest.cpp
     ./geo/projection/WebMercatorProjectionTest.cpp
+    ./geo/tiling/PathTilingTest.cpp
     ./geo/tiling/SubdivisionSchemeTest.cpp
     ./geo/tiling/SubTilesTest.cpp
     ./geo/tiling/TileKeyTest.cpp

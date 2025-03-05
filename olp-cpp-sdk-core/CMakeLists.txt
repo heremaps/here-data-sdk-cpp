@@ -197,6 +197,7 @@ set(OLP_SDK_GEOTILING_HEADERS
     ./include/olp/core/geo/tiling/HalfQuadTreeSubdivisionScheme.h
     ./include/olp/core/geo/tiling/ISubdivisionScheme.h
     ./include/olp/core/geo/tiling/ITilingScheme.h
+    ./include/olp/core/geo/tiling/PathTiling.h
     ./include/olp/core/geo/tiling/QuadTreeSubdivisionScheme.h
     ./include/olp/core/geo/tiling/SubTiles.h
     ./include/olp/core/geo/tiling/TileKey.h
