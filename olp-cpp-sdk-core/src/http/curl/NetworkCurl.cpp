@@ -678,20 +678,27 @@ ErrorCode NetworkCurl::SendImplementation(
 
   const auto& config = request.GetSettings();
 
-  RequestHandle* handle = InitRequestHandle();
+  RequestHandle* handle = [&] {
+    std::lock_guard<std::mutex> lock(event_mutex_);
+
+    auto* request_handle = InitRequestHandleUnsafe();
+
+    if (request_handle) {
+      request_handle->id = id;
+      request_handle->out_completion_callback = std::move(callback);
+      request_handle->out_header_callback = std::move(header_callback);
+      request_handle->out_data_callback = std::move(data_callback);
+      request_handle->out_data_stream = payload;
+      request_handle->request_body = request.GetBody();
+      request_handle->request_headers = SetupHeaders(request.GetHeaders());
+    }
+
+    return request_handle;
+  }();
+
   if (!handle) {
     return ErrorCode::NETWORK_OVERLOAD_ERROR;
   }
-
-  handle->id = id;
-
-  // Set request output callbacks
-  handle->out_completion_callback = std::move(callback);
-  handle->out_header_callback = std::move(header_callback);
-  handle->out_data_callback = std::move(data_callback);
-  handle->out_data_stream = payload;
-  handle->request_body = request.GetBody();
-  handle->request_headers = SetupHeaders(request.GetHeaders());
 
   OLP_SDK_LOG_DEBUG(kLogTag,
                     "Send request with url="
@@ -868,9 +875,7 @@ void NetworkCurl::AddEvent(EventInfo::Type type, RequestHandle* handle) {
 #endif
 }
 
-NetworkCurl::RequestHandle* NetworkCurl::InitRequestHandle() {
-  std::lock_guard<std::mutex> lock(event_mutex_);
-
+NetworkCurl::RequestHandle* NetworkCurl::InitRequestHandleUnsafe() {
   const auto unused_handle_it =
       std::find_if(handles_.begin(), handles_.end(),
                    [](const RequestHandle& request_handle) {
@@ -1162,7 +1167,8 @@ void NetworkCurl::Run() {
               msgs.push_back(curl_handle);
             }
           }
-        } else {
+        } else if (event.type == EventInfo::Type::CANCEL_EVENT &&
+                   request_handle->is_cancelled) {
           // The Request was canceled, remove it from curl
           auto code = curl_multi_remove_handle(curl_, curl_handle);
           if (code != CURLM_OK) {
