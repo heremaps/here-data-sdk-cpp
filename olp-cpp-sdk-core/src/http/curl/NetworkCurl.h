@@ -239,10 +239,11 @@ class NetworkCurl : public Network,
 
   /**
    * @brief Allocate new handle RequestHandle.
+   * @note Must be protected by event_mutex_
    *
    * @return Pointer to the allocated RequestHandle.
    */
-  RequestHandle* InitRequestHandle();
+  RequestHandle* InitRequestHandleUnsafe();
 
   /**
    * @brief Reset the handle after network request is done.
