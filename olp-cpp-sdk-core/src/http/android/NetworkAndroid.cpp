@@ -338,10 +338,10 @@ bool NetworkAndroid::Initialize() {
   env->DeleteLocalRef(obj);
 
   // Get send method
-  jni_send_method_ = env->GetMethodID(
-      java_self_class_, "send",
-      "(Ljava/lang/String;IJII[Ljava/lang/String;[BLjava/lang/String;III)Lcom/"
-      "here/olp/network/HttpClient$HttpTask;");
+  jni_send_method_ =
+      env->GetMethodID(java_self_class_, "send",
+                       "(Ljava/lang/String;IJII[Ljava/lang/String;[BLjava/lang/"
+                       "String;II)Lcom/here/olp/network/HttpClient$HttpTask;");
 
   if (env->ExceptionOccurred()) {
     OLP_SDK_LOG_ERROR(
