@@ -31,6 +31,7 @@
 
 namespace {
 constexpr auto kLogTag = "OLPHttpClient";
+constexpr auto kMaximumConnectionPerHost = 32;
 
 using SessionId = std::uint64_t;
 static SessionId sessionIdCounter_ = std::numeric_limits<SessionId>::min() + 1;
@@ -672,6 +673,8 @@ class EnterBackgroundSubscriberImpl
   } else {
     config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
   }
+
+  config.HTTPMaximumConnectionsPerHost = kMaximumConnectionPerHost;
 
   if (proxyDict) {
     config.connectionProxyDictionary = proxyDict;
