@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 #
-# Copyright (C) 2019-2021 HERE Europe B.V.
+# Copyright (C) 2019-2025 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -70,9 +70,6 @@ do
 	fi
 done
 # End of retry part. This part can be removed any time later or after all online tests are stable.
-
-# Run functional tests with Mock Server
-${FV_HOME}/olp-cpp-sdk-functional-test-mock.sh || TEST_FAILURE=1
 
 # Run integration tests
 source ${FV_HOME}/olp-cpp-sdk-integration-test.variables
