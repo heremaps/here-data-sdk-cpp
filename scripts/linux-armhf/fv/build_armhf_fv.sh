@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (C) 2019 HERE Europe B.V.
+# Copyright (C) 2019-2025 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ export CXX=arm-linux-gnueabihf-g++-7
 export LD=arm-linux-gnueabihf-ld
 
 mkdir -p build && cd build
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DOLP_SDK_BUILD_DOC=ON -DBUILD_SHARED_LIBS=ON -OLP_SDK_BUILD_EXAMPLES=OFF -DOLP_SDK_ENABLE_TESTING=OFF ..
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_SHARED_LIBS=ON -OLP_SDK_BUILD_EXAMPLES=OFF -DOLP_SDK_ENABLE_TESTING=OFF ..
 make -j$(nproc)
-make docs
 echo "ARM HF build succeeded."

@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright (C) 2019 HERE Europe B.V.
+# Copyright (C) 2019-2025 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,5 +19,5 @@
 
 
 mkdir -p build && cd build
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DOLP_SDK_NO_EXCEPTION=ON -DOLP_SDK_BUILD_EXAMPLES=ON -DOLP_SDK_BUILD_DOC=ON -DBUILD_SHARED_LIBS=ON -DOLP_SDK_ENABLE_TESTING=ON ..
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DOLP_SDK_NO_EXCEPTION=ON -DOLP_SDK_BUILD_EXAMPLES=ON -DBUILD_SHARED_LIBS=ON -DOLP_SDK_ENABLE_TESTING=ON ..
 make -j$(nproc)
