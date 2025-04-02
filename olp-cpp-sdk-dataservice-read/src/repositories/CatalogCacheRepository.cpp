@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,7 +108,7 @@ boost::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
 bool CatalogCacheRepository::Clear() {
   const std::string hrn(hrn_.ToCatalogHRNString());
   const auto key = cache::KeyGenerator::CreateCatalogKey(hrn);
-  OLP_SDK_LOG_INFO_F(kLogTag, "Clear -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Clear -> '%s'", key.c_str());
 
   return cache_->RemoveKeysWithPrefix(hrn);
 }
