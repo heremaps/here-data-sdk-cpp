@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -234,14 +234,14 @@ bool PartitionsCacheRepository::Get(geo::TileKey tile_key, int32_t depth,
 
 bool PartitionsCacheRepository::Clear() {
   auto key = catalog_ + "::" + layer_id_ + "::";
-  OLP_SDK_LOG_INFO_F(kLogTag, "Clear -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "Clear -> '%s'", key.c_str());
   return cache_->RemoveKeysWithPrefix(key);
 }
 
 bool PartitionsCacheRepository::ClearPartitions(
     const std::vector<std::string>& partition_ids,
     const boost::optional<int64_t>& version) {
-  OLP_SDK_LOG_INFO_F(kLogTag, "ClearPartitions -> '%s'", catalog_.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "ClearPartitions -> '%s'", catalog_.c_str());
   auto cached_partitions = Get(partition_ids, version);
   bool passed = true;
 
@@ -274,7 +274,7 @@ client::ApiNoResponse PartitionsCacheRepository::ClearPartitionMetadata(
     boost::optional<model::Partition>& out_partition) {
   const auto key = cache::KeyGenerator::CreatePartitionKey(
       catalog_, layer_id_, partition_id, catalog_version);
-  OLP_SDK_LOG_INFO_F(kLogTag, "ClearPartitionMetadata -> '%s'", key.c_str());
+  OLP_SDK_LOG_TRACE_F(kLogTag, "ClearPartitionMetadata -> '%s'", key.c_str());
 
   auto read_response = cache_->Read(key);
   if (!read_response) {
