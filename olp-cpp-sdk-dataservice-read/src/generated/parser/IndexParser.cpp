@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,10 @@
 
 namespace olp {
 namespace parser {
-using namespace olp::dataservice::read;
 
-void from_json(const rapidjson::Value& value,
+namespace model = olp::dataservice::read::model;
+
+void from_json(const boost::json::value& value,
                std::shared_ptr<model::SubQuad>& x) {
   auto quad = std::make_shared<model::SubQuad>();
 
@@ -47,7 +48,7 @@ void from_json(const rapidjson::Value& value,
   x.swap(quad);
 }
 
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                std::shared_ptr<model::ParentQuad>& x) {
   auto quad = std::make_shared<model::ParentQuad>();
 
@@ -69,7 +70,7 @@ void from_json(const rapidjson::Value& value,
   x.swap(quad);
 }
 
-void from_json(const rapidjson::Value& value, model::Index& x) {
+void from_json(const boost::json::value& value, model::Index& x) {
   x.SetParentQuads(parse<std::vector<std::shared_ptr<model::ParentQuad>>>(
       value, "parentQuads"));
   x.SetSubQuads(

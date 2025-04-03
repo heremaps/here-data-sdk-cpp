@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,26 +19,25 @@
 
 #include "AuthenticationTestUtils.h"
 
-#include <thread>
 #include <future>
+#include <thread>
 
 #ifndef WIN32
 #include <unistd.h>
 #endif
 
-#include <rapidjson/document.h>
-#include <rapidjson/istreamwrapper.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/http/Network.h>
 #include <olp/core/logging/Log.h>
+
+#include <boost/json/parse.hpp>
+#include <boost/json/system_error.hpp>
 #include <testutils/CustomParameters.hpp>
 #include "TestConstants.h"
 
-using namespace ::olp::authentication;
-
 namespace {
+namespace auth = olp::authentication;
+
 constexpr auto kFacebookUrl = "https://graph.facebook.com/v2.12";
 constexpr auto kId = "id";
 
@@ -61,16 +60,16 @@ bool AuthenticationTestUtils::CreateFacebookTestUser(
   std::string url = std::string() + kFacebookUrl + "/" +
                     CustomParameters::getArgument("facebook_app_id") +
                     kTestUserPath;
-  url.append(kQuestionParam);
-  url.append(kAccessToken + kEqualsParam +
+  url.append(auth::kQuestionParam);
+  url.append(auth::kAccessToken + auth::kEqualsParam +
              CustomParameters::getArgument("facebook_access_token"));
-  url.append(kAndParam);
-  url.append("installed" + kEqualsParam + "true");
-  url.append(kAndParam);
-  url.append("name" + kEqualsParam + kTestUserName);
+  url.append(auth::kAndParam);
+  url.append("installed" + auth::kEqualsParam + "true");
+  url.append(auth::kAndParam);
+  url.append("name" + auth::kEqualsParam + auth::kTestUserName);
   if (!permissions.empty()) {
-    url.append(kAndParam);
-    url.append("permissions" + kEqualsParam + permissions);
+    url.append(auth::kAndParam);
+    url.append("permissions" + auth::kEqualsParam + permissions);
   }
   olp::http::NetworkRequest request(url);
   request.WithVerb(olp::http::NetworkRequest::HttpVerb::POST);
@@ -79,39 +78,39 @@ bool AuthenticationTestUtils::CreateFacebookTestUser(
   unsigned int retry = 0u;
   do {
     if (retry > 0u) {
-      OLP_SDK_LOG_WARNING(__func__, "Request retry attempted (" << retry
-                                                                << ")");
+      OLP_SDK_LOG_WARNING(__func__,
+                          "Request retry attempted (" << retry << ")");
       std::this_thread::sleep_for(
-          std::chrono::seconds(retry * kRetryDelayInSecs));
+          std::chrono::seconds(retry * auth::kRetryDelayInSecs));
     }
 
     auto payload = std::make_shared<std::stringstream>();
 
     std::promise<void> promise;
     auto future = promise.get_future();
-    network.Send(request, payload,
-                 [payload, &promise,
-                  &user](const olp::http::NetworkResponse &network_response) {
-                   user.token.status = network_response.GetStatus();
-                   if (user.token.status == olp::http::HttpStatusCode::OK) {
-                     auto document = std::make_shared<rapidjson::Document>();
-                     rapidjson::IStreamWrapper stream(*payload);
-                     document->ParseStream(stream);
-                     const bool is_valid =
-                         !document->HasParseError() &&
-                         document->HasMember(kAccessToken.c_str()) &&
-                         document->HasMember(kId);
+    network.Send(
+        request, payload,
+        [payload, &promise,
+         &user](const olp::http::NetworkResponse &network_response) {
+          user.token.status = network_response.GetStatus();
+          if (user.token.status == olp::http::HttpStatusCode::OK) {
+            boost::json::error_code ec;
+            auto document = boost::json::parse(*payload, ec);
+            const bool is_valid =
+                !ec.failed() && document.is_object() &&
+                document.as_object().contains(auth::kAccessToken) &&
+                document.as_object().contains(kId);
 
-                     if (is_valid) {
-                       user.token.access_token =
-                           (*document)[kAccessToken.c_str()].GetString();
-                       user.id = (*document)[kId].GetString();
-                     }
-                   }
-                   promise.set_value();
-                 });
+            if (is_valid) {
+              user.token.access_token =
+                  document.as_object()[auth::kAccessToken].get_string().c_str();
+              user.id = document.as_object()[kId].get_string().c_str();
+            }
+          }
+          promise.set_value();
+        });
     future.wait();
-  } while ((user.token.status < 0) && (++retry < kMaxRetryCount));
+  } while ((user.token.status < 0) && (++retry < auth::kMaxRetryCount));
 
   return !user.id.empty() && !user.token.access_token.empty();
 }
@@ -121,8 +120,8 @@ bool AuthenticationTestUtils::DeleteFacebookTestUser(
     const olp::http::NetworkSettings &network_settings,
     const std::string &user_id) {
   std::string url = std::string() + kFacebookUrl + "/" + user_id;
-  url.append(kQuestionParam);
-  url.append(kAccessToken + kEqualsParam +
+  url.append(auth::kQuestionParam);
+  url.append(auth::kAccessToken + auth::kEqualsParam +
              CustomParameters::getArgument("facebook_access_token"));
   olp::http::NetworkRequest request(url);
   request.WithVerb(olp::http::NetworkRequest::HttpVerb::DEL);
@@ -132,10 +131,10 @@ bool AuthenticationTestUtils::DeleteFacebookTestUser(
   unsigned int retry = 0u;
   do {
     if (retry > 0u) {
-      OLP_SDK_LOG_WARNING(__func__, "Request retry attempted (" << retry
-                                                                << ")");
+      OLP_SDK_LOG_WARNING(__func__,
+                          "Request retry attempted (" << retry << ")");
       std::this_thread::sleep_for(
-          std::chrono::seconds(retry * kRetryDelayInSecs));
+          std::chrono::seconds(retry * auth::kRetryDelayInSecs));
     }
 
     auto payload = std::make_shared<std::stringstream>();
@@ -149,7 +148,7 @@ bool AuthenticationTestUtils::DeleteFacebookTestUser(
                    promise.set_value();
                  });
     future.wait();
-  } while ((status < 0) && (++retry < kMaxRetryCount));
+  } while ((status < 0) && (++retry < auth::kMaxRetryCount));
 
   return (status == olp::http::HttpStatusCode::OK);
 }
@@ -159,16 +158,16 @@ bool AuthenticationTestUtils::GetGoogleAccessToken(
     const olp::http::NetworkSettings &network_settings,
     AccessTokenResponse &token) {
   std::string url = std::string() + kGoogleApiUrl + kGoogleOauth2Endpoint;
-  url.append(kQuestionParam);
-  url.append(kGoogleClientIdParam + kEqualsParam +
+  url.append(auth::kQuestionParam);
+  url.append(kGoogleClientIdParam + auth::kEqualsParam +
              CustomParameters::getArgument("google_client_id"));
-  url.append(kAndParam);
-  url.append(kGoogleClientSecretParam + kEqualsParam +
+  url.append(auth::kAndParam);
+  url.append(kGoogleClientSecretParam + auth::kEqualsParam +
              CustomParameters::getArgument("google_client_secret"));
-  url.append(kAndParam);
-  url.append(kGoogleRefreshTokenParam + kEqualsParam +
+  url.append(auth::kAndParam);
+  url.append(kGoogleRefreshTokenParam + auth::kEqualsParam +
              CustomParameters::getArgument("google_client_token"));
-  url.append(kAndParam);
+  url.append(auth::kAndParam);
   url.append(kGoogleRefreshTokenGrantType);
 
   olp::http::NetworkRequest request(url);
@@ -186,15 +185,15 @@ AuthenticationTestUtils::GenerateArcGisClientBody() {
 
   std::string data;
   data.append(kClientId)
-      .append(kEqualsParam)
+      .append(auth::kEqualsParam)
       .append(CustomParameters::getArgument("arcgis_app_id"))
-      .append(kAndParam);
+      .append(auth::kAndParam);
   data.append(kGrantType)
-      .append(kEqualsParam)
+      .append(auth::kEqualsParam)
       .append(kRefreshToken)
-      .append(kAndParam);
+      .append(auth::kAndParam);
   data.append(kRefreshToken)
-      .append(kEqualsParam)
+      .append(auth::kEqualsParam)
       .append(CustomParameters::getArgument("arcgis_access_token"));
   return std::make_shared<std::vector<unsigned char>>(data.begin(), data.end());
 }
@@ -220,35 +219,35 @@ bool AuthenticationTestUtils::GetAccessTokenImpl(
   unsigned int retry = 0u;
   do {
     if (retry > 0u) {
-      OLP_SDK_LOG_WARNING(__func__, "Request retry attempted (" << retry
-                                                                << ")");
+      OLP_SDK_LOG_WARNING(__func__,
+                          "Request retry attempted (" << retry << ")");
       std::this_thread::sleep_for(
-          std::chrono::seconds(retry * kRetryDelayInSecs));
+          std::chrono::seconds(retry * auth::kRetryDelayInSecs));
     }
 
     auto payload = std::make_shared<std::stringstream>();
 
     std::promise<void> promise;
     auto future = promise.get_future();
-    network.Send(request, payload,
-                 [payload, &promise,
-                  &token](const olp::http::NetworkResponse &network_response) {
-                   token.status = network_response.GetStatus();
-                   if (token.status == olp::http::HttpStatusCode::OK) {
-                     auto document = std::make_shared<rapidjson::Document>();
-                     rapidjson::IStreamWrapper stream(*payload);
-                     document->ParseStream(stream);
-                     bool is_valid = !document->HasParseError() &&
-                                     document->HasMember(kAccessToken.c_str());
-                     if (is_valid) {
-                       token.access_token =
-                           (*document)[kAccessToken.c_str()].GetString();
-                     }
-                   }
-                   promise.set_value();
-                 });
+    network.Send(
+        request, payload,
+        [payload, &promise,
+         &token](const olp::http::NetworkResponse &network_response) {
+          token.status = network_response.GetStatus();
+          if (token.status == olp::http::HttpStatusCode::OK) {
+            boost::json::error_code ec;
+            auto document = boost::json::parse(*payload, ec);
+            bool is_valid = !ec.failed() && document.is_object() &&
+                            document.as_object().contains(auth::kAccessToken);
+            if (is_valid) {
+              token.access_token =
+                  document.as_object()[auth::kAccessToken].get_string().c_str();
+            }
+          }
+          promise.set_value();
+        });
     future.wait();
-  } while ((token.status < 0) && (++retry < kMaxRetryCount));
+  } while ((token.status < 0) && (++retry < auth::kMaxRetryCount));
 
   return !token.access_token.empty();
 }
@@ -263,7 +262,7 @@ void AuthenticationTestUtils::DeleteHereUser(
   constexpr auto kApplicationJson = "application/json";
   constexpr auto kDeleteUserEndpoint = "/user/me";
 
-  std::string url = kHereAccountStagingURL;
+  std::string url = auth::kHereAccountStagingURL;
   url.append(kDeleteUserEndpoint);
 
   olp::http::NetworkRequest request(url);

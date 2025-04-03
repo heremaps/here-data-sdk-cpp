@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-#include <rapidjson/document.h>
+#include <boost/json/value.hpp>
 
 #include "PartitionsSerializer.h"
 
@@ -26,23 +26,21 @@
 namespace olp {
 namespace serializer {
 void to_json(const dataservice::read::model::Partition& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("checksum", x.GetChecksum(), value, allocator);
-  serialize("compressedDataSize", x.GetCompressedDataSize(), value, allocator);
-  serialize("dataHandle", x.GetDataHandle(), value, allocator);
-  serialize("dataSize", x.GetDataSize(), value, allocator);
-  serialize("crc", x.GetCrc(), value, allocator);
-  serialize("partition", x.GetPartition(), value, allocator);
-  serialize("version", x.GetVersion(), value, allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("checksum", x.GetChecksum(), object);
+  serialize("compressedDataSize", x.GetCompressedDataSize(), object);
+  serialize("dataHandle", x.GetDataHandle(), object);
+  serialize("dataSize", x.GetDataSize(), object);
+  serialize("crc", x.GetCrc(), object);
+  serialize("partition", x.GetPartition(), object);
+  serialize("version", x.GetVersion(), object);
 }
 
 void to_json(const dataservice::read::model::Partitions& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("partitions", x.GetPartitions(), value, allocator);
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("partitions", x.GetPartitions(), object);
 }
 }  // namespace serializer
 }  // namespace olp

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 HERE Europe B.V.
+ * Copyright (C) 2022-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,33 +21,32 @@
 
 #include <olp/core/generated/serializer/SerializerWrapper.h>
 #include <olp/dataservice/read/model/CatalogVersion.h>
-#include <rapidjson/document.h>
+#include <boost/json/value.hpp>
 
 namespace olp {
 namespace serializer {
 
 inline void to_json(const dataservice::read::model::CatalogVersion& x,
-                    rapidjson::Value& value,
-                    rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
-  serialize("hrn", x.GetHrn(), value, allocator);
-  serialize("version", x.GetVersion(), value, allocator);
+                    boost::json::value& value) {
+  auto& object = value.emplace_object();
+  serialize("hrn", x.GetHrn(), object);
+  serialize("version", x.GetVersion(), object);
 }
 
 template <>
 inline void to_json<dataservice::read::model::CatalogVersion>(
     const std::vector<dataservice::read::model::CatalogVersion>& x,
-    rapidjson::Value& value, rapidjson::Document::AllocatorType& allocator) {
-  value.SetObject();
+    boost::json::value& value) {
+  auto& object = value.emplace_object();
 
-  rapidjson::Value array_value;
-  array_value.SetArray();
-  for (auto itr = x.begin(); itr != x.end(); ++itr) {
-    rapidjson::Value item_value;
-    to_json(*itr, item_value, allocator);
-    array_value.PushBack(std::move(item_value), allocator);
+  boost::json::array array_value;
+  for (const auto& version : x) {
+    boost::json::value item_value;
+    to_json(version, item_value);
+    array_value.emplace_back(std::move(item_value));
   }
-  value.AddMember("dependencies", std::move(array_value), allocator);
+
+  object.emplace("dependencies", std::move(array_value));
 }
 
 }  // namespace serializer

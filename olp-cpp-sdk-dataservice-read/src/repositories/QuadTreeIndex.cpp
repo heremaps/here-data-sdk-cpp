@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2024 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,8 @@
 #include <iostream>
 
 #include <olp/core/logging/Log.h>
-#include <rapidjson/allocators.h>
-#include <rapidjson/document.h>
-#include <rapidjson/istreamwrapper.h>
+#include <boost/json/parse.hpp>
+#include <boost/json/value.hpp>
 #include "BlobDataReader.h"
 #include "BlobDataWriter.h"
 
@@ -47,33 +46,37 @@ constexpr auto kCrcKey = "crc";
 constexpr auto kLogTag = "QuadTreeIndex";
 
 olp::dataservice::read::QuadTreeIndex::IndexData ParseCommonIndexData(
-    rapidjson::Value& value) {
+    boost::json::object& obj) {
   olp::dataservice::read::QuadTreeIndex::IndexData data;
-  auto obj = value.GetObject();
-  if (obj.HasMember(kAdditionalMetadataKey) &&
-      obj[kAdditionalMetadataKey].IsString()) {
-    data.additional_metadata = obj[kAdditionalMetadataKey].GetString();
+  if (obj.contains(kAdditionalMetadataKey) &&
+      obj[kAdditionalMetadataKey].is_string()) {
+    data.additional_metadata = obj[kAdditionalMetadataKey].get_string().c_str();
   }
 
-  if (obj.HasMember(kChecksumKey) && obj[kChecksumKey].IsString()) {
-    data.checksum = obj[kChecksumKey].GetString();
+  if (obj.contains(kChecksumKey) && obj[kChecksumKey].is_string()) {
+    data.checksum = obj[kChecksumKey].get_string().c_str();
   }
 
-  if (obj.HasMember(kCrcKey) && obj[kCrcKey].IsString()) {
-    data.crc = obj[kCrcKey].GetString();
+  if (obj.contains(kCrcKey) && obj[kCrcKey].is_string()) {
+    data.crc = obj[kCrcKey].get_string().c_str();
   }
 
-  if (obj.HasMember(kDataSizeKey) && obj[kDataSizeKey].IsInt64()) {
-    data.data_size = obj[kDataSizeKey].GetInt64();
+  if (auto* data_size = obj.if_contains(kDataSizeKey)) {
+    if (data_size->is_uint64() || data_size->is_int64()) {
+      data.data_size = data_size->to_number<int64_t>();
+    }
   }
 
-  if (obj.HasMember(kCompressedDataSizeKey) &&
-      obj[kCompressedDataSizeKey].IsInt64()) {
-    data.compressed_data_size = obj[kCompressedDataSizeKey].GetInt64();
+  if (auto* data_size = obj.if_contains(kCompressedDataSizeKey)) {
+    if (data_size->is_uint64() || data_size->is_int64()) {
+      data.compressed_data_size = data_size->to_number<int64_t>();
+    }
   }
 
-  if (obj.HasMember(kVersionKey) && obj[kVersionKey].IsUint64()) {
-    data.version = obj[kVersionKey].GetUint64();
+  if (auto* version = obj.if_contains(kVersionKey)) {
+    if (version->is_uint64() || version->is_int64()) {
+      data.version = version->to_number<uint64_t>();
+    }
   }
   return data;
 }
@@ -102,60 +105,62 @@ QuadTreeIndex::QuadTreeIndex(const cache::KeyValueCache::ValueTypePtr& data) {
 
 QuadTreeIndex::QuadTreeIndex(const olp::geo::TileKey& root, int depth,
                              std::stringstream& json_stream) {
-  static thread_local rapidjson::CrtAllocator crt_allocator;
-  static thread_local rapidjson::MemoryPoolAllocator<> pool_allocator;
-  rapidjson::Document doc(&pool_allocator, 4096, &crt_allocator);
+  boost::json::error_code ec;
+  auto parsed_value = boost::json::parse(json_stream, ec);
 
-  rapidjson::IStreamWrapper stream(json_stream);
-  doc.ParseStream(stream);
+  if (!parsed_value.is_object()) {
+    return;
+  }
 
-  if (!doc.IsObject()) {
+  auto& top_object = parsed_value.as_object();
+
+  auto parent_quads_value = top_object.find(kParentQuadsKey);
+  auto sub_quads_value = top_object.find(kSubQuadsKey);
+
+  if (parent_quads_value == top_object.end() &&
+      sub_quads_value == top_object.end()) {
     return;
   }
 
   std::vector<IndexData> subs;
   std::vector<IndexData> parents;
 
-  auto parent_quads_value = doc.FindMember(kParentQuadsKey);
-  auto sub_quads_value = doc.FindMember(kSubQuadsKey);
+  if (parent_quads_value != top_object.end() &&
+      parent_quads_value->value().is_array()) {
+    auto& parent_quads = parent_quads_value->value().as_array();
+    parents.reserve(parent_quads.size());
+    for (auto& value : parent_quads) {
+      auto& obj = value.as_object();
 
-  if (parent_quads_value == doc.MemberEnd() &&
-      sub_quads_value == doc.MemberEnd()) {
-    return;
-  }
-
-  if (parent_quads_value != doc.MemberEnd() &&
-      parent_quads_value->value.IsArray()) {
-    parents.reserve(parent_quads_value->value.Size());
-    for (auto& value : parent_quads_value->value.GetArray()) {
-      auto obj = value.GetObject();
-
-      if (!obj.HasMember(kDataHandleKey) || !obj[kDataHandleKey].IsString() ||
-          !obj.HasMember(kPartitionKey) || !obj[kPartitionKey].IsString()) {
+      if (!obj.contains(kDataHandleKey) || !obj[kDataHandleKey].is_string() ||
+          !obj.contains(kPartitionKey) || !obj[kPartitionKey].is_string()) {
         continue;
       }
 
-      IndexData data = ParseCommonIndexData(value);
-      data.data_handle = obj[kDataHandleKey].GetString();
-      data.tile_key =
-          olp::geo::TileKey::FromHereTile(obj[kPartitionKey].GetString());
+      IndexData data = ParseCommonIndexData(obj);
+      data.data_handle = obj[kDataHandleKey].as_string().c_str();
+      data.tile_key = olp::geo::TileKey::FromHereTile(
+          obj[kPartitionKey].as_string().c_str());
       parents.push_back(std::move(data));
     }
   }
 
-  if (sub_quads_value != doc.MemberEnd() && sub_quads_value->value.IsArray()) {
-    subs.reserve(sub_quads_value->value.Size());
-    for (auto& value : sub_quads_value->value.GetArray()) {
-      auto obj = value.GetObject();
+  if (sub_quads_value != top_object.end() &&
+      sub_quads_value->value().is_array()) {
+    auto& sub_quads = sub_quads_value->value().as_array();
+    subs.reserve(sub_quads.size());
+    for (auto& value : sub_quads) {
+      auto obj = value.as_object();
 
-      if (!obj.HasMember(kDataHandleKey) || !obj[kDataHandleKey].IsString() ||
-          !obj.HasMember(kSubQuadKeyKey) || !obj[kSubQuadKeyKey].IsString()) {
+      if (!obj.contains(kDataHandleKey) || !obj[kDataHandleKey].is_string() ||
+          !obj.contains(kSubQuadKeyKey) || !obj[kSubQuadKeyKey].is_string()) {
         continue;
       }
 
-      IndexData data = ParseCommonIndexData(value);
-      data.data_handle = obj[kDataHandleKey].GetString();
-      data.tile_key = root.AddedSubHereTile(obj[kSubQuadKeyKey].GetString());
+      IndexData data = ParseCommonIndexData(obj);
+      data.data_handle = obj[kDataHandleKey].as_string().c_str();
+      data.tile_key =
+          root.AddedSubHereTile(obj[kSubQuadKeyKey].as_string().c_str());
       subs.push_back(std::move(data));
     }
   }

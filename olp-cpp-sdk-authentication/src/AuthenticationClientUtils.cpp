@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2024 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,9 @@
 #include <sstream>
 
 #include <olp/authentication/Crypto.h>
-#include <rapidjson/document.h>
-#include <rapidjson/istreamwrapper.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
+#include <boost/json/parse.hpp>
+#include <boost/json/serialize.hpp>
+#include <boost/json/value.hpp>
 #include "Constants.h"
 #include "ResponseFromJsonBuilder.h"
 #include "olp/core/http/NetworkResponse.h"
@@ -70,25 +69,25 @@ std::string Base64Encode(const Crypto::Sha256Digest& digest) {
   return ret;
 }
 
-Response<rapidjson::Document> Parse(client::HttpResponse& http_response) {
-  rapidjson::IStreamWrapper stream(http_response.GetRawResponse());
-  rapidjson::Document document;
-  document.ParseStream(stream);
+Response<boost::json::object> Parse(client::HttpResponse& http_response) {
+  boost::json::error_code ec;
+  auto document = boost::json::parse(http_response.GetRawResponse(), ec);
   if (http_response.GetStatus() != http::HttpStatusCode::OK) {
     // HttpResult response can be error message or valid json with it.
     std::string msg = http_response.GetResponseAsString();
-    if (!document.HasParseError() && document.HasMember(Constants::MESSAGE)) {
-      msg = document[Constants::MESSAGE].GetString();
+    if (!ec.failed() && document.is_object() &&
+        document.as_object().contains(Constants::MESSAGE)) {
+      msg = document.as_object()[Constants::MESSAGE].get_string().c_str();
     }
     return client::ApiError({http_response.GetStatus(), msg});
   }
 
-  if (document.HasParseError()) {
+  if (ec.failed() || !document.is_object()) {
     return client::ApiError({static_cast<int>(http::ErrorCode::UNKNOWN_ERROR),
                              "Failed to parse response"});
   }
 
-  return Response<rapidjson::Document>(std::move(document));
+  return {std::move(document).as_object()};
 }
 }  // namespace
 
@@ -137,7 +136,7 @@ boost::optional<std::time_t> GetTimestampFromHeaders(
   return boost::none;
 }
 
-IntrospectAppResult GetIntrospectAppResult(const rapidjson::Document& doc) {
+IntrospectAppResult GetIntrospectAppResult(const boost::json::object& doc) {
   return ResponseFromJsonBuilder<IntrospectAppResult>::Build(doc)
       .Value(Constants::CLIENT_ID, &IntrospectAppResult::SetClientId)
       .Value(Constants::NAME, &IntrospectAppResult::SetName)
@@ -168,22 +167,25 @@ DecisionType GetDecision(const std::string& str) {
                                      : DecisionType::kDeny;
 }
 
-std::vector<ActionResult> GetDiagnostics(rapidjson::Document& doc) {
+std::vector<ActionResult> GetDiagnostics(boost::json::object& doc) {
   std::vector<ActionResult> results;
-  const auto& array = doc[Constants::DIAGNOSTICS].GetArray();
-  for (auto& element : array) {
+  auto& array = doc[Constants::DIAGNOSTICS].get_array();
+  for (auto& element_value : array) {
+    auto& element = element_value.get_object();
     ActionResult action;
-    if (element.HasMember(Constants::DECISION)) {
-      action.SetDecision(GetDecision(element[Constants::DECISION].GetString()));
+    if (element.contains(Constants::DECISION)) {
+      action.SetDecision(
+          GetDecision(element[Constants::DECISION].get_string().c_str()));
       // get permissions if avialible
-      if (element.HasMember(Constants::PERMISSIONS) &&
-          element[Constants::PERMISSIONS].IsArray()) {
+      if (element.contains(Constants::PERMISSIONS) &&
+          element[Constants::PERMISSIONS].is_array()) {
         std::vector<Permission> permissions;
         const auto& permissions_array =
-            element[Constants::PERMISSIONS].GetArray();
+            element[Constants::PERMISSIONS].get_array();
         for (auto& permission_element : permissions_array) {
           Permission permission =
-              ResponseFromJsonBuilder<Permission>::Build(permission_element)
+              ResponseFromJsonBuilder<Permission>::Build(
+                  permission_element.get_object())
                   .Value(Constants::ACTION, &Permission::SetAction)
                   .Value(Constants::DECISION, &Permission::SetDecision,
                          &GetDecision)
@@ -200,26 +202,27 @@ std::vector<ActionResult> GetDiagnostics(rapidjson::Document& doc) {
   return results;
 }
 
-AuthorizeResult GetAuthorizeResult(rapidjson::Document& doc) {
+AuthorizeResult GetAuthorizeResult(boost::json::object& doc) {
   AuthorizeResult result;
 
-  if (doc.HasMember(Constants::IDENTITY)) {
-    auto uris = doc[Constants::IDENTITY].GetObject();
+  if (doc.contains(Constants::IDENTITY)) {
+    auto uris = doc[Constants::IDENTITY].get_object();
 
-    if (uris.HasMember(Constants::CLIENT_ID)) {
-      result.SetClientId(uris[Constants::CLIENT_ID].GetString());
-    } else if (uris.HasMember(Constants::USER_ID)) {
-      result.SetClientId(uris[Constants::USER_ID].GetString());
+    if (uris.contains(Constants::CLIENT_ID)) {
+      result.SetClientId(uris[Constants::CLIENT_ID].get_string().c_str());
+    } else if (uris.contains(Constants::USER_ID)) {
+      result.SetClientId(uris[Constants::USER_ID].get_string().c_str());
     }
   }
 
-  if (doc.HasMember(Constants::DECISION)) {
-    result.SetDecision(GetDecision(doc[Constants::DECISION].GetString()));
+  if (doc.contains(Constants::DECISION)) {
+    result.SetDecision(
+        GetDecision(doc[Constants::DECISION].get_string().c_str()));
   }
 
   // get diagnostics if available
-  if (doc.HasMember(Constants::DIAGNOSTICS) &&
-      doc[Constants::DIAGNOSTICS].IsArray()) {
+  if (doc.contains(Constants::DIAGNOSTICS) &&
+      doc[Constants::DIAGNOSTICS].is_array()) {
     result.SetActionResults(GetDiagnostics(doc));
   }
   return result;

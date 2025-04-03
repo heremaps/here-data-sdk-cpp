@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 HERE Europe B.V.
+ * Copyright (C) 2022-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,18 +21,17 @@
 
 #include <string>
 
-#include <rapidjson/document.h>
+#include <boost/json/value.hpp>
 #include "olp/dataservice/read/model/VersionsResponse.h"
-
 
 namespace olp {
 namespace parser {
 
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::read::model::CatalogVersion& x);
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::read::model::VersionsResponseEntry& x);
-void from_json(const rapidjson::Value& value,
+void from_json(const boost::json::value& value,
                olp::dataservice::read::model::VersionsResponse& x);
 
 }  // namespace parser

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@
 
 namespace olp {
 namespace parser {
-using namespace olp::dataservice::write;
+namespace model = olp::dataservice::write::model;
 
-void from_json(const rapidjson::Value& value, model::Partition& x) {
+void from_json(const boost::json::value& value, model::Partition& x) {
   x.SetChecksum(parse<boost::optional<std::string>>(value, "checksum"));
   x.SetCompressedDataSize(
       parse<boost::optional<int64_t>>(value, "compressedDataSize"));
@@ -35,7 +35,7 @@ void from_json(const rapidjson::Value& value, model::Partition& x) {
   x.SetVersion(parse<boost::optional<int64_t>>(value, "version"));
 }
 
-void from_json(const rapidjson::Value& value, model::Partitions& x) {
+void from_json(const boost::json::value& value, model::Partitions& x) {
   x.SetPartitions(parse<std::vector<model::Partition>>(value, "partitions"));
 }
 

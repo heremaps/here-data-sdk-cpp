@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@
 #pragma once
 
 #include <olp/core/client/model/Api.h>
-#include <rapidjson/document.h>
+#include <boost/json/value.hpp>
 
 namespace olp {
 namespace parser {
-void from_json(const rapidjson::Value& value, olp::client::Api& x);
+void from_json(const boost::json::value& value, olp::client::Api& x);
 
 }  // namespace parser
 }  // namespace olp

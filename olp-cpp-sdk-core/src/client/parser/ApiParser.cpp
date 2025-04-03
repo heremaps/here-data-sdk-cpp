@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 
 namespace olp {
 namespace parser {
-void from_json(const rapidjson::Value& value, olp::client::Api& x) {
+void from_json(const boost::json::value& value, olp::client::Api& x) {
   x.SetApi(parse<std::string>(value, "api"));
   x.SetVersion(parse<std::string>(value, "version"));
   x.SetBaseUrl(parse<std::string>(value, "baseURL"));

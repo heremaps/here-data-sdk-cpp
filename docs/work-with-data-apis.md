@@ -59,7 +59,7 @@ The example below demonstrates how to use the `olp::client::OlpClient` class fro
     }
     ```
 
-5. If the check passed and the status of the received `olp::client::HttpResponse` is `olp::http::HttpStatusCode::OK` (that is 200 OK), extract the encoded JSON from the response and parse it using RapidJSON or any other JSON parsing library.
+5. If the check passed and the status of the received `olp::client::HttpResponse` is `olp::http::HttpStatusCode::OK` (that is 200 OK), extract the encoded JSON from the response and parse it using JSON parsing library.
 
     ```cpp
     std::string response_json;
