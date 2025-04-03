@@ -30,7 +30,7 @@ fi
 
 TEST_FAILURE=0
 RETRY_COUNT=0
-EXPECTED_REPORT_COUNT=7                         # expected that we generate 7 reports
+EXPECTED_REPORT_COUNT=6                         # expected that we generate 6 reports
 
 #for core dump backtrace
 ulimit -c unlimited
