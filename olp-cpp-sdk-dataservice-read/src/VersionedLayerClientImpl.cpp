@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -743,7 +743,7 @@ client::ApiNoResponse VersionedLayerClientImpl::DeleteFromCache(
     return result;
   }
 
-  auto index_data = cached_tree.GetIndexData();
+  auto index_data = cached_tree.GetIndexData(QuadTreeIndex::DataHandle);
   for (const auto& ind : index_data) {
     if (ind.tile_key != tile &&
         data_cache_repository.IsCached(layer_id_, ind.data_handle)) {

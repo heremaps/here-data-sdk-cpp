@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,17 @@ class BlobDataReader {
     return true;
   }
 
-  size_t GetOffset() { return read_offset_; }
-  void SetOffset(size_t offset) { read_offset_ = offset; }
+  template <class T>
+  bool Skip() {
+    if (read_offset_ + sizeof(T) > data_.size()) {
+      return false;
+    }
+    read_offset_ += sizeof(T);
+    return true;
+  }
+
+  size_t GetOffset() const { return read_offset_; }
+  void SetOffset(const size_t offset) { read_offset_ = offset; }
 
  private:
   size_t read_offset_ = 0;
@@ -50,7 +59,7 @@ class BlobDataReader {
 };
 
 template <>
-bool BlobDataReader::Read<std::string>(std::string& value) {
+inline bool BlobDataReader::Read<std::string>(std::string& value) {
   size_t end = std::numeric_limits<size_t>::max();
   for (size_t i = read_offset_; i < data_.size(); ++i) {
     if (data_[i] == 0) {
@@ -65,6 +74,23 @@ bool BlobDataReader::Read<std::string>(std::string& value) {
   value = data_[read_offset_] == 0
               ? std::string()
               : std::string(&data_[read_offset_], &data_[end]);
+  read_offset_ = end + 1;
+  return true;
+}
+
+template <>
+inline bool BlobDataReader::Skip<std::string>() {
+  size_t end = std::numeric_limits<size_t>::max();
+  for (size_t i = read_offset_; i < data_.size(); ++i) {
+    if (data_[i] == 0) {
+      end = i;
+      break;
+    }
+  }
+  if (end == std::numeric_limits<size_t>::max()) {
+    return false;
+  }
+
   read_offset_ = end + 1;
   return true;
 }
