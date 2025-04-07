@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ class BlobDataWriter {
 };
 
 template <>
-bool BlobDataWriter::Write<std::string>(const std::string& value) {
+inline bool BlobDataWriter::Write<std::string>(const std::string& value) {
   if (write_offset_ + value.size() + 1 > data_.size()) {
     return false;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ constexpr std::int32_t kMaxQuadTreeIndexDepth = 4;
 
 SubQuadsResult FlattenTree(const QuadTreeIndex& tree) {
   SubQuadsResult result;
-  auto index_data = tree.GetIndexData();
+  auto index_data = tree.GetIndexData(QuadTreeIndex::DataHandle);
   for (auto& data : index_data) {
     const auto it = result.lower_bound(data.tile_key);
     if (it == result.end() || result.key_comp()(data.tile_key, it->first)) {
@@ -455,11 +455,12 @@ PrefetchTilesRepository::DownloadVersionedQuadTree(
       default_additional_fields, billing_tag_, context);
 
   if (quad_tree.GetStatus() != olp::http::HttpStatusCode::OK) {
-    OLP_SDK_LOG_WARNING_F(kLogTag,
-                          "GetSubQuads failed(%s, %" PRId64 ", %" PRId32
-                          "), status_code='%d'",
-                          tile_key.c_str(), version, depth, quad_tree.GetStatus());
-    return {client::ApiError(quad_tree.GetStatus(), quad_tree.GetResponseAsString()),
+    OLP_SDK_LOG_WARNING_F(
+        kLogTag,
+        "GetSubQuads failed(%s, %" PRId64 ", %" PRId32 "), status_code='%d'",
+        tile_key.c_str(), version, depth, quad_tree.GetStatus());
+    return {client::ApiError(quad_tree.GetStatus(),
+                             quad_tree.GetResponseAsString()),
             quad_tree.GetNetworkStatistics()};
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2024 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,7 +111,7 @@ ReleaseDependencyResolver::CheckProtectedTilesInQuad(
   // check if quad tree has other protected keys, if not, add quad key to
   // release from protected list, othervise add all protected keys left
   // for this quad to map
-  auto index_data = cached_tree.GetIndexData();
+  auto index_data = cached_tree.GetIndexData(QuadTreeIndex::DataHandle);
   TilesDataKeysType protected_keys;
   for (const auto& ind : index_data) {
     const auto tile_data_key = cache::KeyGenerator::CreateDataHandleKey(

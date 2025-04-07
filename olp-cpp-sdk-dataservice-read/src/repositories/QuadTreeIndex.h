@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2024 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ class BlobDataWriter;
 class QuadTreeIndex {
  public:
   struct IndexData {
-    olp::geo::TileKey tile_key;
+    geo::TileKey tile_key;
     std::string data_handle;
     std::string additional_metadata;
     std::string crc;
@@ -51,9 +51,17 @@ class QuadTreeIndex {
     }
   };
 
+  enum Field {
+    DataHandle = 1 << 1,
+    AdditionalMetadata = 1 << 2,
+    Crc = 1 << 3,
+    Checksum = 1 << 4,
+    All = DataHandle | AdditionalMetadata | Crc | Checksum
+  };
+
   QuadTreeIndex() = default;
   explicit QuadTreeIndex(const cache::KeyValueCache::ValueTypePtr& data);
-  QuadTreeIndex(const olp::geo::TileKey& root, int depth,
+  QuadTreeIndex(const geo::TileKey& root, int depth,
                 std::stringstream& json_stream);
 
   QuadTreeIndex(const QuadTreeIndex& other) = delete;
@@ -62,20 +70,21 @@ class QuadTreeIndex {
   QuadTreeIndex& operator=(const QuadTreeIndex& other) = delete;
   ~QuadTreeIndex() = default;
 
-  inline bool IsNull() const { return data_ == nullptr; }
+  bool IsNull() const { return data_ == nullptr; }
 
-  boost::optional<IndexData> Find(const olp::geo::TileKey& tile_key,
-                                  bool aggregated) const;
+  boost::optional<IndexData> Find(const geo::TileKey& tile_key,
+                                  bool aggregated_search) const;
 
-  inline cache::KeyValueCache::ValueTypePtr GetRawData() const {
-    return raw_data_;
-  }
+  cache::KeyValueCache::ValueTypePtr GetRawData() const { return raw_data_; }
 
-  std::vector<QuadTreeIndex::IndexData> GetIndexData() const;
+  // Get the entire index data, including all parents and sub quads. With a
+  // `fields` parameter, the caller can specify which fields should be included
+  // in the result.
+  std::vector<IndexData> GetIndexData(int fields = All) const;
 
-  olp::geo::TileKey GetRootTile() const {
-    return data_ ? olp::geo::TileKey::FromQuadKey64(data_->root_tilekey)
-                 : olp::geo::TileKey();
+  geo::TileKey GetRootTile() const {
+    return data_ ? geo::TileKey::FromQuadKey64(data_->root_tilekey)
+                 : geo::TileKey();
   }
 
  private:
@@ -106,8 +115,7 @@ class QuadTreeIndex {
   void CreateBlob(geo::TileKey root, int depth, std::vector<IndexData> parents,
                   std::vector<IndexData> subs);
 
-  boost::optional<QuadTreeIndex::IndexData> FindNearestParent(
-      geo::TileKey tile_key) const;
+  boost::optional<IndexData> FindNearestParent(geo::TileKey tile_key) const;
 
   const SubEntry* SubEntryBegin() const { return data_->entries; }
   const SubEntry* SubEntryEnd() const {
@@ -128,7 +136,8 @@ class QuadTreeIndex {
     return reinterpret_cast<const uint8_t*>(data_) + size_;
   }
 
-  bool ReadIndexData(IndexData& data, uint32_t offset, uint32_t limit) const;
+  bool ReadIndexData(IndexData& data, uint32_t offset, uint32_t limit,
+                     int fields) const;
 
   DataHeader* data_ = nullptr;
   cache::KeyValueCache::ValueTypePtr raw_data_ = nullptr;
