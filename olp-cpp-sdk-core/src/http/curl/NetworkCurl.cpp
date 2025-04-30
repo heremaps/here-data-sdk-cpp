@@ -718,6 +718,9 @@ ErrorCode NetworkCurl::SendImplementation(
     curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 0L);
   }
 
+  // Request HTTP/2 when supported by the server (via ALPN negotiation)
+  curl_easy_setopt(curl_handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+
   curl_easy_setopt(curl_handle, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
 
   const std::string& url = request.GetUrl();
