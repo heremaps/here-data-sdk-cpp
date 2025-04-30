@@ -12,14 +12,13 @@ env:
   SEGFAULT_SIGNALS: all
 
 jobs:
-  psv-linux-20-04-gcc7-build-cpplint:
-    name: PSV.Linux.20.04.gcc7.Cpplint
-    runs-on: ubuntu-20.04
+  psv-linux-22-04-gcc9-build-cpplint:
+    name: PSV.Linux.22.04.gcc9.Cpplint
+    runs-on: ubuntu-22.04
     env:
-      LD_PRELOAD: /lib/x86_64-linux-gnu/libSegFault.so
       BUILD_TYPE: RelWithDebInfo
-      CC: gcc-7
-      CXX: g++-7
+      CC: gcc-9
+      CXX: g++-9
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -27,7 +26,7 @@ jobs:
         run: ./scripts/misc/cpplint_ci.sh
         shell: bash
       - name: Install Ubuntu dependencies
-        run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-7 g++-7 --no-install-recommends
+        run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-9 g++-9 --no-install-recommends
         shell: bash
       - name: Compile project with cmake and ccache
         run: gcc --version && ./scripts/linux/psv/build_psv.sh
@@ -60,19 +59,18 @@ jobs:
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  psv-linux-20-04-gcc7-build-no-cache:
-    name: PSV.Linux.20.04.gcc7.OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
-    runs-on: ubuntu-20.04
+  psv-linux-22-04-gcc9-build-no-cache:
+    name: PSV.Linux.22.04.gcc9.OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
+    runs-on: ubuntu-22.04
     env:
-      LD_PRELOAD: /lib/x86_64-linux-gnu/libSegFault.so
       BUILD_TYPE: RelWithDebInfo
-      CC: gcc-7
-      CXX: g++-7
+      CC: gcc-9
+      CXX: g++-9
     steps:
     - name: Check out repository
       uses: actions/checkout@v4
     - name: Install Ubuntu dependencies
-      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-7 g++-7 --no-install-recommends
+      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-9 g++-9 --no-install-recommends
       shell: bash
     - name: Compile project without cache
       run: ./scripts/linux/psv/build_psv_no_cache.sh
@@ -142,29 +140,28 @@ jobs:
       run: ./scripts/linux/psv/build_psv_no_cache.sh
       shell: bash
 
-  psv-linux-20-04-clang-build:
-    name: PSV.Linux.20.04.clang
-    runs-on: ubuntu-20.04
+  psv-linux-22-04-clang-build:
+    name: PSV.Linux.22.04.clang
+    runs-on: ubuntu-22.04
     env:
-      LD_PRELOAD: /lib/x86_64-linux-gnu/libSegFault.so
       BUILD_TYPE: RelWithDebInfo
-      CC: clang-7
-      CXX: clang++-7
+      CC: clang-11
+      CXX: clang++-11
+      CXXFLAGS: -Wno-deprecated-copy
     steps:
     - name: Check out repository
       uses: actions/checkout@v4
     - name: Install Ubuntu dependencies
-      run: sudo apt-get update -y && sudo apt-get install clang-7 ccache libcurl4-openssl-dev -y --no-install-recommends --fix-missing
+      run: sudo apt-get update -y && sudo apt-get install clang-11 ccache libcurl4-openssl-dev -y --no-install-recommends --fix-missing
       shell: bash
     - name: Compile project on Clang
       run: scripts/linux/psv/build_psv.sh
       shell: bash
 
-  psv-android-20-04-build:
-    name: PSV.Linux.Android.20.04
-    runs-on: ubuntu-20.04
+  psv-android-22-04-build:
+    name: PSV.Linux.Android.22.04
+    runs-on: ubuntu-22.04
     env:
-      LD_PRELOAD: /lib/x86_64-linux-gnu/libSegFault.so
       BUILD_TYPE: RelWithDebInfo
     steps:
     - name: Check out repository
@@ -263,7 +260,7 @@ jobs:
 
   psv-commit-checker:
     name: PSV.Commit.Checker
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: github.ref_name != 'master'
     steps:
     - uses: actions/checkout@v4
