@@ -261,6 +261,10 @@ NetworkWinHttp::NetworkWinHttp(size_t max_request_count)
     return;
   }
 
+  DWORD enableHTTP2Flag = WINHTTP_PROTOCOL_FLAG_HTTP2;
+  WinHttpSetOption(http_session_, WINHTTP_OPTION_ENABLE_HTTP_PROTOCOL,
+                   &enableHTTP2Flag, sizeof(enableHTTP2Flag));
+
   WinHttpSetStatusCallback(
       http_session_, (WINHTTP_STATUS_CALLBACK)&NetworkWinHttp::RequestCallback,
       WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS | WINHTTP_CALLBACK_FLAG_HANDLES, 0);
