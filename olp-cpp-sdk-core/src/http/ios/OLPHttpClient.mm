@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@
 #import <CommonCrypto/CommonDigest.h>
 #import <Security/Security.h>
 
+#include <sstream>
+
 #include "context/ContextInternal.h"
 #include "olp/core/context/EnterBackgroundSubscriber.h"
 #include "olp/core/http/Network.h"
@@ -34,7 +36,7 @@ constexpr auto kLogTag = "OLPHttpClient";
 constexpr auto kMaximumConnectionPerHost = 32;
 
 using SessionId = std::uint64_t;
-static SessionId sessionIdCounter_ = std::numeric_limits<SessionId>::min() + 1;
+static SessionId sessionIdCounter_ = std::time(nullptr);
 
 class EnterBackgroundSubscriberImpl
     : public olp::context::EnterBackgroundSubscriber {
@@ -277,6 +279,36 @@ class EnterBackgroundSubscriberImpl
 
     [_tasks removeObjectForKey:@(identifier)];
     [self.urlSessions removeObjectForKey:requestId];
+  }
+}
+
+- (std::string)getInfoForTaskWithId:(olp::http::RequestId)identifier {
+  @synchronized(_tasks) {
+    OLPHttpTask* task = _tasks[@(identifier)];
+    std::stringstream out;
+
+    NSNumber* requestId = @(identifier);
+    NSURLSession* session = self.urlSessions[requestId];
+
+    if (!task.dataTask) {
+      out << "no http task in _tasks for request_id=" << identifier;
+      return out.str();
+    }
+
+    const auto get_session_config_id = [&]() {
+      if (session && session.configuration &&
+          session.configuration.identifier) {
+        return [session.configuration.identifier UTF8String];
+      }
+      return "<not set>";
+    };
+
+    out << "request_id=" << identifier << ", httpTask=" << (__bridge void*)task
+        << ", backgroundMode=" << task.backgroundMode
+        << ", dataTask=" << (__bridge void*)task.dataTask
+        << ", session=" << (__bridge void*)session
+        << ", session_config_id=" << get_session_config_id();
+    return out.str();
   }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -159,9 +159,8 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
       task = [http_client_ createTaskWithProxy:proxy_settings andId:request_id];
     }
     if (!task) {
-      OLP_SDK_LOG_WARNING_F(kLogTag,
-                            "Send failed - can't create task for url=%s",
-                            request.GetUrl().c_str());
+      OLP_SDK_LOG_ERROR_F(kLogTag, "Send failed - can't create task for url=%s",
+                          request.GetUrl().c_str());
       return SendOutcome(ErrorCode::UNKNOWN_ERROR);
     }
 
@@ -317,9 +316,20 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
         if (error && !cancelled) {
           error_str = status < 0
                           ? std::string(error.localizedDescription.UTF8String)
-                          : "Failure";
+                          : "Failure, error.code = " + std::to_string(status);
           status =
               static_cast<int>(ConvertNSURLErrorToNetworkErrorCode(error.code));
+
+          if (status == static_cast<int>(ErrorCode::UNKNOWN_ERROR)) {
+            std::string task_info =
+                [http_client_ getInfoForTaskWithId:strong_task.requestId];
+
+            OLP_SDK_LOG_ERROR_F(kLogTag,
+                                "Task returned unknown error; error_str=%s, "
+                                "task_info: %s, url=%s",
+                                error_str.c_str(), task_info.c_str(),
+                                request.GetUrl().c_str());
+          }
         } else {
           status = cancelled ? static_cast<int>(ErrorCode::CANCELLED_ERROR)
                              : response_data.status;

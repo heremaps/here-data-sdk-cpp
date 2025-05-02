@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@
 #pragma once
 
 #import <Foundation/Foundation.h>
+
+#include <string>
 
 #include "olp/core/http/NetworkTypes.h"
 
@@ -53,6 +55,9 @@ class NetworkProxySettings;
 
 /// Cancel the task with corresponding request id
 - (void)cancelTaskWithId:(olp::http::RequestId)identifier;
+
+/// Get information related to the task with corresponding request id
+- (std::string)getInfoForTaskWithId:(olp::http::RequestId)identifier;
 
 /// Finish all tasks in progress and invalidate all URL sessions
 - (void)cleanup;
