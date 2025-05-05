@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2024 HERE Europe B.V.
+# Copyright (C) 2019-2025 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -524,10 +524,12 @@ if(IOS)
     endif()
 
     find_library(OLP_SDK_CORE_FOUNDATION_FRAMEWORK CoreFoundation)
+    find_library(OLP_SDK_FOUNDATION_FRAMEWORK Foundation)
     find_library(OLP_SDK_SECURITY_FRAMEWORK Security)
     find_library(OLP_SDK_CFNETWORK_FRAMEWORK CFNetwork)
 
     target_link_libraries(${PROJECT_NAME} PRIVATE ${OLP_SDK_CORE_FOUNDATION_FRAMEWORK}
+                                                  ${OLP_SDK_FOUNDATION_FRAMEWORK}
                                                   ${OLP_SDK_SECURITY_FRAMEWORK}
                                                   ${OLP_SDK_CFNETWORK_FRAMEWORK})
 elseif(ANDROID AND NOT OLP_SDK_ENABLE_ANDROID_CURL AND NOT OLP_SDK_ENABLE_OFFLINE_MODE)
