@@ -1,3 +1,17 @@
+## v1.23.0 (13/05/2025)
+
+**olp-cpp-sdk-core**
+* Fixed the data race in the initialization and possible wrong request cancellation for cURL-based network.
+* Added the path tiling utilities that can be used to traverse and slice a `GetCoordinates` sequence into tiles.
+* Increased the parallel connection limit to 32 for iOS network.
+* Explicitly enabled support of HTTP/2 for Windows and cURL-based networks.
+* iOS `Foundation` library is now explicitly linked to `olp-cpp-sdk-core`.
+* Extended logging for iOS network.
+
+**olp-cpp-sdk-dataservice-read**
+* Decreased log level for some messages.
+* Decreased the amount of allocation in `QuadTreeIndex` to improve performance.
+
 ## v1.22.0 (18/02/2025)
 
 **Common**
