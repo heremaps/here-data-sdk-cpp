@@ -15,7 +15,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-project(olp-cpp-sdk-dataservice-write VERSION 1.22.0)
+project(olp-cpp-sdk-dataservice-write VERSION 1.23.0)
 set(DESCRIPTION "C++ API library for writing data to OLP")
 
 set(OLP_SDK_DATASERVICE_WRITE_API_HEADERS
