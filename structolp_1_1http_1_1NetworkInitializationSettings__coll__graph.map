@@ -1,4 +1,4 @@
 <map id="olp::http::NetworkInitializationSettings" name="olp::http::NetworkInitializationSettings">
-<area shape="rect" id="node1" title="Settings for network initialization." alt="" coords="5,95,200,136"/>
-<area shape="rect" id="node2" href="$structolp_1_1http_1_1CertificateSettings.html" title="Settings for custom network certificate." alt="" coords="10,5,195,32"/>
+<area shape="rect" id="node1" title="Settings for network initialization." alt="" coords="5,95,225,136"/>
+<area shape="rect" id="node2" href="$structolp_1_1http_1_1CertificateSettings.html" title="Settings for custom network certificate." alt="" coords="13,5,217,32"/>
 </map>

@@ -1,4 +1,4 @@
 <map id="olp::dataservice::write::model::EmptyIndexValue" name="olp::dataservice::write::model::EmptyIndexValue">
-<area shape="rect" id="node1" title="Represents the index layer with an empty index value." alt="" coords="5,95,181,136"/>
-<area shape="rect" id="node2" href="$classolp_1_1dataservice_1_1write_1_1model_1_1IndexValue.html" title="Represents values supported by the HERE platform index layer." alt="" coords="18,5,169,47"/>
+<area shape="rect" id="node1" title="Represents the index layer with an empty index value." alt="" coords="5,95,199,136"/>
+<area shape="rect" id="node2" href="$classolp_1_1dataservice_1_1write_1_1model_1_1IndexValue.html" title="Represents values supported by the HERE platform index layer." alt="" coords="19,5,185,47"/>
 </map>

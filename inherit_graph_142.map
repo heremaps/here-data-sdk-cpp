@@ -1,4 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" title=" " alt="" coords="5,13,93,39"/>
-<area shape="rect" id="node2" href="$classolp_1_1geo_1_1SubTiles_1_1Iterator.html" title="The tile key iterator." alt="" coords="141,5,268,47"/>
+<area shape="rect" id="node1" href="$classolp_1_1geo_1_1ITilingScheme.html" title="Represents how data is tiled." alt="" coords="5,20,180,47"/>
+<area shape="rect" id="node2" href="$classolp_1_1geo_1_1TilingScheme.html" title="Represents how data is tiled." alt="" coords="228,5,404,61"/>
 </map>

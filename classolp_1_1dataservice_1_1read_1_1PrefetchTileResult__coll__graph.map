@@ -1,6 +1,6 @@
 <map id="olp::dataservice::read::PrefetchTileResult" name="olp::dataservice::read::PrefetchTileResult">
-<area shape="rect" id="node1" title="Represents the result of a prefetch operation." alt="" coords="527,61,673,102"/>
-<area shape="rect" id="node2" href="$classolp_1_1client_1_1ApiResponse.html" title=" " alt="" coords="257,5,421,61"/>
-<area shape="rect" id="node3" href="$classolp_1_1client_1_1ResponseExtension_3_01void_01_4.html" title="The ApiResponse extension class specialization without any payload." alt="" coords="5,13,208,54"/>
-<area shape="rect" id="node4" href="$classolp_1_1geo_1_1TileKey.html" title="Addresses a tile in a quadtree." alt="" coords="279,85,399,112"/>
+<area shape="rect" id="node1" title="Represents the result of a prefetch operation." alt="" coords="565,61,728,102"/>
+<area shape="rect" id="node2" href="$classolp_1_1client_1_1ApiResponse.html" title=" " alt="" coords="276,5,455,61"/>
+<area shape="rect" id="node3" href="$classolp_1_1client_1_1ResponseExtension_3_01void_01_4.html" title="The ApiResponse extension class specialization without any payload." alt="" coords="5,13,227,54"/>
+<area shape="rect" id="node4" href="$classolp_1_1geo_1_1TileKey.html" title="Addresses a tile in a quadtree." alt="" coords="300,85,431,112"/>
 </map>
