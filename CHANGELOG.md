@@ -1,3 +1,8 @@
+## v1.23.1 (16/05/2025)
+
+**olp-cpp-sdk-core**
+* Remove enforcement of HTTP/2 for cURL-based network.
+
 ## v1.23.0 (13/05/2025)
 
 **olp-cpp-sdk-core**
