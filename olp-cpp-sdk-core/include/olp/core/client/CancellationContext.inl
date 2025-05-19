@@ -79,5 +79,10 @@ inline size_t CancellationContextHash::operator()(
       context.impl_);
 }
 
+inline bool CancellationContextEquality::operator()(
+    const CancellationContext& lhs, const CancellationContext& rhs) const {
+  return lhs.impl_ == rhs.impl_;
+}
+
 }  // namespace client
 }  // namespace olp

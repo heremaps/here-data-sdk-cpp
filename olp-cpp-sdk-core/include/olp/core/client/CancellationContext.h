@@ -83,6 +83,7 @@ class CORE_API CancellationContext {
  private:
   /// A helper for unordered containers.
   friend struct CancellationContextHash;
+  friend struct CancellationContextEquality;
 
   /**
    * @brief An implementation used to shared the `CancellationContext` instance.
@@ -124,6 +125,22 @@ struct CORE_API CancellationContextHash {
    * @return The hash for the `CancellationContext` instance.
    */
   size_t operator()(const CancellationContext& context) const;
+};
+
+/**
+ * @brief A helper for unordered containers for equality comparison
+ */
+struct CORE_API CancellationContextEquality {
+  /**
+   * @brief Checks equality for two `CancellationContext` instances.
+   *
+   * @param lhs The first `CancellationContext` instance.
+   * @param rhs The second `CancellationContext` instance.
+   *
+   * @return True if both refer to the same implementation; false otherwise.
+   */
+  bool operator()(const CancellationContext& lhs,
+                  const CancellationContext& rhs) const;
 };
 
 }  // namespace client
