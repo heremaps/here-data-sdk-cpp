@@ -20,14 +20,6 @@ To learn how to install and use the Data SDK, see the <a href="https://github.co
 
 [1]: https://github.com/heremaps/here-data-sdk-cpp/actions/workflows/psv_pipelines.yml/badge.svg
 
-### Full verification testing pipelines
-
-| iOS | Android |
-| :-- | :------ |
-| [![iOS test status][2]][2] | [![Android test status][2]][2] |
-
-[2]: https://github.com/heremaps/here-data-sdk-cpp/actions/workflows/fv_pipelines.yml/badge.svg 
-
 ### Test coverage
 
 | Platform | Status                                                                                                                                                                                              |
