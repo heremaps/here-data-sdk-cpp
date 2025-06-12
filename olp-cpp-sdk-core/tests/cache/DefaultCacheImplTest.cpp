@@ -1015,13 +1015,15 @@ TEST_F(DefaultCacheImplTest, InternalKeysBypassLru) {
 
     DefaultCacheImplHelper cache(settings);
     ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
-    // no keys was evicted
+
     auto stored_dats = cache.Get(internal_key);
     ASSERT_TRUE(stored_dats);
+
     std::string stored_string(
         reinterpret_cast<const char*>(stored_dats->data()),
         stored_dats->size());
     EXPECT_EQ(stored_string, data_string);
+
     cache.Clear();
   }
 }
