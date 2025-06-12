@@ -998,7 +998,6 @@ TEST_F(DefaultCacheImplTest, InternalKeysBypassLru) {
     const auto data_string{"this is key's data"};
     cache::CacheSettings settings;
     settings.disk_path_mutable = cache_path_;
-    settings.max_disk_storage = 2u * 1024u * 1024u;
     {
       settings.eviction_policy = cache::EvictionPolicy::kNone;
       DefaultCacheImplHelper cache(settings);
