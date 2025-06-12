@@ -881,7 +881,7 @@ OperationOutcomeEmpty DefaultCacheImpl::GetFromDiskCache(
 
     if (expiry > 0 || protected_keys_.IsProtected(key)) {
       // Entry didn't expire yet, we can still use it
-      if (!PromoteKeyLru(key)) {
+      if (!IsInternalKey(key) && !PromoteKeyLru(key)) {
         // If not found in LRU or not protected no need to look in disk cache
         // either.
         OLP_SDK_LOG_DEBUG_F(kLogTag,

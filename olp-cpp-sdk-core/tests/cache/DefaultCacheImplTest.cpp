@@ -990,6 +990,44 @@ TEST_F(DefaultCacheImplTest, LruCacheEvictionWithProtected) {
   }
 }
 
+TEST_F(DefaultCacheImplTest, InternalKeysBypassLru) {
+  {
+    SCOPED_TRACE("Protect and release keys, which suppose to be evicted");
+
+    const auto internal_key{"internal::protected::protected_data"};
+    const auto data_string{"this is key's data"};
+    cache::CacheSettings settings;
+    settings.disk_path_mutable = cache_path_;
+    {
+      settings.eviction_policy = cache::EvictionPolicy::kNone;
+      DefaultCacheImplHelper cache(settings);
+      ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+      cache.Clear();
+
+      constexpr auto expiry = 2;
+      EXPECT_TRUE(cache.Put(internal_key, data_string,
+                            [data_string]() { return data_string; }, expiry));
+    }
+
+    settings.disk_path_mutable = cache_path_;
+    settings.disk_path_protected.reset();
+    settings.eviction_policy = cache::EvictionPolicy::kLeastRecentlyUsed;
+
+    DefaultCacheImplHelper cache(settings);
+    ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
+
+    auto stored_dats = cache.Get(internal_key);
+    ASSERT_TRUE(stored_dats);
+
+    std::string stored_string(
+        reinterpret_cast<const char*>(stored_dats->data()),
+        stored_dats->size());
+    EXPECT_EQ(stored_string, data_string);
+
+    cache.Clear();
+  }
+}
+
 TEST_F(DefaultCacheImplTest, ReadOnlyPartitionForProtectedCache) {
   SCOPED_TRACE("Read only partition protected cache");
   const std::string key{"somekey"};
