@@ -995,29 +995,34 @@ TEST_F(DefaultCacheImplTest, InternalKeysBypassLru) {
     SCOPED_TRACE("Protect and release keys, which suppose to be evicted");
 
     const auto internal_key{"internal::protected::protected_data"};
+    const auto data_string{"this is key's data"};
     cache::CacheSettings settings;
     settings.disk_path_mutable = cache_path_;
     settings.max_disk_storage = 2u * 1024u * 1024u;
     {
+      settings.eviction_policy = cache::EvictionPolicy::kNone;
       DefaultCacheImplHelper cache(settings);
       ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
       cache.Clear();
-      const std::string key{"somekey"};
-      std::string data_string{"this is key's data"};
 
       constexpr auto expiry = 2;
-      EXPECT_TRUE(cache.Put(key, data_string,
+      EXPECT_TRUE(cache.Put(internal_key, data_string,
                             [data_string]() { return data_string; }, expiry));
-      ASSERT_TRUE(cache.Protect({key}));
     }
 
     settings.disk_path_mutable = cache_path_;
     settings.disk_path_protected.reset();
+    settings.eviction_policy = cache::EvictionPolicy::kLeastRecentlyUsed;
 
     DefaultCacheImplHelper cache(settings);
     ASSERT_EQ(olp::cache::DefaultCache::Success, cache.Open());
     // no keys was evicted
-    EXPECT_TRUE(cache.Get(internal_key));
+    auto stored_dats = cache.Get(internal_key);
+    ASSERT_TRUE(stored_dats);
+    std::string stored_string(
+        reinterpret_cast<const char*>(stored_dats->data()),
+        stored_dats->size());
+    EXPECT_EQ(stored_string, data_string);
     cache.Clear();
   }
 }
