@@ -25,6 +25,7 @@
 #include <sstream>
 
 #include "context/ContextInternal.h"
+#include "olp/core/context/Context.h"
 #include "olp/core/context/EnterBackgroundSubscriber.h"
 #include "olp/core/http/Network.h"
 #include "olp/core/logging/Log.h"
@@ -80,6 +81,7 @@ class EnterBackgroundSubscriberImpl
 @implementation OLPHttpClient {
   NSOperationQueue* _delegateQueue;
 
+  olp::context::Context::Scope _scope;
   std::shared_ptr<EnterBackgroundSubscriberImpl> _enterBackgroundSubscriber;
 }
 
