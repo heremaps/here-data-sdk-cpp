@@ -83,6 +83,13 @@ class AUTHENTICATION_API AuthenticationClient {
      * than the default expiration time supported by the access token endpoint.
      */
     std::chrono::seconds expires_in{0};
+
+    /**
+     * @brief (Optional) Custom body to be passed, if authentication service
+     * requires it. Fully overrides default body and resets the request content
+     * type.
+     */
+    boost::optional<std::string> custom_body{boost::none};
   };
 
   /**

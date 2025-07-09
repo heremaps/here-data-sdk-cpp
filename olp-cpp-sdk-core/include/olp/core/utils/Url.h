@@ -25,6 +25,7 @@
 #include <vector>
 
 #include <olp/core/CoreApi.h>
+#include <boost/optional.hpp>
 
 namespace olp {
 namespace utils {
@@ -65,6 +66,22 @@ class CORE_API Url {
   static std::string Construct(
       const std::string& base, const std::string& path,
       const std::multimap<std::string, std::string>& query_params);
+
+  /**
+   * @brief Represents the host part and rest of full URL.
+   */
+  using HostAndRest = std::pair<std::string, std::string>;
+
+  /**
+   * @brief Separates full URL to the host part the rest. Helps to split URL
+   * from credentials to parts passed to the OlpClient and NetworkRequest.
+   *
+   * @param url Full URL.
+   *
+   * @return An optional pair representing host part and the rest of URL.
+   * Returns boost::none when url cannot be split.
+   */
+  static boost::optional<HostAndRest> ParseHostAndRest(const std::string& url);
 };
 
 }  // namespace utils
