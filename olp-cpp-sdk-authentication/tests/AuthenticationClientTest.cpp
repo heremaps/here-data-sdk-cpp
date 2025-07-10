@@ -51,7 +51,8 @@ class AuthenticationClientImplTestable : public auth::AuthenticationClientImpl {
               (const client::OlpClient&, const std::string&,
                client::CancellationContext,
                const auth::AuthenticationCredentials&,
-               client::OlpClient::RequestBodyType, std::time_t),
+               client::OlpClient::RequestBodyType, std::time_t,
+               const std::string&),
               (override));
 };
 
@@ -168,7 +169,7 @@ TEST(AuthenticationClientTest, Timestamp) {
 
     std::time_t time = 0;
 
-    EXPECT_CALL(auth_impl, CallAuth(_, _, _, _, _, timestamp_predicate))
+    EXPECT_CALL(auth_impl, CallAuth(_, _, _, _, _, timestamp_predicate, _))
         .Times(3)
         .WillRepeatedly(testing::DoAll(testing::SaveArg<5>(&time),
                                        Wait(request_time),
@@ -186,7 +187,7 @@ TEST(AuthenticationClientTest, Timestamp) {
 
     std::time_t time = 0;
 
-    EXPECT_CALL(auth_impl, CallAuth(_, _, _, _, _, timestamp_predicate))
+    EXPECT_CALL(auth_impl, CallAuth(_, _, _, _, _, timestamp_predicate, _))
         .Times(3)
         .WillRepeatedly(testing::DoAll(testing::SaveArg<5>(&time),
                                        Wait(request_time),
@@ -204,7 +205,7 @@ TEST(AuthenticationClientTest, Timestamp) {
 
     std::time_t time = 0;
 
-    EXPECT_CALL(auth_impl, CallAuth(_, _, _, _, _, timestamp_predicate))
+    EXPECT_CALL(auth_impl, CallAuth(_, _, _, _, _, timestamp_predicate, _))
         .Times(3)
         .WillRepeatedly(testing::DoAll(testing::SaveArg<5>(&time),
                                        Wait(request_time),
@@ -222,7 +223,7 @@ TEST(AuthenticationClientTest, Timestamp) {
 
     std::time_t time = 0;
 
-    EXPECT_CALL(auth_impl, CallAuth(_, _, _, _, _, timestamp_predicate))
+    EXPECT_CALL(auth_impl, CallAuth(_, _, _, _, _, timestamp_predicate, _))
         .Times(3)
         .WillRepeatedly(testing::DoAll(testing::SaveArg<5>(&time),
                                        Wait(request_time),
