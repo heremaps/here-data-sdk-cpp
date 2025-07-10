@@ -45,6 +45,7 @@
 #include "olp/core/http/NetworkUtils.h"
 #include "olp/core/logging/Log.h"
 #include "olp/core/thread/TaskScheduler.h"
+#include "olp/core/utils/Url.h"
 
 namespace olp {
 namespace authentication {
@@ -53,7 +54,6 @@ namespace {
 using RequestBodyData = client::OlpClient::RequestBodyType::element_type;
 
 // Tags
-constexpr auto kApplicationJson = "application/json";
 const std::string kOauthEndpoint = "/oauth2/token";
 const std::string kSignoutEndpoint = "/logout";
 const std::string kTermsEndpoint = "/terms";
@@ -150,8 +150,16 @@ client::HttpResponse CallApi(const client::OlpClient& client,
   client::OlpClient::ParametersType headers{
       {http::kAuthorizationHeader, auth_header}};
 
-  return client.CallApi(endpoint, "POST", {}, std::move(headers), {},
-                        std::move(body), kApplicationJson, std::move(context));
+  return client.CallApi(
+      endpoint, "POST", {}, std::move(headers), {}, std::move(body),
+      AuthenticationClientImpl::kApplicationJson, std::move(context));
+}
+
+std::string DeduceContentType(const SignInProperties& properties) {
+  if (properties.custom_body.has_value()) {
+    return "";
+  }
+  return AuthenticationClientImpl::kApplicationJson;
 }
 
 }  // namespace
@@ -188,8 +196,16 @@ olp::client::HttpResponse AuthenticationClientImpl::CallAuth(
     const client::OlpClient& client, const std::string& endpoint,
     client::CancellationContext context,
     const AuthenticationCredentials& credentials,
-    client::OlpClient::RequestBodyType body, std::time_t timestamp) {
-  const auto url = settings_.token_endpoint_url + endpoint;
+    client::OlpClient::RequestBodyType body, std::time_t timestamp,
+    const std::string& content_type) {
+  // When credentials specify authentication endpoint, it means that
+  // Authorization header must be created for the corresponding host.
+  const auto url = [&]() {
+    if (!credentials.GetEndpointUrl().empty()) {
+      return credentials.GetEndpointUrl();
+    }
+    return settings_.token_endpoint_url + endpoint;
+  }();
 
   auto auth_header =
       GenerateAuthorizationHeader(credentials, url, timestamp, GenerateUid());
@@ -198,7 +214,7 @@ olp::client::HttpResponse AuthenticationClientImpl::CallAuth(
       {http::kAuthorizationHeader, std::move(auth_header)}};
 
   return client.CallApi(endpoint, "POST", {}, std::move(headers), {},
-                        std::move(body), kApplicationJson, std::move(context));
+                        std::move(body), content_type, std::move(context));
 }
 
 SignInResult AuthenticationClientImpl::ParseAuthResponse(
@@ -303,11 +319,31 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
       return client::ApiError::Cancelled();
     }
 
-    auto client = CreateOlpClient(settings_, boost::none, false);
+    auto olp_client_host = settings_.token_endpoint_url;
+    auto endpoint = kOauthEndpoint;
+    // If credentials contain URL for the token endpoint then override default
+    // endpoint with it. Construction of the `OlpClient` requires the host part
+    // of URL, while `CallAuth` method - the rest of URL, hence we need to split
+    // URL passed in the Credentials object.
+    const auto credentials_endpoint = credentials.GetEndpointUrl();
+    const auto maybe_host_and_rest =
+        olp::utils::Url::ParseHostAndRest(credentials_endpoint);
+    if (maybe_host_and_rest.has_value()) {
+      const auto& host_and_rest = maybe_host_and_rest.value();
+      olp_client_host = host_and_rest.first;
+      endpoint = host_and_rest.second;
+    }
+
+    // To pass correct URL we need to create and modify local copy of shared
+    // settings object.
+    auto settings = settings_;
+    settings.token_endpoint_url = olp_client_host;
+    auto client = CreateOlpClient(settings, boost::none, false);
 
     RequestTimer timer = CreateRequestTimer(client, context);
 
     const auto request_body = GenerateClientBody(properties);
+    const auto content_type = DeduceContentType(properties);
 
     SignInClientResponse response;
 
@@ -319,8 +355,8 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
       }
 
       auto auth_response =
-          CallAuth(client, kOauthEndpoint, context, credentials, request_body,
-                   timer.GetRequestTime());
+          CallAuth(client, endpoint, context, credentials, request_body,
+                   timer.GetRequestTime(), content_type);
 
       const auto status = auth_response.GetStatus();
       if (status < 0) {
@@ -778,6 +814,11 @@ client::CancellationToken AuthenticationClientImpl::GetMyAccount(
 
 client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateClientBody(
     const SignInProperties& properties) {
+  if (properties.custom_body.has_value()) {
+    const auto& content = properties.custom_body.value();
+    return std::make_shared<RequestBodyData>(content.data(),
+                                             content.data() + content.size());
+  };
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();

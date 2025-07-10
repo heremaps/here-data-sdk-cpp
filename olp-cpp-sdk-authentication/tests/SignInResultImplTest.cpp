@@ -22,7 +22,23 @@
 #include "../src/SignInResultImpl.h"
 
 namespace {
-constexpr auto kClientId = "4GaUh8X9CpOax4CCC3of";
+constexpr auto kToken =
+    "eyJhbGciOiJSUzUxMiIsImN0eSI6IkpXVCIsImlzcyI6IkhFUkUiLCJhaWQiOiI0R2FVaDhY"
+    "OUNwT2F4NENDQzNvZiIsImlhdCI6MTU3ODMxMDExNCwiZXhwIjoxNTc4MzEzNzE0LCJraWQiOi"
+    "JqMSJ9."
+    "ZXlKaGJHY2lPaUprYVhJaUxDSmxibU1pT2lKQk1qVTJRMEpETFVoVE5URXlJbjAuLnFMb0Jmd0"
+    "1rSVktRHhuRFA1Ym9kYlEubmdZZkJIUFBsNXVBazZvY0w5djVTa3R4QU4xalE4RENjTzBiYnJO"
+    "Y2FuUkdKWFRvaU8tRXRuNGFNZE44OTBXaDR5QUlKaWI4LTUzY3lVMWVDZF9iX0ZCRmYxWEFsVU"
+    "ZkU1lFdUtFWHpoVUVVVnB0ZE1QdlY2VnVEVWktbTJoYWQ3ZEd4YUtXdVNoVVJNVFpOa1NHZy13"
+    "Lm9wdHJQUzRYQi1CNnBxdTZxa1Y4a09WQlNLbXFLUVhBODRMUV9IS0RZTms."
+    "UGyfwSjA8g6gDfLY4sCEu4fkrgp8WNm-uq5F2KLJ-zcDJIwoPKNrJjd2FEZdllG8-"
+    "tbbVWx5fwxn9qV6vLbm5BOMdvX3eMw_FQgsEPQAX3cOyv3he-"
+    "3xIlw0WjEAEfI6hOZnx89FdkKGXuUp7cOPaM-b133mFsE-"
+    "S5uuuQ3vYnztKcfmEwc8SSzgCiyRTuUYUE_ESZdpwQi1jx1rbag7fBFqIIGNSVN_"
+    "d6Scpg2s6ybHftoXajMVydnvmG4Iyls8eOeCcLDYMUPcgy05Uqc5CMvGSsL8WUOJAoLWw3eF_"
+    "ik1Xyv4iHRz3-67EAzzdwtL6nPbN8c0S16leVshnfdUZA";
+constexpr auto kTokenType = "bearer";
+constexpr auto kExpiresIn = std::chrono::seconds(3599);
 constexpr auto kTokenResponse =
     "{\"accessToken\":"
     "\"eyJhbGciOiJSUzUxMiIsImN0eSI6IkpXVCIsImlzcyI6IkhFUkUiLCJhaWQiOiI0R2FVaDhY"
@@ -40,9 +56,9 @@ constexpr auto kTokenResponse =
     "d6Scpg2s6ybHftoXajMVydnvmG4Iyls8eOeCcLDYMUPcgy05Uqc5CMvGSsL8WUOJAoLWw3eF_"
     "ik1Xyv4iHRz3-67EAzzdwtL6nPbN8c0S16leVshnfdUZA\",\"tokenType\":\"bearer\","
     "\"expiresIn\":3599}";
-constexpr auto kInvalidTokenResponse =
-    "{\"accessToken\":"
-    "\"eyJhbGciOiJSUzUxbx5sImN0eSI6IkpXVCIsImlzcyI6IkhFUkUiLCJhaWQiOiI0R2FVaDhY"
+constexpr auto kTokenResponseSnakeCase =
+    "{\"access_token\":"
+    "\"eyJhbGciOiJSUzUxMiIsImN0eSI6IkpXVCIsImlzcyI6IkhFUkUiLCJhaWQiOiI0R2FVaDhY"
     "OUNwT2F4NENDQzNvZiIsImlhdCI6MTU3ODMxMDExNCwiZXhwIjoxNTc4MzEzNzE0LCJraWQiOi"
     "JqMSJ9."
     "ZXlKaGJHY2lPaUprYVhJaUxDSmxibU1pT2lKQk1qVTJRMEpETFVoVE5URXlJbjAuLnFMb0Jmd0"
@@ -55,83 +71,50 @@ constexpr auto kInvalidTokenResponse =
     "3xIlw0WjEAEfI6hOZnx89FdkKGXuUp7cOPaM-b133mFsE-"
     "S5uuuQ3vYnztKcfmEwc8SSzgCiyRTuUYUE_ESZdpwQi1jx1rbag7fBFqIIGNSVN_"
     "d6Scpg2s6ybHftoXajMVydnvmG4Iyls8eOeCcLDYMUPcgy05Uqc5CMvGSsL8WUOJAoLWw3eF_"
-    "ik1Xyv4iHRz3-67EAzzdwtL6nPbN8c0S16leVshnfdUZA\",\"tokenType\":\"bearer\","
-    "\"expiresIn\":3599}";
-constexpr auto kNoIdFieldInToken =
-    "{\"accessToken\":"
-    "\"eyJhbGciOiJSUzUxMiIsImN0eSI6IkpXVCIsImlzcyI6IkhFUkUiLCJhaWQiOjMsImlhdCI6"
-    "MTU3ODMxMDExNCwiZXhwIjoxNTc4MzEzNzE0LCJraWQiOiJqMSJ9."
-    "ZXlKaGJHY2lPaUprYVhJaUxDSmxibU1pT2lKQk1qVTJRMEpETFVoVE5URXlJbjAuLnFMb0Jmd0"
-    "1rSVktRHhuRFA1Ym9kYlEubmdZZkJIUFBsNXVBazZvY0w5djVTa3R4QU4xalE4RENjTzBiYnJO"
-    "Y2FuUkdKWFRvaU8tRXRuNGFNZE44OTBXaDR5QUlKaWI4LTUzY3lVMWVDZF9iX0ZCRmYxWEFsVU"
-    "ZkU1lFdUtFWHpoVUVVVnB0ZE1QdlY2VnVEVWktbTJoYWQ3ZEd4YUtXdVNoVVJNVFpOa1NHZy13"
-    "Lm9wdHJQUzRYQi1CNnBxdTZxa1Y4a09WQlNLbXFLUVhBODRMUV9IS0RZTms."
-    "UGyfwSjA8g6gDfLY4sCEu4fkrgp8WNm-uq5F2KLJ-zcDJIwoPKNrJjd2FEZdllG8-"
-    "tbbVWx5fwxn9qV6vLbm5BOMdvX3eMw_FQgsEPQAX3cOyv3he-"
-    "3xIlw0WjEAEfI6hOZnx89FdkKGXuUp7cOPaM-b133mFsE-"
-    "S5uuuQ3vYnztKcfmEwc8SSzgCiyRTuUYUE_ESZdpwQi1jx1rbag7fBFqIIGNSVN_"
-    "d6Scpg2s6ybHftoXajMVydnvmG4Iyls8eOeCcLDYMUPcgy05Uqc5CMvGSsL8WUOJAoLWw3eF_"
-    "ik1Xyv4iHRz3-67EAzzdwtL6nPbN8c0S16leVshnfdUZA\",\"tokenType\":\"bearer\","
-    "\"expiresIn\":3599}";
-constexpr auto kWrongIdFieldInToken =
-    "{\"accessToken\":"
-    "\"eyJhbGciOiJSUzUxMiIsImN0eSI6IkpXVCIsImlzcyI6IkhFUkUiLCJhaWQiOjMsImlhdCI6"
-    "MTU3ODMxMDExNCwiZXhwIjoxNTc4MzEzNzE0LCJraWQiOiJqMSJ9."
-    "ZXlKaGJHY2lPaUprYVhJaUxDSmxibU1pT2lKQk1qVTJRMEpETFVoVE5URXlJbjAuLnFMb0Jmd0"
-    "1rSVktRHhuRFA1Ym9kYlEubmdZZkJIUFBsNXVBazZvY0w5djVTa3R4QU4xalE4RENjTzBiYnJO"
-    "Y2FuUkdKWFRvaU8tRXRuNGFNZE44OTBXaDR5QUlKaWI4LTUzY3lVMWVDZF9iX0ZCRmYxWEFsVU"
-    "ZkU1lFdUtFWHpoVUVVVnB0ZE1QdlY2VnVEVWktbTJoYWQ3ZEd4YUtXdVNoVVJNVFpOa1NHZy13"
-    "Lm9wdHJQUzRYQi1CNnBxdTZxa1Y4a09WQlNLbXFLUVhBODRMUV9IS0RZTms."
-    "UGyfwSjA8g6gDfLY4sCEu4fkrgp8WNm-uq5F2KLJ-zcDJIwoPKNrJjd2FEZdllG8-"
-    "tbbVWx5fwxn9qV6vLbm5BOMdvX3eMw_FQgsEPQAX3cOyv3he-"
-    "3xIlw0WjEAEfI6hOZnx89FdkKGXuUp7cOPaM-b133mFsE-"
-    "S5uuuQ3vYnztKcfmEwc8SSzgCiyRTuUYUE_ESZdpwQi1jx1rbag7fBFqIIGNSVN_"
-    "d6Scpg2s6ybHftoXajMVydnvmG4Iyls8eOeCcLDYMUPcgy05Uqc5CMvGSsL8WUOJAoLWw3eF_"
-    "ik1Xyv4iHRz3-67EAzzdwtL6nPbN8c0S16leVshnfdUZA\",\"tokenType\":\"bearer\","
-    "\"expiresIn\":3599}";
-constexpr auto kWrongFormatToken =
-    "{\"accessToken\":"
+    "ik1Xyv4iHRz3-67EAzzdwtL6nPbN8c0S16leVshnfdUZA\",\"token_type\":\"bearer\","
+    "\"expires_in\":3599}";
+constexpr auto kWrongFormatResponse =
+    "{\"access_Token\":"
     "\"eyJhbGciOiJSUzUxMiIsImN0eSI6IkpXVCIsImlzcyI6IkhFUkUiLCJhaWQiOiI0R2FVaDhY"
     "OUNwT2F4NENDQzNvZiIsImlhdCI6MTU3ODMxMDExNCwiZXhwIjoxNTc4MzEzNzE0LCJraWQiOi"
     "JqMSJ9\",\"tokenType\":\"bearer\",\"expiresIn\":3599}";
 
-TEST(SignInResultImplTest, ValidToken) {
-  auto doc = std::make_shared<rapidjson::Document>();
-  doc->Parse(kTokenResponse);
-  olp::authentication::SignInResultImpl result(olp::http::HttpStatusCode::OK,
-                                               std::string(), doc);
-  EXPECT_EQ(result.GetClientId(), kClientId);
+TEST(SignInResultImplTest, Constructor) {
+  {
+    SCOPED_TRACE("Valid token");
+    auto doc = std::make_shared<rapidjson::Document>();
+    doc->Parse(kTokenResponse);
+    olp::authentication::SignInResultImpl result(olp::http::HttpStatusCode::OK,
+                                                 std::string(), doc);
+
+    ASSERT_TRUE(result.IsValid());
+    EXPECT_EQ(result.GetAccessToken(), kToken);
+    EXPECT_EQ(result.GetTokenType(), kTokenType);
+    EXPECT_EQ(result.GetExpiresIn(), kExpiresIn);
+  }
+
+  {
+    SCOPED_TRACE("Valid token from snake case response");
+    auto doc = std::make_shared<rapidjson::Document>();
+    doc->Parse(kTokenResponseSnakeCase);
+    olp::authentication::SignInResultImpl result(olp::http::HttpStatusCode::OK,
+                                                 std::string(), doc);
+
+    ASSERT_TRUE(result.IsValid());
+    EXPECT_EQ(result.GetAccessToken(), kToken);
+    EXPECT_EQ(result.GetTokenType(), kTokenType);
+    EXPECT_EQ(result.GetExpiresIn(), kExpiresIn);
+  }
+
+  {
+    SCOPED_TRACE("Bad response");
+    auto doc = std::make_shared<rapidjson::Document>();
+    doc->Parse(kWrongFormatResponse);
+    olp::authentication::SignInResultImpl result(olp::http::HttpStatusCode::OK,
+                                                 std::string(), doc);
+
+    ASSERT_FALSE(result.IsValid());
+  }
 }
 
-TEST(SignInResultImplTest, WrongIdField) {
-  auto doc = std::make_shared<rapidjson::Document>();
-  doc->Parse(kWrongIdFieldInToken);
-  olp::authentication::SignInResultImpl result(olp::http::HttpStatusCode::OK,
-                                               std::string(), doc);
-  EXPECT_TRUE(result.GetClientId().empty());
-}
-
-TEST(SignInResultImplTest, NoIdField) {
-  auto doc = std::make_shared<rapidjson::Document>();
-  doc->Parse(kNoIdFieldInToken);
-  olp::authentication::SignInResultImpl result(olp::http::HttpStatusCode::OK,
-                                               std::string(), doc);
-  EXPECT_TRUE(result.GetClientId().empty());
-}
-
-TEST(SignInResultImplTest, NotSupportedFormat) {
-  auto doc = std::make_shared<rapidjson::Document>();
-  doc->Parse(kWrongFormatToken);
-  olp::authentication::SignInResultImpl result(olp::http::HttpStatusCode::OK,
-                                               std::string(), doc);
-  EXPECT_TRUE(result.GetClientId().empty());
-}
-
-TEST(SignInResultImplTest, InvalidToken) {
-  auto doc = std::make_shared<rapidjson::Document>();
-  doc->Parse(kInvalidTokenResponse);
-  olp::authentication::SignInResultImpl result(olp::http::HttpStatusCode::OK,
-                                               std::string(), doc);
-  EXPECT_TRUE(result.GetClientId().empty());
-}
 }  // namespace

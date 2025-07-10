@@ -68,6 +68,8 @@ class AuthenticationClientImpl {
   using SignInUserCacheType =
       thread::Atomic<utils::LruCache<std::string, SignInUserResult>>;
 
+  static constexpr auto kApplicationJson = "application/json";
+
   explicit AuthenticationClientImpl(AuthenticationSettings settings);
   virtual ~AuthenticationClientImpl();
 
@@ -162,7 +164,8 @@ class AuthenticationClientImpl {
       const client::OlpClient& client, const std::string& endpoint,
       client::CancellationContext context,
       const AuthenticationCredentials& credentials,
-      client::OlpClient::RequestBodyType body, std::time_t timestamp);
+      client::OlpClient::RequestBodyType body, std::time_t timestamp,
+      const std::string& content_type = kApplicationJson);
 
   SignInResult ParseAuthResponse(int status, std::stringstream& auth_response);
 

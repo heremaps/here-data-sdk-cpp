@@ -22,14 +22,61 @@
 #include "Constants.h"
 #include "olp/core/http/HttpStatusCode.h"
 
+namespace olp {
+namespace authentication {
+
 namespace {
 constexpr auto kTokenType = "tokenType";
 constexpr auto kUserId = "userId";
 constexpr auto kScope = "scope";
-}  // namespace
+constexpr auto kTokenTypeSnakeCase = "token_type";
+constexpr auto kAccessTokenSnakeCase = "access_token";
+constexpr auto kExpiresInSnakeCase = "expires_in";
 
-namespace olp {
-namespace authentication {
+bool HasAccessToken(const rapidjson::Document& document) {
+  return document.HasMember(Constants::ACCESS_TOKEN) ||
+         document.HasMember(kAccessTokenSnakeCase);
+}
+
+std::string ParseAccessToken(const rapidjson::Document& document) {
+  if (document.HasMember(Constants::ACCESS_TOKEN)) {
+    return document[Constants::ACCESS_TOKEN].GetString();
+  }
+
+  return document[kAccessTokenSnakeCase].GetString();
+}
+
+bool HasExpiresIn(const rapidjson::Document& document) {
+  return document.HasMember(Constants::EXPIRES_IN) ||
+         document.HasMember(kExpiresInSnakeCase);
+}
+
+unsigned ParseExpiresIn(const rapidjson::Document& document) {
+  if (document.HasMember(Constants::EXPIRES_IN)) {
+    return document[Constants::EXPIRES_IN].GetUint();
+  }
+  return document[kExpiresInSnakeCase].GetUint();
+}
+
+bool HasTokenType(const rapidjson::Document& document) {
+  return document.HasMember(kTokenType) ||
+         document.HasMember(kTokenTypeSnakeCase);
+}
+
+std::string ParseTokenType(const rapidjson::Document& document) {
+  if (document.HasMember(kTokenType)) {
+    return document[kTokenType].GetString();
+  }
+
+  return document[kTokenTypeSnakeCase].GetString();
+}
+
+bool IsDocumentValid(const rapidjson::Document& document) {
+  return HasAccessToken(document) && HasExpiresIn(document) &&
+         HasTokenType(document);
+}
+
+}  // namespace
 
 SignInResultImpl::SignInResultImpl() noexcept
     : SignInResultImpl(http::HttpStatusCode::SERVICE_UNAVAILABLE,
@@ -41,10 +88,7 @@ SignInResultImpl::SignInResultImpl(
     : BaseResult(status, std::move(error), json_document),
       expiry_time_(),
       expires_in_() {
-  is_valid_ = this->BaseResult::IsValid() &&
-              json_document->HasMember(Constants::ACCESS_TOKEN) &&
-              json_document->HasMember(kTokenType) &&
-              json_document->HasMember(Constants::EXPIRES_IN);
+  is_valid_ = this->BaseResult::IsValid() && IsDocumentValid(*json_document);
 
   // Extra response data if no errors reported
   if (!HasError()) {
@@ -52,17 +96,16 @@ SignInResultImpl::SignInResultImpl(
       status_ = http::HttpStatusCode::SERVICE_UNAVAILABLE;
       error_.message = Constants::ERROR_HTTP_SERVICE_UNAVAILABLE;
     } else {
-      if (json_document->HasMember(Constants::ACCESS_TOKEN))
-        access_token_ = (*json_document)[Constants::ACCESS_TOKEN].GetString();
-      if (json_document->HasMember(kTokenType))
-        token_type_ = (*json_document)[kTokenType].GetString();
+      if (HasAccessToken(*json_document))
+        access_token_ = ParseAccessToken(*json_document);
+      if (HasTokenType(*json_document))
+        token_type_ = ParseTokenType(*json_document);
       if (json_document->HasMember(Constants::REFRESH_TOKEN))
         refresh_token_ = (*json_document)[Constants::REFRESH_TOKEN].GetString();
-      if (json_document->HasMember(Constants::EXPIRES_IN)) {
-        expiry_time_ = std::time(nullptr) +
-                       (*json_document)[Constants::EXPIRES_IN].GetUint();
-        expires_in_ = std::chrono::seconds(
-            (*json_document)[Constants::EXPIRES_IN].GetUint());
+      if (HasExpiresIn(*json_document)) {
+        const auto expires_in = ParseExpiresIn(*json_document);
+        expiry_time_ = std::time(nullptr) + expires_in;
+        expires_in_ = std::chrono::seconds(expires_in);
       }
       if (json_document->HasMember(kUserId))
         user_identifier_ = (*json_document)[kUserId].GetString();
