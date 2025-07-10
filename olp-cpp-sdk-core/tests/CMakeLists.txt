@@ -72,6 +72,7 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./http/NetworkUtils.cpp
 
     ./utils/UtilsTest.cpp
+    ./utils/UrlTest.cpp
 )
 
 if (ANDROID OR IOS)
