@@ -54,6 +54,17 @@ class AuthenticationClientImplTestable : public auth::AuthenticationClientImpl {
                client::OlpClient::RequestBodyType, std::time_t,
                const std::string&),
               (override));
+
+  client::HttpResponse RealCallAuth(
+      const client::OlpClient& client, const std::string& endpoint,
+      client::CancellationContext context,
+      const auth::AuthenticationCredentials& credentials,
+      client::OlpClient::RequestBodyType body, std::time_t time,
+      const std::string& content_type) {
+    return auth::AuthenticationClientImpl::CallAuth(
+        client, endpoint, std::move(context), credentials, std::move(body),
+        time, content_type);
+  }
 };
 
 ACTION_P(Wait, time) { std::this_thread::sleep_for(time); }
@@ -263,4 +274,60 @@ TEST(AuthenticationClientTest, GenerateAuthorizationHeader) {
       "oauth_signature=\"g1pNnGH65Pl%2B%2FoUNm%2BJBAM9%2BjjgmSuknucOiOwFGFQE%"
       "3D\"";
   EXPECT_EQ(sig, expected_sig);
+}
+
+TEST(AuthenticationClientTest, SignInWithCustomUrlAndBody) {
+  // Making CPPLINT happy
+  using testing::_;
+  using testing::Contains;
+  using testing::DoAll;
+  using testing::ElementsAreArray;
+  using testing::Not;
+  using testing::Pair;
+  using testing::Return;
+  using testing::SaveArg;
+
+  using std::placeholders::_1;
+  using std::placeholders::_2;
+  using std::placeholders::_3;
+  using std::placeholders::_4;
+  using std::placeholders::_5;
+  using std::placeholders::_6;
+  using std::placeholders::_7;
+
+  constexpr auto custom_url = "https://example.com/user/login";
+  const auto custom_body = std::string("custom_body");
+  olp::http::NetworkRequest expected_request{""};
+
+  const auth::AuthenticationCredentials credentials("", "", custom_url);
+  auth::SignInProperties properties;
+  properties.custom_body = custom_body;
+
+  auth::AuthenticationSettings settings;
+  auto network_mock = std::make_shared<NetworkMock>();
+  settings.network_request_handler = network_mock;
+
+  AuthenticationClientImplTestable auth_impl(settings);
+
+  EXPECT_CALL(*network_mock, Send)
+      .WillOnce(DoAll(
+          SaveArg<0>(&expected_request),
+          Return(olp::http::SendOutcome(olp::http::ErrorCode::UNKNOWN_ERROR))));
+
+  EXPECT_CALL(auth_impl, CallAuth)
+      .WillOnce(std::bind(&AuthenticationClientImplTestable::RealCallAuth,
+                          &auth_impl, _1, _2, _3, _4, _5, _6, _7));
+
+  auth_impl.SignInClient(
+      credentials, properties,
+      [=](const auth::AuthenticationClient::SignInClientResponse& response) {
+        EXPECT_FALSE(response.IsSuccessful());
+        EXPECT_EQ(response.GetError().GetErrorCode(),
+                  client::ErrorCode::Unknown);
+      });
+
+  EXPECT_EQ(expected_request.GetUrl(), custom_url);
+  EXPECT_THAT(*expected_request.GetBody(), ElementsAreArray(custom_body));
+  EXPECT_THAT(expected_request.GetHeaders(),
+              Not(Contains(Pair("Content-Type", _))));
 }
