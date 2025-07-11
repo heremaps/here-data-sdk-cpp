@@ -30,14 +30,14 @@ using UrlTest = testing::Test;
 TEST(UrlTest, ParseHostAndRest) {
   {
     SCOPED_TRACE("Bad Url");
-    EXPECT_FALSE(olp::utils::Url::ParseHostAndRest("bad url").has_value());
+    EXPECT_FALSE(olp::utils::Url::ParseHostAndRest("bad url"));
   }
 
   {
     SCOPED_TRACE("Good Url");
     const auto result = olp::utils::Url::ParseHostAndRest(
         "https://account.api.here.com/oauth2/token");
-    ASSERT_TRUE(result.has_value());
+    ASSERT_TRUE(result);
     const auto& host = result.value().first;
     const auto& rest = result.value().second;
     EXPECT_EQ(host, "https://account.api.here.com");
@@ -48,7 +48,7 @@ TEST(UrlTest, ParseHostAndRest) {
     SCOPED_TRACE("Good Url with port");
     const auto result = olp::utils::Url::ParseHostAndRest(
         "https://account.api.here.com:8080/oauth2/token");
-    ASSERT_TRUE(result.has_value());
+    ASSERT_TRUE(result);
     const auto& host = result.value().first;
     const auto& rest = result.value().second;
     EXPECT_EQ(host, "https://account.api.here.com:8080");

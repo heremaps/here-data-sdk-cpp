@@ -156,7 +156,7 @@ client::HttpResponse CallApi(const client::OlpClient& client,
 }
 
 std::string DeduceContentType(const SignInProperties& properties) {
-  if (properties.custom_body.has_value()) {
+  if (properties.custom_body) {
     return "";
   }
   return AuthenticationClientImpl::kApplicationJson;
@@ -328,7 +328,7 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
     const auto credentials_endpoint = credentials.GetEndpointUrl();
     const auto maybe_host_and_rest =
         olp::utils::Url::ParseHostAndRest(credentials_endpoint);
-    if (maybe_host_and_rest.has_value()) {
+    if (maybe_host_and_rest) {
       const auto& host_and_rest = maybe_host_and_rest.value();
       olp_client_host = host_and_rest.first;
       endpoint = host_and_rest.second;
@@ -814,7 +814,7 @@ client::CancellationToken AuthenticationClientImpl::GetMyAccount(
 
 client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateClientBody(
     const SignInProperties& properties) {
-  if (properties.custom_body.has_value()) {
+  if (properties.custom_body) {
     const auto& content = properties.custom_body.value();
     return std::make_shared<RequestBodyData>(content.data(),
                                              content.data() + content.size());
