@@ -25,7 +25,7 @@
 #include <vector>
 #include <utility>
 
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 #include <rapidjson/document.h>
 
 namespace olp {
@@ -63,10 +63,10 @@ inline void to_json(const std::shared_ptr<std::vector<unsigned char>>& x,
 }
 
 template <typename T>
-inline void to_json(const boost::optional<T>& x, rapidjson::Value& value,
+inline void to_json(const porting::optional<T>& x, rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
   if (x) {
-    to_json(x.get(), value, allocator);
+    to_json(*x, value, allocator);
   } else {
     value.SetNull();
   }

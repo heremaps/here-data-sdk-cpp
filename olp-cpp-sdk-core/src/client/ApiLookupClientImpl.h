@@ -49,7 +49,7 @@ class ApiLookupClientImpl {
                               ApiLookupClient::LookupApiCallback callback);
 
  protected:
-  using ApisResult = std::pair<Apis, boost::optional<time_t>>;
+  using ApisResult = std::pair<Apis, porting::optional<time_t>>;
 
   struct ClientWithExpiration {
     OlpClient client;
@@ -58,9 +58,9 @@ class ApiLookupClientImpl {
 
   OlpClient CreateAndCacheClient(const std::string& base_url,
                                  const std::string& cache_key,
-                                 boost::optional<time_t> expiration);
+                                 porting::optional<time_t> expiration);
 
-  boost::optional<OlpClient> GetCachedClient(
+  porting::optional<OlpClient> GetCachedClient(
       const std::string& service, const std::string& service_version);
 
   void PutToDiskCache(const ApisResult& available_services);

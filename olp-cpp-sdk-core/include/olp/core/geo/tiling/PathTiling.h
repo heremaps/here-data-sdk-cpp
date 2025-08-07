@@ -26,7 +26,7 @@
 #include <olp/core/geo/coordinates/GeoCoordinates.h>
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/core/geo/tiling/TileKeyUtils.h>
-#include <boost/optional/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 
 namespace olp {
 namespace geo {
@@ -378,7 +378,7 @@ class LineSliceIterator {
 
   LineSliceIterator& operator++() {
     if (!line_state_ || !detail::LineEvaluator::Iterate(*line_state_)) {
-      line_state_ = boost::none;
+      line_state_ = porting::none;
       ++segment_it_;
     }
     return *this;
@@ -397,7 +397,7 @@ class LineSliceIterator {
  private:
   InputIterator segment_it_;
   int32_t half_line_width_;
-  boost::optional<detail::LineEvaluator::State> line_state_;
+  porting::optional<detail::LineEvaluator::State> line_state_;
 };
 
 /**

@@ -125,14 +125,14 @@ std::string Url::Construct(
   return url_ss.str();
 }
 
-boost::optional<Url::HostAndRest> Url::ParseHostAndRest(
+porting::optional<Url::HostAndRest> Url::ParseHostAndRest(
     const std::string& url) {
   const auto host_and_rest_regex =
       R"(^(.*:\/\/[A-Za-z0-9\-\.]+(:[0-9]+)?)(.*)$)";
   std::regex regex{host_and_rest_regex};
   std::smatch match;
   if (!std::regex_search(url, match, regex) || match.size() != 4) {
-    return boost::none;
+    return porting::none;
   }
 
   const auto host = std::string{match[1]};

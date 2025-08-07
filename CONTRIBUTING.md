@@ -257,12 +257,13 @@ inline PublishDataRequest& WithLayerId(std::string&& layer_id) {
 
 #### API optional parameters
 
-The SDK uses `boost::optional` for optional members, parameters, or return types. Also, function comments should indicate whether the parameter is optional or required.
+The SDK uses `porting::optional` mapped to either `boost::optional` or `std::optional` for optional members,
+parameters, or return types. Also, function comments should indicate whether the parameter is optional or required.
 
 Example:
 
 ```cpp
-inline const boost::optional<std::string>& GetBillingTag() const {
+inline const porting::optional<std::string>& GetBillingTag() const {
   return billing_tag_;
 }
 

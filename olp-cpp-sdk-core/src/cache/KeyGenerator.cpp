@@ -43,7 +43,7 @@ std::string KeyGenerator::CreateLatestVersionKey(const std::string& hrn) {
 
 std::string KeyGenerator::CreatePartitionKey(
     const std::string& hrn, const std::string& layer_id,
-    const std::string& partition_id, const boost::optional<int64_t>& version) {
+    const std::string& partition_id, const porting::optional<int64_t>& version) {
   // Key format: hrn::layer_id::partition_id::[version::]partition
 
   std::string version_str =
@@ -69,7 +69,7 @@ std::string KeyGenerator::CreatePartitionKey(
 
 std::string KeyGenerator::CreatePartitionsKey(
     const std::string& hrn, const std::string& layer_id,
-    const boost::optional<int64_t>& version) {
+    const porting::optional<int64_t>& version) {
   return hrn + "::" + layer_id +
          "::" + (version ? std::to_string(*version) + "::" : "") + "partitions";
 }
@@ -81,7 +81,7 @@ std::string KeyGenerator::CreateLayerVersionsKey(const std::string& hrn,
 
 std::string KeyGenerator::CreateQuadTreeKey(
     const std::string& hrn, const std::string& layer_id, olp::geo::TileKey root,
-    const boost::optional<int64_t>& version, int32_t depth) {
+    const porting::optional<int64_t>& version, int32_t depth) {
   return hrn + "::" + layer_id + "::" + root.ToHereTile() +
          "::" + (version ? std::to_string(*version) + "::" : "") +
          std::to_string(depth) + "::quadtree";

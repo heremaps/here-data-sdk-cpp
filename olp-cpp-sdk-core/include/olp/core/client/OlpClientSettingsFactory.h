@@ -22,8 +22,6 @@
 #include <memory>
 #include <string>
 
-#include <boost/optional.hpp>
-
 #include "olp/core/CoreApi.h"
 #include "olp/core/http/Network.h"
 #include "olp/core/http/NetworkInitializationSettings.h"

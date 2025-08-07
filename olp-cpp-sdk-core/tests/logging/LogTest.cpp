@@ -67,15 +67,15 @@ TEST(LogTest, Levels) {
 
   olp::logging::Log::clearLevel("test2");
   EXPECT_EQ(olp::logging::Level::Debug, olp::logging::Log::getLevel("test1"));
-  EXPECT_EQ(boost::none, olp::logging::Log::getLevel("test2"));
+  EXPECT_EQ(olp::porting::none, olp::logging::Log::getLevel("test2"));
   EXPECT_TRUE(
       olp::logging::Log::isEnabled(olp::logging::Level::Warning, "test2"));
   EXPECT_FALSE(
       olp::logging::Log::isEnabled(olp::logging::Level::Debug, "test2"));
 
   olp::logging::Log::clearLevels();
-  EXPECT_EQ(boost::none, olp::logging::Log::getLevel("test1"));
-  EXPECT_EQ(boost::none, olp::logging::Log::getLevel("test2"));
+  EXPECT_EQ(olp::porting::none, olp::logging::Log::getLevel("test1"));
+  EXPECT_EQ(olp::porting::none, olp::logging::Log::getLevel("test2"));
   EXPECT_TRUE(
       olp::logging::Log::isEnabled(olp::logging::Level::Warning, "test1"));
   EXPECT_FALSE(

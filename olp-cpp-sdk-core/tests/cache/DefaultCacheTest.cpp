@@ -33,7 +33,7 @@
 namespace {
 using CacheType = olp::cache::DefaultCache::CacheType;
 using KeyValueCache = olp::cache::KeyValueCache;
-using OptionalString = boost::optional<std::string>;
+using OptionalString = olp::porting::optional<std::string>;
 auto kDefaultExpiry = std::numeric_limits<time_t>::max();
 const auto kTempDirMutable = olp::utils::Dir::TempDirectory() + "/unittest";
 
@@ -751,7 +751,7 @@ TEST(DefaultCacheTest, OpenTypeCache) {
 
 struct TestParameters {
   OptionalString disk_path_mutable = kTempDirMutable;
-  OptionalString disk_path_protected = boost::none;
+  OptionalString disk_path_protected = olp::porting::none;
   size_t max_memory_cache_size = 1024u * 1024u;
 };
 
@@ -998,19 +998,19 @@ std::vector<TestParameters> Configuration() {
 
   // Mutable, no protected, no in-memory
   params.disk_path_mutable = kTempDirMutable;
-  params.disk_path_protected = boost::none;
+  params.disk_path_protected = olp::porting::none;
   params.max_memory_cache_size = 0u;
   config.emplace_back(params);
 
   // Mutable, no protected, in-memory
   params.disk_path_mutable = kTempDirMutable;
-  params.disk_path_protected = boost::none;
+  params.disk_path_protected = olp::porting::none;
   params.max_memory_cache_size = 1024u * 1024u;
   config.emplace_back(params);
 
   // No mutable, no protected, in-memory
-  params.disk_path_mutable = boost::none;
-  params.disk_path_protected = boost::none;
+  params.disk_path_mutable = olp::porting::none;
+  params.disk_path_protected = olp::porting::none;
   params.max_memory_cache_size = 1024u * 1024u;
   config.emplace_back(params);
 

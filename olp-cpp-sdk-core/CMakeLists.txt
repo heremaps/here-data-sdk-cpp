@@ -131,6 +131,7 @@ set(OLP_SDK_PORTING_HEADERS
     ./include/olp/core/porting/deprecated.h
     ./include/olp/core/porting/export.h
     ./include/olp/core/porting/make_unique.h
+    ./include/olp/core/porting/optional.hpp
     ./include/olp/core/porting/platform.h
     ./include/olp/core/porting/shared_mutex.h
     ./include/olp/core/porting/try_emplace.h
@@ -437,6 +438,11 @@ target_compile_definitions(${PROJECT_NAME}
 if (OLP_SDK_NO_EXCEPTION AND NOT OLP_SDK_BOOST_THROW_EXCEPTION_EXTERNAL)
     target_compile_definitions(${PROJECT_NAME}
         PRIVATE OLP_SDK_BOOST_THROW_EXCEPTION=1)
+endif()
+
+if (OLP_SDK_FORCE_BOOST_OPTIONAL)
+    target_compile_definitions(${PROJECT_NAME}
+        PUBLIC OLP_CPP_SDK_USE_BOOST_OPTIONAL)
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC

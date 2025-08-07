@@ -25,7 +25,7 @@
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/model/Api.h>
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 
 namespace olp {
 namespace client {
@@ -37,7 +37,7 @@ class CancellationContext;
  */
 class ResourcesApi {
  public:
-  using ApisResult = std::pair<Apis, boost::optional<time_t>>;
+  using ApisResult = std::pair<Apis, porting::optional<time_t>>;
   using ApisResponse = ApiResponse<ApisResult, ApiError>;
   using ApisCallback = std::function<void(ApisResponse)>;
 

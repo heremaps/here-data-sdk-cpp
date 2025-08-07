@@ -24,16 +24,14 @@
 #include <memory>
 #include <string>
 
-#include <boost/optional.hpp>
-
 #include <olp/core/client/CancellationContext.h>
-#include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/DefaultLookupEndpointProvider.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OauthToken.h>
 #include <olp/core/client/RetrySettings.h>
 #include <olp/core/http/Network.h>
+#include <olp/core/porting/optional.hpp>
 
 namespace olp {
 namespace cache {
@@ -191,16 +189,18 @@ struct CORE_API OlpClientSettings {
   /**
    * @brief The network proxy settings.
    *
-   * To remove any existing proxy settings, set to `boost::none`.
+   * To remove any existing proxy settings, set to `olp::porting::none`.
    */
-  boost::optional<http::NetworkProxySettings> proxy_settings = boost::none;
+  porting::optional<http::NetworkProxySettings> proxy_settings = porting::none;
 
   /**
    * @brief The authentication settings.
    *
-   * To remove any existing authentication settings, set to `boost::none`.
+   * To remove any existing authentication settings, set to
+   * `olp::porting::none`.
    */
-  boost::optional<AuthenticationSettings> authentication_settings = boost::none;
+  porting::optional<AuthenticationSettings> authentication_settings =
+      porting::none;
 
   /**
    * @brief The `TaskScheduler` instance.

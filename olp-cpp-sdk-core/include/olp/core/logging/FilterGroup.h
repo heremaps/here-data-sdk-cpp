@@ -24,11 +24,9 @@
 #include <unordered_map>
 #include <utility>
 
-#include <boost/none.hpp>
-#include <boost/optional.hpp>
-
 #include <olp/core/CoreApi.h>
 #include <olp/core/logging/Level.h>
+#include <olp/core/porting/optional.hpp>
 
 namespace olp {
 namespace logging {
@@ -56,9 +54,9 @@ class CORE_API FilterGroup {
   /**
    * @brief Gets the default log level.
    *
-   * @return The default log level or `boost::none` if the level is not set.
+   * @return The default log level or `olp::porting::none` if the level is not set.
    */
-  inline boost::optional<Level> getLevel() const;
+  inline porting::optional<Level> getLevel() const;
 
   /**
    * @brief Sets the default log level.
@@ -80,9 +78,9 @@ class CORE_API FilterGroup {
    *
    * @param tag The tag for which to get the log level.
    *
-   * @return The log level for the tag, or `boost::none` if the level is not set.
+   * @return The log level for the tag, or `olp::porting::none` if the level is not set.
    */
-  inline boost::optional<Level> getLevel(const std::string& tag) const;
+  inline porting::optional<Level> getLevel(const std::string& tag) const;
 
   /**
    * @brief Sets the log level for a tag.
@@ -148,16 +146,16 @@ class CORE_API FilterGroup {
    *
    * @return The converted level.
    */
-  static boost::optional<Level> stringToLevel(const std::string& levelStr);
+  static porting::optional<Level> stringToLevel(const std::string& levelStr);
 
  private:
   friend class Log;
 
-  boost::optional<Level> m_defaultLevel;
+  porting::optional<Level> m_defaultLevel;
   std::unordered_map<std::string, Level> m_tagLevels;
 };
 
-inline FilterGroup::FilterGroup() : m_defaultLevel(boost::none) {}
+inline FilterGroup::FilterGroup() : m_defaultLevel(porting::none) {}
 
 inline FilterGroup::FilterGroup(FilterGroup&& other) noexcept
     : m_defaultLevel(std::move(other.m_defaultLevel)),
@@ -169,7 +167,7 @@ inline FilterGroup& FilterGroup::operator=(FilterGroup&& other) noexcept {
   return *this;
 }
 
-inline boost::optional<Level> FilterGroup::getLevel() const {
+inline porting::optional<Level> FilterGroup::getLevel() const {
   return m_defaultLevel;
 }
 
@@ -179,14 +177,14 @@ inline FilterGroup& FilterGroup::setLevel(Level level) {
 }
 
 inline FilterGroup& FilterGroup::clearLevel() {
-  m_defaultLevel = boost::none;
+  m_defaultLevel = porting::none;
   return *this;
 }
 
-inline boost::optional<Level> FilterGroup::getLevel(
+inline porting::optional<Level> FilterGroup::getLevel(
     const std::string& tag) const {
   auto foundIter = m_tagLevels.find(tag);
-  if (foundIter == m_tagLevels.end()) return boost::none;
+  if (foundIter == m_tagLevels.end()) return porting::none;
   return foundIter->second;
 }
 
@@ -201,7 +199,7 @@ inline FilterGroup& FilterGroup::clearLevel(const std::string& tag) {
 }
 
 inline FilterGroup& FilterGroup::clear() {
-  m_defaultLevel = boost::none;
+  m_defaultLevel = porting::none;
   m_tagLevels.clear();
   return *this;
 }

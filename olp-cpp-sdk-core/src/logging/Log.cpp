@@ -55,7 +55,7 @@ class LogImpl {
   void setLevel(Level level);
   Level getLevel() const;
   void setLevel(Level level, const std::string& tag);
-  boost::optional<Level> getLevel(const std::string& tag) const;
+  porting::optional<Level> getLevel(const std::string& tag) const;
   void clearLevel(const std::string& tag);
   void clearLevels();
 
@@ -119,12 +119,12 @@ void LogImpl::setLevel(Level level, const std::string& tag) {
   m_logLevels[tag] = level;
 }
 
-boost::optional<Level> LogImpl::getLevel(const std::string& tag) const {
+porting::optional<Level> LogImpl::getLevel(const std::string& tag) const {
   if (tag.empty()) return getLevel();
 
   auto foundIter = m_logLevels.find(tag);
   if (foundIter == m_logLevels.end())
-    return boost::none;
+    return porting::none;
   else
     return foundIter->second;
 }
@@ -229,8 +229,8 @@ void Log::setLevel(const std::string& level, const std::string& tag) {
       [&log_level, &tag](LogImpl& log) { log.setLevel(*log_level, tag); });
 }
 
-boost::optional<Level> Log::getLevel(const std::string& tag) {
-  if (!LogImpl::aliveStatus()) return boost::none;
+porting::optional<Level> Log::getLevel(const std::string& tag) {
+  if (!LogImpl::aliveStatus()) return porting::none;
 
   return LogImpl::getInstance().locked(
       [&tag](const LogImpl& log) { return log.getLevel(tag); });

@@ -65,8 +65,8 @@ OlpClientSettingsFactory::CreateDefaultCache(cache::CacheSettings settings) {
         kLogTag,
         "Error opening disk cache, disk_path_mutable=%s, "
         "disk_path_protected=%s",
-        settings.disk_path_mutable.get_value_or("(empty)").c_str(),
-        settings.disk_path_protected.get_value_or("(empty)").c_str());
+        porting::value_or(settings.disk_path_mutable, "(empty)").c_str(),
+        porting::value_or(settings.disk_path_protected, "(empty)").c_str());
     return nullptr;
   }
   return cache;

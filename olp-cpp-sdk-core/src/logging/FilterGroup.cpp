@@ -59,7 +59,7 @@ static bool equalsIgnoreCase(const std::string& left,
 #endif
 }
 
-boost::optional<Level> FilterGroup::stringToLevel(const std::string& levelStr) {
+porting::optional<Level> FilterGroup::stringToLevel(const std::string& levelStr) {
   if (equalsIgnoreCase(levelStr, "trace"))
     return Level::Trace;
   else if (equalsIgnoreCase(levelStr, "debug"))
@@ -75,7 +75,7 @@ boost::optional<Level> FilterGroup::stringToLevel(const std::string& levelStr) {
   else if (equalsIgnoreCase(levelStr, "off"))
     return Level::Off;
   else
-    return boost::none;
+    return porting::none;
 }
 
 bool FilterGroup::load(const std::string& fileName) {
@@ -99,7 +99,7 @@ bool FilterGroup::load(std::istream& stream) {
     std::string tag = trim(splitLine.first);
     std::string levelStr = trim(splitLine.second);
 
-    boost::optional<Level> level = stringToLevel(levelStr);
+    porting::optional<Level> level = stringToLevel(levelStr);
     if (!level) return false;
 
     if (tag.empty())

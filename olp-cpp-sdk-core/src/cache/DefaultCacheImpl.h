@@ -176,7 +176,7 @@ class DefaultCacheImpl {
                                          KeyValueCache::ValueTypePtr& value,
                                          time_t& expiry);
 
-  boost::optional<std::pair<std::string, time_t>> GetFromDiscCache(
+  porting::optional<std::pair<std::string, time_t>> GetFromDiscCache(
       const std::string& key);
 
   time_t GetExpiryForMemoryCache(const std::string& key,

@@ -24,9 +24,7 @@
 
 #include <olp/core/Config.h>
 #include <olp/core/CoreApi.h>
-
-#include <olp/core/porting/deprecated.h>
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 
 namespace olp {
 namespace cache {
@@ -72,7 +70,7 @@ struct CORE_API CacheSettings {
    * If this parameter is not set, the downloaded data is stored
    * only in the memory cache that is limited by `#max_memory_cache_size`.
    */
-  boost::optional<std::string> disk_path_mutable = boost::none;
+  porting::optional<std::string> disk_path_mutable = porting::none;
 
   /**
    * @brief Sets the upper limit (in bytes) of the disk space that is used for
@@ -161,7 +159,7 @@ struct CORE_API CacheSettings {
    * have a stable fallback state or offline data that you can always access
    * regardless of the network state.
    */
-  boost::optional<std::string> disk_path_protected = boost::none;
+  porting::optional<std::string> disk_path_protected = porting::none;
 
   /**
    * @brief The extend permissions flag (applicable for Unix systems).

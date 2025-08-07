@@ -31,7 +31,7 @@
 #include <thread>
 #include <vector>
 
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 
 #if defined(OLP_SDK_ENABLE_ANDROID_CURL) && !defined(ANDROID_HOST)
 #include <openssl/ossl_typ.h>
@@ -165,7 +165,7 @@ class NetworkCurl : public Network,
    * @brief Blobs required for custom certificate validation.
    */
   struct SslCertificateBlobs {
-    using OptionalBlob = boost::optional<struct curl_blob>;
+    using OptionalBlob = porting::optional<struct curl_blob>;
 
     /// Certificate blob.
     OptionalBlob ssl_cert_blob;
@@ -375,7 +375,7 @@ class NetworkCurl : public Network,
 
 #ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
   /// SSL certificate blobs.
-  boost::optional<SslCertificateBlobs> ssl_certificates_blobs_;
+  porting::optional<SslCertificateBlobs> ssl_certificates_blobs_;
 #endif
 };
 

@@ -24,10 +24,9 @@
 #include <chrono>
 #include <string>
 
-#include <boost/optional/optional.hpp>
-
 #include <olp/core/CoreApi.h>
 #include <olp/core/http/NetworkTypes.h>
+#include <olp/core/porting/optional.hpp>
 
 namespace olp {
 namespace http {
@@ -162,7 +161,7 @@ class CORE_API NetworkResponse final {
    *
    * @return Diagnostic values.
    */
-  const boost::optional<Diagnostics>& GetDiagnostics() const;
+  const porting::optional<Diagnostics>& GetDiagnostics() const;
 
   /**
    * @brief Sets the request diagnostics.
@@ -185,7 +184,7 @@ class CORE_API NetworkResponse final {
   /// The number of bytes downloaded during the network request.
   uint64_t bytes_downloaded_{0};
   /// Diagnostics
-  boost::optional<Diagnostics> diagnostics_;
+  porting::optional<Diagnostics> diagnostics_;
 };
 
 }  // namespace http

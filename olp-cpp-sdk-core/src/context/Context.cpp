@@ -19,7 +19,7 @@
 
 #include <olp/core/context/Context.h>
 
-#include <assert.h>
+#include <algorithm>
 #include <atomic>
 #include <cassert>
 #include <memory>

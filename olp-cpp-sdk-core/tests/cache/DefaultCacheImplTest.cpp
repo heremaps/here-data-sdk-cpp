@@ -1100,7 +1100,7 @@ TEST_F(DefaultCacheImplTest, ProtectTestWithoutMutableCache) {
     ASSERT_FALSE(cache.Release({key1}));
     ASSERT_FALSE(cache.Protect({key1}));
     cache.Close();
-    ASSERT_TRUE(olp::utils::Dir::Remove(settings.disk_path_protected.get()));
+    ASSERT_TRUE(olp::utils::Dir::Remove(*settings.disk_path_protected));
   }
 }
 
@@ -1364,7 +1364,7 @@ TEST_F(DefaultCacheImplTest, ProtectedCacheSize) {
       cache.Compact();
     }
 
-    settings.disk_path_mutable = boost::none;
+    settings.disk_path_mutable = olp::porting::none;
   }
 
   const uint64_t actual_size_on_disk = GetCacheSizeOnDisk();
@@ -1390,8 +1390,8 @@ TEST_F(DefaultCacheImplTest, ProtectedCacheSize) {
 struct OpenTestParameters {
   olp::cache::DefaultCache::StorageOpenResult expected_result;
   olp::cache::OpenOptions open_options;
-  boost::optional<std::string> disk_path_mutable;
-  boost::optional<std::string> disk_path_protected;
+  olp::porting::optional<std::string> disk_path_mutable;
+  olp::porting::optional<std::string> disk_path_protected;
 };
 
 class DefaultCacheImplOpenTest
@@ -1399,7 +1399,7 @@ class DefaultCacheImplOpenTest
       public testing::WithParamInterface<OpenTestParameters> {};
 
 TEST_P(DefaultCacheImplOpenTest, ReadOnlyDir) {
-  const auto setup_dir = [&](const boost::optional<std::string>& cache_path) {
+  const auto setup_dir = [&](const olp::porting::optional<std::string>& cache_path) {
     if (cache_path) {
       if (olp::utils::Dir::Exists(*cache_path)) {
         ASSERT_TRUE(olp::utils::Dir::Remove(*cache_path));
@@ -1409,7 +1409,7 @@ TEST_P(DefaultCacheImplOpenTest, ReadOnlyDir) {
     }
   };
 
-  const auto reset_dir = [&](const boost::optional<std::string>& cache_path) {
+  const auto reset_dir = [&](const olp::porting::optional<std::string>& cache_path) {
     if (cache_path) {
       ASSERT_TRUE(olp::utils::Dir::Remove(*cache_path));
     }
@@ -1435,13 +1435,13 @@ std::vector<OpenTestParameters> DefaultCacheImplOpenParams() {
   const std::string cache_path =
       olp::utils::Dir::TempDirectory() + "/unittest_readonly";
   return {{olp::cache::DefaultCache::StorageOpenResult::Success,
-           olp::cache::OpenOptions::Default, boost::none, cache_path},
+           olp::cache::OpenOptions::Default, olp::porting::none, cache_path},
           {olp::cache::DefaultCache::StorageOpenResult::Success,
-           olp::cache::OpenOptions::ReadOnly, boost::none, cache_path},
+           olp::cache::OpenOptions::ReadOnly, olp::porting::none, cache_path},
           {olp::cache::DefaultCache::StorageOpenResult::OpenDiskPathFailure,
-           olp::cache::OpenOptions::Default, cache_path, boost::none},
+           olp::cache::OpenOptions::Default, cache_path, olp::porting::none},
           {olp::cache::DefaultCache::StorageOpenResult::OpenDiskPathFailure,
-           olp::cache::OpenOptions::ReadOnly, cache_path, boost::none}};
+           olp::cache::OpenOptions::ReadOnly, cache_path, olp::porting::none}};
 }
 
 INSTANTIATE_TEST_SUITE_P(, DefaultCacheImplOpenTest,

@@ -28,9 +28,8 @@
 #include <olp/core/logging/Level.h>
 
 #include <olp/core/CoreApi.h>
+#include <olp/core/porting/optional.hpp>
 #include <olp/core/utils/WarningWorkarounds.h>
-
-#include <boost/optional.hpp>
 
 /**
  * @file
@@ -498,7 +497,7 @@ class CORE_API Log {
    * @return The log level for the tag or `core::None` if the log level is
    * unset.
    */
-  static boost::optional<Level> getLevel(const std::string& tag);
+  static porting::optional<Level> getLevel(const std::string& tag);
 
   /**
    * @brief Clears the log level for a tag and sets it to
