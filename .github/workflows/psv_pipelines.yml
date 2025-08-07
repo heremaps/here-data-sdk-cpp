@@ -273,3 +273,49 @@ jobs:
     - name: Commit checker script. Verify commit text
       run: scripts/misc/commit_checker.sh
       shell: bash
+
+  psv-formatting-checker:
+    name: PSV.Clang.Format.Checker
+    runs-on: ubuntu-22.04
+    env:
+      CLANG_FORMAT_FILE: "clang-format.diff"
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+    - name: Setup environment
+      run: |
+        set +x
+        set -e
+        sudo apt-get update
+        sudo apt-get install -y wget
+        mkdir _os_deps
+        cd _os_deps
+        wget https://apt.llvm.org/bionic/pool/main/l/llvm-toolchain-6.0/clang-format-6.0_6.0.1~svn334776-1~exp1~20190309042703.125_amd64.deb
+        wget https://apt.llvm.org/bionic/pool/main/l/llvm-toolchain-6.0/libllvm6.0_6.0.1~svn334776-1~exp1~20190309042703.125_amd64.deb
+        wget https://mirrors.edge.kernel.org/ubuntu/pool/main/libf/libffi/libffi6_3.2.1-8_amd64.deb
+        wget https://mirrors.edge.kernel.org/ubuntu/pool/universe/w/what-is-python/python-is-python2_2.7.17-4_all.deb
+        sudo apt-get install -y ./libffi6_3.2.1-8_amd64.deb
+        sudo apt-get install -y ./libllvm6.0_6.0.1~svn334776-1~exp1~20190309042703.125_amd64.deb
+        sudo apt-get remove python-is-python3
+        sudo apt-get install -y ./python-is-python2_2.7.17-4_all.deb
+        sudo apt-get install -y ./clang-format-6.0_6.0.1~svn334776-1~exp1~20190309042703.125_amd64.deb
+        cd ..
+      shell: bash
+    - name: "Clang format checker script"
+      run: ./scripts/misc/clang_format_ci.sh
+      shell: bash
+    - name: Store formatting check results
+      uses: actions/upload-artifact@v4
+      with:
+        name: clang-format-diff
+        path: ${{ env.CLANG_FORMAT_FILE }}
+    - name: Verify check result
+      run: |
+        set +x
+        if [ -s ${CLANG_FORMAT_FILE} ] ; then
+          echo "Unformatted files are detected. "
+          echo "You may apply provided patch. Download from the workflow summary and unpack to root of repository."
+          echo "Then run: git apply $CLANG_FORMAT_FILE"
+          exit 1
+        fi
+      shell: bash
