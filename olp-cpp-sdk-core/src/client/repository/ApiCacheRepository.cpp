@@ -37,22 +37,22 @@ ApiCacheRepository::ApiCacheRepository(
 
 void ApiCacheRepository::Put(const std::string& service,
                              const std::string& version, const std::string& url,
-                             boost::optional<time_t> expiry) {
+                             porting::optional<time_t> expiry) {
   const auto key = cache::KeyGenerator::CreateApiKey(hrn_, service, version);
   OLP_SDK_LOG_TRACE_F(kLogTag, "Put -> '%s'", key.c_str());
 
   cache_->Put(key, url, [&]() { return url; },
-              expiry.get_value_or(kLookupApiExpiryTime));
+              porting::value_or(expiry, kLookupApiExpiryTime));
 }
 
-boost::optional<std::string> ApiCacheRepository::Get(
+porting::optional<std::string> ApiCacheRepository::Get(
     const std::string& service, const std::string& version) {
   const auto key = cache::KeyGenerator::CreateApiKey(hrn_, service, version);
   OLP_SDK_LOG_TRACE_F(kLogTag, "Get -> '%s'", key.c_str());
 
   auto url = cache_->Get(key, [](const std::string& value) { return value; });
   if (url.empty()) {
-    return boost::none;
+    return porting::none;
   }
 
   return boost::any_cast<std::string>(url);

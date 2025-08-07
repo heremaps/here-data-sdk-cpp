@@ -24,8 +24,8 @@
 #include <string>
 #include <vector>
 
+#include <olp/core/porting/optional.hpp>
 #include <rapidjson/rapidjson.h>
-#include <boost/optional.hpp>
 
 namespace olp {
 namespace parser {
@@ -57,7 +57,7 @@ inline void from_json(const rapidjson::Value& value,
 }
 
 template <typename T>
-inline void from_json(const rapidjson::Value& value, boost::optional<T>& x) {
+inline void from_json(const rapidjson::Value& value, porting::optional<T>& x) {
   T result = T();
   from_json(value, result);
   x = result;

@@ -636,7 +636,7 @@ TEST_P(OlpClientTest, Proxy) {
 TEST_P(OlpClientTest, EmptyProxy) {
   auto network = network_;
   client_settings_.retry_settings.timeout = 100;
-  client_settings_.proxy_settings = boost::none;
+  client_settings_.proxy_settings = olp::porting::none;
   ASSERT_FALSE(client_settings_.proxy_settings);
 
   olp::http::NetworkProxySettings result_settings;

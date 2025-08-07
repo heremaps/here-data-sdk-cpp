@@ -33,13 +33,13 @@ using olp::logging::Log;
 
 TEST(FilterGroupTest, DefaultLevel) {
   FilterGroup filter_group;
-  EXPECT_EQ(boost::none, filter_group.getLevel());
+  EXPECT_EQ(olp::porting::none, filter_group.getLevel());
   filter_group.setLevel(Level::Info);
-  ASSERT_NE(boost::none, filter_group.getLevel());
+  ASSERT_NE(olp::porting::none, filter_group.getLevel());
   EXPECT_EQ(Level::Info, *filter_group.getLevel());
 
   filter_group.clearLevel();
-  EXPECT_EQ(boost::none, filter_group.getLevel());
+  EXPECT_EQ(olp::porting::none, filter_group.getLevel());
 }
 
 TEST(FilterGroupTest, TagLevels) {
@@ -47,20 +47,20 @@ TEST(FilterGroupTest, TagLevels) {
   filter_group.setLevel(Level::Info, "test1");
   filter_group.setLevel(Level::Warning, "test2");
 
-  ASSERT_NE(boost::none, filter_group.getLevel("test1"));
+  ASSERT_NE(olp::porting::none, filter_group.getLevel("test1"));
   EXPECT_EQ(Level::Info, *filter_group.getLevel("test1"));
-  ASSERT_NE(boost::none, filter_group.getLevel("test2"));
+  ASSERT_NE(olp::porting::none, filter_group.getLevel("test2"));
   EXPECT_EQ(Level::Warning, *filter_group.getLevel("test2"));
 
-  EXPECT_EQ(boost::none, filter_group.getLevel("asdf"));
+  EXPECT_EQ(olp::porting::none, filter_group.getLevel("asdf"));
   filter_group.setLevel(Level::Error, "test1");
 
-  ASSERT_NE(boost::none, filter_group.getLevel("test1"));
+  ASSERT_NE(olp::porting::none, filter_group.getLevel("test1"));
   EXPECT_EQ(Level::Error, *filter_group.getLevel("test1"));
 
   filter_group.clearLevel("test1");
-  EXPECT_EQ(boost::none, filter_group.getLevel("test1"));
-  ASSERT_NE(boost::none, filter_group.getLevel("test2"));
+  EXPECT_EQ(olp::porting::none, filter_group.getLevel("test1"));
+  ASSERT_NE(olp::porting::none, filter_group.getLevel("test2"));
   EXPECT_EQ(Level::Warning, *filter_group.getLevel("test2"));
 }
 
@@ -71,9 +71,9 @@ TEST(FilterGroupTest, Clear) {
   filter_group.setLevel(Level::Warning, "test2");
 
   filter_group.clear();
-  EXPECT_EQ(boost::none, filter_group.getLevel());
-  EXPECT_EQ(boost::none, filter_group.getLevel("test1"));
-  EXPECT_EQ(boost::none, filter_group.getLevel("test2"));
+  EXPECT_EQ(olp::porting::none, filter_group.getLevel());
+  EXPECT_EQ(olp::porting::none, filter_group.getLevel("test1"));
+  EXPECT_EQ(olp::porting::none, filter_group.getLevel("test2"));
 }
 
 TEST(FilterGroupTest, Apply) {
@@ -140,9 +140,9 @@ TEST(FilterGroupTest, LoadEmpty) {
 
   std::stringstream stream("");
   EXPECT_TRUE(filter_group.load(stream));
-  EXPECT_EQ(boost::none, filter_group.getLevel());
-  EXPECT_EQ(boost::none, filter_group.getLevel("test1"));
-  EXPECT_EQ(boost::none, filter_group.getLevel("test2"));
+  EXPECT_EQ(olp::porting::none, filter_group.getLevel());
+  EXPECT_EQ(olp::porting::none, filter_group.getLevel("test1"));
+  EXPECT_EQ(olp::porting::none, filter_group.getLevel("test2"));
 }
 
 TEST(FilterGroupTest, Load) {
@@ -159,12 +159,12 @@ TEST(FilterGroupTest, Load) {
       ": info");
   EXPECT_TRUE(filter_group.load(stream));
 
-  ASSERT_NE(boost::none, filter_group.getLevel());
+  ASSERT_NE(olp::porting::none, filter_group.getLevel());
   EXPECT_EQ(Level::Info, *filter_group.getLevel());
-  EXPECT_EQ(boost::none, filter_group.getLevel("test1"));
-  ASSERT_NE(boost::none, filter_group.getLevel("test2"));
+  EXPECT_EQ(olp::porting::none, filter_group.getLevel("test1"));
+  ASSERT_NE(olp::porting::none, filter_group.getLevel("test2"));
   EXPECT_EQ(Level::Error, *filter_group.getLevel("test2"));
-  ASSERT_NE(boost::none, filter_group.getLevel("test3"));
+  ASSERT_NE(olp::porting::none, filter_group.getLevel("test3"));
   EXPECT_EQ(Level::Off, *filter_group.getLevel("test3"));
 }
 
@@ -177,9 +177,9 @@ TEST(FilterGroupTest, LoadBadSyntax) {
   {
     std::stringstream stream("asdf");
     EXPECT_FALSE(filter_group.load(stream));
-    EXPECT_EQ(boost::none, filter_group.getLevel());
-    EXPECT_EQ(boost::none, filter_group.getLevel("test1"));
-    EXPECT_EQ(boost::none, filter_group.getLevel("test2"));
+    EXPECT_EQ(olp::porting::none, filter_group.getLevel());
+    EXPECT_EQ(olp::porting::none, filter_group.getLevel("test1"));
+    EXPECT_EQ(olp::porting::none, filter_group.getLevel("test2"));
   }
 
   {

@@ -760,12 +760,15 @@ ErrorCode NetworkCurl::SendImplementation(
 
 #ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
   if (ssl_certificates_blobs_) {
-    curl_easy_setopt(curl_handle, CURLOPT_SSLCERT_BLOB,
-                     ssl_certificates_blobs_->ssl_cert_blob.get_ptr());
-    curl_easy_setopt(curl_handle, CURLOPT_SSLKEY_BLOB,
-                     ssl_certificates_blobs_->ssl_key_blob.get_ptr());
-    curl_easy_setopt(curl_handle, CURLOPT_CAINFO_BLOB,
-                     ssl_certificates_blobs_->ca_info_blob.get_ptr());
+    curl_easy_setopt(
+        curl_handle, CURLOPT_SSLCERT_BLOB,
+        olp::porting::get_ptr(ssl_certificates_blobs_->ssl_cert_blob));
+    curl_easy_setopt(
+        curl_handle, CURLOPT_SSLKEY_BLOB,
+        olp::porting::get_ptr(ssl_certificates_blobs_->ssl_key_blob));
+    curl_easy_setopt(
+        curl_handle, CURLOPT_CAINFO_BLOB,
+        olp::porting::get_ptr(ssl_certificates_blobs_->ca_info_blob));
   } else
 #endif
   {

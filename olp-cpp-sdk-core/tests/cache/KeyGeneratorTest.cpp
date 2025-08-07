@@ -106,7 +106,7 @@ TEST(KeyGeneratorTest, CreatePartitionKey) {
     SCOPED_TRACE("No version");
 
     const auto key = KeyGenerator::CreatePartitionKey(
-        kCatalogHrn, kLayerName, kPartitionName, boost::none);
+        kCatalogHrn, kLayerName, kPartitionName, olp::porting::none);
 
     EXPECT_EQ(key, kCatalogHrn + "::" + kLayerName + "::" + kPartitionName +
                        "::partition");
@@ -116,7 +116,7 @@ TEST(KeyGeneratorTest, CreatePartitionKey) {
     SCOPED_TRACE("Empty values");
 
     // Not a special case, just make sure it will not crash.
-    const auto key = KeyGenerator::CreatePartitionKey("", "", "", boost::none);
+    const auto key = KeyGenerator::CreatePartitionKey("", "", "", olp::porting::none);
 
     EXPECT_EQ(key, "::::::partition");
   }
@@ -137,7 +137,7 @@ TEST(KeyGeneratorTest, CreatePatitionsKey) {
     SCOPED_TRACE("No version");
 
     const auto key =
-        KeyGenerator::CreatePartitionsKey(kCatalogHrn, kLayerName, boost::none);
+        KeyGenerator::CreatePartitionsKey(kCatalogHrn, kLayerName, olp::porting::none);
 
     EXPECT_EQ(key, kCatalogHrn + "::" + kLayerName + "::partitions");
   }
@@ -146,7 +146,7 @@ TEST(KeyGeneratorTest, CreatePatitionsKey) {
     SCOPED_TRACE("Empty values");
 
     // Not a special case, just make sure it will not crash.
-    const auto key = KeyGenerator::CreatePartitionsKey("", "", boost::none);
+    const auto key = KeyGenerator::CreatePartitionsKey("", "", olp::porting::none);
 
     EXPECT_EQ(key, "::::partitions");
   }
@@ -193,7 +193,7 @@ TEST(KeyGeneratorTest, CreateQuadTreeKey) {
     SCOPED_TRACE("No version");
 
     const auto key = KeyGenerator::CreateQuadTreeKey(
-        kCatalogHrn, kLayerName, root_tile, boost::none, depth);
+        kCatalogHrn, kLayerName, root_tile, olp::porting::none, depth);
 
     EXPECT_EQ(key, kCatalogHrn + "::" + kLayerName +
                        "::" + root_tile.ToHereTile() +
@@ -205,7 +205,7 @@ TEST(KeyGeneratorTest, CreateQuadTreeKey) {
 
     // Not a special case, just make sure it will not crash.
     const auto key =
-        KeyGenerator::CreateQuadTreeKey("", "", root_tile, boost::none, depth);
+        KeyGenerator::CreateQuadTreeKey("", "", root_tile, olp::porting::none, depth);
 
     EXPECT_EQ(key, "::::" + root_tile.ToHereTile() +
                        "::" + std::to_string(depth) + "::quadtree");

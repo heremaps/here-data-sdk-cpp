@@ -297,9 +297,9 @@ TileKey::TileKeyQuadrant TileKey::RelationshipToParent() const {
                                                Column() - sw_tile.Column());
 }
 
-boost::optional<std::uint32_t> GetMinTileKeyLevel(const TileKeyLevels& levels) {
+porting::optional<std::uint32_t> GetMinTileKeyLevel(const TileKeyLevels& levels) {
   if (levels.none()) {
-    return boost::none;
+    return porting::none;
   }
 
   const auto level_bits = levels.to_ulong();
@@ -319,20 +319,20 @@ boost::optional<std::uint32_t> GetMinTileKeyLevel(const TileKeyLevels& levels) {
   PORTING_POP_WARNINGS();
 }
 
-boost::optional<std::uint32_t> GetMaxTileKeyLevel(const TileKeyLevels& levels) {
+porting::optional<std::uint32_t> GetMaxTileKeyLevel(const TileKeyLevels& levels) {
   if (levels.none()) {
-    return boost::none;
+    return porting::none;
   }
 
   return static_cast<std::uint32_t>(std::log2(levels.to_ulong()));
 }
 
-boost::optional<std::uint32_t> GetNearestAvailableTileKeyLevel(
+porting::optional<std::uint32_t> GetNearestAvailableTileKeyLevel(
     const TileKeyLevels& levels, const std::uint32_t reference_level) {
   const auto min_level = geo::GetMinTileKeyLevel(levels);
   const auto max_level = geo::GetMaxTileKeyLevel(levels);
   if (!min_level || !max_level) {
-    return boost::none;
+    return porting::none;
   }
 
   int level = std::max(std::min(reference_level, *max_level), *min_level);

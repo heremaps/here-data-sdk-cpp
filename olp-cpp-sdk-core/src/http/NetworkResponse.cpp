@@ -70,7 +70,7 @@ NetworkResponse& NetworkResponse::WithDiagnostics(Diagnostics diagnostics) {
   return *this;
 }
 
-const boost::optional<Diagnostics>& NetworkResponse::GetDiagnostics() const {
+const porting::optional<Diagnostics>& NetworkResponse::GetDiagnostics() const {
   return diagnostics_;
 }
 

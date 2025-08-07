@@ -224,7 +224,7 @@ CancellationToken ApiLookupClientImpl::LookupApi(
 
 OlpClient ApiLookupClientImpl::CreateAndCacheClient(
     const std::string& base_url, const std::string& cache_key,
-    boost::optional<time_t> expiration) {
+    porting::optional<time_t> expiration) {
   const auto new_expiration =
       std::chrono::steady_clock::now() +
       std::chrono::seconds(expiration.value_or(kLookupApiDefaultExpiryTime));
@@ -250,7 +250,7 @@ OlpClient ApiLookupClientImpl::CreateAndCacheClient(
   return client_with_expiration.client;
 }
 
-boost::optional<OlpClient> ApiLookupClientImpl::GetCachedClient(
+porting::optional<OlpClient> ApiLookupClientImpl::GetCachedClient(
     const std::string& service, const std::string& service_version) {
   const std::string key = ClientCacheKey(service, service_version);
 
@@ -278,7 +278,7 @@ boost::optional<OlpClient> ApiLookupClientImpl::GetCachedClient(
     OLP_SDK_LOG_DEBUG_F(
         kLogTag, "LookupApi(%s/%s) cache miss in disk cache, hrn='%s'",
         service.c_str(), service_version.c_str(), catalog_string_.c_str());
-    return boost::none;
+    return porting::none;
   }
 
   // When the service url is retrieved from disk cache we assume it is valid for

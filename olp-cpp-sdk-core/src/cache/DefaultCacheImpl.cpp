@@ -763,36 +763,36 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupProtectedCache() {
   OpenOptions open_mode = settings_.openOptions;
   bool is_read_only = (settings_.openOptions & ReadOnly) == ReadOnly;
   if (!is_read_only) {
-    if (utils::Dir::IsReadOnly(settings_.disk_path_protected.get())) {
+    if (utils::Dir::IsReadOnly(*settings_.disk_path_protected)) {
       OLP_SDK_LOG_INFO_F(kLogTag,
                          "R/W permission missing, opening protected cache in "
                          "r/o mode, disk_path_protected='%s'",
-                         settings_.disk_path_protected.get().c_str());
+                         settings_.disk_path_protected->c_str());
       open_mode = static_cast<OpenOptions>(open_mode | OpenOptions::ReadOnly);
       is_read_only = true;
     }
   }
 
   auto status = protected_cache_->Open(
-      settings_.disk_path_protected.get(), settings_.disk_path_protected.get(),
+      *settings_.disk_path_protected, *settings_.disk_path_protected,
       protected_storage_settings, open_mode, false);
 
   if (status == OpenResult::IOError && !is_read_only) {
     OLP_SDK_LOG_INFO_F(
         kLogTag,
         "Failed to open in r/w mode, trying r/o, disk_path_protected='%s'",
-        settings_.disk_path_protected.get().c_str());
+        settings_.disk_path_protected->c_str());
 
     open_mode = static_cast<OpenOptions>(open_mode | OpenOptions::ReadOnly);
     status =
-        protected_cache_->Open(settings_.disk_path_protected.get(),
-                               settings_.disk_path_protected.get(),
+        protected_cache_->Open(*settings_.disk_path_protected,
+                               *settings_.disk_path_protected,
                                protected_storage_settings, open_mode, false);
   }
 
   if (status != OpenResult::Success) {
     OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to open protected cache %s",
-                        settings_.disk_path_protected.get().c_str());
+                        settings_.disk_path_protected->c_str());
 
     protected_cache_.reset();
     return ToStorageOpenResult(status);
@@ -805,14 +805,14 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupMutableCache() {
   auto storage_settings = CreateStorageSettings(settings_);
 
   mutable_cache_ = std::make_unique<DiskCache>(settings_.extend_permissions);
-  auto status = mutable_cache_->Open(settings_.disk_path_mutable.get(),
-                                     settings_.disk_path_mutable.get(),
+  auto status = mutable_cache_->Open(*settings_.disk_path_mutable,
+                                     *settings_.disk_path_mutable,
                                      storage_settings, settings_.openOptions);
   if (status == OpenResult::Repaired) {
     OLP_SDK_LOG_INFO(kLogTag, "Mutable cache was repaired");
   } else if (status == OpenResult::Fail) {
     OLP_SDK_LOG_ERROR_F(kLogTag, "Failed to open the mutable cache %s",
-                        settings_.disk_path_mutable.get().c_str());
+                        settings_.disk_path_mutable->c_str());
 
     mutable_cache_.reset();
     return StorageOpenResult::OpenDiskPathFailure;
@@ -913,7 +913,7 @@ OperationOutcomeEmpty DefaultCacheImpl::GetFromDiskCache(
   return client::ApiError::NotFound();
 }
 
-boost::optional<std::pair<std::string, time_t>>
+porting::optional<std::pair<std::string, time_t>>
 DefaultCacheImpl::GetFromDiscCache(const std::string& key) {
   KeyValueCache::ValueTypePtr value = nullptr;
   time_t expiry = KeyValueCache::kDefaultExpiry;
@@ -922,7 +922,7 @@ DefaultCacheImpl::GetFromDiscCache(const std::string& key) {
     return std::make_pair(std::string(value->begin(), value->end()), expiry);
   }
 
-  return boost::none;
+  return porting::none;
 }
 
 std::string DefaultCacheImpl::GetExpiryKey(const std::string& key) const {

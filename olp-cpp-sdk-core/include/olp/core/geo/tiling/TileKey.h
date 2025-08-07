@@ -23,9 +23,8 @@
 #include <cstdint>
 #include <string>
 
-#include <boost/optional.hpp>
-
 #include <olp/core/CoreApi.h>
+#include <olp/core/porting/optional.hpp>
 
 namespace olp {
 namespace geo {
@@ -66,7 +65,7 @@ class CORE_API TileKey {
   enum { MaxLevel = LevelCount - 1 };
 
   /**
-   * @brief The main direction used to find a child node or 
+   * @brief The main direction used to find a child node or
    * the relationship to the parent.
    *
    * Corresponds directly to the index in the `GetChild` function.
@@ -504,7 +503,7 @@ using TileKeyLevels = std::bitset<TileKey::LevelCount>;
  *
  * @return The minimum level or `core::None` if the set is empty.
  */
-CORE_API boost::optional<std::uint32_t> GetMinTileKeyLevel(
+CORE_API porting::optional<std::uint32_t> GetMinTileKeyLevel(
     const TileKeyLevels& levels);
 
 /**
@@ -514,7 +513,7 @@ CORE_API boost::optional<std::uint32_t> GetMinTileKeyLevel(
  *
  * @return The maximum level or `core::None` if the set is empty.
  */
-CORE_API boost::optional<std::uint32_t> GetMaxTileKeyLevel(
+CORE_API porting::optional<std::uint32_t> GetMaxTileKeyLevel(
     const TileKeyLevels& levels);
 
 /**
@@ -526,7 +525,7 @@ CORE_API boost::optional<std::uint32_t> GetMaxTileKeyLevel(
  *
  * @return The nearest level or `core::None` if the set is empty.
  */
-CORE_API boost::optional<std::uint32_t> GetNearestAvailableTileKeyLevel(
+CORE_API porting::optional<std::uint32_t> GetNearestAvailableTileKeyLevel(
     const TileKeyLevels& levels, const std::uint32_t reference_level);
 
 /**

@@ -35,20 +35,20 @@ namespace {
 using NetworkUtils = olp::http::NetworkUtils;
 const std::string kExpiryHeader = "cache-control";
 
-boost::optional<time_t> GetExpiry(const olp::http::Headers& headers) {
+olp::porting::optional<time_t> GetExpiry(const olp::http::Headers& headers) {
   auto it = std::find_if(headers.begin(), headers.end(),
                          [](const olp::http::Header& header) {
                            return NetworkUtils::CaseInsensitiveCompare(
                                header.first, kExpiryHeader);
                          });
   if (it == headers.end()) {
-    return boost::none;
+    return olp::porting::none;
   }
 
   const auto& expiry_str = it->second;
   std::size_t index = NetworkUtils::CaseInsensitiveFind(expiry_str, "max-age=");
   if (index == std::string::npos) {
-    return boost::none;
+    return olp::porting::none;
   }
 
   auto expiry = std::stoi(expiry_str.substr(index + 8));

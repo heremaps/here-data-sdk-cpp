@@ -488,7 +488,7 @@ class OlpClient::OlpClientImpl {
       const ParametersType& query_params, const ParametersType& header_params,
       const RequestBodyType& post_body, const std::string& content_type) const;
 
-  boost::optional<ApiError> AddBearer(bool query_empty,
+  porting::optional<ApiError> AddBearer(bool query_empty,
                                       http::NetworkRequest& request,
                                       CancellationContext& context) const;
 
@@ -526,19 +526,19 @@ OlpClient::OlpClientImpl::GetMutableDefaultHeaders() {
   return default_headers_;
 }
 
-boost::optional<client::ApiError> OlpClient::OlpClientImpl::AddBearer(
+porting::optional<client::ApiError> OlpClient::OlpClientImpl::AddBearer(
     bool query_empty, http::NetworkRequest& request,
     CancellationContext& context) const {
   const auto& settings = settings_.authentication_settings;
   if (!settings) {
-    return boost::none;
+    return porting::none;
   }
 
   if (settings->api_key_provider) {
     const auto& api_key = settings->api_key_provider();
     request.WithUrl(request.GetUrl() + (query_empty ? "?" : "&") +
                     kApiKeyParam + api_key);
-    return boost::none;
+    return porting::none;
   }
 
   std::string token;
@@ -552,7 +552,7 @@ boost::optional<client::ApiError> OlpClient::OlpClientImpl::AddBearer(
     token = response.GetResult().GetAccessToken();
   } else {
     // There is no token provider defined.
-    return boost::none;
+    return porting::none;
   }
 
   if (token.empty()) {
@@ -563,7 +563,7 @@ boost::optional<client::ApiError> OlpClient::OlpClientImpl::AddBearer(
 
   request.WithHeader(http::kAuthorizationHeader,
                      http::kBearer + std::string(" ") + token);
-  return boost::none;
+  return porting::none;
 }
 
 bool OlpClient::OlpClientImpl::ValidateBaseUrl() const {
