@@ -129,7 +129,7 @@ std::string GenerateUid() {
 
 client::OlpClient::RequestBodyType GenerateClientBody(
     const TokenRequest& token_request,
-    const boost::optional<std::string>& scope) {
+    const porting::optional<std::string>& scope) {
   rapidjson::StringBuffer data;
   rapidjson::Writer<rapidjson::StringBuffer> writer(data);
   writer.StartObject();
@@ -146,7 +146,7 @@ client::OlpClient::RequestBodyType GenerateClientBody(
 
   if (scope) {
     writer.Key(kScope);
-    writer.String(scope.get().c_str());
+    writer.String(scope->c_str());
   }
 
   writer.EndObject();
@@ -211,10 +211,11 @@ client::CancellationToken TokenEndpointImpl::RequestToken(
           return;
         }
 
-        callback(TokenResult{
-            sign_in_result.GetAccessToken(), sign_in_result.GetExpiresIn(),
-            sign_in_result.GetScope().empty() ? boost::optional<std::string>{}
-                                              : sign_in_result.GetScope()});
+        callback(TokenResult{sign_in_result.GetAccessToken(),
+                             sign_in_result.GetExpiresIn(),
+                             sign_in_result.GetScope().empty()
+                                 ? olp::porting::optional<std::string>{}
+                                 : sign_in_result.GetScope()});
       });
 }
 
@@ -251,7 +252,7 @@ TokenResponse TokenEndpointImpl::RequestToken(
 
   return TokenResult{
       sign_in_result.GetAccessToken(), sign_in_result.GetExpiresIn(),
-      sign_in_result.GetScope().empty() ? boost::optional<std::string>{}
+      sign_in_result.GetScope().empty() ? olp::porting::optional<std::string>{}
                                         : sign_in_result.GetScope()};
 }
 
@@ -266,7 +267,7 @@ SignInResponse TokenEndpointImpl::SignInClient(
     return client::ApiError::Cancelled();
   }
 
-  auto client = CreateOlpClient(settings_, boost::none, false);
+  auto client = CreateOlpClient(settings_, porting::none, false);
 
   RequestTimer timer = CreateRequestTimer(client, context);
 

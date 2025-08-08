@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <boost/optional.hpp>
 #include <string>
 
 #include <olp/authentication/AuthenticationClient.h>
@@ -30,6 +29,7 @@
 #include <olp/authentication/Types.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/OlpClient.h>
+#include <olp/core/porting/optional.hpp>
 #include "TokenRequest.h"
 
 namespace olp {
@@ -90,7 +90,7 @@ class TokenEndpointImpl {
                                   client::CancellationContext& context) const;
 
   const AuthenticationCredentials credentials_;
-  const boost::optional<std::string> scope_;
+  const porting::optional<std::string> scope_;
   const AuthenticationSettings settings_;
   AuthenticationClient auth_client_;
 };

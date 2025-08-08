@@ -265,24 +265,24 @@ Response<SignInResponseType> AuthenticationClientImpl::GetSignInResponse(
 }
 
 template <>
-boost::optional<SignInResult> AuthenticationClientImpl::FindInCache(
+porting::optional<SignInResult> AuthenticationClientImpl::FindInCache(
     const std::string& key) {
   return client_token_cache_->locked(
       [&](utils::LruCache<std::string, SignInResult>& cache) {
         auto it = cache.Find(key);
-        return it != cache.end() ? boost::make_optional(it->value())
-                                 : boost::none;
+        return it != cache.end() ? porting::make_optional(it->value())
+                                 : porting::none;
       });
 }
 
 template <>
-boost::optional<SignInUserResult> AuthenticationClientImpl::FindInCache(
+porting::optional<SignInUserResult> AuthenticationClientImpl::FindInCache(
     const std::string& key) {
   return user_token_cache_->locked(
       [&](utils::LruCache<std::string, SignInUserResult>& cache) {
         auto it = cache.Find(key);
-        return it != cache.end() ? boost::make_optional(it->value())
-                                 : boost::none;
+        return it != cache.end() ? porting::make_optional(it->value())
+                                 : porting::none;
       });
 }
 
@@ -325,7 +325,7 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
     // endpoint with it. Construction of the `OlpClient` requires the host part
     // of URL, while `CallAuth` method - the rest of URL, hence we need to split
     // URL passed in the Credentials object.
-    const auto credentials_endpoint = credentials.GetEndpointUrl();
+    const auto& credentials_endpoint = credentials.GetEndpointUrl();
     const auto maybe_host_and_rest =
         olp::utils::Url::ParseHostAndRest(credentials_endpoint);
     if (maybe_host_and_rest) {
@@ -338,7 +338,7 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
     // settings object.
     auto settings = settings_;
     settings.token_endpoint_url = olp_client_host;
-    auto client = CreateOlpClient(settings, boost::none, false);
+    auto client = CreateOlpClient(settings, porting::none, false);
 
     RequestTimer timer = CreateRequestTimer(client, context);
 
@@ -472,7 +472,7 @@ client::CancellationToken AuthenticationClientImpl::SignInApple(
       return client::ApiError::Cancelled();
     }
 
-    auto client = CreateOlpClient(settings_, boost::none);
+    auto client = CreateOlpClient(settings_, porting::none);
 
     auto auth_response = CallApi(client, kOauthEndpoint, context,
                                  properties.GetAccessToken(), request_body);
@@ -534,7 +534,7 @@ client::CancellationToken AuthenticationClientImpl::HandleUserRequest(
       return client::ApiError::Cancelled();
     }
 
-    auto client = CreateOlpClient(settings_, boost::none, false);
+    auto client = CreateOlpClient(settings_, porting::none, false);
 
     RequestTimer timer = CreateRequestTimer(client, context);
 
@@ -834,12 +834,12 @@ client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateClientBody(
 
   if (properties.scope) {
     writer.Key(kScope);
-    writer.String(properties.scope.get().c_str());
+    writer.String(properties.scope->c_str());
   }
 
   if (properties.device_id) {
     writer.Key(kDeviceId);
-    writer.String(properties.device_id.get().c_str());
+    writer.String(properties.device_id->c_str());
   }
 
   writer.EndObject();

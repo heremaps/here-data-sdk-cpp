@@ -22,7 +22,7 @@
 namespace olp {
 namespace authentication {
 TokenResult::TokenResult(std::string access_token, time_t expiry_time,
-                         boost::optional<std::string> scope)
+                         porting::optional<std::string> scope)
     : access_token_(std::move(access_token)),
       expiry_time_(expiry_time),
       scope_(std::move(scope)) {
@@ -33,7 +33,7 @@ TokenResult::TokenResult(std::string access_token, time_t expiry_time,
 
 TokenResult::TokenResult(std::string access_token,
                          std::chrono::seconds expires_in,
-                         boost::optional<std::string> scope)
+                         porting::optional<std::string> scope)
     : access_token_(std::move(access_token)),
       expires_in_(expires_in),
       scope_(std::move(scope)) {
@@ -46,7 +46,7 @@ time_t TokenResult::GetExpiryTime() const { return expiry_time_; }
 
 std::chrono::seconds TokenResult::GetExpiresIn() const { return expires_in_; }
 
-const boost::optional<std::string>& TokenResult::GetScope() const {
+const porting::optional<std::string>& TokenResult::GetScope() const {
   return scope_;
 }
 

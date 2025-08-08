@@ -22,6 +22,7 @@
 #include <chrono>
 #include <iomanip>
 #include <sstream>
+#include <utility>
 
 #include <olp/authentication/Crypto.h>
 #include <rapidjson/document.h>
@@ -123,7 +124,7 @@ std::time_t ParseTime(const std::string& value) {
 
 #endif
 
-boost::optional<std::time_t> GetTimestampFromHeaders(
+porting::optional<std::time_t> GetTimestampFromHeaders(
     const olp::http::Headers& headers) {
   auto it =
       std::find_if(begin(headers), end(headers),
@@ -134,7 +135,7 @@ boost::optional<std::time_t> GetTimestampFromHeaders(
   if (it != end(headers)) {
     return ParseTime(it->second);
   }
-  return boost::none;
+  return porting::none;
 }
 
 IntrospectAppResult GetIntrospectAppResult(const rapidjson::Document& doc) {
@@ -263,11 +264,11 @@ UserAccountInfoResponse GetUserAccountInfoResponse(
 
 client::OlpClient CreateOlpClient(
     const AuthenticationSettings& auth_settings,
-    boost::optional<client::AuthenticationSettings> authentication_settings,
-    bool retry) {
+    porting::optional<client::AuthenticationSettings> authentication_settings,
+    const bool retry) {
   client::OlpClientSettings settings;
   settings.network_request_handler = auth_settings.network_request_handler;
-  settings.authentication_settings = authentication_settings;
+  settings.authentication_settings = std::move(authentication_settings);
   settings.proxy_settings = auth_settings.network_proxy_settings;
   settings.retry_settings = auth_settings.retry_settings;
 

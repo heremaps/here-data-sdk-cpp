@@ -19,12 +19,12 @@
 
 #pragma once
 
-#include <boost/optional.hpp>
 #include <memory>
 #include <string>
 
 #include <olp/core/client/RetrySettings.h>
 #include <olp/core/http/NetworkProxySettings.h>
+#include <olp/core/porting/optional.hpp>
 
 #include "AuthenticationApi.h"
 #include "AuthenticationCredentials.h"
@@ -77,7 +77,7 @@ struct AUTHENTICATION_API Settings {
   /**
    * @brief (Optional) The configuration settings for the network layer.
    */
-  boost::optional<http::NetworkProxySettings> network_proxy_settings;
+  porting::optional<http::NetworkProxySettings> network_proxy_settings;
 
   /**
    * @brief (Optional) The server URL of the token endpoint.
@@ -108,7 +108,7 @@ struct AUTHENTICATION_API Settings {
   /**
    * @brief (Optional) The scope to be assigned to an access token requests.
    */
-  boost::optional<std::string> scope;
+  porting::optional<std::string> scope;
 };
 
 }  // namespace authentication
