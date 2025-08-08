@@ -19,10 +19,11 @@
 
 #pragma once
 
-#include <boost/optional.hpp>
 #include <memory>
 #include <string>
 #include <vector>
+
+#include <olp/core/porting/optional.h>
 
 namespace olp {
 namespace dataservice {
@@ -39,11 +40,11 @@ class ParentQuad {
   virtual ~ParentQuad() = default;
 
  private:
-  boost::optional<std::string> additional_metadata_;
-  boost::optional<std::string> checksum_;
-  boost::optional<int64_t> compressed_data_size_;
+  porting::optional<std::string> additional_metadata_;
+  porting::optional<std::string> checksum_;
+  porting::optional<int64_t> compressed_data_size_;
   std::string data_handle_;
-  boost::optional<int64_t> data_size_;
+  porting::optional<int64_t> data_size_;
   std::string partition_;
   int64_t version_{0};
 
@@ -52,11 +53,11 @@ class ParentQuad {
    * @brief Optional value for the additional metadata specified by the
    * publisher
    **/
-  boost::optional<std::string> GetAdditionalMetadata() const {
+  porting::optional<std::string> GetAdditionalMetadata() const {
     return additional_metadata_;
   }
 
-  void SetAdditionalMetadata(boost::optional<std::string> value) {
+  void SetAdditionalMetadata(porting::optional<std::string> value) {
     additional_metadata_ = value;
   }
 
@@ -69,9 +70,9 @@ class ParentQuad {
    * for this catalog. The maximum length of the checksum field is 128
    * characters.
    */
-  boost::optional<std::string> GetChecksum() const { return checksum_; }
+  porting::optional<std::string> GetChecksum() const { return checksum_; }
 
-  void SetChecksum(boost::optional<std::string> value) { checksum_ = value; }
+  void SetChecksum(porting::optional<std::string> value) { checksum_ = value; }
 
   /**
    * @brief Optional value for the size of the compressed partition data in
@@ -81,10 +82,10 @@ class ParentQuad {
    *&#x60;compressedDataSize&#x60; was specified in the partition metadata when
    *it was published.
    **/
-  boost::optional<int64_t> GetCompressedDataSize() const {
+  porting::optional<int64_t> GetCompressedDataSize() const {
     return compressed_data_size_;
   }
-  void SetCompressedDataSize(boost::optional<int64_t> value) {
+  void SetCompressedDataSize(porting::optional<int64_t> value) {
     compressed_data_size_ = value;
   }
 
@@ -104,8 +105,8 @@ class ParentQuad {
    * &#x60;additionalFields&#x60; query parameter, and if &#x60;dataSize&#x60;
    * was specified in the partition metadata when it was published.
    **/
-  boost::optional<int64_t> GetDataSize() const { return data_size_; }
-  void SetDataSize(boost::optional<int64_t> value) { data_size_ = value; }
+  porting::optional<int64_t> GetDataSize() const { return data_size_; }
+  void SetDataSize(porting::optional<int64_t> value) { data_size_ = value; }
 
   /**
    * @brief The id of the tile
@@ -130,11 +131,11 @@ class SubQuad {
   virtual ~SubQuad() = default;
 
  private:
-  boost::optional<std::string> additional_metadata_;
-  boost::optional<std::string> checksum_;
-  boost::optional<int64_t> compressed_data_size_;
+  porting::optional<std::string> additional_metadata_;
+  porting::optional<std::string> checksum_;
+  porting::optional<int64_t> compressed_data_size_;
   std::string data_handle_;
-  boost::optional<int64_t> data_size_;
+  porting::optional<int64_t> data_size_;
   std::string sub_quad_key_;
   int64_t version_{0};
 
@@ -143,11 +144,11 @@ class SubQuad {
    * @brief Optional value for the additional meta-data specified by the
    * publisher.
    **/
-  boost::optional<std::string> GetAdditionalMetadata() const {
+  porting::optional<std::string> GetAdditionalMetadata() const {
     return additional_metadata_;
   }
 
-  void SetAdditionalMetadata(boost::optional<std::string> value) {
+  void SetAdditionalMetadata(porting::optional<std::string> value) {
     additional_metadata_ = value;
   }
 
@@ -161,9 +162,9 @@ class SubQuad {
    * data comparison needs to work for this catalog. The maximum length of
    * checksum field is 128 characters.
    **/
-  boost::optional<std::string> GetChecksum() const { return checksum_; }
+  porting::optional<std::string> GetChecksum() const { return checksum_; }
 
-  void SetChecksum(boost::optional<std::string> value) { checksum_ = value; }
+  void SetChecksum(porting::optional<std::string> value) { checksum_ = value; }
 
   /**
    * @brief
@@ -174,10 +175,10 @@ class SubQuad {
    * request, and if the request for the commit of the partition specifies
    * compressedDataSize.
    **/
-  boost::optional<int64_t> GetCompressedDataSize() const {
+  porting::optional<int64_t> GetCompressedDataSize() const {
     return compressed_data_size_;
   }
-  void SetCompressedDataSize(boost::optional<int64_t> value) {
+  void SetCompressedDataSize(porting::optional<int64_t> value) {
     compressed_data_size_ = value;
   }
 
@@ -201,8 +202,8 @@ class SubQuad {
    * this information if you specify the dataSize field in the requested, and
    * if the request for the commit of the partition specifies dataSize.
    **/
-  boost::optional<int64_t> GetDataSize() const { return data_size_; }
-  void SetDataSize(boost::optional<int64_t> value) { data_size_ = value; }
+  porting::optional<int64_t> GetDataSize() const { return data_size_; }
+  void SetDataSize(porting::optional<int64_t> value) { data_size_ = value; }
 
   /**
    * @brief

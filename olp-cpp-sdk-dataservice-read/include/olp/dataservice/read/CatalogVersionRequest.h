@@ -23,8 +23,7 @@
 #include <string>
 #include <utility>
 
-#include <boost/optional.hpp>
-
+#include <olp/core/porting/optional.h>
 #include "DataServiceReadApi.h"
 #include "FetchOptions.h"
 
@@ -57,7 +56,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    *
    * @return A reference to the updated `CatalogVersionRequest` instance.
    */
-  inline CatalogVersionRequest& WithStartVersion(int64_t startVersion) {
+  CatalogVersionRequest& WithStartVersion(int64_t startVersion) {
     start_version_ = startVersion;
     return *this;
   }
@@ -69,10 +68,10 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    * billing records together. If supplied, it must be 4–16 characters
    * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
    *
-   * @return The `BillingTag` string or `boost::none` if the billing tag is not
-   * set.
+   * @return The `BillingTag` string or `olp::porting::none` if the billing tag
+   * is not set.
    */
-  inline const boost::optional<std::string>& GetBillingTag() const {
+  const porting::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
@@ -81,28 +80,13 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    *
    * @see `GetBillingTag()` for information on usage and format.
    *
-   * @param billingTag The `BillingTag` string or `boost::none`.
+   * @param billingTag The `BillingTag` string or `olp::porting::none`.
    *
    * @return A reference to the updated `CatalogVersionRequest` instance.
    */
-  inline CatalogVersionRequest& WithBillingTag(
-      boost::optional<std::string> billingTag) {
-    billing_tag_ = std::move(billingTag);
-    return *this;
-  }
-
-  /**
-   * @brief Sets the billing tag for the request.
-   *
-   * @see `GetBillingTag()` for information on usage and format.
-   *
-   * @param billingTag The rvalue reference to the `BillingTag` string or
-   * `boost::none`.
-   *
-   * @return A reference to the updated `CatalogVersionRequest` instance.
-   */
-  inline CatalogVersionRequest& WithBillingTag(std::string&& billingTag) {
-    billing_tag_ = std::move(billingTag);
+  template <class T = porting::optional<std::string>>
+  CatalogVersionRequest& WithBillingTag(T&& billingTag) {
+    billing_tag_ = std::forward<T>(billingTag);
     return *this;
   }
 
@@ -114,7 +98,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    *
    * @return The fetch option.
    */
-  inline FetchOptions GetFetchOption() const { return fetch_option_; }
+  FetchOptions GetFetchOption() const { return fetch_option_; }
 
   /**
    * @brief Sets the fetch option that you can use to set the source from
@@ -126,7 +110,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    *
    * @return A reference to the updated `CatalogVersionRequest` instance.
    */
-  inline CatalogVersionRequest& WithFetchOption(FetchOptions fetchoption) {
+  CatalogVersionRequest& WithFetchOption(FetchOptions fetchoption) {
     fetch_option_ = fetchoption;
     return *this;
   }
@@ -136,13 +120,13 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
    *
    * @return A string representation of the request.
    */
-  inline std::string CreateKey() const {
+  std::string CreateKey() const {
     std::stringstream out;
 
     out << "@" << GetStartVersion();
 
     if (GetBillingTag()) {
-      out << "$" << GetBillingTag().get();
+      out << "$" << *GetBillingTag();
     }
 
     out << "^" << GetFetchOption();
@@ -152,7 +136,7 @@ class DATASERVICE_READ_API CatalogVersionRequest final {
 
  private:
   int64_t start_version_{-1};
-  boost::optional<std::string> billing_tag_;
+  porting::optional<std::string> billing_tag_;
   FetchOptions fetch_option_{OnlineIfNotFound};
 };
 

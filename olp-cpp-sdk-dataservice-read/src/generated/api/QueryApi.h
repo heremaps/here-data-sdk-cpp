@@ -26,7 +26,7 @@
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/HttpResponse.h>
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.h>
 #include "ExtendedApiResponse.h"
 #include "generated/model/Index.h"
 #include "olp/dataservice/read/model/Partitions.h"
@@ -75,9 +75,9 @@ class QueryApi {
   static PartitionsExtendedResponse GetPartitionsbyId(
       const client::OlpClient& client, const std::string& layer_id,
       const std::vector<std::string>& partitions,
-      boost::optional<int64_t> version,
+      porting::optional<int64_t> version,
       const std::vector<std::string>& additional_fields,
-      boost::optional<std::string> billing_tag,
+      porting::optional<std::string> billing_tag,
       client::CancellationContext context);
 
   /**
@@ -111,9 +111,9 @@ class QueryApi {
    **/
   static olp::client::HttpResponse QuadTreeIndex(
       const client::OlpClient& client, const std::string& layer_id,
-      const std::string& quad_key, boost::optional<int64_t> version,
+      const std::string& quad_key, porting::optional<int64_t> version,
       int32_t depth, const std::vector<std::string>& additional_fields,
-      boost::optional<std::string> billing_tag,
+      porting::optional<std::string> billing_tag,
       client::CancellationContext context);
 
   /**
@@ -147,8 +147,8 @@ class QueryApi {
   static QuadTreeIndexResponse QuadTreeIndexVolatile(
       const client::OlpClient& client, const std::string& layer_id,
       const std::string& quad_key, int32_t depth,
-      boost::optional<std::vector<std::string>> additional_fields,
-      boost::optional<std::string> billing_tag,
+      porting::optional<std::vector<std::string>> additional_fields,
+      porting::optional<std::string> billing_tag,
       client::CancellationContext context);
 };
 

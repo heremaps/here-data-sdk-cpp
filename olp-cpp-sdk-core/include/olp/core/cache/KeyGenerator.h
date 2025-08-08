@@ -23,7 +23,7 @@
 
 #include <olp/core/CoreApi.h>
 #include <olp/core/geo/tiling/TileKey.h>
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 
 namespace olp {
 namespace cache {

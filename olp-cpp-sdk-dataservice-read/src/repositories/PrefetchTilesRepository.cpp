@@ -65,7 +65,7 @@ SubQuadsResult FlattenTree(const QuadTreeIndex& tree) {
 PrefetchTilesRepository::PrefetchTilesRepository(
     client::HRN catalog, std::string layer_id,
     client::OlpClientSettings settings, client::ApiLookupClient client,
-    boost::optional<std::string> billing_tag, NamedMutexStorage storage)
+    porting::optional<std::string> billing_tag, NamedMutexStorage storage)
     : catalog_(std::move(catalog)),
       catalog_str_(catalog_.ToString()),
       layer_id_(std::move(layer_id)),
@@ -275,7 +275,7 @@ SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
                      tile_key.c_str(), depth);
 
   auto quad_tree = QueryApi::QuadTreeIndexVolatile(
-      query_api.GetResult(), layer_id_, tile_key, depth, boost::none,
+      query_api.GetResult(), layer_id_, tile_key, depth, olp::porting::none,
       billing_tag_, context);
 
   if (!quad_tree.IsSuccessful()) {
@@ -307,8 +307,8 @@ SubQuadsResponse PrefetchTilesRepository::GetVolatileSubQuads(
                                                    subtile.ToHereTile()));
   }
 
-  const auto put_result =
-      cache_repository_.Put(partitions, boost::none, boost::none, false);
+  const auto put_result = cache_repository_.Put(partitions, olp::porting::none,
+                                                olp::porting::none, false);
   if (!put_result.IsSuccessful()) {
     OLP_SDK_LOG_ERROR_F(kLogTag,
                         "GetVolatileSubQuads failed to write data to cache, "

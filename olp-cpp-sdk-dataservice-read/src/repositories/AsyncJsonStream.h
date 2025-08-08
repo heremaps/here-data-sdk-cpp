@@ -23,9 +23,8 @@
 #include <mutex>
 #include <vector>
 
-#include <boost/optional.hpp>
-
 #include <olp/core/client/ApiError.h>
+#include <olp/core/porting/optional.h>
 
 namespace olp {
 namespace dataservice {
@@ -79,16 +78,16 @@ class AsyncJsonStream {
 
   void ResetStream(const char* content, size_t length);
 
-  void CloseStream(boost::optional<client::ApiError> error);
+  void CloseStream(porting::optional<client::ApiError> error);
 
-  boost::optional<client::ApiError> GetError() const;
+  porting::optional<client::ApiError> GetError() const;
 
   bool IsClosed() const;
 
  private:
   mutable std::mutex mutex_;
   std::shared_ptr<RapidJsonByteStream> current_stream_;
-  boost::optional<client::ApiError> error_;
+  porting::optional<client::ApiError> error_;
   bool closed_;
 };
 

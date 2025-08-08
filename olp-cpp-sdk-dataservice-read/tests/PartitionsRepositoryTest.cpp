@@ -267,7 +267,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 
     client::CancellationContext context;
     auto response = repository.GetPartitionById(
-        DataRequest(request).WithPartitionId(boost::none), kVersion, context);
+        DataRequest(request).WithPartitionId(olp::porting::none), kVersion,
+        context);
 
     ASSERT_FALSE(response.IsSuccessful());
     const auto& result = response.GetError();
@@ -320,8 +321,8 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     EXPECT_CALL(*cache, Write(Eq(cache_key_no_version), _, _)).Times(0);
 
     auto response = repository.GetPartitionById(
-        DataRequest(request).WithFetchOption(read::OnlineOnly), boost::none,
-        context);
+        DataRequest(request).WithFetchOption(read::OnlineOnly),
+        olp::porting::none, context);
 
     ASSERT_TRUE(response.IsSuccessful());
     const auto& partitions = response.GetResult().GetPartitions();
@@ -1244,7 +1245,8 @@ TEST_F(PartitionsRepositoryTest, GetTile) {
   auto request = read::TileRequest().WithTileKey(tile_key);
 
   const auto setup_get_cached_quad_expectations =
-      [&](const boost::optional<std::string>& root_data = boost::none) {
+      [&](const olp::porting::optional<std::string>& root_data =
+              olp::porting::none) {
         testing::InSequence sequence;
 
         for (int32_t i = depth; i > 0; --i) {
@@ -1847,7 +1849,7 @@ TEST_F(PartitionsRepositoryTest, ParsePartitionsStream) {
     SCOPED_TRACE("Closed empty input stream");
 
     auto async_stream = std::make_shared<repository::AsyncJsonStream>();
-    async_stream->CloseStream(boost::none);
+    async_stream->CloseStream(olp::porting::none);
 
     const auto response =
         repository.ParsePartitionsStream(async_stream, {}, context);
@@ -1912,7 +1914,7 @@ TEST_F(PartitionsRepositoryTest, ParsePartitionsStream) {
               olp::client::ErrorCode::Cancelled);
 
     // prevent stuck if the cancelation failed
-    async_stream->CloseStream(boost::none);
+    async_stream->CloseStream(olp::porting::none);
   }
 
   {
@@ -1921,7 +1923,7 @@ TEST_F(PartitionsRepositoryTest, ParsePartitionsStream) {
     const std::string to_parse = "{\"partitions\":[]}";
     auto async_stream = std::make_shared<repository::AsyncJsonStream>();
     async_stream->AppendContent(to_parse.c_str(), to_parse.length());
-    async_stream->CloseStream(boost::none);
+    async_stream->CloseStream(olp::porting::none);
 
     size_t callback_counter{0u};
     const auto callback = [&](model::Partition) -> void { ++callback_counter; };
@@ -1939,7 +1941,7 @@ TEST_F(PartitionsRepositoryTest, ParsePartitionsStream) {
         R"({"partitions":[{"version":731,"partition":"just-a-random-value","dataHandle":"another-value-to-check"}]})";
     auto async_stream = std::make_shared<repository::AsyncJsonStream>();
     async_stream->AppendContent(to_parse.c_str(), to_parse.length());
-    async_stream->CloseStream(boost::none);
+    async_stream->CloseStream(olp::porting::none);
 
     std::vector<model::Partition> recieved_partitions;
     const auto callback = [&](model::Partition partition) -> void {
@@ -1975,7 +1977,7 @@ TEST_F(PartitionsRepositoryTest, StreamPartitions) {
                                               settings, lookup_client);
 
   const std::vector<std::string> additional_fields;
-  boost::optional<std::string> billing_tag;
+  olp::porting::optional<std::string> billing_tag;
 
   {
     SCOPED_TRACE("Failed to get metadata");

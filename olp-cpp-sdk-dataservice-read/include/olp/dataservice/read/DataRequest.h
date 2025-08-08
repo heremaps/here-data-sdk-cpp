@@ -23,10 +23,10 @@
 #include <string>
 #include <utility>
 
+#include <olp/core/porting/optional.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <olp/dataservice/read/FetchOptions.h>
-#include <boost/optional.hpp>
 
 namespace olp {
 namespace dataservice {
@@ -47,7 +47,7 @@ class DATASERVICE_READ_API DataRequest final {
    *
    * @return The partition ID.
    */
-  inline const boost::optional<std::string>& GetPartitionId() const {
+  const porting::optional<std::string>& GetPartitionId() const {
     return partition_id_;
   }
 
@@ -61,24 +61,9 @@ class DATASERVICE_READ_API DataRequest final {
    *
    * @return A reference to the updated `DataRequest` instance.
    */
-  inline DataRequest& WithPartitionId(
-      boost::optional<std::string> partition_id) {
-    partition_id_ = std::move(partition_id);
-    return *this;
-  }
-
-  /**
-   * @brief Sets the partition ID.
-   *
-   * If the partition cannot be found in the layer, the callback returns
-   * with an empty response (the `null` result for data and an error).
-   *
-   * @param partition_id The partition ID.
-   *
-   * @return A reference to the updated `DataRequest` instance.
-   */
-  inline DataRequest& WithPartitionId(std::string&& partition_id) {
-    partition_id_ = std::move(partition_id);
+  template <class T = porting::optional<std::string>>
+  DataRequest& WithPartitionId(T&& partition_id) {
+    partition_id_ = std::forward<T>(partition_id);
     return *this;
   }
 
@@ -93,7 +78,7 @@ class DATASERVICE_READ_API DataRequest final {
    *
    * @return The partition data handle.
    */
-  inline const boost::optional<std::string>& GetDataHandle() const {
+  const porting::optional<std::string>& GetDataHandle() const {
     return data_handle_;
   }
 
@@ -109,25 +94,9 @@ class DATASERVICE_READ_API DataRequest final {
    *
    * @return A reference to the updated `DataRequest` instance.
    */
-  inline DataRequest& WithDataHandle(boost::optional<std::string> data_handle) {
-    data_handle_ = std::move(data_handle);
-    return *this;
-  }
-
-  /**
-   * @brief Sets the partition data handle.
-   *
-   * If the data handle cannot be found in the layer, the callback returns
-   * with an empty response (the `null` result for data and an error).
-   *
-   * @see `GetDataHandle` for information on the partition data handle.
-   *
-   * @param data_handle The partition data handle.
-   *
-   * @return A reference to the updated `DataRequest` instance.
-   */
-  inline DataRequest& WithDataHandle(std::string&& data_handle) {
-    data_handle_ = std::move(data_handle);
+  template <class T = porting::optional<std::string>>
+  DataRequest& WithDataHandle(T&& data_handle) {
+    data_handle_ = std::forward<T>(data_handle);
     return *this;
   }
 
@@ -138,10 +107,10 @@ class DATASERVICE_READ_API DataRequest final {
    * billing records together. If supplied, it must be 4–16 characters
    * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
    *
-   * @return The `BillingTag` string or `boost::none` if the billing tag is not
-   * set.
+   * @return The `BillingTag` string or `olp::porting::none` if the billing tag
+   * is not set.
    */
-  inline const boost::optional<std::string>& GetBillingTag() const {
+  const porting::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
@@ -150,27 +119,13 @@ class DATASERVICE_READ_API DataRequest final {
    *
    * @see `GetBillingTag()` for information on usage and format.
    *
-   * @param tag The `BillingTag` string or `boost::none`.
+   * @param tag The `BillingTag` string or `olp::porting::none`.
    *
    * @return A reference to the updated `DataRequest` instance.
    */
-  inline DataRequest& WithBillingTag(boost::optional<std::string> tag) {
-    billing_tag_ = std::move(tag);
-    return *this;
-  }
-
-  /**
-   * @brief Sets the billing tag for the request.
-   *
-   * @see `GetBillingTag()` for information on usage and format.
-   *
-   * @param tag The rvalue reference to the `BillingTag` string or
-   * `boost::none`.
-   *
-   * @return A reference to the updated `DataRequest` instance.
-   */
-  inline DataRequest& WithBillingTag(std::string&& tag) {
-    billing_tag_ = std::move(tag);
+  template <class T = porting::optional<std::string>>
+  DataRequest& WithBillingTag(T&& tag) {
+    billing_tag_ = std::forward<T>(tag);
     return *this;
   }
 
@@ -182,7 +137,7 @@ class DATASERVICE_READ_API DataRequest final {
    *
    * @return The fetch option.
    */
-  inline FetchOptions GetFetchOption() const { return fetch_option_; }
+  FetchOptions GetFetchOption() const { return fetch_option_; }
 
   /**
    * @brief Sets the fetch option that you can use to set the source from
@@ -194,7 +149,7 @@ class DATASERVICE_READ_API DataRequest final {
    *
    * @return A reference to the updated `DataRequest` instance.
    */
-  inline DataRequest& WithFetchOption(FetchOptions fetch_option) {
+  DataRequest& WithFetchOption(FetchOptions fetch_option) {
     fetch_option_ = fetch_option;
     return *this;
   }
@@ -206,7 +161,7 @@ class DATASERVICE_READ_API DataRequest final {
    *
    * @return The request priority.
    */
-  inline uint32_t GetPriority() const { return priority_; }
+  uint32_t GetPriority() const { return priority_; }
 
   /**
    * @brief Sets the priority of the request.
@@ -215,7 +170,7 @@ class DATASERVICE_READ_API DataRequest final {
    *
    * @return A reference to the updated `DataRequest` instance.
    */
-  inline DataRequest& WithPriority(uint32_t priority) {
+  DataRequest& WithPriority(uint32_t priority) {
     priority_ = priority;
     return *this;
   }
@@ -228,31 +183,31 @@ class DATASERVICE_READ_API DataRequest final {
    *
    * @return A string representation of the request.
    */
-  inline std::string CreateKey(const std::string& layer_id,
-                               boost::optional<int64_t> version) const {
+  std::string CreateKey(const std::string& layer_id,
+                        porting::optional<int64_t> version) const {
     std::stringstream out;
     out << layer_id << "[";
     if (GetPartitionId()) {
-      out << GetPartitionId().get();
+      out << *GetPartitionId();
     } else if (GetDataHandle()) {
-      out << GetDataHandle().get();
+      out << *GetDataHandle();
     }
     out << "]";
     if (version) {
-      out << "@" << version.get();
+      out << "@" << *version;
     }
     if (GetBillingTag()) {
-      out << "$" << GetBillingTag().get();
+      out << "$" << *GetBillingTag();
     }
     out << "^" << GetFetchOption();
     return out.str();
   }
 
  private:
-  boost::optional<std::string> partition_id_;
-  boost::optional<int64_t> catalog_version_;
-  boost::optional<std::string> data_handle_;
-  boost::optional<std::string> billing_tag_;
+  porting::optional<std::string> partition_id_;
+  porting::optional<int64_t> catalog_version_;
+  porting::optional<std::string> data_handle_;
+  porting::optional<std::string> billing_tag_;
   FetchOptions fetch_option_{OnlineIfNotFound};
   uint32_t priority_{thread::NORMAL};
 };

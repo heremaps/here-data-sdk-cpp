@@ -24,10 +24,10 @@
 #include <utility>
 #include <vector>
 
+#include <olp/core/porting/optional.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <olp/dataservice/read/FetchOptions.h>
-#include <boost/optional.hpp>
 
 namespace olp {
 namespace dataservice {
@@ -54,8 +54,7 @@ class DATASERVICE_READ_API PrefetchPartitionsRequest final {
    *
    * @return A reference to the updated `PrefetchPartitionsRequest` instance.
    */
-  inline PrefetchPartitionsRequest& WithPartitionIds(
-      PartitionIds partition_ids) {
+  PrefetchPartitionsRequest& WithPartitionIds(PartitionIds partition_ids) {
     partition_ids_ = std::move(partition_ids);
     return *this;
   }
@@ -74,10 +73,10 @@ class DATASERVICE_READ_API PrefetchPartitionsRequest final {
    * billing records together. If supplied, it must be 4–16 characters
    * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
    *
-   * @return The `BillingTag` string or `boost::none` if the billing tag is not
-   * set.
+   * @return The `BillingTag` string or `olp::porting::none` if the billing tag
+   * is not set.
    */
-  inline const boost::optional<std::string>& GetBillingTag() const {
+  const porting::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
@@ -86,28 +85,13 @@ class DATASERVICE_READ_API PrefetchPartitionsRequest final {
    *
    * @see `GetBillingTag()` for information on usage and format.
    *
-   * @param billing_tag The `BillingTag` string or `boost::none`.
+   * @param billing_tag The `BillingTag` string or `olp::porting::none`.
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
-  inline PrefetchPartitionsRequest& WithBillingTag(
-      boost::optional<std::string> billing_tag) {
-    billing_tag_ = std::move(billing_tag);
-    return *this;
-  }
-
-  /**
-   * @brief Sets the billing tag for the request.
-   *
-   * @see `GetBillingTag()` for information on usage and format.
-   *
-   * @param billing_tag The rvalue reference to the `BillingTag` string or
-   * `boost::none`.
-   *
-   * @return A reference to the updated `PrefetchTilesRequest` instance.
-   */
-  inline PrefetchPartitionsRequest& WithBillingTag(std::string&& billing_tag) {
-    billing_tag_ = std::move(billing_tag);
+  template <class T = porting::optional<std::string>>
+  PrefetchPartitionsRequest& WithBillingTag(T&& billing_tag) {
+    billing_tag_ = std::forward<T>(billing_tag);
     return *this;
   }
 
@@ -118,7 +102,7 @@ class DATASERVICE_READ_API PrefetchPartitionsRequest final {
    *
    * @return The request priority.
    */
-  inline uint32_t GetPriority() const { return priority_; }
+  uint32_t GetPriority() const { return priority_; }
 
   /**
    * @brief Sets the priority of the prefetch request.
@@ -127,7 +111,7 @@ class DATASERVICE_READ_API PrefetchPartitionsRequest final {
    *
    * @return A reference to the updated `PrefetchPartitionsRequest` instance.
    */
-  inline PrefetchPartitionsRequest& WithPriority(uint32_t priority) {
+  PrefetchPartitionsRequest& WithPriority(uint32_t priority) {
     priority_ = priority;
     return *this;
   }
@@ -140,19 +124,20 @@ class DATASERVICE_READ_API PrefetchPartitionsRequest final {
    *
    * @return A string representation of the request.
    */
-  std::string CreateKey(const std::string& layer_id,
-                        boost::optional<int64_t> version = boost::none) const {
+  std::string CreateKey(
+      const std::string& layer_id,
+      porting::optional<int64_t> version = porting::none) const {
     std::stringstream out;
     out << layer_id;
     if (version) {
-      out << "@" << version.get();
+      out << "@" << *version;
     }
     out << "^" << partition_ids_.size();
     if (!partition_ids_.empty()) {
       out << "[" << partition_ids_.front() << ", ...]";
     }
     if (GetBillingTag()) {
-      out << "$" << GetBillingTag().get();
+      out << "$" << *GetBillingTag();
     }
     out << "*" << priority_;
     return out.str();
@@ -160,7 +145,7 @@ class DATASERVICE_READ_API PrefetchPartitionsRequest final {
 
  private:
   PartitionIds partition_ids_;
-  boost::optional<std::string> billing_tag_;
+  porting::optional<std::string> billing_tag_;
   uint32_t priority_{thread::LOW};
 };
 

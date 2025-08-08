@@ -24,8 +24,8 @@
 
 #include <olp/core/client/ApiNoResult.h>
 #include <olp/core/client/HRN.h>
+#include <olp/core/porting/optional.h>
 #include <olp/dataservice/read/model/Data.h>
-#include <boost/optional.hpp>
 
 namespace olp {
 namespace cache {
@@ -47,8 +47,8 @@ class DataCacheRepository final {
                             const std::string& layer_id,
                             const std::string& data_handle);
 
-  boost::optional<model::Data> Get(const std::string& layer_id,
-                                   const std::string& data_handle);
+  porting::optional<model::Data> Get(const std::string& layer_id,
+                                     const std::string& data_handle);
   bool IsCached(const std::string& layer_id,
                 const std::string& data_handle) const;
 

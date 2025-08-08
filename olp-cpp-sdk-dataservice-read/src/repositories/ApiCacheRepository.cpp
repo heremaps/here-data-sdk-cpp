@@ -46,7 +46,7 @@ void ApiCacheRepository::Put(const std::string& service,
   cache_->Put(key, url, [&]() { return url; }, kLookupApiExpiryTime);
 }
 
-boost::optional<std::string> ApiCacheRepository::Get(
+porting::optional<std::string> ApiCacheRepository::Get(
     const std::string& service, const std::string& version) {
   const std::string hrn(hrn_.ToCatalogHRNString());
   const auto key = cache::KeyGenerator::CreateApiKey(hrn, service, version);
@@ -54,7 +54,7 @@ boost::optional<std::string> ApiCacheRepository::Get(
 
   auto url = cache_->Get(key, [](const std::string& value) { return value; });
   if (url.empty()) {
-    return boost::none;
+    return olp::porting::none;
   }
 
   return boost::any_cast<std::string>(url);

@@ -61,13 +61,12 @@ constexpr auto kQuadTreeDepth = 4;
 
 VersionedLayerClientImpl::VersionedLayerClientImpl(
     client::HRN catalog, std::string layer_id,
-    boost::optional<int64_t> catalog_version,
+    porting::optional<int64_t> catalog_version,
     client::OlpClientSettings settings)
     : catalog_(std::move(catalog)),
       layer_id_(std::move(layer_id)),
       settings_(std::move(settings)),
-      catalog_version_(catalog_version ? catalog_version.get()
-                                       : kInvalidVersion),
+      catalog_version_(catalog_version ? *catalog_version : kInvalidVersion),
       lookup_client_(catalog_, settings_),
       task_sink_(settings_.task_scheduler) {
   if (!settings_.cache) {
@@ -120,7 +119,7 @@ client::CancellationToken VersionedLayerClientImpl::StreamLayerPartitions(
   auto request_task =
       [=](const client::CancellationContext& context) -> client::ApiNoResponse {
     auto version_response =
-        GetVersion(boost::none, FetchOptions::OnlineIfNotFound, context);
+        GetVersion(olp::porting::none, FetchOptions::OnlineIfNotFound, context);
     if (!version_response.IsSuccessful()) {
       async_stream->CloseStream(version_response.GetError());
       return version_response.GetError();
@@ -609,7 +608,8 @@ VersionedLayerClientImpl::PrefetchTiles(
 }
 
 CatalogVersionResponse VersionedLayerClientImpl::GetVersion(
-    boost::optional<std::string> billing_tag, const FetchOptions& fetch_options,
+    porting::optional<std::string> billing_tag,
+    const FetchOptions& fetch_options,
     const client::CancellationContext& context) {
   auto version = catalog_version_.load();
   if (version != kInvalidVersion) {
@@ -696,7 +696,7 @@ client::ApiNoResponse VersionedLayerClientImpl::DeleteFromCache(
     return client::ApiError::PreconditionFailed("Version is not initialized");
   }
 
-  boost::optional<model::Partition> partition;
+  porting::optional<model::Partition> partition;
 
   repository::PartitionsCacheRepository partitions_cache_repository(
       catalog_, layer_id_, settings_.cache);
@@ -712,8 +712,7 @@ client::ApiNoResponse VersionedLayerClientImpl::DeleteFromCache(
 
   repository::DataCacheRepository data_cache_repository(catalog_,
                                                         settings_.cache);
-  return data_cache_repository.Clear(layer_id_,
-                                     partition.get().GetDataHandle());
+  return data_cache_repository.Clear(layer_id_, partition->GetDataHandle());
 }
 
 client::ApiNoResponse VersionedLayerClientImpl::DeleteFromCache(

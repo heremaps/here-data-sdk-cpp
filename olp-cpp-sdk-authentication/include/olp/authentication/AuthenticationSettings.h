@@ -25,7 +25,7 @@
 #include <olp/authentication/AuthenticationApi.h>
 #include <olp/core/client/RetrySettings.h>
 #include <olp/core/http/NetworkProxySettings.h>
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 
 namespace olp {
 namespace http {

@@ -23,9 +23,9 @@
 #include <memory>
 
 #include <olp/core/client/HRN.h>
+#include <olp/core/porting/optional.h>
 #include <olp/dataservice/read/model/Catalog.h>
 #include <olp/dataservice/read/model/VersionResponse.h>
-#include <boost/optional.hpp>
 
 namespace olp {
 namespace cache {
@@ -45,11 +45,11 @@ class CatalogCacheRepository final {
 
   bool Put(const model::Catalog& catalog);
 
-  boost::optional<model::Catalog> Get();
+  porting::optional<model::Catalog> Get();
 
   bool PutVersion(const model::VersionResponse& version);
 
-  boost::optional<model::VersionResponse> GetVersion();
+  porting::optional<model::VersionResponse> GetVersion();
 
   bool Clear();
 

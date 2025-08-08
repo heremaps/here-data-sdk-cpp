@@ -63,7 +63,7 @@ client::ApiNoResponse DataCacheRepository::Put(const model::Data& data,
   return {client::ApiNoResult{}};
 }
 
-boost::optional<model::Data> DataCacheRepository::Get(
+porting::optional<model::Data> DataCacheRepository::Get(
     const std::string& layer_id, const std::string& data_handle) {
   const auto key =
       cache::KeyGenerator::CreateDataHandleKey(hrn_, layer_id, data_handle);
@@ -71,7 +71,7 @@ boost::optional<model::Data> DataCacheRepository::Get(
 
   auto cached_data = cache_->Get(key);
   if (!cached_data) {
-    return boost::none;
+    return olp::porting::none;
   }
 
   return cached_data;

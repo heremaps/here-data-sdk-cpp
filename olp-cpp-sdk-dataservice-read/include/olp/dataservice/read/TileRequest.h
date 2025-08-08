@@ -24,9 +24,9 @@
 #include <utility>
 
 #include <olp/core/geo/tiling/TileKey.h>
+#include <olp/core/porting/optional.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/read/FetchOptions.h>
-#include <boost/optional.hpp>
 
 namespace olp {
 namespace dataservice {
@@ -48,10 +48,10 @@ class DATASERVICE_READ_API TileRequest final {
    * billing records together. If supplied, it must be 4–16 characters
    * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
    *
-   * @return The `BillingTag` string or `boost::none` if the billing tag is not
-   * set.
+   * @return The `BillingTag` string or `olp::porting::none` if the billing tag
+   * is not set.
    */
-  inline const boost::optional<std::string>& GetBillingTag() const {
+  const porting::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
@@ -60,27 +60,13 @@ class DATASERVICE_READ_API TileRequest final {
    *
    * @see `GetBillingTag()` for information on usage and format.
    *
-   * @param tag The `BillingTag` string or `boost::none`.
+   * @param tag The `BillingTag` string or `olp::porting::none`.
    *
    * @return A reference to the updated `TileRequest` instance.
    */
-  inline TileRequest& WithBillingTag(boost::optional<std::string> tag) {
-    billing_tag_ = std::move(tag);
-    return *this;
-  }
-
-  /**
-   * @brief Sets the billing tag for the request.
-   *
-   * @see `GetBillingTag()` for information on usage and format.
-   *
-   * @param tag The rvalue reference to the `BillingTag` string or
-   * `boost::none`.
-   *
-   * @return A reference to the updated `TileRequest` instance.
-   */
-  inline TileRequest& WithBillingTag(std::string tag) {
-    billing_tag_ = std::move(tag);
+  template <class T = porting::optional<std::string>>
+  TileRequest& WithBillingTag(T&& tag) {
+    billing_tag_ = std::forward<T>(tag);
     return *this;
   }
 
@@ -91,7 +77,7 @@ class DATASERVICE_READ_API TileRequest final {
    *
    * @return A reference to the updated `TileRequest` instance.
    */
-  inline TileRequest& WithTileKey(geo::TileKey tile_key) {
+  TileRequest& WithTileKey(geo::TileKey tile_key) {
     tile_key_ = std::move(tile_key);
     return *this;
   }
@@ -99,9 +85,9 @@ class DATASERVICE_READ_API TileRequest final {
   /**
    * @brief Gets a tile key value.
    *
-   * @return The tile key or `boost::none` if tile_key is not set.
+   * @return The tile key or `olp::porting::none` if tile_key is not set.
    */
-  inline const geo::TileKey& GetTileKey() const { return tile_key_; }
+  const geo::TileKey& GetTileKey() const { return tile_key_; }
 
   /**
    * @brief Gets the fetch option that controls how requests are handled.
@@ -111,7 +97,7 @@ class DATASERVICE_READ_API TileRequest final {
    *
    * @return The fetch option.
    */
-  inline FetchOptions GetFetchOption() const { return fetch_option_; }
+  FetchOptions GetFetchOption() const { return fetch_option_; }
 
   /**
    * @brief Sets the fetch option that you can use to set the source from
@@ -123,7 +109,7 @@ class DATASERVICE_READ_API TileRequest final {
    *
    * @return A reference to the updated `TileRequest` instance.
    */
-  inline TileRequest& WithFetchOption(FetchOptions fetch_option) {
+  TileRequest& WithFetchOption(FetchOptions fetch_option) {
     fetch_option_ = fetch_option;
     return *this;
   }
@@ -135,7 +121,7 @@ class DATASERVICE_READ_API TileRequest final {
    *
    * @return The request priority.
    */
-  inline uint32_t GetPriority() const { return priority_; }
+  uint32_t GetPriority() const { return priority_; }
 
   /**
    * @brief Sets the priority of the request.
@@ -144,7 +130,7 @@ class DATASERVICE_READ_API TileRequest final {
    *
    * @return A reference to the updated `TileRequest` instance.
    */
-  inline TileRequest& WithPriority(uint32_t priority) {
+  TileRequest& WithPriority(uint32_t priority) {
     priority_ = priority;
     return *this;
   }
@@ -156,18 +142,18 @@ class DATASERVICE_READ_API TileRequest final {
    *
    * @return A string representation of the request.
    */
-  inline std::string CreateKey(const std::string& layer_id) const {
+  std::string CreateKey(const std::string& layer_id) const {
     std::stringstream out;
     out << layer_id << "[" << GetTileKey().ToHereTile() << "]";
     if (GetBillingTag()) {
-      out << "$" << GetBillingTag().get();
+      out << "$" << *GetBillingTag();
     }
     out << "^" << GetFetchOption();
     return out.str();
   }
 
  private:
-  boost::optional<std::string> billing_tag_;
+  porting::optional<std::string> billing_tag_;
   geo::TileKey tile_key_;
   FetchOptions fetch_option_{OnlineIfNotFound};
   uint32_t priority_{thread::NORMAL};
