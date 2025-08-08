@@ -22,7 +22,7 @@
 #include <memory>
 #include <string>
 
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>

@@ -25,7 +25,7 @@
 #include <vector>
 
 #include <olp/core/CoreApi.h>
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 
 namespace olp {
 namespace utils {
@@ -81,7 +81,8 @@ class CORE_API Url {
    * @return An optional pair representing host part and the rest of URL.
    * Returns olp::porting::none when url cannot be split.
    */
-  static porting::optional<HostAndRest> ParseHostAndRest(const std::string& url);
+  static porting::optional<HostAndRest> ParseHostAndRest(
+      const std::string& url);
 };
 
 }  // namespace utils

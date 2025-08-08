@@ -29,7 +29,7 @@
 #include <olp/authentication/Types.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/OlpClient.h>
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 #include "TokenRequest.h"
 
 namespace olp {
