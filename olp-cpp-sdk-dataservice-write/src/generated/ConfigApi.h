@@ -22,7 +22,7 @@
 #include <memory>
 #include <string>
 
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
@@ -51,14 +51,14 @@ class ConfigApi {
    * @param billing_tag An optional free-form tag which is used for grouping
    * billing records together. If supplied, it must be between 4 - 16
    * characters, contain only alpha/numeric ASCII characters  [A-Za-z0-9].
-   * @param A callback function to invoke with the catalog configuration
-   * response.
+   * @param callback A callback function to invoke with the catalog
+   * configuration response.
    *
    * @return The cancellation token.
    */
   static client::CancellationToken GetCatalog(
       std::shared_ptr<client::OlpClient> client, const std::string& catalog_hrn,
-      boost::optional<std::string> billing_tag,
+      porting::optional<std::string> billing_tag,
       const CatalogCallback& callback);
 
   /**
@@ -75,7 +75,7 @@ class ConfigApi {
    */
   static CatalogResponse GetCatalog(const client::OlpClient& client,
                                     const std::string& catalog_hrn,
-                                    boost::optional<std::string> billing_tag,
+                                    porting::optional<std::string> billing_tag,
                                     client::CancellationContext context);
 };
 

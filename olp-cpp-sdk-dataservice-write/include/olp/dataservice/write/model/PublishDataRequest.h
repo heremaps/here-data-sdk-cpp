@@ -24,7 +24,7 @@
 #include <utility>
 #include <vector>
 
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 
 #include <olp/dataservice/write/DataServiceWriteApi.h>
 
@@ -113,7 +113,7 @@ class DATASERVICE_WRITE_API PublishDataRequest {
    *
    * @return The trace ID of the request.
    */
-  inline const boost::optional<std::string>& GetTraceId() const {
+  inline const porting::optional<std::string>& GetTraceId() const {
     return trace_id_;
   }
 
@@ -152,10 +152,10 @@ class DATASERVICE_WRITE_API PublishDataRequest {
    * billing records together. If supplied, it must be 4–16 characters
    * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
    *
-   * @return The `BillingTag` string or `boost::none` if the billing tag is not
-   * set.
+   * @return The `BillingTag` string or `olp::porting::none` if the billing tag
+   * is not set.
    */
-  inline const boost::optional<std::string>& GetBillingTag() const {
+  inline const porting::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
@@ -164,7 +164,7 @@ class DATASERVICE_WRITE_API PublishDataRequest {
    *
    * @see `GetBillingTag()` for information on usage and format.
    *
-   * @param billing_tag The `BillingTag` string or `boost::none`.
+   * @param billing_tag The `BillingTag` string or `olp::porting::none`.
    */
   inline PublishDataRequest& WithBillingTag(const std::string& billing_tag) {
     billing_tag_ = billing_tag;
@@ -177,7 +177,7 @@ class DATASERVICE_WRITE_API PublishDataRequest {
    * @see `GetBillingTag()` for information on usage and format.
    *
    * @param billing_tag The rvalue reference to the `BillingTag` string or
-   * `boost::none`.
+   * `olp::porting::none`.
    */
   inline PublishDataRequest& WithBillingTag(std::string&& billing_tag) {
     billing_tag_ = std::move(billing_tag);
@@ -195,7 +195,7 @@ class DATASERVICE_WRITE_API PublishDataRequest {
    *
    * @return The request checksum.
    */
-  inline const boost::optional<std::string>& GetChecksum() const {
+  inline const porting::optional<std::string>& GetChecksum() const {
     return checksum_;
   }
 
@@ -228,11 +228,11 @@ class DATASERVICE_WRITE_API PublishDataRequest {
 
   std::string layer_id_;
 
-  boost::optional<std::string> trace_id_;
+  porting::optional<std::string> trace_id_;
 
-  boost::optional<std::string> billing_tag_;
+  porting::optional<std::string> billing_tag_;
 
-  boost::optional<std::string> checksum_;
+  porting::optional<std::string> checksum_;
 };
 
 }  // namespace model

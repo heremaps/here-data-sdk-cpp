@@ -55,9 +55,9 @@ namespace client = olp::client;
 client::CancellationToken QueryApi::GetPartitionsById(
     const client::OlpClient& client, const std::string& layerId,
     const std::vector<std::string>& partitionIds,
-    boost::optional<int64_t> version,
-    boost::optional<std::vector<std::string>> additionalFields,
-    boost::optional<std::string> billingTag,
+    porting::optional<int64_t> version,
+    porting::optional<std::vector<std::string>> additionalFields,
+    porting::optional<std::string> billingTag,
     const PartitionsCallback& partitionsCallback) {
   std::multimap<std::string, std::string> headerParams;
   headerParams.insert(std::make_pair("Accept", "application/json"));
@@ -80,16 +80,16 @@ client::CancellationToken QueryApi::GetPartitionsById(
 
   std::string queryUri = "/layers/" + layerId + "/partitions";
 
-  client::NetworkAsyncCallback callback =
-      [partitionsCallback](client::HttpResponse response) {
-        if (response.GetStatus() != http::HttpStatusCode::OK) {
-          partitionsCallback(
-              client::ApiError(response.GetStatus(), response.GetResponseAsString()));
-        } else {
-          partitionsCallback(
-              parser::parse_result<PartitionsResponse>(response.GetRawResponse()));
-        }
-      };
+  client::NetworkAsyncCallback callback = [partitionsCallback](
+                                              client::HttpResponse response) {
+    if (response.GetStatus() != http::HttpStatusCode::OK) {
+      partitionsCallback(client::ApiError(response.GetStatus(),
+                                          response.GetResponseAsString()));
+    } else {
+      partitionsCallback(
+          parser::parse_result<PartitionsResponse>(response.GetRawResponse()));
+    }
+  };
 
   return client.CallApi(queryUri, "GET", queryParams, headerParams, formParams,
                         nullptr, "", callback);
@@ -98,9 +98,9 @@ client::CancellationToken QueryApi::GetPartitionsById(
 QueryApi::PartitionsResponse QueryApi::GetPartitionsById(
     const client::OlpClient& client, const std::string& layer_id,
     const std::vector<std::string>& partition_ids,
-    boost::optional<int64_t> version,
-    boost::optional<std::vector<std::string>> additional_fields,
-    boost::optional<std::string> billing_tag,
+    porting::optional<int64_t> version,
+    porting::optional<std::vector<std::string>> additional_fields,
+    porting::optional<std::string> billing_tag,
     client::CancellationContext context) {
   std::multimap<std::string, std::string> header_params;
   header_params.insert(std::make_pair("Accept", "application/json"));
@@ -128,9 +128,11 @@ QueryApi::PartitionsResponse QueryApi::GetPartitionsById(
                      nullptr, "", context);
 
   if (http_response.GetStatus() != http::HttpStatusCode::OK) {
-    return client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString());
+    return client::ApiError(http_response.GetStatus(),
+                            http_response.GetResponseAsString());
   }
-  return parser::parse_result<PartitionsResponse>(http_response.GetRawResponse());
+  return parser::parse_result<PartitionsResponse>(
+      http_response.GetRawResponse());
 }
 
 }  // namespace write

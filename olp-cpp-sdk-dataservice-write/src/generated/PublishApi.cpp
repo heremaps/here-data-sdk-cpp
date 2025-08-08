@@ -45,7 +45,7 @@ namespace write {
 
 client::CancellationToken PublishApi::InitPublication(
     const client::OlpClient& client, const model::Publication& publication,
-    const boost::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& billing_tag,
     InitPublicationCallback callback) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
@@ -54,8 +54,7 @@ client::CancellationToken PublishApi::InitPublication(
   header_params.insert(std::make_pair("Accept", "application/json"));
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string init_publication_uri = "/publications";
@@ -82,7 +81,7 @@ client::CancellationToken PublishApi::InitPublication(
 
 InitPublicationResponse PublishApi::InitPublication(
     const client::OlpClient& client, const model::Publication& publication,
-    const boost::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& billing_tag,
     client::CancellationContext cancellation_context) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
@@ -91,8 +90,7 @@ InitPublicationResponse PublishApi::InitPublication(
   header_params.insert(std::make_pair("Accept", "application/json"));
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string init_publication_uri = "/publications";
@@ -117,7 +115,7 @@ client::CancellationToken PublishApi::UploadPartitions(
     const client::OlpClient& client,
     const model::PublishPartitions& publish_partitions,
     const std::string& publication_id, const std::string& layer_id,
-    const boost::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& billing_tag,
     UploadPartitionsCallback callback) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
@@ -126,8 +124,7 @@ client::CancellationToken PublishApi::UploadPartitions(
   header_params.insert(std::make_pair("Accept", "application/json"));
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string upload_partitions_uri =
@@ -159,7 +156,7 @@ UploadPartitionsResponse PublishApi::UploadPartitions(
     const client::OlpClient& client,
     const model::PublishPartitions& publish_partitions,
     const std::string& publication_id, const std::string& layer_id,
-    const boost::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& billing_tag,
     client::CancellationContext cancellation_context) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
@@ -168,8 +165,7 @@ UploadPartitionsResponse PublishApi::UploadPartitions(
   header_params.insert(std::make_pair("Accept", "application/json"));
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string upload_partitions_uri =
@@ -195,7 +191,7 @@ UploadPartitionsResponse PublishApi::UploadPartitions(
 
 client::CancellationToken PublishApi::SubmitPublication(
     const client::OlpClient& client, const std::string& publication_id,
-    const boost::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& billing_tag,
     SubmitPublicationCallback callback) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
@@ -204,8 +200,7 @@ client::CancellationToken PublishApi::SubmitPublication(
   header_params.insert(std::make_pair("Accept", "application/json"));
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string submit_publication_uri = "/publications/" + publication_id;
@@ -229,7 +224,7 @@ client::CancellationToken PublishApi::SubmitPublication(
 
 SubmitPublicationResponse PublishApi::SubmitPublication(
     const client::OlpClient& client, const std::string& publication_id,
-    const boost::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& billing_tag,
     client::CancellationContext cancellation_context) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
@@ -238,8 +233,7 @@ SubmitPublicationResponse PublishApi::SubmitPublication(
   header_params.insert(std::make_pair("Accept", "application/json"));
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string submit_publication_uri = "/publications/" + publication_id;
@@ -258,7 +252,7 @@ SubmitPublicationResponse PublishApi::SubmitPublication(
 
 client::CancellationToken PublishApi::GetPublication(
     const client::OlpClient& client, const std::string& publication_id,
-    const boost::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& billing_tag,
     GetPublicationCallback callback) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
@@ -267,8 +261,7 @@ client::CancellationToken PublishApi::GetPublication(
   header_params.insert(std::make_pair("Accept", "application/json"));
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string get_publication_uri = "/publications/" + publication_id;
@@ -292,7 +285,7 @@ client::CancellationToken PublishApi::GetPublication(
 
 SubmitPublicationResponse PublishApi::CancelPublication(
     const client::OlpClient& client, const std::string& publication_id,
-    const boost::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& billing_tag,
     client::CancellationContext context) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
@@ -301,8 +294,7 @@ SubmitPublicationResponse PublishApi::CancelPublication(
   header_params.insert(std::make_pair("Accept", "application/json"));
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string submit_publication_uri = "/publications/" + publication_id;

@@ -71,7 +71,7 @@ class IndexApi {
   static client::CancellableFuture<InsertIndexesResponse> insertIndexes(
       const client::OlpClient& client, const model::Index& indexes,
       const std::string& layer_id,
-      const boost::optional<std::string>& billing_tag = boost::none);
+      const porting::optional<std::string>& billing_tag = olp::porting::none);
 
   /**
    * @brief Inserts index data to an index layer
@@ -93,16 +93,16 @@ class IndexApi {
   static client::CancellationToken insertIndexes(
       const client::OlpClient& client, const model::Index& indexes,
       const std::string& layer_id,
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       InsertIndexesCallback callback);
 
   /**
-  * @brief Synchronous version of \c insertIndexes method.
-  */
+   * @brief Synchronous version of \c insertIndexes method.
+   */
   static InsertIndexesResponse InsertIndexes(
       const client::OlpClient& client, const model::Index& indexes,
       const std::string& layer_id,
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       client::CancellationContext context);
 
   /**
@@ -120,7 +120,7 @@ class IndexApi {
    */
   static client::CancellableFuture<UpdateIndexesResponse> performUpdate(
       const client::OlpClient& client, const model::UpdateIndexRequest& request,
-      const boost::optional<std::string>& billing_tag = boost::none);
+      const porting::optional<std::string>& billing_tag = olp::porting::none);
 
   /**
    * @brief Updates index layer partitions
@@ -140,7 +140,7 @@ class IndexApi {
    */
   static client::CancellationToken performUpdate(
       const client::OlpClient& client, const model::UpdateIndexRequest& request,
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       UpdateIndexesCallback callback);
 };
 

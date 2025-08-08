@@ -29,7 +29,13 @@ void to_json(const dataservice::write::model::Index &x, rapidjson::Value &value,
 
   rapidjson::Value indexFields(rapidjson::kObjectType);
   for (auto &field_pair : x.GetIndexFields()) {
-    using namespace dataservice::write::model;
+    using dataservice::write::model::BooleanIndexValue;
+    using dataservice::write::model::HereTileIndexValue;
+    using dataservice::write::model::IndexType;
+    using dataservice::write::model::IntIndexValue;
+    using dataservice::write::model::StringIndexValue;
+    using dataservice::write::model::TimeWindowIndexValue;
+
     const auto &field = field_pair.second;
     const auto key = rapidjson::StringRef(field_pair.first.c_str());
     auto index_type = field->getIndexType();
@@ -59,7 +65,7 @@ void to_json(const dataservice::write::model::Index &x, rapidjson::Value &value,
   // by another model.
   if (x.GetMetadata()) {
     rapidjson::Value metadatas(rapidjson::kObjectType);
-    for (auto metadata : x.GetMetadata().get()) {
+    for (const auto &metadata : *x.GetMetadata()) {
       auto metadata_value = metadata.second;
       auto metadata_key = metadata.first.c_str();
       indexFields.AddMember(
@@ -70,13 +76,12 @@ void to_json(const dataservice::write::model::Index &x, rapidjson::Value &value,
   }
 
   if (x.GetCheckSum()) {
-    jsonValue.AddMember("checksum",
-                        rapidjson::StringRef(x.GetCheckSum().get().c_str()),
-                        allocator);
+    jsonValue.AddMember(
+        "checksum", rapidjson::StringRef(x.GetCheckSum()->c_str()), allocator);
   }
 
   if (x.GetSize()) {
-    jsonValue.AddMember("size", x.GetSize().get(), allocator);
+    jsonValue.AddMember("size", *x.GetSize(), allocator);
   }
   value.PushBack(jsonValue, allocator);
 }

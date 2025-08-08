@@ -154,8 +154,8 @@ TEST_F(VersionedLayerClientImplTest, StartBatch) {
     ASSERT_TRUE(result.GetId());
     ASSERT_TRUE(result.GetDetails());
     ASSERT_TRUE(result.GetLayerIds());
-    ASSERT_EQ(result.GetLayerIds().get().size(), 1);
-    ASSERT_EQ(result.GetLayerIds().get().front(), kLayer);
+    ASSERT_EQ(result.GetLayerIds()->size(), 1);
+    ASSERT_EQ(result.GetLayerIds()->front(), kLayer);
     ASSERT_NE("", response.GetResult().GetId().value());
     Mock::VerifyAndClearExpectations(network_.get());
     Mock::VerifyAndClearExpectations(cache_.get());
@@ -196,8 +196,8 @@ TEST_F(VersionedLayerClientImplTest, StartBatch) {
     ASSERT_TRUE(result.GetId());
     ASSERT_TRUE(result.GetDetails());
     ASSERT_TRUE(result.GetLayerIds());
-    ASSERT_EQ(result.GetLayerIds().get().size(), 1);
-    ASSERT_EQ(result.GetLayerIds().get().front(), kLayer);
+    ASSERT_EQ(result.GetLayerIds()->size(), 1);
+    ASSERT_EQ(result.GetLayerIds()->front(), kLayer);
     ASSERT_NE("", response.GetResult().GetId().value());
     Mock::VerifyAndClearExpectations(network_.get());
     Mock::VerifyAndClearExpectations(cache_.get());
@@ -228,8 +228,8 @@ TEST_F(VersionedLayerClientImplTest, StartBatch) {
     ASSERT_TRUE(result.GetId());
     ASSERT_TRUE(result.GetDetails());
     ASSERT_TRUE(result.GetLayerIds());
-    ASSERT_EQ(result.GetLayerIds().get().size(), 1);
-    ASSERT_EQ(result.GetLayerIds().get().front(), kLayer);
+    ASSERT_EQ(result.GetLayerIds()->size(), 1);
+    ASSERT_EQ(result.GetLayerIds()->front(), kLayer);
     ASSERT_NE("", response.GetResult().GetId().value());
     Mock::VerifyAndClearExpectations(network_.get());
     Mock::VerifyAndClearExpectations(cache_.get());
@@ -417,8 +417,7 @@ TEST_F(VersionedLayerClientImplTest, CompleteBatch) {
   ASSERT_FALSE(api.empty());
   ASSERT_TRUE(publication.GetId());
 
-  const auto publication_publish_url =
-      kPublishUrl + "/" + publication.GetId().get();
+  const auto publication_publish_url = kPublishUrl + "/" + *publication.GetId();
 
   // auth token should be valid till the end of all tests
   EXPECT_CALL(

@@ -39,7 +39,7 @@ namespace client = olp::client;
 
 client::CancellationToken ConfigApi::GetCatalog(
     std::shared_ptr<client::OlpClient> client, const std::string& catalog_hrn,
-    boost::optional<std::string> billing_tag,
+    porting::optional<std::string> billing_tag,
     const CatalogCallback& catalogCallback) {
   std::multimap<std::string, std::string> headerParams;
   headerParams.insert(std::make_pair("Accept", "application/json"));
@@ -51,24 +51,25 @@ client::CancellationToken ConfigApi::GetCatalog(
 
   std::string catalogUri = "/catalogs/" + catalog_hrn;
 
-  client::NetworkAsyncCallback callback = [catalogCallback](
-                                              client::HttpResponse response) {
-    if (response.GetStatus() != http::HttpStatusCode::OK) {
-      catalogCallback(CatalogResponse(
-          client::ApiError(response.GetStatus(), response.GetResponseAsString())));
-    } else {
-      catalogCallback(parser::parse_result<CatalogResponse>(response.GetRawResponse()));
-    }
-  };
+  client::NetworkAsyncCallback callback =
+      [catalogCallback](client::HttpResponse response) {
+        if (response.GetStatus() != http::HttpStatusCode::OK) {
+          catalogCallback(CatalogResponse(client::ApiError(
+              response.GetStatus(), response.GetResponseAsString())));
+        } else {
+          catalogCallback(
+              parser::parse_result<CatalogResponse>(response.GetRawResponse()));
+        }
+      };
 
   return client->CallApi(catalogUri, "GET", queryParams, headerParams,
                          formParams, nullptr, "", callback);
 }
 
-CatalogResponse ConfigApi::GetCatalog(const client::OlpClient& client,
-                                      const std::string& catalog_hrn,
-                                      boost::optional<std::string> billing_tag,
-                                      client::CancellationContext context) {
+CatalogResponse ConfigApi::GetCatalog(
+    const client::OlpClient& client, const std::string& catalog_hrn,
+    porting::optional<std::string> billing_tag,
+    client::CancellationContext context) {
   std::multimap<std::string, std::string> header_params;
   header_params.insert(std::make_pair("Accept", "application/json"));
   std::multimap<std::string, std::string> query_params;
@@ -81,7 +82,8 @@ CatalogResponse ConfigApi::GetCatalog(const client::OlpClient& client,
       std::move(catalog_uri), "GET", std::move(query_params),
       std::move(header_params), {}, nullptr, std::string{}, std::move(context));
   if (response.GetStatus() != olp::http::HttpStatusCode::OK) {
-    return client::ApiError(response.GetStatus(), response.GetResponseAsString());
+    return client::ApiError(response.GetStatus(),
+                            response.GetResponseAsString());
   }
   return parser::parse_result<CatalogResponse>(response.GetRawResponse());
 }

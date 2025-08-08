@@ -35,20 +35,18 @@ void to_json(const dataservice::write::model::PublishDataRequest& x,
                   allocator);
 
   if (x.GetTraceId()) {
-    value.AddMember("traceId",
-                    rapidjson::StringRef(x.GetTraceId().get().c_str()),
+    value.AddMember("traceId", rapidjson::StringRef(x.GetTraceId()->c_str()),
                     allocator);
   }
 
   if (x.GetBillingTag()) {
     value.AddMember("billingTag",
-                    rapidjson::StringRef(x.GetBillingTag().get().c_str()),
+                    rapidjson::StringRef(x.GetBillingTag()->c_str()),
                     allocator);
   }
 
   if (x.GetChecksum()) {
-    value.AddMember("checksum",
-                    rapidjson::StringRef(x.GetChecksum().get().c_str()),
+    value.AddMember("checksum", rapidjson::StringRef(x.GetChecksum()->c_str()),
                     allocator);
   }
 }

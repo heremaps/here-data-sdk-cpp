@@ -135,7 +135,7 @@ class VersionedLayerClientImplPublishToBatchTest : public ::testing::Test {
       int status = olp::http::HttpStatusCode::NO_CONTENT) {
     auto api = MockApiRequest("publish");
     const std::string url = api.GetBaseUrl() + "/layers/" + layer +
-                            "/publications/" + publication.GetId().get() +
+                            "/publications/" + *publication.GetId() +
                             "/partitions";
 
     EXPECT_CALL(*network_, Send(IsPostRequest(url), _, _, _, _))

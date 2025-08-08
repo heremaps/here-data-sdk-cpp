@@ -23,16 +23,16 @@
 
 namespace olp {
 namespace parser {
-using namespace olp::dataservice::write;
+namespace model = dataservice::write::model;
 
 void from_json(const rapidjson::Value& value, model::Partition& x) {
-  x.SetChecksum(parse<boost::optional<std::string>>(value, "checksum"));
+  x.SetChecksum(parse<porting::optional<std::string>>(value, "checksum"));
   x.SetCompressedDataSize(
-      parse<boost::optional<int64_t>>(value, "compressedDataSize"));
+      parse<porting::optional<int64_t>>(value, "compressedDataSize"));
   x.SetDataHandle(parse<std::string>(value, "dataHandle"));
-  x.SetDataSize(parse<boost::optional<int64_t>>(value, "dataSize"));
+  x.SetDataSize(parse<porting::optional<int64_t>>(value, "dataSize"));
   x.SetPartition(parse<std::string>(value, "partition"));
-  x.SetVersion(parse<boost::optional<int64_t>>(value, "version"));
+  x.SetVersion(parse<porting::optional<int64_t>>(value, "version"));
 }
 
 void from_json(const rapidjson::Value& value, model::Partitions& x) {

@@ -88,13 +88,13 @@ class PublishApi {
    */
   static client::CancellationToken InitPublication(
       const client::OlpClient& client, const model::Publication& publication,
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       InitPublicationCallback callback);
 
   /** @brief Sync version of \c InitPublication method. */
   static InitPublicationResponse InitPublication(
       const client::OlpClient& client, const model::Publication& publication,
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       client::CancellationContext cancellation_context);
 
   /**
@@ -124,7 +124,7 @@ class PublishApi {
       const client::OlpClient& client,
       const model::PublishPartitions& publish_partitions,
       const std::string& publication_id, const std::string& layer_id,
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       UploadPartitionsCallback callback);
 
   /** @brief Sync version of \c UploadPartitions method. */
@@ -132,7 +132,7 @@ class PublishApi {
       const client::OlpClient& client,
       const model::PublishPartitions& publish_partitions,
       const std::string& publication_id, const std::string& layer_id,
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       client::CancellationContext cancellation_context);
 
   /**
@@ -157,13 +157,13 @@ class PublishApi {
    */
   static client::CancellationToken SubmitPublication(
       const client::OlpClient& client, const std::string& publication_id,
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       SubmitPublicationCallback callback);
 
   /** @brief Sync version of \c SubmitPublication method. */
   static SubmitPublicationResponse SubmitPublication(
       const client::OlpClient& client, const std::string& publication_id,
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       client::CancellationContext cancellation_context);
 
   /**
@@ -186,7 +186,7 @@ class PublishApi {
    */
   static client::CancellationToken GetPublication(
       const client::OlpClient& client, const std::string& publication_id,
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       GetPublicationCallback callback);
 
   /**
@@ -205,7 +205,7 @@ class PublishApi {
    */
   static SubmitPublicationResponse CancelPublication(
       const client::OlpClient& client, const std::string& publication_id,
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       client::CancellationContext context);
 };
 

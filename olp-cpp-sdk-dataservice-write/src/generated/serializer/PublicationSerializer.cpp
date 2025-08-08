@@ -25,8 +25,7 @@ void to_json(const dataservice::write::model::Publication& x,
              rapidjson::Value& value,
              rapidjson::Document::AllocatorType& allocator) {
   if (x.GetId()) {
-    value.AddMember("id", rapidjson::StringRef(x.GetId().get().c_str()),
-                    allocator);
+    value.AddMember("id", rapidjson::StringRef(x.GetId()->c_str()), allocator);
   }
 
   // TODO: Separate Details Model serializtion into it's own file when needed by
@@ -47,19 +46,19 @@ void to_json(const dataservice::write::model::Publication& x,
 
   if (x.GetLayerIds()) {
     rapidjson::Value layer_ids(rapidjson::kArrayType);
-    for (auto& layer_id : x.GetLayerIds().get()) {
+    for (auto& layer_id : *x.GetLayerIds()) {
       layer_ids.PushBack(rapidjson::StringRef(layer_id.c_str()), allocator);
     }
     value.AddMember("layerIds", layer_ids, allocator);
   }
 
   if (x.GetCatalogVersion()) {
-    value.AddMember("catalogVersion", x.GetCatalogVersion().get(), allocator);
+    value.AddMember("catalogVersion", *x.GetCatalogVersion(), allocator);
   }
 
   if (x.GetVersionDependencies()) {
     rapidjson::Value version_dependencies(rapidjson::kArrayType);
-    for (auto& version_dependency : x.GetVersionDependencies().get()) {
+    for (auto& version_dependency : *x.GetVersionDependencies()) {
       // TODO: Separate VersionDependency Model serializtion into it's own file
       // when needed by another model.
       rapidjson::Value version_dependency_json(rapidjson::kObjectType);

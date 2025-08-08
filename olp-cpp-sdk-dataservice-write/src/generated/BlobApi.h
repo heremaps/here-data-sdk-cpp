@@ -84,7 +84,7 @@ class BlobApi {
       const std::string& content_type, const std::string& content_encoding,
       const std::string& data_handle,
       const std::shared_ptr<std::vector<unsigned char>>& data,
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       PutBlobCallback callback);
 
   /**
@@ -95,7 +95,7 @@ class BlobApi {
       const std::string& content_type, const std::string& content_encoding,
       const std::string& data_handle,
       const std::shared_ptr<std::vector<unsigned char>>& data,
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       client::CancellationContext cancel_contex);
 
   /**
@@ -118,7 +118,7 @@ class BlobApi {
   static client::CancellationToken deleteBlob(
       const client::OlpClient& client, const std::string& layer_id,
       const std::string& data_handle,
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       const DeleteBlobCallback& callback);
 
   /**
@@ -138,7 +138,7 @@ class BlobApi {
   static client::CancellationToken checkBlobExists(
       const client::OlpClient& client, const std::string& layer_id,
       const std::string& data_handle,
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       const CheckBlobCallback& callback);
 };
 

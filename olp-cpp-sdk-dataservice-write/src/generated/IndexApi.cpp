@@ -41,7 +41,7 @@ namespace write {
 client::CancellableFuture<InsertIndexesResponse> IndexApi::insertIndexes(
     const client::OlpClient& client, const model::Index& indexes,
     const std::string& layer_id,
-    const boost::optional<std::string>& billing_tag) {
+    const porting::optional<std::string>& billing_tag) {
   auto promise = std::make_shared<std::promise<InsertIndexesResponse>>();
   auto cancel_token = insertIndexes(client, indexes, layer_id, billing_tag,
                                     [promise](InsertIndexesResponse response) {
@@ -54,7 +54,7 @@ client::CancellableFuture<InsertIndexesResponse> IndexApi::insertIndexes(
 client::CancellationToken IndexApi::insertIndexes(
     const client::OlpClient& client, const model::Index& indexes,
     const std::string& layer_id,
-    const boost::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& billing_tag,
     InsertIndexesCallback callback) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
@@ -63,8 +63,7 @@ client::CancellationToken IndexApi::insertIndexes(
   header_params.insert(std::make_pair("Accept", "application/json"));
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string insert_indexes_uri = "/layers/" + layer_id;
@@ -90,7 +89,7 @@ client::CancellationToken IndexApi::insertIndexes(
 InsertIndexesResponse IndexApi::InsertIndexes(
     const client::OlpClient& client, const model::Index& indexes,
     const std::string& layer_id,
-    const boost::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& billing_tag,
     client::CancellationContext context) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
@@ -99,8 +98,7 @@ InsertIndexesResponse IndexApi::InsertIndexes(
   header_params.insert(std::make_pair("Accept", "application/json"));
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string insert_indexes_uri = "/layers/" + layer_id;
@@ -113,7 +111,8 @@ InsertIndexesResponse IndexApi::InsertIndexes(
       client.CallApi(insert_indexes_uri, "POST", query_params, header_params,
                      form_params, data, "application/json", context);
   if (http_response.GetStatus() > http::HttpStatusCode::CREATED) {
-    return client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString());
+    return client::ApiError(http_response.GetStatus(),
+                            http_response.GetResponseAsString());
   }
 
   return client::ApiNoResult();
@@ -121,7 +120,7 @@ InsertIndexesResponse IndexApi::InsertIndexes(
 
 client::CancellableFuture<UpdateIndexesResponse> IndexApi::performUpdate(
     const client::OlpClient& client, const model::UpdateIndexRequest& request,
-    const boost::optional<std::string>& billing_tag) {
+    const porting::optional<std::string>& billing_tag) {
   auto promise = std::make_shared<std::promise<UpdateIndexesResponse>>();
   auto cancel_token = performUpdate(client, request, billing_tag,
                                     [promise](InsertIndexesResponse response) {
@@ -133,7 +132,7 @@ client::CancellableFuture<UpdateIndexesResponse> IndexApi::performUpdate(
 
 client::CancellationToken IndexApi::performUpdate(
     const client::OlpClient& client, const model::UpdateIndexRequest& request,
-    const boost::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& billing_tag,
     InsertIndexesCallback callback) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
@@ -142,8 +141,7 @@ client::CancellationToken IndexApi::performUpdate(
   header_params.insert(std::make_pair("Accept", "application/json"));
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string update_indexes_uri = "/layers/" + request.GetLayerId();

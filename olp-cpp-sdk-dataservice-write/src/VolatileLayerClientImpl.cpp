@@ -68,7 +68,7 @@ client::CancellationToken VolatileLayerClientImpl::InitApiClients(
     ul.lock();
   }
   if (apiclient_publish_ && !apiclient_publish_->GetBaseUrl().empty()) {
-    callback(boost::none);
+    callback(olp::porting::none);
     return {};
   }
 
@@ -93,7 +93,7 @@ client::CancellationToken VolatileLayerClientImpl::InitApiClients(
       self->cond_var_.notify_one();
     } else {
       self->apiclient_publish_->SetBaseUrl(apis.GetResult().at(0).GetBaseUrl());
-      callback(boost::none);
+      callback(olp::porting::none);
       self->cond_var_.notify_all();
     }
   };
@@ -210,17 +210,18 @@ client::CancellationToken VolatileLayerClientImpl::GetBaseVersion(
       };
 
   auto getBaseVersion_function = [=]() -> client::CancellationToken {
-    return MetadataApi::GetLatestCatalogVersion(
-        *self->apiclient_metadata_, -1, boost::none, getBaseVersion_callback);
+    return MetadataApi::GetLatestCatalogVersion(*self->apiclient_metadata_, -1,
+                                                olp::porting::none,
+                                                getBaseVersion_callback);
   };
 
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
-            cancel_context, [=](boost::optional<client::ApiError> api_error) {
+            cancel_context, [=](porting::optional<client::ApiError> api_error) {
               if (api_error) {
                 self->tokenList_.RemoveTask(id);
-                callback(GetBaseVersionResponse(api_error.get()));
+                callback(GetBaseVersionResponse(*api_error));
                 return;
               }
               cancel_context->ExecuteOrCancelled(getBaseVersion_function,
@@ -283,10 +284,10 @@ client::CancellationToken VolatileLayerClientImpl::StartBatch(
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
-            cancel_context, [=](boost::optional<client::ApiError> api_error) {
+            cancel_context, [=](porting::optional<client::ApiError> api_error) {
               if (api_error) {
                 self->tokenList_.RemoveTask(id);
-                callback(StartBatchResponse(api_error.get()));
+                callback(StartBatchResponse(*api_error));
                 return;
               }
               cancel_context->ExecuteOrCancelled(init_publication_function,
@@ -325,13 +326,13 @@ client::CancellationToken VolatileLayerClientImpl::PublishPartitionData(
 
   auto publish_task =
       [=](client::CancellationContext context) -> PublishPartitionDataResponse {
-    auto partition_id = request.GetPartitionId().get();
+    auto partition_id = *request.GetPartitionId();
 
-    auto data_handle_response =
-        GetDataHandleMap(request.GetLayerId(),
-                         std::vector<std::string>{
-                             request.GetPartitionId().value_or(std::string())},
-                         boost::none, boost::none, boost::none, context);
+    auto data_handle_response = GetDataHandleMap(
+        request.GetLayerId(),
+        std::vector<std::string>{
+            request.GetPartitionId().value_or(std::string())},
+        olp::porting::none, olp::porting::none, olp::porting::none, context);
 
     if (!data_handle_response.IsSuccessful()) {
       return data_handle_response.GetError();
@@ -436,17 +437,18 @@ client::CancellationToken VolatileLayerClientImpl::GetBatch(
 
   auto getPublication_function = [=]() -> client::CancellationToken {
     return PublishApi::GetPublication(*self->apiclient_publish_, publicationId,
-                                      boost::none, getPublication_callback);
+                                      olp::porting::none,
+                                      getPublication_callback);
   };
 
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
             cancel_context,
-            [=](boost::optional<client::ApiError> init_api_error) {
+            [=](porting::optional<client::ApiError> init_api_error) {
               if (init_api_error) {
                 self->tokenList_.RemoveTask(id);
-                callback(GetPublicationResponse(init_api_error.get()));
+                callback(GetPublicationResponse(*init_api_error));
                 return;
               }
               cancel_context->ExecuteOrCancelled(getPublication_function,
@@ -463,9 +465,9 @@ client::CancellationToken VolatileLayerClientImpl::GetBatch(
 
 DataHandleMapResponse VolatileLayerClientImpl::GetDataHandleMap(
     const std::string& layer_id, const std::vector<std::string>& partition_ids,
-    boost::optional<int64_t> version,
-    boost::optional<std::vector<std::string>> additional_fields,
-    boost::optional<std::string> billing_tag,
+    porting::optional<int64_t> version,
+    porting::optional<std::vector<std::string>> additional_fields,
+    porting::optional<std::string> billing_tag,
     client::CancellationContext context) {
   if (partition_ids.empty() || layer_id.empty()) {
     return client::ApiError(client::ErrorCode::InvalidArgument,
@@ -611,10 +613,10 @@ client::CancellationToken VolatileLayerClientImpl::PublishToBatch(
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
-            cancel_context, [=](boost::optional<client::ApiError> api_error) {
+            cancel_context, [=](porting::optional<client::ApiError> api_error) {
               if (api_error) {
                 self->tokenList_.RemoveTask(id);
-                callback(api_error.get());
+                callback(*api_error);
                 return;
               }
               cancel_context->ExecuteOrCancelled(upload_partitions_function,
@@ -670,17 +672,17 @@ client::CancellationToken VolatileLayerClientImpl::CompleteBatch(
 
   auto completePublication_function = [=]() -> client::CancellationToken {
     return PublishApi::SubmitPublication(*self->apiclient_publish_,
-                                         publicationId, boost::none,
+                                         publicationId, olp::porting::none,
                                          completePublication_callback);
   };
 
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
-            cancel_context, [=](boost::optional<client::ApiError> api_error) {
+            cancel_context, [=](porting::optional<client::ApiError> api_error) {
               if (api_error) {
                 self->tokenList_.RemoveTask(id);
-                callback(CompleteBatchResponse(api_error.get()));
+                callback(CompleteBatchResponse(*api_error));
                 return;
               }
               cancel_context->ExecuteOrCancelled(completePublication_function,

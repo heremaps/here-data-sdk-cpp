@@ -24,7 +24,7 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 #include "generated/model/LayerVersions.h"
 #include "generated/model/Partitions.h"
 #include "olp/dataservice/write/model/VersionResponse.h"
@@ -68,7 +68,7 @@ class MetadataApi {
    */
   static client::CancellationToken GetLayerVersions(
       const client::OlpClient& client, int64_t version,
-      boost::optional<std::string> billingTag,
+      porting::optional<std::string> billingTag,
       const LayerVersionsCallback& callback);
 
   /**
@@ -97,10 +97,10 @@ class MetadataApi {
    */
   static client::CancellationToken GetPartitions(
       const client::OlpClient& client, const std::string& layerId,
-      boost::optional<int64_t> version,
-      boost::optional<std::vector<std::string>> additionalFields,
-      boost::optional<std::string> range,
-      boost::optional<std::string> billingTag,
+      porting::optional<int64_t> version,
+      porting::optional<std::vector<std::string>> additionalFields,
+      porting::optional<std::string> range,
+      porting::optional<std::string> billingTag,
       const PartitionsCallback& callback);
 
   /**
@@ -121,7 +121,7 @@ class MetadataApi {
    */
   static client::CancellationToken GetLatestCatalogVersion(
       const client::OlpClient& client, int64_t startVersion,
-      boost::optional<std::string> billingTag,
+      porting::optional<std::string> billingTag,
       const CatalogVersionCallback& callback);
 };
 

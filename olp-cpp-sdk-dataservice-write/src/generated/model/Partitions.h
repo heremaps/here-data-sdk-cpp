@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 
 namespace olp {
 namespace dataservice {
@@ -42,27 +42,29 @@ class Partition {
   virtual ~Partition() = default;
 
  private:
-  boost::optional<std::string> checksum_;
-  boost::optional<int64_t> compressed_data_size_;
+  porting::optional<std::string> checksum_;
+  porting::optional<int64_t> compressed_data_size_;
   std::string data_handle_;
-  boost::optional<int64_t> data_size_;
+  porting::optional<int64_t> data_size_;
   std::string partition_;
-  boost::optional<int64_t> version_;
+  porting::optional<int64_t> version_;
 
  public:
-  const boost::optional<std::string>& GetChecksum() const { return checksum_; }
-  boost::optional<std::string>& GetMutableChecksum() { return checksum_; }
-  void SetChecksum(const boost::optional<std::string>& value) {
+  const porting::optional<std::string>& GetChecksum() const {
+    return checksum_;
+  }
+  porting::optional<std::string>& GetMutableChecksum() { return checksum_; }
+  void SetChecksum(const porting::optional<std::string>& value) {
     this->checksum_ = value;
   }
 
-  const boost::optional<int64_t>& GetCompressedDataSize() const {
+  const porting::optional<int64_t>& GetCompressedDataSize() const {
     return compressed_data_size_;
   }
-  boost::optional<int64_t>& GetMutableCompressedDataSize() {
+  porting::optional<int64_t>& GetMutableCompressedDataSize() {
     return compressed_data_size_;
   }
-  void SetCompressedDataSize(const boost::optional<int64_t>& value) {
+  void SetCompressedDataSize(const porting::optional<int64_t>& value) {
     this->compressed_data_size_ = value;
   }
 
@@ -70,9 +72,9 @@ class Partition {
   std::string& GetMutableDataHandle() { return data_handle_; }
   void SetDataHandle(const std::string& value) { this->data_handle_ = value; }
 
-  const boost::optional<int64_t>& GetDataSize() const { return data_size_; }
-  boost::optional<int64_t>& GetMutableDataSize() { return data_size_; }
-  void SetDataSize(const boost::optional<int64_t>& value) {
+  const porting::optional<int64_t>& GetDataSize() const { return data_size_; }
+  porting::optional<int64_t>& GetMutableDataSize() { return data_size_; }
+  void SetDataSize(const porting::optional<int64_t>& value) {
     this->data_size_ = value;
   }
 
@@ -80,9 +82,9 @@ class Partition {
   std::string& GetMutablePartition() { return partition_; }
   void SetPartition(const std::string& value) { this->partition_ = value; }
 
-  const boost::optional<int64_t>& GetVersion() const { return version_; }
-  boost::optional<int64_t>& GetMutableVersion() { return version_; }
-  void SetVersion(const boost::optional<int64_t>& value) {
+  const porting::optional<int64_t>& GetVersion() const { return version_; }
+  porting::optional<int64_t>& GetMutableVersion() { return version_; }
+  void SetVersion(const porting::optional<int64_t>& value) {
     this->version_ = value;
   }
 };

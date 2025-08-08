@@ -21,7 +21,7 @@
 
 #include <mutex>
 
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
@@ -54,13 +54,14 @@ class StreamLayerClientImpl {
   olp::client::CancellationToken PublishData(model::PublishDataRequest request,
                                              PublishDataCallback callback);
 
-  boost::optional<std::string> Queue(const model::PublishDataRequest& request);
+  porting::optional<std::string> Queue(
+      const model::PublishDataRequest& request);
   olp::client::CancellableFuture<StreamLayerClient::FlushResponse> Flush(
       model::FlushRequest request);
   olp::client::CancellationToken Flush(
       model::FlushRequest request, StreamLayerClient::FlushCallback callback);
   size_t QueueSize() const;
-  boost::optional<model::PublishDataRequest> PopFromQueue();
+  porting::optional<model::PublishDataRequest> PopFromQueue();
 
   client::CancellableFuture<PublishSdiiResponse> PublishSdii(
       model::PublishSdiiRequest request);

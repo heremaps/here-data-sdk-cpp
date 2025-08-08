@@ -57,7 +57,7 @@ namespace client = olp::client;
 
 client::CancellationToken MetadataApi::GetLayerVersions(
     const client::OlpClient& client, int64_t version,
-    boost::optional<std::string> billingTag,
+    porting::optional<std::string> billingTag,
     const LayerVersionsCallback& layerVersionsCallback) {
   std::multimap<std::string, std::string> headerParams;
   headerParams.insert(std::make_pair("Accept", "application/json"));
@@ -75,11 +75,11 @@ client::CancellationToken MetadataApi::GetLayerVersions(
   client::NetworkAsyncCallback callback =
       [layerVersionsCallback](client::HttpResponse response) {
         if (response.GetStatus() != http::HttpStatusCode::OK) {
-          layerVersionsCallback(
-              client::ApiError(response.GetStatus(), response.GetResponseAsString()));
+          layerVersionsCallback(client::ApiError(
+              response.GetStatus(), response.GetResponseAsString()));
         } else {
-          layerVersionsCallback(
-              parser::parse_result<LayerVersionsResponse>(response.GetRawResponse()));
+          layerVersionsCallback(parser::parse_result<LayerVersionsResponse>(
+              response.GetRawResponse()));
         }
       };
 
@@ -89,9 +89,10 @@ client::CancellationToken MetadataApi::GetLayerVersions(
 
 client::CancellationToken MetadataApi::GetPartitions(
     const client::OlpClient& client, const std::string& layerId,
-    boost::optional<int64_t> version,
-    boost::optional<std::vector<std::string>> additionalFields,
-    boost::optional<std::string> range, boost::optional<std::string> billingTag,
+    porting::optional<int64_t> version,
+    porting::optional<std::vector<std::string>> additionalFields,
+    porting::optional<std::string> range,
+    porting::optional<std::string> billingTag,
     const PartitionsCallback& partitionsCallback) {
   std::multimap<std::string, std::string> headerParams;
   headerParams.insert(std::make_pair("Accept", "application/json"));
@@ -115,16 +116,16 @@ client::CancellationToken MetadataApi::GetPartitions(
 
   std::string metadataUri = "/layers/" + layerId + "/partitions";
 
-  client::NetworkAsyncCallback callback =
-      [partitionsCallback](client::HttpResponse response) {
-        if (response.GetStatus() != http::HttpStatusCode::OK) {
-          partitionsCallback(
-              client::ApiError(response.GetStatus(), response.GetResponseAsString()));
-        } else {
-          partitionsCallback(
-              parser::parse_result<PartitionsResponse>(response.GetRawResponse()));
-        }
-      };
+  client::NetworkAsyncCallback callback = [partitionsCallback](
+                                              client::HttpResponse response) {
+    if (response.GetStatus() != http::HttpStatusCode::OK) {
+      partitionsCallback(client::ApiError(response.GetStatus(),
+                                          response.GetResponseAsString()));
+    } else {
+      partitionsCallback(
+          parser::parse_result<PartitionsResponse>(response.GetRawResponse()));
+    }
+  };
 
   return client.CallApi(metadataUri, "GET", queryParams, headerParams,
                         formParams, nullptr, "", callback);
@@ -132,7 +133,7 @@ client::CancellationToken MetadataApi::GetPartitions(
 
 client::CancellationToken MetadataApi::GetLatestCatalogVersion(
     const client::OlpClient& client, int64_t startVersion,
-    boost::optional<std::string> billingTag,
+    porting::optional<std::string> billingTag,
     const CatalogVersionCallback& catalogVersionCallback) {
   std::multimap<std::string, std::string> headerParams;
   headerParams.insert(std::make_pair("Accept", "application/json"));
@@ -151,11 +152,11 @@ client::CancellationToken MetadataApi::GetLatestCatalogVersion(
   client::NetworkAsyncCallback callback =
       [catalogVersionCallback](client::HttpResponse response) {
         if (response.GetStatus() != http::HttpStatusCode::OK) {
-          catalogVersionCallback(
-              client::ApiError(response.GetStatus(), response.GetResponseAsString()));
+          catalogVersionCallback(client::ApiError(
+              response.GetStatus(), response.GetResponseAsString()));
         } else {
-          catalogVersionCallback(
-              parser::parse_result<CatalogVersionResponse>(response.GetRawResponse()));
+          catalogVersionCallback(parser::parse_result<CatalogVersionResponse>(
+              response.GetRawResponse()));
         }
       };
 

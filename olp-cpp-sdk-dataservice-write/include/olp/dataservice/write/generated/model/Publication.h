@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 
 #include <olp/dataservice/write/DataServiceWriteApi.h>
 #include <olp/dataservice/write/generated/model/Details.h>
@@ -44,11 +44,11 @@ class DATASERVICE_WRITE_API Publication {
   virtual ~Publication() = default;
 
  private:
-  boost::optional<std::string> id_;
-  boost::optional<Details> details_;
-  boost::optional<std::vector<std::string>> layer_ids_;
-  boost::optional<int64_t> catalog_version_;
-  boost::optional<std::vector<VersionDependency>> version_dependencies_;
+  porting::optional<std::string> id_;
+  porting::optional<Details> details_;
+  porting::optional<std::vector<std::string>> layer_ids_;
+  porting::optional<int64_t> catalog_version_;
+  porting::optional<std::vector<VersionDependency>> version_dependencies_;
 
  public:
   /**
@@ -56,14 +56,14 @@ class DATASERVICE_WRITE_API Publication {
    *
    * @return The publication ID.
    */
-  const boost::optional<std::string>& GetId() const { return id_; }
+  const porting::optional<std::string>& GetId() const { return id_; }
 
   /**
    * @brief Gets a mutable reference to the publication ID.
    *
    * @return The mutable reference to the publication ID.
    */
-  boost::optional<std::string>& GetMutableId() { return id_; }
+  porting::optional<std::string>& GetMutableId() { return id_; }
 
   /**
    * @brief Sets the publication ID.
@@ -77,14 +77,14 @@ class DATASERVICE_WRITE_API Publication {
    *
    * @return The details of the publication.
    */
-  const boost::optional<Details>& GetDetails() const { return details_; }
+  const porting::optional<Details>& GetDetails() const { return details_; }
 
   /**
    * @brief Gets a mutable reference to the details of the publication.
    *
    * @return The mutable reference to the details of the publication.
    */
-  boost::optional<Details>& GetMutableDetails() { return details_; }
+  porting::optional<Details>& GetMutableDetails() { return details_; }
 
   /**
    * @brief Sets the details of the publication.
@@ -98,7 +98,7 @@ class DATASERVICE_WRITE_API Publication {
    *
    * @return The layer ID.
    */
-  const boost::optional<std::vector<std::string>>& GetLayerIds() const {
+  const porting::optional<std::vector<std::string>>& GetLayerIds() const {
     return layer_ids_;
   }
 
@@ -108,7 +108,7 @@ class DATASERVICE_WRITE_API Publication {
    *
    * @return The mutable reference to the layer ID.
    */
-  boost::optional<std::vector<std::string>>& GetMutableLayerIds() {
+  porting::optional<std::vector<std::string>>& GetMutableLayerIds() {
     return layer_ids_;
   }
 
@@ -126,7 +126,7 @@ class DATASERVICE_WRITE_API Publication {
    *
    * @return The catalog version.
    */
-  const boost::optional<int64_t>& GetCatalogVersion() const {
+  const porting::optional<int64_t>& GetCatalogVersion() const {
     return catalog_version_;
   }
 
@@ -137,7 +137,7 @@ class DATASERVICE_WRITE_API Publication {
    * @return The mutable reference to the version of the catalog to be
    * published.
    */
-  boost::optional<int64_t>& GetMutableCatalogVersion() {
+  porting::optional<int64_t>& GetMutableCatalogVersion() {
     return catalog_version_;
   }
 
@@ -155,7 +155,7 @@ class DATASERVICE_WRITE_API Publication {
    *
    * @return The version dependencies.
    */
-  const boost::optional<std::vector<VersionDependency>>&
+  const porting::optional<std::vector<VersionDependency>>&
   GetVersionDependencies() const {
     return version_dependencies_;
   }
@@ -165,7 +165,7 @@ class DATASERVICE_WRITE_API Publication {
    *
    * @return The mutable reference to the version dependencies.
    */
-  boost::optional<std::vector<VersionDependency>>&
+  porting::optional<std::vector<VersionDependency>>&
   GetMutableVersionDependencies() {
     return version_dependencies_;
   }
