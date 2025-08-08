@@ -21,9 +21,9 @@
 
 #include <string>
 
-#include <boost/optional.hpp>
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/porting/optional.h>
 #include <olp/dataservice/read/ConsumerProperties.h>
 #include <olp/dataservice/read/Types.h>
 #include <olp/dataservice/read/model/Messages.h>
@@ -99,10 +99,10 @@ class StreamApi {
    */
   static SubscribeApiResponse Subscribe(
       const client::OlpClient& client, const std::string& layer_id,
-      const boost::optional<std::string>& subscription_id,
-      const boost::optional<std::string>& mode,
-      const boost::optional<std::string>& consumer_id,
-      const boost::optional<ConsumerProperties>& subscription_properties,
+      const porting::optional<std::string>& subscription_id,
+      const porting::optional<std::string>& mode,
+      const porting::optional<std::string>& consumer_id,
+      const porting::optional<ConsumerProperties>& subscription_properties,
       const client::CancellationContext& context,
       std::string& x_correlation_id);
 
@@ -136,8 +136,8 @@ class StreamApi {
    */
   static ConsumeDataApiResponse ConsumeData(
       const client::OlpClient& client, const std::string& layer_id,
-      const boost::optional<std::string>& subscription_id,
-      const boost::optional<std::string>& mode,
+      const porting::optional<std::string>& subscription_id,
+      const porting::optional<std::string>& mode,
       const client::CancellationContext& context,
       std::string& x_correlation_id);
 
@@ -178,8 +178,8 @@ class StreamApi {
   static CommitOffsetsApiResponse CommitOffsets(
       const client::OlpClient& client, const std::string& layer_id,
       const model::StreamOffsets& commit_offsets,
-      const boost::optional<std::string>& subscription_id,
-      const boost::optional<std::string>& mode,
+      const porting::optional<std::string>& subscription_id,
+      const porting::optional<std::string>& mode,
       const client::CancellationContext& context,
       std::string& x_correlation_id);
 
@@ -215,8 +215,8 @@ class StreamApi {
   static SeekToOffsetApiResponse SeekToOffset(
       const client::OlpClient& client, const std::string& layer_id,
       const model::StreamOffsets& seek_offsets,
-      const boost::optional<std::string>& subscription_id,
-      const boost::optional<std::string>& mode,
+      const porting::optional<std::string>& subscription_id,
+      const porting::optional<std::string>& mode,
       const client::CancellationContext& context,
       std::string& x_correlation_id);
 
@@ -252,8 +252,8 @@ class StreamApi {
   static Response<int> HandleOffsets(
       const client::OlpClient& client, const std::string& layer_id,
       const model::StreamOffsets& offsets,
-      const boost::optional<std::string>& subscription_id,
-      const boost::optional<std::string>& mode,
+      const porting::optional<std::string>& subscription_id,
+      const porting::optional<std::string>& mode,
       const client::CancellationContext& context, const std::string& endpoint,
       std::string& x_correlation_id);
 };

@@ -28,6 +28,7 @@
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/PendingRequests.h>
+#include <olp/core/porting/optional.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/PrefetchPartitionsRequest.h>
@@ -35,7 +36,6 @@
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/TileRequest.h>
 #include <olp/dataservice/read/Types.h>
-#include <boost/optional.hpp>
 #include "TaskSink.h"
 #include "repositories/NamedMutex.h"
 
@@ -53,7 +53,7 @@ class PrefetchTilesRepository;
 class VersionedLayerClientImpl {
  public:
   VersionedLayerClientImpl(client::HRN catalog, std::string layer_id,
-                           boost::optional<int64_t> catalog_version,
+                           porting::optional<int64_t> catalog_version,
                            client::OlpClientSettings settings);
 
   virtual ~VersionedLayerClientImpl() = default;
@@ -129,7 +129,7 @@ class VersionedLayerClientImpl {
   virtual bool Release(const std::vector<std::string>& partition_ids);
 
  private:
-  CatalogVersionResponse GetVersion(boost::optional<std::string> billing_tag,
+  CatalogVersionResponse GetVersion(porting::optional<std::string> billing_tag,
                                     const FetchOptions& fetch_options,
                                     const client::CancellationContext& context);
 

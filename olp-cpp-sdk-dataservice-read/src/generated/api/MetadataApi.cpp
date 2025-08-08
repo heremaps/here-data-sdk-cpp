@@ -60,7 +60,7 @@ namespace read {
 
 MetadataApi::LayerVersionsResponse MetadataApi::GetLayerVersions(
     const client::OlpClient& client, std::int64_t version,
-    boost::optional<std::string> billing_tag,
+    porting::optional<std::string> billing_tag,
     const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;
   header_params.emplace("Accept", "application/json");
@@ -78,18 +78,20 @@ MetadataApi::LayerVersionsResponse MetadataApi::GetLayerVersions(
                      {}, nullptr, "", context);
 
   if (api_response.GetStatus() != http::HttpStatusCode::OK) {
-    return client::ApiError(api_response.GetStatus(), api_response.GetResponseAsString());
+    return client::ApiError(api_response.GetStatus(),
+                            api_response.GetResponseAsString());
   }
 
-  return parser::parse_result<LayerVersionsResponse>(api_response.GetRawResponse());
+  return parser::parse_result<LayerVersionsResponse>(
+      api_response.GetRawResponse());
 }
 
 MetadataApi::PartitionsExtendedResponse MetadataApi::GetPartitions(
     const client::OlpClient& client, const std::string& layer_id,
-    boost::optional<std::int64_t> version,
+    porting::optional<std::int64_t> version,
     const std::vector<std::string>& additional_fields,
-    boost::optional<std::string> range,
-    boost::optional<std::string> billing_tag,
+    porting::optional<std::string> range,
+    porting::optional<std::string> billing_tag,
     const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;
   header_params.emplace("Accept", "application/json");
@@ -117,7 +119,8 @@ MetadataApi::PartitionsExtendedResponse MetadataApi::GetPartitions(
 
   if (http_response.GetStatus() != olp::http::HttpStatusCode::OK) {
     return PartitionsExtendedResponse(
-        client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString()),
+        client::ApiError(http_response.GetStatus(),
+                         http_response.GetResponseAsString()),
         http_response.GetNetworkStatistics());
   }
 
@@ -138,10 +141,10 @@ MetadataApi::PartitionsExtendedResponse MetadataApi::GetPartitions(
 
 client::HttpResponse MetadataApi::GetPartitionsStream(
     const client::OlpClient& client, const std::string& layer_id,
-    boost::optional<int64_t> version,
+    porting::optional<int64_t> version,
     const std::vector<std::string>& additional_fields,
-    boost::optional<std::string> range,
-    boost::optional<std::string> billing_tag,
+    porting::optional<std::string> range,
+    porting::optional<std::string> billing_tag,
     http::Network::DataCallback data_callback,
     const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;
@@ -171,7 +174,7 @@ client::HttpResponse MetadataApi::GetPartitionsStream(
 
 MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
     const client::OlpClient& client, std::int64_t startVersion,
-    boost::optional<std::string> billing_tag,
+    porting::optional<std::string> billing_tag,
     const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;
   header_params.emplace("Accept", "application/json");
@@ -192,12 +195,13 @@ MetadataApi::CatalogVersionResponse MetadataApi::GetLatestCatalogVersion(
     return {{api_response.GetStatus(), api_response.GetResponseAsString()}};
   }
 
-  return parser::parse_result<CatalogVersionResponse>(api_response.GetRawResponse());
+  return parser::parse_result<CatalogVersionResponse>(
+      api_response.GetRawResponse());
 }
 
 MetadataApi::VersionsResponse MetadataApi::ListVersions(
     const client::OlpClient& client, std::int64_t start_version,
-    std::int64_t end_version, boost::optional<std::string> billing_tag,
+    std::int64_t end_version, porting::optional<std::string> billing_tag,
     const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;
   header_params.emplace("Accept", "application/json");

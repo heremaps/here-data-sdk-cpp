@@ -21,7 +21,7 @@
 
 #include <mutex>
 
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>

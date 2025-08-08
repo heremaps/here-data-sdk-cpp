@@ -24,6 +24,7 @@
 #include <mocks/CacheMock.h>
 #include <mocks/NetworkMock.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
+#include <boost/optional/optional_io.hpp>
 #include "StreamLayerClientImpl.h"
 
 namespace {
@@ -1118,11 +1119,11 @@ TEST(SubscribeRequestTest, SubscribeRequest) {
   EXPECT_EQ(sub_req.GetSubscriptionMode(),
             read::SubscribeRequest::SubscriptionMode::kParallel);
 
-  EXPECT_EQ(sub_req.GetSubscriptionId().get(), kSubscriptionId);
-  EXPECT_EQ(sub_req.GetConsumerId().get(), kConsumerID);
+  EXPECT_EQ(sub_req.GetSubscriptionId(), kSubscriptionId);
+  EXPECT_EQ(sub_req.GetConsumerId(), kConsumerID);
 
   const auto& consumer_properties =
-      sub_req.GetConsumerProperties().get().GetProperties();
+      sub_req.GetConsumerProperties()->GetProperties();
   EXPECT_EQ(consumer_properties.size(),
             kConsumerProperties.GetProperties().size());
   for (size_t idx = 0; idx < consumer_properties.size(); ++idx) {

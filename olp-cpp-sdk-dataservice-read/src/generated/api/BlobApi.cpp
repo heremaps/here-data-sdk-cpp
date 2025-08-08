@@ -33,8 +33,9 @@ namespace read {
 
 BlobApi::DataResponse BlobApi::GetBlob(
     const client::OlpClient& client, const std::string& layer_id,
-    const model::Partition& partition, boost::optional<std::string> billing_tag,
-    boost::optional<std::string> range,
+    const model::Partition& partition,
+    porting::optional<std::string> billing_tag,
+    porting::optional<std::string> range,
     const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;
   header_params.emplace("Accept", "application/json");

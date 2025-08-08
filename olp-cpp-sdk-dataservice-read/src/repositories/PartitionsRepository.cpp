@@ -40,18 +40,16 @@
 namespace {
 namespace client = olp::client;
 namespace read = olp::dataservice::read;
-namespace model = olp::dataservice::read::model;
-namespace repository = olp::dataservice::read::repository;
+namespace model = read::model;
+namespace repository = read::repository;
 
 constexpr auto kLogTag = "PartitionsRepository";
 constexpr auto kAggregateQuadTreeDepth = 4;
 constexpr auto kQueryRequestLimit = 100;
 
-using LayerVersionReponse = client::ApiResponse<int64_t, client::ApiError>;
-using LayerVersionCallback = std::function<void(LayerVersionReponse)>;
-
-client::ApiResponse<boost::optional<time_t>, client::ApiError> TtlForLayer(
-    const std::vector<model::Layer>& layers, const std::string& layer_id) {
+client::ApiResponse<olp::porting::optional<time_t>, client::ApiError>
+TtlForLayer(const std::vector<model::Layer>& layers,
+            const std::string& layer_id) {
   auto layer_it = std::find_if(
       std::begin(layers), std::end(layers),
       [&](const model::Layer& layer) { return layer.GetId() == layer_id; });
@@ -62,10 +60,11 @@ client::ApiResponse<boost::optional<time_t>, client::ApiError> TtlForLayer(
 
   auto ttl = layer_it->GetTtl();
 
-  return ttl ? boost::make_optional<time_t>(ttl.value() / 1000) : boost::none;
+  return ttl ? olp::porting::make_optional<time_t>(ttl.value() / 1000)
+             : olp::porting::none;
 }
 
-boost::optional<model::Partition> FindPartition(
+olp::porting::optional<model::Partition> FindPartition(
     const read::QuadTreeIndex& quad_tree, const read::TileRequest& request,
     bool aggregated) {
   const auto& tile_key = request.GetTileKey();
@@ -80,10 +79,10 @@ boost::optional<model::Partition> FindPartition(
         "', aggregated='%s'",
         tile_key.ToHereTile().c_str(), kAggregateQuadTreeDepth,
         aggregated ? "true" : "false");
-    return boost::none;
+    return olp::porting::none;
   }
 
-  const auto& index_data = found_index_data.get();
+  const auto& index_data = *found_index_data;
 
   model::Partition partition;
   partition.SetDataHandle(index_data.data_handle);
@@ -115,7 +114,7 @@ std::string HashPartitions(
 
 /// Check if all the requested additional fields are cached
 bool CheckAdditionalFields(
-    const boost::optional<std::vector<std::string>>& additional_fields,
+    const olp::porting::optional<std::vector<std::string>>& additional_fields,
     const read::QuadTreeIndex& cached_tree) {
   if (!additional_fields) {
     return true;
@@ -193,7 +192,7 @@ PartitionsRepository::GetVersionedPartitionsExtendedResponse(
     const read::PartitionsRequest& request, std::int64_t version,
     client::CancellationContext context, const bool fail_on_cache_error) {
   return GetPartitionsExtendedResponse(request, version, std::move(context),
-                                       boost::none, fail_on_cache_error);
+                                       olp::porting::none, fail_on_cache_error);
 }
 
 PartitionsResponse PartitionsRepository::GetVolatilePartitions(
@@ -216,14 +215,14 @@ PartitionsResponse PartitionsRepository::GetVolatilePartitions(
     return expiry_response.GetError();
   }
 
-  return GetPartitionsExtendedResponse(request, boost::none, context,
+  return GetPartitionsExtendedResponse(request, olp::porting::none, context,
                                        expiry_response.MoveResult());
 }
 
 QueryApi::PartitionsExtendedResponse
 PartitionsRepository::GetPartitionsExtendedResponse(
-    const PartitionsRequest& request, boost::optional<std::int64_t> version,
-    client::CancellationContext context, boost::optional<time_t> expiry,
+    const PartitionsRequest& request, porting::optional<std::int64_t> version,
+    client::CancellationContext context, porting::optional<time_t> expiry,
     const bool fail_on_cache_error) {
   auto fetch_option = request.GetFetchOption();
   const auto key = request.CreateKey(layer_id_);
@@ -253,7 +252,7 @@ PartitionsRepository::GetPartitionsExtendedResponse(
       OLP_SDK_LOG_TRACE_F(kLogTag,
                           "GetPartitions found in cache, hrn='%s', key='%s'",
                           catalog_str.c_str(), key.c_str());
-      return cached_partitions.get();
+      return *cached_partitions;
     } else if (fetch_option == CacheOnly) {
       OLP_SDK_LOG_TRACE_F(
           kLogTag, "GetPartitions not found in cache, hrn='%s', key='%s'",
@@ -274,10 +273,10 @@ PartitionsRepository::GetPartitionsExtendedResponse(
       return metadata_api.GetError();
     }
 
-    response =
-        MetadataApi::GetPartitions(metadata_api.GetResult(), layer_id_, version,
-                                   request.GetAdditionalFields(), boost::none,
-                                   request.GetBillingTag(), context);
+    response = MetadataApi::GetPartitions(
+        metadata_api.GetResult(), layer_id_, version,
+        request.GetAdditionalFields(), olp::porting::none,
+        request.GetBillingTag(), context);
   } else {
     auto query_api = lookup_client_.LookupApi(
         "query", "v1", static_cast<client::FetchOptions>(fetch_option),
@@ -331,7 +330,7 @@ PartitionsRepository::GetPartitionsExtendedResponse(
 }
 
 PartitionsResponse PartitionsRepository::GetPartitionById(
-    const DataRequest& request, boost::optional<int64_t> version,
+    const DataRequest& request, porting::optional<int64_t> version,
     client::CancellationContext context) {
   const auto& partition_id = request.GetPartitionId();
   if (!partition_id) {
@@ -385,7 +384,7 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
                         "GetPartitionById put to cache, hrn='%s', key='%s'",
                         catalog_.ToCatalogHRNString().c_str(), key.c_str());
     const auto put_result =
-        cache_.Put(query_response.GetResult(), version, boost::none);
+        cache_.Put(query_response.GetResult(), version, olp::porting::none);
     if (!put_result.IsSuccessful()) {
       OLP_SDK_LOG_ERROR_F(kLogTag,
                           "GetPartitionById failed to write data to cache, "
@@ -428,7 +427,7 @@ model::Partition PartitionsRepository::PartitionFromSubQuad(
 }
 
 QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
-    const TileRequest& request, boost::optional<int64_t> version,
+    const TileRequest& request, porting::optional<int64_t> version,
     client::CancellationContext context,
     const std::vector<std::string>& required_fields) {
   static const std::vector<std::string> default_additional_fields = {
@@ -501,13 +500,13 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
       request.GetBillingTag(), context);
 
   if (quadtree_response.GetStatus() != olp::http::HttpStatusCode::OK) {
-    OLP_SDK_LOG_WARNING_F(kLogTag,
-                          "GetQuadTreeIndexForTile QuadTreeIndex failed, "
-                          "hrn='%s', layer='%s', root='%s', "
-                          "version='%" PRId64 "', depth='%" PRId32 "'",
-                          catalog_.ToString().c_str(), layer_id_.c_str(),
-                          root_tile_here.c_str(), version.get_value_or(-1),
-                          kAggregateQuadTreeDepth);
+    OLP_SDK_LOG_WARNING_F(
+        kLogTag,
+        "GetQuadTreeIndexForTile QuadTreeIndex failed, "
+        "hrn='%s', layer='%s', root='%s', "
+        "version='%" PRId64 "', depth='%" PRId32 "'",
+        catalog_.ToString().c_str(), layer_id_.c_str(), root_tile_here.c_str(),
+        olp::porting::value_or(version, -1), kAggregateQuadTreeDepth);
     return {client::ApiError(quadtree_response.GetStatus(),
                              quadtree_response.GetResponseAsString()),
             quadtree_response.GetNetworkStatistics()};
@@ -521,7 +520,7 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
         "GetQuadTreeIndexForTile QuadTreeIndex failed, hrn='%s', layer='%s', "
         "root='%s', version='%" PRId64 "', depth='%" PRId32 "'",
         catalog_.ToString().c_str(), layer_id_.c_str(), root_tile_here.c_str(),
-        version.get_value_or(-1), kAggregateQuadTreeDepth);
+        olp::porting::value_or(version, -1), kAggregateQuadTreeDepth);
     return {client::ApiError::Unknown("Failed to parse quad tree response"),
             quadtree_response.GetNetworkStatistics()};
   }
@@ -543,7 +542,7 @@ QuadTreeIndexResponse PartitionsRepository::GetQuadTreeIndexForTile(
 }
 
 PartitionResponse PartitionsRepository::GetAggregatedTile(
-    TileRequest request, boost::optional<int64_t> version,
+    TileRequest request, porting::optional<int64_t> version,
     const client::CancellationContext& context) {
   auto quad_tree_response =
       GetQuadTreeIndexForTile(request, version, context, {});
@@ -581,7 +580,7 @@ PartitionResponse PartitionsRepository::GetAggregatedTile(
 }
 
 PartitionResponse PartitionsRepository::GetTile(
-    const TileRequest& request, boost::optional<int64_t> version,
+    const TileRequest& request, porting::optional<int64_t> version,
     client::CancellationContext context,
     const std::vector<std::string>& required_fields) {
   auto quad_tree_response = GetQuadTreeIndexForTile(
@@ -604,9 +603,9 @@ QueryApi::PartitionsExtendedResponse
 PartitionsRepository::QueryPartitionsInBatches(
     const client::OlpClient& client,
     const PartitionsRequest::PartitionIds& partition_ids,
-    boost::optional<std::int64_t> version,
+    porting::optional<std::int64_t> version,
     const PartitionsRequest::AdditionalFields& additional_fields,
-    boost::optional<std::string> billing_tag,
+    olp::porting::optional<std::string> billing_tag,
     client::CancellationContext context) {
   std::vector<model::Partition> aggregated_partitions;
   aggregated_partitions.reserve(partition_ids.size());
@@ -688,7 +687,7 @@ client::ApiNoResponse PartitionsRepository::ParsePartitionsStream(
 void PartitionsRepository::StreamPartitions(
     const std::shared_ptr<AsyncJsonStream>& async_stream, std::int64_t version,
     const std::vector<std::string>& additional_fields,
-    boost::optional<std::string> billing_tag,
+    porting::optional<std::string> billing_tag,
     const client::CancellationContext& context) {
   auto metadata_api = lookup_client_.LookupApi(
       "metadata", "v1", client::FetchOptions::OnlineIfNotFound, context);
@@ -711,12 +710,12 @@ void PartitionsRepository::StreamPartitions(
 
   auto http_response = MetadataApi::GetPartitionsStream(
       metadata_api.GetResult(), layer_id_, version, additional_fields,
-      boost::none, std::move(billing_tag), data_callback, context);
+      porting::none, std::move(billing_tag), data_callback, context);
 
   auto error =
-      http_response.GetStatus() != olp::http::HttpStatusCode::OK
-          ? boost::make_optional(client::ApiError(http_response.GetStatus()))
-          : boost::none;
+      http_response.GetStatus() != http::HttpStatusCode::OK
+          ? porting::make_optional(client::ApiError(http_response.GetStatus()))
+          : porting::none;
 
   async_stream->CloseStream(error);
 }

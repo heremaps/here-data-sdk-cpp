@@ -56,7 +56,7 @@ class PrefetchTilesRepository {
   PrefetchTilesRepository(
       client::HRN catalog, std::string layer_id,
       client::OlpClientSettings settings, client::ApiLookupClient client,
-      boost::optional<std::string> billing_tag = boost::none,
+      porting::optional<std::string> billing_tag = olp::porting::none,
       NamedMutexStorage mutex_storage = NamedMutexStorage());
 
   /**
@@ -158,7 +158,7 @@ class PrefetchTilesRepository {
   client::OlpClientSettings settings_;
   client::ApiLookupClient lookup_client_;
   PartitionsCacheRepository cache_repository_;
-  boost::optional<std::string> billing_tag_;
+  porting::optional<std::string> billing_tag_;
   NamedMutexStorage storage_;
 };
 

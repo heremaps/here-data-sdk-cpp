@@ -58,7 +58,7 @@ class CatalogRepository final {
 
  private:
   CatalogVersionResponse GetLatestVersionOnline(
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       client::CancellationContext context);
 
   client::HRN catalog_;

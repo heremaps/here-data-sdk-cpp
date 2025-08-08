@@ -22,7 +22,7 @@
 #include <memory>
 
 #include <olp/core/client/HRN.h>
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.h>
 #include <string>
 
 namespace olp {
@@ -43,8 +43,8 @@ class ApiCacheRepository final {
   void Put(const std::string& service, const std::string& version,
            const std::string& url);
 
-  boost::optional<std::string> Get(const std::string& service,
-                                   const std::string& version);
+  porting::optional<std::string> Get(const std::string& service,
+                                     const std::string& version);
 
  private:
   client::HRN hrn_;

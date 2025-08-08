@@ -26,7 +26,7 @@
 #include <olp/core/geo/coordinates/GeoCoordinates.h>
 #include <olp/core/geo/tiling/TileKey.h>
 #include <olp/core/geo/tiling/TileKeyUtils.h>
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 
 namespace olp {
 namespace geo {

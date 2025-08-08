@@ -135,8 +135,8 @@ TEST_F(DataRepositoryTest, GetBlobData) {
   DataRepository repository(hrn, *settings_, lookup_client);
   auto response = repository.GetBlobData(
       kLayerId, kService, partition,
-      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context, false);
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound,
+      olp::porting::none, context, false);
 
   ASSERT_TRUE(response.IsSuccessful());
 }
@@ -157,8 +157,8 @@ TEST_F(DataRepositoryTest, GetBlobDataApiLookupFailed403) {
   DataRepository repository(hrn, *settings_, lookup_client);
   auto response = repository.GetBlobData(
       kLayerId, kService, partition,
-      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context, false);
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound,
+      olp::porting::none, context, false);
 
   ASSERT_FALSE(response.IsSuccessful());
 }
@@ -172,8 +172,8 @@ TEST_F(DataRepositoryTest, GetBlobDataNoDataHandle) {
 
   auto response = repository.GetBlobData(
       kLayerId, kService, olp::dataservice::read::model::Partition(),
-      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context, false);
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound,
+      olp::porting::none, context, false);
 
   ASSERT_FALSE(response.IsSuccessful());
 }
@@ -199,8 +199,8 @@ TEST_F(DataRepositoryTest, GetBlobDataFailedDataFetch403) {
   DataRepository repository(hrn, *settings_, lookup_client);
   auto response = repository.GetBlobData(
       kLayerId, kService, partition,
-      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context, false);
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound,
+      olp::porting::none, context, false);
 
   ASSERT_FALSE(response.IsSuccessful());
 }
@@ -228,8 +228,8 @@ TEST_F(DataRepositoryTest, GetBlobDataCache) {
   DataRepository repository(hrn, *settings_, lookup_client);
   auto response = repository.GetBlobData(
       kLayerId, kService, partition,
-      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context, false);
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound,
+      olp::porting::none, context, false);
 
   ASSERT_TRUE(response.IsSuccessful());
 
@@ -237,8 +237,8 @@ TEST_F(DataRepositoryTest, GetBlobDataCache) {
   // instead
   response = repository.GetBlobData(
       kLayerId, kService, partition,
-      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context, false);
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound,
+      olp::porting::none, context, false);
 
   ASSERT_TRUE(response.IsSuccessful());
 }
@@ -268,8 +268,8 @@ TEST_F(DataRepositoryTest, GetBlobDataImmediateCancel) {
   DataRepository repository(hrn, *settings_, lookup_client);
   auto response = repository.GetBlobData(
       kLayerId, kService, partition,
-      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context, false);
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound,
+      olp::porting::none, context, false);
 
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Cancelled);
@@ -303,8 +303,8 @@ TEST_F(DataRepositoryTest, GetBlobDataInProgressCancel) {
   DataRepository repository(hrn, *settings_, lookup_client);
   auto response = repository.GetBlobData(
       kLayerId, kService, partition,
-      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context, false);
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound,
+      olp::porting::none, context, false);
 
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::Cancelled);
@@ -347,8 +347,8 @@ TEST_F(DataRepositoryTest, GetBlobDataSimultaniousFailedCalls) {
   std::thread first_request_thread([&]() {
     auto response = repository.GetBlobData(
         kLayerId, kService, partition,
-        olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-        context, false);
+        olp::dataservice::read::FetchOptions::OnlineIfNotFound,
+        olp::porting::none, context, false);
     EXPECT_FALSE(response.IsSuccessful());
   });
 
@@ -365,8 +365,8 @@ TEST_F(DataRepositoryTest, GetBlobDataSimultaniousFailedCalls) {
   std::thread second_request_thread([&]() {
     auto response = repository.GetBlobData(
         kLayerId, kService, partition,
-        olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-        context, false);
+        olp::dataservice::read::FetchOptions::OnlineIfNotFound,
+        olp::porting::none, context, false);
     EXPECT_FALSE(response.IsSuccessful());
   });
 
@@ -598,8 +598,8 @@ TEST_F(DataRepositoryTest, GetBlobDataCancelParralellRequest) {
   std::thread first_request_thread([&]() {
     auto response = repository.GetBlobData(
         kLayerId, kService, partition,
-        olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-        context, false);
+        olp::dataservice::read::FetchOptions::OnlineIfNotFound,
+        olp::porting::none, context, false);
 
     EXPECT_FALSE(response);
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -612,8 +612,8 @@ TEST_F(DataRepositoryTest, GetBlobDataCancelParralellRequest) {
   std::thread second_request_thread([&]() {
     auto response = repository.GetBlobData(
         kLayerId, kService, partition,
-        olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-        context, false);
+        olp::dataservice::read::FetchOptions::OnlineIfNotFound,
+        olp::porting::none, context, false);
 
     EXPECT_FALSE(response);
     EXPECT_EQ(response.GetError().GetErrorCode(),
@@ -676,8 +676,8 @@ TEST_F(DataRepositoryTest, GetBlobDataFailedToCache) {
   DataRepository repository(hrn, *settings_, lookup_client);
   auto response = repository.GetBlobData(
       kLayerId, kService, partition,
-      olp::dataservice::read::FetchOptions::OnlineIfNotFound, boost::none,
-      context, true);
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound,
+      olp::porting::none, context, true);
 
   ASSERT_FALSE(response);
   ASSERT_EQ(response.GetError().GetErrorCode(),

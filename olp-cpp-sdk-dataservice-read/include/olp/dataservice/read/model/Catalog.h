@@ -22,8 +22,7 @@
 #include <string>
 #include <vector>
 
-#include <boost/optional.hpp>
-
+#include <olp/core/porting/optional.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
 
 namespace olp {
@@ -736,7 +735,7 @@ class DATASERVICE_READ_API Layer {
   std::string digest_;
   std::vector<std::string> tags_;
   std::vector<std::string> billing_tags_;
-  boost::optional<int64_t> ttl_;
+  porting::optional<int64_t> ttl_;
   IndexProperties index_properties_;
   StreamProperties stream_properties_;
   Volume volume_;
@@ -1070,7 +1069,7 @@ class DATASERVICE_READ_API Layer {
    *
    * @return The expiry time (in milliseconds) for data in this layer.
    */
-  const boost::optional<int64_t>& GetTtl() const { return ttl_; }
+  const porting::optional<int64_t>& GetTtl() const { return ttl_; }
   /**
    * @brief Gets a mutable reference to the expiry time for data in this layer.
    *
@@ -1079,7 +1078,7 @@ class DATASERVICE_READ_API Layer {
    * @return The mutable reference to the expiry time for data in
    * this layer.
    */
-  boost::optional<int64_t>& GetMutableTtl() { return ttl_; }
+  porting::optional<int64_t>& GetMutableTtl() { return ttl_; }
   /**
    * @brief Sets the expiry time for data in this layer.
    *
@@ -1087,7 +1086,7 @@ class DATASERVICE_READ_API Layer {
    *
    * @param value The expiry time for data in this layer.
    */
-  void SetTtl(const boost::optional<int64_t>& value) { this->ttl_ = value; }
+  void SetTtl(const porting::optional<int64_t>& value) { this->ttl_ = value; }
 
   /**
    * @brief Gets the `IndexProperties` instance.

@@ -24,7 +24,7 @@
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/HttpResponse.h>
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.h>
 #include "ExtendedApiResponse.h"
 #include "olp/dataservice/read/model/Data.h"
 #include "olp/dataservice/read/model/Partitions.h"
@@ -68,8 +68,8 @@ class BlobApi {
   static DataResponse GetBlob(const client::OlpClient& client,
                               const std::string& layer_id,
                               const model::Partition& partition,
-                              boost::optional<std::string> billing_tag,
-                              boost::optional<std::string> range,
+                              porting::optional<std::string> billing_tag,
+                              porting::optional<std::string> range,
                               const client::CancellationContext& context);
 };
 

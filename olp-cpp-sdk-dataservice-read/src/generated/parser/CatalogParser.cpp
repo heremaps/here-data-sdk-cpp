@@ -23,7 +23,7 @@
 
 namespace olp {
 namespace parser {
-using namespace olp::dataservice::read;
+namespace model = dataservice::read::model;
 
 void from_json(const rapidjson::Value& value, model::Coverage& x) {
   x.SetAdminAreas(parse<std::vector<std::string>>(value, "adminAreas"));
@@ -96,7 +96,7 @@ void from_json(const rapidjson::Value& value, model::Layer& x) {
   x.SetDigest(parse<std::string>(value, "digest"));
   x.SetTags(parse<std::vector<std::string>>(value, "tags"));
   x.SetBillingTags(parse<std::vector<std::string>>(value, "billingTags"));
-  x.SetTtl(parse<boost::optional<int64_t>>(value, "ttl"));
+  x.SetTtl(parse<porting::optional<int64_t>>(value, "ttl"));
   x.SetIndexProperties(parse<model::IndexProperties>(value, "indexProperties"));
   x.SetStreamProperties(
       parse<model::StreamProperties>(value, "streamProperties"));

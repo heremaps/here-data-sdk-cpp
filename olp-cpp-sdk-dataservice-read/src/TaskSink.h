@@ -19,11 +19,10 @@
 
 #pragma once
 
-#include <boost/optional.hpp>
-
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/PendingRequests.h>
 #include <olp/core/client/TaskContext.h>
+#include <olp/core/porting/optional.h>
 #include <olp/core/thread/TaskScheduler.h>
 
 namespace olp {
@@ -55,14 +54,14 @@ class TaskSink {
   }
 
   template <typename Function, typename Callback, typename... Args>
-  boost::optional<client::CancellationToken> AddTaskChecked(Function task,
-                                                            Callback callback,
-                                                            uint32_t priority,
-                                                            Args&&... args) {
+  porting::optional<client::CancellationToken> AddTaskChecked(Function task,
+                                                              Callback callback,
+                                                              uint32_t priority,
+                                                              Args&&... args) {
     auto context = client::TaskContext::Create(
         std::move(task), std::move(callback), std::forward<Args>(args)...);
     if (!AddTaskImpl(context, priority)) {
-      return boost::none;
+      return olp::porting::none;
     }
     return context.CancelToken();
   }

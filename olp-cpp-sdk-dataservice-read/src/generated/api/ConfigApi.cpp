@@ -35,7 +35,7 @@ namespace read {
 
 ConfigApi::CatalogResponse ConfigApi::GetCatalog(
     const client::OlpClient& client, const std::string& catalog_hrn,
-    boost::optional<std::string> billing_tag,
+    porting::optional<std::string> billing_tag,
     client::CancellationContext context) {
   std::multimap<std::string, std::string> header_params;
   header_params.insert(std::make_pair("Accept", "application/json"));
@@ -50,9 +50,11 @@ ConfigApi::CatalogResponse ConfigApi::GetCatalog(
       std::move(catalog_uri), "GET", std::move(query_params),
       std::move(header_params), {}, nullptr, std::string{}, std::move(context));
   if (response.GetStatus() != olp::http::HttpStatusCode::OK) {
-    return client::ApiError(response.GetStatus(), response.GetResponseAsString());
+    return client::ApiError(response.GetStatus(),
+                            response.GetResponseAsString());
   }
-  return parser::parse_result<ConfigApi::CatalogResponse>(response.GetRawResponse());
+  return parser::parse_result<ConfigApi::CatalogResponse>(
+      response.GetRawResponse());
 }
 
 }  // namespace read

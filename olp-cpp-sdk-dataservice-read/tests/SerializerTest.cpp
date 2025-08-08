@@ -39,7 +39,27 @@
 
 namespace {
 
-using namespace olp::dataservice::read::model;
+using olp::dataservice::read::model::Api;
+using olp::dataservice::read::model::Catalog;
+using olp::dataservice::read::model::Coverage;
+using olp::dataservice::read::model::Creator;
+using olp::dataservice::read::model::Encryption;
+using olp::dataservice::read::model::IndexDefinition;
+using olp::dataservice::read::model::IndexProperties;
+using olp::dataservice::read::model::Layer;
+using olp::dataservice::read::model::LayerVersion;
+using olp::dataservice::read::model::LayerVersions;
+using olp::dataservice::read::model::Notifications;
+using olp::dataservice::read::model::Owner;
+using olp::dataservice::read::model::Partition;
+using olp::dataservice::read::model::Partitioning;
+using olp::dataservice::read::model::Partitions;
+using olp::dataservice::read::model::Schema;
+using olp::dataservice::read::model::StreamOffset;
+using olp::dataservice::read::model::StreamOffsets;
+using olp::dataservice::read::model::StreamProperties;
+using olp::dataservice::read::model::VersionResponse;
+using olp::dataservice::read::model::Volume;
 
 void RemoveWhitespaceAndNewlines(std::string& s) {
   std::regex r("\\s+");
@@ -354,7 +374,7 @@ TEST(SerializerTest, Partitions) {
 
   Partition partition;
   partition.SetChecksum(
-      boost::optional<std::string>("291f66029c232400e3403cd6e9cfd36e"));
+      olp::porting::optional<std::string>("291f66029c232400e3403cd6e9cfd36e"));
   partition.SetCompressedDataSize(1024);
   partition.SetDataHandle("1b2ca68f-d4a0-4379-8120-cd025640510c");
   partition.SetDataSize(1024);

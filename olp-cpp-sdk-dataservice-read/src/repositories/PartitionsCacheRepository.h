@@ -24,9 +24,9 @@
 
 #include <olp/core/client/ApiNoResult.h>
 #include <olp/core/client/HRN.h>
+#include <olp/core/porting/optional.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/model/Partitions.h>
-#include <boost/optional.hpp>
 #include "QuadTreeIndex.h"
 #include "generated/model/LayerVersions.h"
 
@@ -48,60 +48,62 @@ class PartitionsCacheRepository final {
   ~PartitionsCacheRepository() = default;
 
   client::ApiNoResponse Put(const model::Partitions& partitions,
-                            const boost::optional<int64_t>& version,
-                            const boost::optional<time_t>& expiry,
+                            const porting::optional<int64_t>& version,
+                            const porting::optional<time_t>& expiry,
                             bool layer_metadata = false);
 
   model::Partitions Get(const std::vector<std::string>& partition_ids,
-                        const boost::optional<int64_t>& version);
+                        const porting::optional<int64_t>& version);
 
-  boost::optional<model::Partitions> Get(
+  porting::optional<model::Partitions> Get(
       const PartitionsRequest& request,
-      const boost::optional<int64_t>& version);
+      const porting::optional<int64_t>& version);
 
   bool Put(int64_t catalog_version, const model::LayerVersions& layer_versions);
 
-  boost::optional<model::LayerVersions> Get(int64_t catalog_version);
+  porting::optional<model::LayerVersions> Get(int64_t catalog_version);
 
   client::ApiNoResponse Put(geo::TileKey tile_key, int32_t depth,
                             const QuadTreeIndex& quad_tree,
-                            const boost::optional<int64_t>& version);
+                            const porting::optional<int64_t>& version);
 
   bool Get(geo::TileKey tile_key, int32_t depth,
-           const boost::optional<int64_t>& version, QuadTreeIndex& tree);
+           const porting::optional<int64_t>& version, QuadTreeIndex& tree);
 
   bool Clear();
 
   bool ClearPartitions(const std::vector<std::string>& partition_ids,
-                       const boost::optional<int64_t>& version);
+                       const porting::optional<int64_t>& version);
 
-  client::ApiNoResponse ClearQuadTree(geo::TileKey tile_key, int32_t depth,
-                                      const boost::optional<int64_t>& version);
+  client::ApiNoResponse ClearQuadTree(
+      geo::TileKey tile_key, int32_t depth,
+      const porting::optional<int64_t>& version);
 
   client::ApiNoResponse ClearPartitionMetadata(
       const std::string& partition_id,
-      const boost::optional<int64_t>& catalog_version,
-      boost::optional<model::Partition>& out_partition);
+      const porting::optional<int64_t>& catalog_version,
+      porting::optional<model::Partition>& out_partition);
 
   bool GetPartitionHandle(const std::string& partition_id,
-                          const boost::optional<int64_t>& catalog_version,
+                          const porting::optional<int64_t>& catalog_version,
                           std::string& data_handle);
 
-  bool FindQuadTree(geo::TileKey key, boost::optional<int64_t> version,
+  bool FindQuadTree(geo::TileKey key, porting::optional<int64_t> version,
                     read::QuadTreeIndex& tree);
 
   bool ContainsTree(geo::TileKey key, int32_t depth,
-                    const boost::optional<int64_t>& version) const;
+                    const porting::optional<int64_t>& version) const;
 
   bool Protect(const std::vector<std::string>& partition_ids,
-               const boost::optional<int64_t>& version);
+               const porting::optional<int64_t>& version);
 
   bool Release(const std::vector<std::string>& partition_ids,
-               const boost::optional<int64_t>& version);
+               const porting::optional<int64_t>& version);
 
  private:
   cache::KeyValueCache::KeyListType CreatePartitionKeys(
-      const std::string& partition_id, const boost::optional<int64_t>& version);
+      const std::string& partition_id,
+      const porting::optional<int64_t>& version);
 
   const std::string catalog_;
   const std::string layer_id_;

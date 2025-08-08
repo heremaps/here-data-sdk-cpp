@@ -25,10 +25,9 @@
 #include <vector>
 
 #include <olp/core/geo/tiling/TileKey.h>
-#include <olp/core/porting/deprecated.h>
+#include <olp/core/porting/optional.h>
 #include <olp/core/thread/TaskScheduler.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
-#include <boost/optional.hpp>
 
 namespace olp {
 namespace dataservice {
@@ -51,9 +50,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    *
    * @return The vector with the tile keys.
    */
-  inline const std::vector<geo::TileKey>& GetTileKeys() const {
-    return tile_keys_;
-  }
+  const std::vector<geo::TileKey>& GetTileKeys() const { return tile_keys_; }
 
   /**
    * @brief Sets the vector of the root tile keys for the request.
@@ -62,8 +59,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
-  inline PrefetchTilesRequest& WithTileKeys(
-      std::vector<geo::TileKey> tile_keys) {
+  PrefetchTilesRequest& WithTileKeys(std::vector<geo::TileKey> tile_keys) {
     tile_keys_ = std::move(tile_keys);
     return *this;
   }
@@ -73,7 +69,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    *
    * @return The minimum tile level.
    */
-  inline unsigned int GetMinLevel() const { return min_level_; }
+  unsigned int GetMinLevel() const { return min_level_; }
 
   /**
    * @brief Sets the minimum tiles level for the request.
@@ -82,7 +78,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
-  inline PrefetchTilesRequest& WithMinLevel(unsigned int min_level) {
+  PrefetchTilesRequest& WithMinLevel(unsigned int min_level) {
     min_level_ = min_level;
     return *this;
   }
@@ -92,7 +88,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    *
    * @return The maximum tile level.
    */
-  inline unsigned int GetMaxLevel() const { return max_level_; }
+  unsigned int GetMaxLevel() const { return max_level_; }
 
   /**
    * @brief Sets the maximum tile level for the request.
@@ -101,7 +97,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
-  inline PrefetchTilesRequest& WithMaxLevel(unsigned int max_level) {
+  PrefetchTilesRequest& WithMaxLevel(unsigned int max_level) {
     max_level_ = max_level;
     return *this;
   }
@@ -113,10 +109,10 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    * billing records together. If supplied, it must be 4–16 characters
    * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
    *
-   * @return The `BillingTag` string or `boost::none` if the billing tag is not
-   * set.
+   * @return The `BillingTag` string or `olp::porting::none` if the billing tag
+   * is not set.
    */
-  inline const boost::optional<std::string>& GetBillingTag() const {
+  const porting::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
@@ -125,28 +121,13 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    *
    * @see `GetBillingTag()` for information on usage and format.
    *
-   * @param tag The `BillingTag` string or `boost::none`.
+   * @param tag The `BillingTag` string or `olp::porting::none`.
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
-  inline PrefetchTilesRequest& WithBillingTag(
-      boost::optional<std::string> tag) {
-    billing_tag_ = std::move(tag);
-    return *this;
-  }
-
-  /**
-   * @brief Sets the billing tag for the request.
-   *
-   * @see `GetBillingTag()` for information on usage and format.
-   *
-   * @param tag The rvalue reference to the `BillingTag` string or
-   * `boost::none`.
-   *
-   * @return A reference to the updated `PrefetchTilesRequest` instance.
-   */
-  inline PrefetchTilesRequest& WithBillingTag(std::string&& tag) {
-    billing_tag_ = std::move(tag);
+  template <class T = porting::optional<std::string>>
+  PrefetchTilesRequest& WithBillingTag(T&& tag) {
+    billing_tag_ = std::forward<T>(tag);
     return *this;
   }
 
@@ -160,11 +141,11 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    * disables the aggregation.
    *
    * @note Experimental. API may change.
-   * 
+   *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
-  inline PrefetchTilesRequest& WithDataAggregationEnabled(
-      bool data_aggregation_enabled) {
+  PrefetchTilesRequest& WithDataAggregationEnabled(
+      const bool data_aggregation_enabled) {
     data_aggregation_enabled_ = data_aggregation_enabled;
     return *this;
   }
@@ -176,9 +157,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    *
    * @return The data aggregation flag as a boolean value.
    */
-  inline bool GetDataAggregationEnabled() const {
-    return data_aggregation_enabled_;
-  }
+  bool GetDataAggregationEnabled() const { return data_aggregation_enabled_; }
 
   /**
    * @brief Gets the request priority.
@@ -187,7 +166,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    *
    * @return The request priority.
    */
-  inline uint32_t GetPriority() const { return priority_; }
+  uint32_t GetPriority() const { return priority_; }
 
   /**
    * @brief Sets the priority of the prefetch request.
@@ -196,7 +175,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    *
    * @return A reference to the updated `PrefetchTileRequest` instance.
    */
-  inline PrefetchTilesRequest& WithPriority(uint32_t priority) {
+  PrefetchTilesRequest& WithPriority(uint32_t priority) {
     priority_ = priority;
     return *this;
   }
@@ -208,12 +187,12 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
    *
    * @return A string representation of the request.
    */
-  inline std::string CreateKey(const std::string& layer_id) const {
+  std::string CreateKey(const std::string& layer_id) const {
     std::stringstream out;
     out << layer_id << "[" << GetMinLevel() << "/" << GetMaxLevel() << "]"
         << "(" << GetTileKeys().size() << ")";
     if (GetBillingTag()) {
-      out << "$" << GetBillingTag().get();
+      out << "$" << *GetBillingTag();
     }
     return out.str();
   }
@@ -223,7 +202,7 @@ class DATASERVICE_READ_API PrefetchTilesRequest final {
   std::vector<geo::TileKey> tile_keys_;
   unsigned int min_level_{geo::TileKey::LevelCount};
   unsigned int max_level_{geo::TileKey::LevelCount};
-  boost::optional<std::string> billing_tag_;
+  porting::optional<std::string> billing_tag_;
   bool data_aggregation_enabled_{false};
   uint32_t priority_{thread::LOW};
 };

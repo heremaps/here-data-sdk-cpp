@@ -31,7 +31,7 @@
 #include <olp/core/client/OauthToken.h>
 #include <olp/core/client/RetrySettings.h>
 #include <olp/core/http/Network.h>
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 
 namespace olp {
 namespace cache {
