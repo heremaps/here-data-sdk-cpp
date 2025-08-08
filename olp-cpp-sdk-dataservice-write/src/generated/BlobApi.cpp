@@ -43,7 +43,8 @@ client::CancellationToken BlobApi::PutBlob(
     const std::string& content_type, const std::string& content_encoding,
     const std::string& data_handle,
     const std::shared_ptr<std::vector<unsigned char>>& data,
-    const boost::optional<std::string>& billing_tag, PutBlobCallback callback) {
+    const porting::optional<std::string>& billing_tag,
+    PutBlobCallback callback) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
   std::multimap<std::string, std::string> form_params;
@@ -54,8 +55,7 @@ client::CancellationToken BlobApi::PutBlob(
   }
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string put_blob_uri = "/layers/" + layer_id + "/data/" + data_handle;
@@ -81,7 +81,7 @@ PutBlobResponse BlobApi::PutBlob(
     const std::string& content_type, const std::string& content_encoding,
     const std::string& data_handle,
     const std::shared_ptr<std::vector<unsigned char>>& data,
-    const boost::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& billing_tag,
     client::CancellationContext cancel_context) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
@@ -94,8 +94,7 @@ PutBlobResponse BlobApi::PutBlob(
   }
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string put_blob_uri = "/layers/" + layer_id + "/data/" + data_handle;
@@ -107,8 +106,8 @@ PutBlobResponse BlobApi::PutBlob(
 
   if (http_response.GetStatus() != olp::http::HttpStatusCode::OK &&
       http_response.GetStatus() != olp::http::HttpStatusCode::NO_CONTENT) {
-    return PutBlobResponse(
-        client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString()));
+    return PutBlobResponse(client::ApiError(
+        http_response.GetStatus(), http_response.GetResponseAsString()));
   }
 
   return PutBlobResponse(client::ApiNoResult());
@@ -117,7 +116,7 @@ PutBlobResponse BlobApi::PutBlob(
 client::CancellationToken BlobApi::deleteBlob(
     const client::OlpClient& client, const std::string& layer_id,
     const std::string& data_handle,
-    const boost::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& billing_tag,
     const DeleteBlobCallback& callback) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
@@ -126,8 +125,7 @@ client::CancellationToken BlobApi::deleteBlob(
   header_params.insert(std::make_pair("Accept", "application/json"));
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string delete_blob_uri = "/layers/" + layer_id + "/data/" + data_handle;
@@ -148,7 +146,7 @@ client::CancellationToken BlobApi::deleteBlob(
 client::CancellationToken BlobApi::checkBlobExists(
     const client::OlpClient& client, const std::string& layer_id,
     const std::string& data_handle,
-    const boost::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& billing_tag,
     const CheckBlobCallback& callback) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
@@ -157,8 +155,7 @@ client::CancellationToken BlobApi::checkBlobExists(
   header_params.insert(std::make_pair("Accept", "application/json"));
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string check_blob_uri = "/layers/" + layer_id + "/data/" + data_handle;

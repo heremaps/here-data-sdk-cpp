@@ -24,7 +24,7 @@
 #include <string>
 #include <utility>
 
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 
 #include <olp/dataservice/write/DataServiceWriteApi.h>
 
@@ -324,9 +324,9 @@ class DATASERVICE_WRITE_API Index final {
       : id_(std::move(uuid)), indexFields_(std::move(indexFields)) {}
 
  private:
-  boost::optional<std::string> checksum_;
-  boost::optional<std::map<std::string, std::string>> metadata_;
-  boost::optional<int64_t> size_;
+  porting::optional<std::string> checksum_;
+  porting::optional<std::map<std::string, std::string>> metadata_;
+  porting::optional<int64_t> size_;
   std::string id_;
   std::map<IndexName, std::shared_ptr<IndexValue>> indexFields_;
 
@@ -336,14 +336,16 @@ class DATASERVICE_WRITE_API Index final {
    *
    * @return The checksum.
    */
-  const boost::optional<std::string>& GetCheckSum() const { return checksum_; }
+  const porting::optional<std::string>& GetCheckSum() const {
+    return checksum_;
+  }
 
   /**
    * @brief Gets a mutable reference to the checksum of the index layer.
    *
    * @return The mutable reference to the checksum.
    */
-  boost::optional<std::string>& GetMutableCheckSum() { return checksum_; }
+  porting::optional<std::string>& GetMutableCheckSum() { return checksum_; }
 
   /**
    * @brief Sets the checksum.
@@ -357,7 +359,7 @@ class DATASERVICE_WRITE_API Index final {
    *
    * @return The metadata of the index layer.
    */
-  const boost::optional<std::map<std::string, std::string>>& GetMetadata()
+  const porting::optional<std::map<std::string, std::string>>& GetMetadata()
       const {
     return metadata_;
   }
@@ -367,7 +369,7 @@ class DATASERVICE_WRITE_API Index final {
    *
    * @return The mutable reference to the metadata.
    */
-  boost::optional<std::map<std::string, std::string>>& GetMutableMetadata() {
+  porting::optional<std::map<std::string, std::string>>& GetMutableMetadata() {
     return metadata_;
   }
 
@@ -435,14 +437,14 @@ class DATASERVICE_WRITE_API Index final {
    *
    * @return The size of the index layer.
    */
-  const boost::optional<int64_t>& GetSize() const { return size_; }
+  const porting::optional<int64_t>& GetSize() const { return size_; }
 
   /**
    * @brief Gets a mutable reference to the size of the index layer.
    *
    * @return The mutable reference to the size of the index layer.
    */
-  boost::optional<int64_t>& GetMutableSize() { return size_; }
+  porting::optional<int64_t>& GetMutableSize() { return size_; }
 
   /**
    * @brief Sets the size of the index layer.

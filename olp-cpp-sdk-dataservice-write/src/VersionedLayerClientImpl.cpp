@@ -74,7 +74,7 @@ olp::client::CancellationToken VersionedLayerClientImpl::InitApiClients(
     ul.lock();
   }
   if (apiclient_publish_ && !apiclient_publish_->GetBaseUrl().empty()) {
-    callback(boost::none);
+    callback(olp::porting::none);
     return {};
   }
 
@@ -99,7 +99,7 @@ olp::client::CancellationToken VersionedLayerClientImpl::InitApiClients(
       self->cond_var_.notify_one();
     } else {
       self->apiclient_publish_->SetBaseUrl(apis.GetResult().at(0).GetBaseUrl());
-      callback(boost::none);
+      callback(olp::porting::none);
       self->cond_var_.notify_all();
     }
   };
@@ -248,17 +248,18 @@ olp::client::CancellationToken VersionedLayerClientImpl::GetBaseVersion(
       };
 
   auto getBaseVersion_function = [=]() -> client::CancellationToken {
-    return MetadataApi::GetLatestCatalogVersion(
-        *self->apiclient_metadata_, -1, boost::none, getBaseVersion_callback);
+    return MetadataApi::GetLatestCatalogVersion(*self->apiclient_metadata_, -1,
+                                                olp::porting::none,
+                                                getBaseVersion_callback);
   };
 
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
-            cancel_context, [=](boost::optional<client::ApiError> err) {
+            cancel_context, [=](porting::optional<client::ApiError> err) {
               if (err) {
                 self->tokenList_.RemoveTask(id);
-                callback(err.get());
+                callback(*err);
                 return;
               }
               cancel_context->ExecuteOrCancelled(getBaseVersion_function,
@@ -315,16 +316,17 @@ olp::client::CancellationToken VersionedLayerClientImpl::GetBatch(
 
   auto getPublication_function = [=]() -> client::CancellationToken {
     return PublishApi::GetPublication(*self->apiclient_publish_, publicationId,
-                                      boost::none, getPublication_callback);
+                                      olp::porting::none,
+                                      getPublication_callback);
   };
 
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
-            cancel_context, [=](boost::optional<client::ApiError> err) {
+            cancel_context, [=](porting::optional<client::ApiError> err) {
               if (err) {
                 self->tokenList_.RemoveTask(id);
-                callback(err.get());
+                callback(*err);
                 return;
               }
               cancel_context->ExecuteOrCancelled(getPublication_function,
@@ -360,7 +362,7 @@ olp::client::CancellationToken VersionedLayerClientImpl::CompleteBatch(
     if (!publication.GetId()) {
       return {{client::ErrorCode::InvalidArgument, "Invalid publication"}};
     }
-    const auto& id = publication.GetId().get();
+    const auto& id = *publication.GetId();
 
     auto olp_client_response = ApiClientLookup::LookupApiClient(
         catalog, context, "publish", "v2", settings);
@@ -370,7 +372,8 @@ olp::client::CancellationToken VersionedLayerClientImpl::CompleteBatch(
 
     auto olp_client = olp_client_response.MoveResult();
 
-    return PublishApi::SubmitPublication(olp_client, id, boost::none, context);
+    return PublishApi::SubmitPublication(olp_client, id, olp::porting::none,
+                                         context);
   };
 
   return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
@@ -406,7 +409,8 @@ olp::client::CancellationToken VersionedLayerClientImpl::CancelBatch(
     }
 
     return PublishApi::CancelPublication(client_response.GetResult(),
-                                         publication_id, boost::none, context);
+                                         publication_id, olp::porting::none,
+                                         context);
   };
 
   return AddTask(settings_.task_scheduler, pending_requests_,
@@ -441,7 +445,7 @@ olp::client::CancellationToken VersionedLayerClientImpl::PublishToBatch(
       return {{client::ErrorCode::InvalidArgument,
                "Invalid publication: publication ID missing", true}};
     }
-    const auto& publication_id = pub.GetId().get();
+    const auto& publication_id = *pub.GetId();
 
     const auto& layer_id = request.GetLayerId();
     if (layer_id.empty()) {
@@ -513,8 +517,8 @@ UploadPartitionResponse VersionedLayerClientImpl::UploadPartition(
   partitions.SetPartitions({publish_partition});
 
   return PublishApi::UploadPartitions(publish_client, partitions,
-                                      publication_id, layer_id, boost::none,
-                                      context);
+                                      publication_id, layer_id,
+                                      olp::porting::none, context);
 }
 
 UploadBlobResponse VersionedLayerClientImpl::UploadBlob(
@@ -574,7 +578,7 @@ client::CancellationToken VersionedLayerClientImpl::CheckDataExists(
 
   auto check_data_exists_function = [=]() -> client::CancellationToken {
     return BlobApi::checkBlobExists(*self->apiclient_blob_, layer_id,
-                                    data_handle, boost::none,
+                                    data_handle, olp::porting::none,
                                     check_data_exists_callback);
   };
 
@@ -586,9 +590,9 @@ client::CancellationToken VersionedLayerClientImpl::CheckDataExists(
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
-            cancel_context, [=](boost::optional<client::ApiError> err) {
+            cancel_context, [=](porting::optional<client::ApiError> err) {
               if (err) {
-                callback(err.get());
+                callback(*err);
                 return;
               }
               cancel_context->ExecuteOrCancelled(check_data_exists_function,

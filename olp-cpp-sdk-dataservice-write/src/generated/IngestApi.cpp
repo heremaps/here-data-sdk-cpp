@@ -54,24 +54,24 @@ client::CancellationToken IngestApi::IngestData(
     const client::OlpClient& client, const std::string& layer_id,
     const std::string& content_type,
     const std::shared_ptr<std::vector<unsigned char>>& data,
-    const boost::optional<std::string>& trace_id,
-    const boost::optional<std::string>& billing_tag,
-    const boost::optional<std::string>& checksum, IngestDataCallback callback) {
+    const porting::optional<std::string>& trace_id,
+    const porting::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& checksum,
+    IngestDataCallback callback) {
   std::multimap<std::string, std::string> query_params;
   std::multimap<std::string, std::string> form_params;
   std::multimap<std::string, std::string> header_params;
 
   header_params.insert(std::make_pair("Accept", "application/json"));
   if (trace_id) {
-    header_params.insert(std::make_pair(kHeaderParamTraceId, trace_id.get()));
+    header_params.insert(std::make_pair(kHeaderParamTraceId, *trace_id));
   }
   if (checksum) {
-    header_params.insert(std::make_pair(kHeaderParamChecksum, checksum.get()));
+    header_params.insert(std::make_pair(kHeaderParamChecksum, *checksum));
   }
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string ingest_uri = "/layers/" + layer_id;
@@ -85,8 +85,8 @@ client::CancellationToken IngestApi::IngestData(
           return;
         }
 
-        callback(
-            parser::parse_result<IngestDataResponse>(http_response.GetRawResponse()));
+        callback(parser::parse_result<IngestDataResponse>(
+            http_response.GetRawResponse()));
       });
 
   return cancel_token;
@@ -96,9 +96,9 @@ IngestDataResponse IngestApi::IngestData(
     const client::OlpClient& client, const std::string& layer_id,
     const std::string& content_type, const std::string& content_encoding,
     const std::shared_ptr<std::vector<unsigned char>>& data,
-    const boost::optional<std::string>& trace_id,
-    const boost::optional<std::string>& billing_tag,
-    const boost::optional<std::string>& checksum,
+    const porting::optional<std::string>& trace_id,
+    const porting::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& checksum,
     client::CancellationContext context) {
   std::multimap<std::string, std::string> query_params;
   std::multimap<std::string, std::string> form_params;
@@ -112,16 +112,15 @@ IngestDataResponse IngestApi::IngestData(
   }
 
   if (trace_id) {
-    header_params.insert(std::make_pair(kHeaderParamTraceId, trace_id.get()));
+    header_params.insert(std::make_pair(kHeaderParamTraceId, *trace_id));
   }
 
   if (checksum) {
-    header_params.insert(std::make_pair(kHeaderParamChecksum, checksum.get()));
+    header_params.insert(std::make_pair(kHeaderParamChecksum, *checksum));
   }
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   const std::string ingest_uri = "/layers/" + layer_id;
@@ -133,19 +132,20 @@ IngestDataResponse IngestApi::IngestData(
     OLP_SDK_LOG_ERROR_F(
         kLogTag, "Error during OlpClient::CallApi call, uri=%s, status=%i",
         ingest_uri.c_str(), http_response.GetStatus());
-    return IngestDataResponse{
-        client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString())};
+    return IngestDataResponse{client::ApiError(
+        http_response.GetStatus(), http_response.GetResponseAsString())};
   }
 
-  return parser::parse_result<IngestDataResponse>(http_response.GetRawResponse());
+  return parser::parse_result<IngestDataResponse>(
+      http_response.GetRawResponse());
 }
 
 IngestSdiiResponse IngestApi::IngestSdii(
     const client::OlpClient& client, const std::string& layer_id,
     const std::shared_ptr<std::vector<unsigned char>>& sdii_message_list,
-    const boost::optional<std::string>& trace_id,
-    const boost::optional<std::string>& billing_tag,
-    const boost::optional<std::string>& checksum,
+    const porting::optional<std::string>& trace_id,
+    const porting::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& checksum,
     client::CancellationContext context) {
   std::multimap<std::string, std::string> header_params;
   std::multimap<std::string, std::string> query_params;
@@ -153,15 +153,14 @@ IngestSdiiResponse IngestApi::IngestSdii(
 
   header_params.insert(std::make_pair("Accept", "application/json"));
   if (trace_id) {
-    header_params.insert(std::make_pair(kHeaderParamTraceId, trace_id.get()));
+    header_params.insert(std::make_pair(kHeaderParamTraceId, *trace_id));
   }
   if (checksum) {
-    header_params.insert(std::make_pair(kHeaderParamChecksum, checksum.get()));
+    header_params.insert(std::make_pair(kHeaderParamChecksum, *checksum));
   }
 
   if (billing_tag) {
-    query_params.insert(
-        std::make_pair(kQueryParamBillingTag, billing_tag.get()));
+    query_params.insert(std::make_pair(kQueryParamBillingTag, *billing_tag));
   }
 
   std::string ingest_uri = "/layers/" + layer_id + "/sdiiMessageList";

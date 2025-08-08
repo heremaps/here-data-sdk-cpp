@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 
 #include <generated/model/PublishPartition.h>
 
@@ -41,13 +41,14 @@ class PublishPartitions {
   virtual ~PublishPartitions() = default;
 
  private:
-  boost::optional<std::vector<PublishPartition>> partitions_;
+  porting::optional<std::vector<PublishPartition>> partitions_;
 
  public:
-  const boost::optional<std::vector<PublishPartition>>& GetPartitions() const {
+  const porting::optional<std::vector<PublishPartition>>& GetPartitions()
+      const {
     return partitions_;
   }
-  boost::optional<std::vector<PublishPartition>>& GetMutablePartitions() {
+  porting::optional<std::vector<PublishPartition>>& GetMutablePartitions() {
     return partitions_;
   }
   void SetPartitions(const std::vector<PublishPartition>& value) {

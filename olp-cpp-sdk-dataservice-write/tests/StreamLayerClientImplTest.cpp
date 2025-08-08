@@ -373,9 +373,8 @@ TEST_F(StreamLayerClientImplTest, CancelPublishDataLessThanTwentyMib) {
                                          olp::http::Network::Callback,
                                          olp::http::Network::HeaderCallback,
                                          olp::http::Network::DataCallback) {
-    std::thread([cancel_context]() {
-      cancel_context->CancelOperation();
-    }).detach();
+    std::thread([cancel_context]() { cancel_context->CancelOperation(); })
+        .detach();
 
     constexpr auto unused_request_id = 5;
     return olp::http::SendOutcome(unused_request_id);
@@ -742,7 +741,7 @@ TEST_F(StreamLayerClientImplTest, QueueAndFlush) {
                         client::CancellationContext /*context*/)
                          -> write::PublishDataResponse {
         write::PublishDataResult result;
-        result.SetTraceID(request.GetTraceId().get());
+        result.SetTraceID(*request.GetTraceId());
         return write::PublishDataResponse{result};
       });
   ON_CALL(*client, GenerateUuid)
@@ -761,8 +760,8 @@ TEST_F(StreamLayerClientImplTest, QueueAndFlush) {
             .WithData(std::make_shared<std::vector<unsigned char>>(1, 'z'))
             .WithLayerId("layer");
 
-    auto error = client->Queue(std::move(request));
-    EXPECT_EQ(boost::none, error) << *error;
+    auto error = client->Queue(request);
+    EXPECT_EQ(olp::porting::none, error) << *error;
   }
 
   EXPECT_EQ(client->QueueSize(), kBatchSize);

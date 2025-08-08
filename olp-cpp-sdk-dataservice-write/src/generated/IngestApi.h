@@ -21,7 +21,7 @@
 
 #include <vector>
 
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
@@ -83,9 +83,9 @@ class IngestApi {
       const client::OlpClient& client, const std::string& layer_id,
       const std::string& content_type,
       const std::shared_ptr<std::vector<unsigned char>>& data,
-      const boost::optional<std::string>& trace_id,
-      const boost::optional<std::string>& billing_tag,
-      const boost::optional<std::string>& checksum,
+      const porting::optional<std::string>& trace_id,
+      const porting::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& checksum,
       IngestDataCallback callback);
 
   /**
@@ -94,7 +94,8 @@ class IngestApi {
    * @param layer_id Layer of the catalog where you want to store the data. The
    * layer type must be Stream.
    * @param content_type The content type configured for the target layer.
-   * @param content_encoding The content encoding configured for the target layer.
+   * @param content_encoding The content encoding configured for the target
+   * layer.
    * @param data Content to be uploaded to OLP.
    * @param trace_id Optional. A unique message ID, such as a UUID. This can be
    * included in the request if you want to use an ID that you define. If you do
@@ -117,9 +118,9 @@ class IngestApi {
       const client::OlpClient& client, const std::string& layer_id,
       const std::string& content_type, const std::string& content_encoding,
       const std::shared_ptr<std::vector<unsigned char>>& data,
-      const boost::optional<std::string>& trace_id,
-      const boost::optional<std::string>& billing_tag,
-      const boost::optional<std::string>& checksum,
+      const porting::optional<std::string>& trace_id,
+      const porting::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& checksum,
       client::CancellationContext context);
 
   /**
@@ -152,9 +153,9 @@ class IngestApi {
   static IngestSdiiResponse IngestSdii(
       const client::OlpClient& client, const std::string& layer_id,
       const std::shared_ptr<std::vector<unsigned char>>& sdii_message_list,
-      const boost::optional<std::string>& trace_id,
-      const boost::optional<std::string>& billing_tag,
-      const boost::optional<std::string>& checksum,
+      const porting::optional<std::string>& trace_id,
+      const porting::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& checksum,
       client::CancellationContext context);
 };
 

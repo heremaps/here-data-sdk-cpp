@@ -25,7 +25,7 @@
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationContext.h>
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 #include "generated/model/Partitions.h"
 
 namespace olp {
@@ -49,17 +49,17 @@ class QueryApi {
   static client::CancellationToken GetPartitionsById(
       const client::OlpClient& client, const std::string& layerId,
       const std::vector<std::string>& partitionIds,
-      boost::optional<int64_t> version,
-      boost::optional<std::vector<std::string>> additionalFields,
-      boost::optional<std::string> billingTag,
+      porting::optional<int64_t> version,
+      porting::optional<std::vector<std::string>> additionalFields,
+      porting::optional<std::string> billingTag,
       const PartitionsCallback& callback);
 
   static PartitionsResponse GetPartitionsById(
       const client::OlpClient& client, const std::string& layerId,
       const std::vector<std::string>& partition_ids,
-      boost::optional<int64_t> version,
-      boost::optional<std::vector<std::string>> additional_fields,
-      boost::optional<std::string> billing_tag,
+      porting::optional<int64_t> version,
+      porting::optional<std::vector<std::string>> additional_fields,
+      porting::optional<std::string> billing_tag,
       client::CancellationContext context);
 };
 

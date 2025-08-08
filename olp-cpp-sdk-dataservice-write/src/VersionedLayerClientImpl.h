@@ -39,9 +39,9 @@ namespace dataservice {
 namespace write {
 
 using InitApiClientsCallback =
-    std::function<void(boost::optional<client::ApiError>)>;
+    std::function<void(porting::optional<client::ApiError>)>;
 using InitCatalogModelCallback =
-    std::function<void(boost::optional<client::ApiError>)>;
+    std::function<void(porting::optional<client::ApiError>)>;
 
 using UploadPartitionResult = client::ApiNoResult;
 using UploadPartitionResponse =
@@ -109,7 +109,7 @@ class VersionedLayerClientImpl
       CheckDataExistsCallback callback);
 
  private:
-  using BillingTag = boost::optional<std::string>;
+  using BillingTag = porting::optional<std::string>;
 
   client::CancellationToken InitApiClients(
       std::shared_ptr<client::CancellationContext> cancel_context,

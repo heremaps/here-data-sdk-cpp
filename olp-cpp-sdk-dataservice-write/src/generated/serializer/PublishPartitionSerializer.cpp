@@ -26,23 +26,21 @@ void to_json(const dataservice::write::model::PublishPartition& x,
              rapidjson::Document::AllocatorType& allocator) {
   if (x.GetPartition()) {
     value.AddMember("partition",
-                    rapidjson::StringRef(x.GetPartition().get().c_str()),
-                    allocator);
+                    rapidjson::StringRef(x.GetPartition()->c_str()), allocator);
   }
 
   if (x.GetChecksum()) {
-    value.AddMember("checksum",
-                    rapidjson::StringRef(x.GetChecksum().get().c_str()),
+    value.AddMember("checksum", rapidjson::StringRef(x.GetChecksum()->c_str()),
                     allocator);
   }
 
   if (x.GetCompressedDataSize()) {
-    value.AddMember("compressedDataSize", x.GetCompressedDataSize().get(),
+    value.AddMember("compressedDataSize", *x.GetCompressedDataSize(),
                     allocator);
   }
 
   if (x.GetDataSize()) {
-    value.AddMember("dataSize", x.GetDataSize().get(), allocator);
+    value.AddMember("dataSize", *x.GetDataSize(), allocator);
   }
 
   if (x.GetData()) {
@@ -54,12 +52,12 @@ void to_json(const dataservice::write::model::PublishPartition& x,
 
   if (x.GetDataHandle()) {
     value.AddMember("dataHandle",
-                    rapidjson::StringRef(x.GetDataHandle().get().c_str()),
+                    rapidjson::StringRef(x.GetDataHandle()->c_str()),
                     allocator);
   }
 
   if (x.GetTimestamp()) {
-    value.AddMember("timestamp", x.GetTimestamp().get(), allocator);
+    value.AddMember("timestamp", *x.GetTimestamp(), allocator);
   }
 }
 

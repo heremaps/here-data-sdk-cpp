@@ -32,7 +32,13 @@ void to_json(const dataservice::write::model::UpdateIndexRequest &x,
 
     rapidjson::Value indexFields(rapidjson::kObjectType);
     for (const auto &field_pair : addition.GetIndexFields()) {
-      using namespace dataservice::write::model;
+      using dataservice::write::model::BooleanIndexValue;
+      using dataservice::write::model::HereTileIndexValue;
+      using dataservice::write::model::IndexType;
+      using dataservice::write::model::IntIndexValue;
+      using dataservice::write::model::StringIndexValue;
+      using dataservice::write::model::TimeWindowIndexValue;
+
       const auto &field = field_pair.second;
       const auto key = rapidjson::StringRef(field_pair.first.c_str());
       auto index_type = field->getIndexType();
@@ -63,9 +69,9 @@ void to_json(const dataservice::write::model::UpdateIndexRequest &x,
     // by another model.
     if (addition.GetMetadata()) {
       rapidjson::Value metadatas(rapidjson::kObjectType);
-      for (const auto& metadata : addition.GetMetadata().get()) {
-        const auto& metadata_value = metadata.second;
-        const auto& metadata_key = metadata.first.c_str();
+      for (const auto &metadata : *addition.GetMetadata()) {
+        const auto &metadata_value = metadata.second;
+        const auto &metadata_key = metadata.first.c_str();
         indexFields.AddMember(
             rapidjson::StringRef(metadata_key),
             rapidjson::StringRef(metadata_value.c_str(), metadata_value.size()),
@@ -75,13 +81,12 @@ void to_json(const dataservice::write::model::UpdateIndexRequest &x,
 
     if (addition.GetCheckSum()) {
       additionValue.AddMember(
-          "checksum",
-          rapidjson::StringRef(addition.GetCheckSum().get().c_str()),
+          "checksum", rapidjson::StringRef(addition.GetCheckSum()->c_str()),
           allocator);
     }
 
     if (addition.GetSize()) {
-      additionValue.AddMember("size", addition.GetSize().get(), allocator);
+      additionValue.AddMember("size", *addition.GetSize(), allocator);
     }
 
     additions.PushBack(additionValue, allocator);

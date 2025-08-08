@@ -41,7 +41,13 @@
 
 namespace {
 
-using namespace olp::dataservice::write::model;
+using olp::dataservice::write::model::Details;
+using olp::dataservice::write::model::Publication;
+using olp::dataservice::write::model::PublishPartition;
+using olp::dataservice::write::model::PublishPartitions;
+using olp::dataservice::write::model::ResponseOk;
+using olp::dataservice::write::model::ResponseOkSingle;
+using olp::dataservice::write::model::VersionDependency;
 
 TEST(ParserTest, ResponseOkSingle) {
   auto json = R"(
@@ -472,11 +478,11 @@ TEST(ParserTest, PublishPartition) {
 
   auto response = olp::parser::parse<PublishPartition>(json);
 
-  EXPECT_STREQ("314010583", response.GetPartition().get().c_str());
+  EXPECT_STREQ("314010583", response.GetPartition()->c_str());
   EXPECT_STREQ("ff7494d6f17da702862e550c907c0a91",
-               response.GetChecksum().get().c_str());
-  EXPECT_EQ(152417, response.GetCompressedDataSize().get());
-  EXPECT_EQ(250110, response.GetDataSize().get());
+               response.GetChecksum()->c_str());
+  EXPECT_EQ(152417, *response.GetCompressedDataSize());
+  EXPECT_EQ(250110, *response.GetDataSize());
   auto data = response.GetData();
   EXPECT_STREQ(
       "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAABGdBTUEAALGPC/"
@@ -485,8 +491,8 @@ TEST(ParserTest, PublishPartition) {
       "3zHYufF1Lf9HdIZBfNEiKAAAAAElFTkSuQmCC",
       std::string(data->begin(), data->end()).c_str());
   EXPECT_STREQ("1b2ca68f-d4a0-4379-8120-cd025640510c",
-               response.GetDataHandle().get().c_str());
-  EXPECT_EQ(1519219235, response.GetTimestamp().get());
+               response.GetDataHandle()->c_str());
+  EXPECT_EQ(1519219235, *response.GetTimestamp());
 }
 
 TEST(ParserTest, PublishPartitions) {
@@ -507,15 +513,15 @@ TEST(ParserTest, PublishPartitions) {
   )";
 
   auto response = olp::parser::parse<PublishPartitions>(json);
-  ASSERT_EQ(1, response.GetPartitions().get().size());
+  ASSERT_EQ(1, response.GetPartitions()->size());
 
-  auto partition = response.GetPartitions().get().at(0);
+  auto partition = response.GetPartitions()->at(0);
 
-  EXPECT_STREQ("314010583", partition.GetPartition().get().c_str());
+  EXPECT_STREQ("314010583", partition.GetPartition()->c_str());
   EXPECT_STREQ("ff7494d6f17da702862e550c907c0a91",
-               partition.GetChecksum().get().c_str());
-  EXPECT_EQ(152417, partition.GetCompressedDataSize().get());
-  EXPECT_EQ(250110, partition.GetDataSize().get());
+               partition.GetChecksum()->c_str());
+  EXPECT_EQ(152417, *partition.GetCompressedDataSize());
+  EXPECT_EQ(250110, *partition.GetDataSize());
   auto data = partition.GetData();
   EXPECT_STREQ(
       "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAABGdBTUEAALGPC/"
@@ -524,8 +530,8 @@ TEST(ParserTest, PublishPartitions) {
       "3zHYufF1Lf9HdIZBfNEiKAAAAAElFTkSuQmCC",
       std::string(data->begin(), data->end()).c_str());
   EXPECT_STREQ("1b2ca68f-d4a0-4379-8120-cd025640510c",
-               partition.GetDataHandle().get().c_str());
-  EXPECT_EQ(1519219235, partition.GetTimestamp().get());
+               partition.GetDataHandle()->c_str());
+  EXPECT_EQ(1519219235, *partition.GetTimestamp());
 }
 
 TEST(ParserTest, Details) {
@@ -560,7 +566,8 @@ TEST(ParserTest, VersionDependency) {
   auto response = olp::parser::parse<VersionDependency>(json);
 
   EXPECT_TRUE(response.GetDirect());
-  EXPECT_STREQ("hrn:here:data::olp-here-test:my-catalog", response.GetHrn().c_str());
+  EXPECT_STREQ("hrn:here:data::olp-here-test:my-catalog",
+               response.GetHrn().c_str());
   EXPECT_EQ(1, response.GetVersion());
 }
 
@@ -592,22 +599,22 @@ TEST(ParserTest, Publication) {
   auto response = olp::parser::parse<Publication>(json);
 
   EXPECT_STREQ("34bc2a16-0373-4157-8ccc-19ba08a6672b",
-               response.GetId().get().c_str());
+               response.GetId()->c_str());
 
-  auto details = response.GetDetails().get();
+  auto details = *response.GetDetails();
   EXPECT_STREQ("initialized", details.GetState().c_str());
   EXPECT_STREQ("Publication initialized", details.GetMessage().c_str());
   EXPECT_EQ(1523459129829, details.GetStarted());
   EXPECT_EQ(1523459129829, details.GetModified());
   EXPECT_EQ(1523459129829, details.GetExpires());
 
-  ASSERT_EQ(1, response.GetLayerIds().get().size());
-  EXPECT_STREQ("my-layer", response.GetLayerIds().get().at(0).c_str());
+  ASSERT_EQ(1, response.GetLayerIds()->size());
+  EXPECT_STREQ("my-layer", response.GetLayerIds()->at(0).c_str());
 
-  EXPECT_EQ(1, response.GetCatalogVersion().get());
+  EXPECT_EQ(1, *response.GetCatalogVersion());
 
-  ASSERT_EQ(1, response.GetVersionDependencies().get().size());
-  auto version_dependency = response.GetVersionDependencies().get().at(0);
+  ASSERT_EQ(1, response.GetVersionDependencies()->size());
+  auto version_dependency = response.GetVersionDependencies()->at(0);
 
   EXPECT_TRUE(version_dependency.GetDirect());
   EXPECT_STREQ("hrn:here:data::olp-here-test:my-catalog",

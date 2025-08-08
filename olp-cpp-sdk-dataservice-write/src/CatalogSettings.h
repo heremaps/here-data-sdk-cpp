@@ -38,7 +38,7 @@ class Catalog;
 
 class CatalogSettings {
  public:
-  using BillingTag = boost::optional<std::string>;
+  using BillingTag = porting::optional<std::string>;
 
   struct LayerSettings {
     std::string content_type;

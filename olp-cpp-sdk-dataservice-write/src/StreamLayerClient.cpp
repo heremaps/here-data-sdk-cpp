@@ -53,7 +53,7 @@ olp::client::CancellationToken StreamLayerClient::PublishData(
   return impl_->PublishData(request, std::move(callback));
 }
 
-boost::optional<std::string> StreamLayerClient::Queue(
+porting::optional<std::string> StreamLayerClient::Queue(
     model::PublishDataRequest request) {
   return impl_->Queue(request);
 }

@@ -43,7 +43,7 @@ class Partition;
 }  // namespace model
 
 using InitApiClientsCallback =
-    std::function<void(boost::optional<client::ApiError>)>;
+    std::function<void(porting::optional<client::ApiError>)>;
 using DataHandleMap = std::map<std::string, std::string>;
 using DataHandleMapResponse =
     client::ApiResponse<DataHandleMap, client::ApiError>;
@@ -106,9 +106,9 @@ class VolatileLayerClientImpl final
 
   DataHandleMapResponse GetDataHandleMap(
       const std::string& layerId, const std::vector<std::string>& partitionIds,
-      boost::optional<int64_t> version,
-      boost::optional<std::vector<std::string>> additionalFields,
-      boost::optional<std::string> billingTag,
+      porting::optional<int64_t> version,
+      porting::optional<std::vector<std::string>> additionalFields,
+      porting::optional<std::string> billingTag,
       const client::CancellationContext context);
 
  private:

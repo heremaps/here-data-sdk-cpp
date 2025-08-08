@@ -124,10 +124,10 @@ class DATASERVICE_WRITE_API StreamLayerClient {
    *
    * @param request The `PublishDataRequest` object.
    *
-   * @return An optional boost that is `boost::none` if the queue call is
+   * @return An optional boost that is `olp::porting::none` if the queue call is
    * successful. Otherwise, it contains a string with error details.
    */
-  boost::optional<std::string> Queue(model::PublishDataRequest request);
+  porting::optional<std::string> Queue(model::PublishDataRequest request);
 
   /**
    * @brief Flushes `PublishDataRequests` that are queued via the Queue API.

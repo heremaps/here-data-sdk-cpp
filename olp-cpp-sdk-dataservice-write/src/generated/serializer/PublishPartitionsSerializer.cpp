@@ -28,7 +28,7 @@ void to_json(const dataservice::write::model::PublishPartitions& x,
              rapidjson::Document::AllocatorType& allocator) {
   if (x.GetPartitions()) {
     rapidjson::Value partitions(rapidjson::kArrayType);
-    for (auto& partition : x.GetPartitions().get()) {
+    for (auto& partition : *x.GetPartitions()) {
       rapidjson::Value partition_value(rapidjson::kObjectType);
       to_json(partition, partition_value, allocator);
       partitions.PushBack(partition_value, allocator);

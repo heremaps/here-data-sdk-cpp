@@ -23,7 +23,7 @@
 #include <utility>
 #include <vector>
 
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 
 #include <olp/dataservice/write/DataServiceWriteApi.h>
 #include <olp/dataservice/write/generated/model/VersionDependency.h>
@@ -48,7 +48,7 @@ class DATASERVICE_WRITE_API StartBatchRequest {
    *
    * @param layers The layer IDs.
    */
-  inline StartBatchRequest& WithLayers(std::vector<std::string> layers) {
+  StartBatchRequest& WithLayers(std::vector<std::string> layers) {
     layers_ = std::move(layers);
     return *this;
   }
@@ -58,7 +58,7 @@ class DATASERVICE_WRITE_API StartBatchRequest {
    *
    * @return The layer IDs.
    */
-  inline const boost::optional<std::vector<std::string>>& GetLayers() const {
+  const porting::optional<std::vector<std::string>>& GetLayers() const {
     return layers_;
   }
 
@@ -67,7 +67,7 @@ class DATASERVICE_WRITE_API StartBatchRequest {
    *
    * @param versionDependencies The version dependencies.
    */
-  inline StartBatchRequest& WithVersionDependencies(
+  StartBatchRequest& WithVersionDependencies(
       std::vector<VersionDependency> versionDependencies) {
     versionDependencies_ = std::move(versionDependencies);
     return *this;
@@ -78,7 +78,7 @@ class DATASERVICE_WRITE_API StartBatchRequest {
    *
    * @return The version dependencies.
    */
-  inline const boost::optional<std::vector<VersionDependency>>&
+  const porting::optional<std::vector<VersionDependency>>&
   GetVersionDependencies() const {
     return versionDependencies_;
   }
@@ -90,10 +90,10 @@ class DATASERVICE_WRITE_API StartBatchRequest {
    * billing records together. If supplied, it must be 4–16 characters
    * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
    *
-   * @return The `BillingTag` string or `boost::none` if the billing tag is not
-   * set.
+   * @return The `BillingTag` string or `olp::porting::none` if the billing tag
+   * is not set.
    */
-  inline const boost::optional<std::string>& GetBillingTag() const {
+  const porting::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
@@ -102,17 +102,17 @@ class DATASERVICE_WRITE_API StartBatchRequest {
    *
    * @see `GetBillingTag()` for information on usage and format.
    *
-   * @param billing_tag The `BillingTag` string or `boost::none`.
+   * @param billing_tag The `BillingTag` string or `olp::porting::none`.
    */
-  inline StartBatchRequest& WithBillingTag(std::string billing_tag) {
+  StartBatchRequest& WithBillingTag(std::string billing_tag) {
     billing_tag_ = std::move(billing_tag);
     return *this;
   }
 
  private:
-  boost::optional<std::vector<std::string>> layers_;
-  boost::optional<std::vector<VersionDependency>> versionDependencies_;
-  boost::optional<std::string> billing_tag_;
+  porting::optional<std::vector<std::string>> layers_;
+  porting::optional<std::vector<VersionDependency>> versionDependencies_;
+  porting::optional<std::string> billing_tag_;
 };
 
 }  // namespace model

@@ -43,7 +43,7 @@ class PublishDataRequest;
 }
 
 using InitApiClientsCallback =
-    std::function<void(boost::optional<client::ApiError>)>;
+    std::function<void(porting::optional<client::ApiError>)>;
 
 class IndexLayerClientImpl final
     : public std::enable_shared_from_this<IndexLayerClientImpl> {

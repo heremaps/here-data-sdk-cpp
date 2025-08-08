@@ -101,26 +101,26 @@ size_t StreamLayerClientImpl::QueueSize() const {
   return 0;
 }
 
-boost::optional<std::string> StreamLayerClientImpl::Queue(
+porting::optional<std::string> StreamLayerClientImpl::Queue(
     const model::PublishDataRequest& request) {
   if (!cache_) {
-    return boost::make_optional<std::string>(
+    return olp::porting::make_optional<std::string>(
         "No cache provided to StreamLayerClient");
   }
 
   if (!request.GetData()) {
-    return boost::make_optional<std::string>(
+    return olp::porting::make_optional<std::string>(
         "PublishDataRequest does not contain any Data");
   }
 
   if (request.GetLayerId().empty()) {
-    return boost::make_optional<std::string>(
+    return olp::porting::make_optional<std::string>(
         "PublishDataRequest does not contain a Layer ID");
   }
 
   if (!(StreamLayerClientImpl::QueueSize() <
         stream_client_settings_.maximum_requests)) {
-    return boost::make_optional<std::string>(
+    return olp::porting::make_optional<std::string>(
         "Maximum number of requests has reached");
   }
 
@@ -143,10 +143,10 @@ boost::optional<std::string> StreamLayerClientImpl::Queue(
                 [&uuid_list]() { return uuid_list; });
   }
 
-  return boost::none;
+  return olp::porting::none;
 }
 
-boost::optional<model::PublishDataRequest>
+porting::optional<model::PublishDataRequest>
 StreamLayerClientImpl::PopFromQueue() {
   std::lock_guard<std::mutex> lock(cache_mutex_);
 
@@ -155,14 +155,14 @@ StreamLayerClientImpl::PopFromQueue() {
 
   if (uuid_list_any.empty()) {
     OLP_SDK_LOG_ERROR(kLogTag, "Unable to Restore UUID list from Cache");
-    return boost::none;
+    return olp::porting::none;
   }
 
   auto uuid_list = boost::any_cast<std::string>(uuid_list_any);
 
   auto pos = uuid_list.find(",");
   if (pos == std::string::npos) {
-    return boost::none;
+    return olp::porting::none;
   }
 
   const auto publish_data_key = uuid_list.substr(0, pos);
@@ -179,7 +179,7 @@ StreamLayerClientImpl::PopFromQueue() {
   if (publish_data_any.empty()) {
     OLP_SDK_LOG_ERROR(kLogTag,
                       "Unable to Restore PublishData Request from Cache");
-    return boost::none;
+    return olp::porting::none;
   }
 
   return boost::any_cast<model::PublishDataRequest>(publish_data_any);
@@ -225,7 +225,7 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
         while ((!maximum_events_number || counter < maximum_events_number) &&
                (this->QueueSize() > 0) && !context.IsCancelled()) {
           auto publish_request = this->PopFromQueue();
-          if (publish_request == boost::none) {
+          if (publish_request == olp::porting::none) {
             continue;
           }
 
@@ -412,7 +412,7 @@ PublishDataResponse StreamLayerClientImpl::PublishDataGreaterThanTwentyMib(
                          "doesn't contain any publication"));
   }
   const std::string publication_id =
-      init_publicaion_response.GetResult().GetId().get();
+      *init_publicaion_response.GetResult().GetId();
 
   // 2. Put blob API:
   const auto data_handle = GenerateUuid();

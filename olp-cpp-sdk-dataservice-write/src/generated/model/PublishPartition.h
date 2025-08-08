@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 
 namespace olp {
 namespace dataservice {
@@ -40,37 +40,39 @@ class PublishPartition {
   virtual ~PublishPartition() = default;
 
  private:
-  boost::optional<std::string> partition_;
-  boost::optional<std::string> checksum_;
-  boost::optional<int64_t> compressed_data_size_;
-  boost::optional<int64_t> data_size_;
+  porting::optional<std::string> partition_;
+  porting::optional<std::string> checksum_;
+  porting::optional<int64_t> compressed_data_size_;
+  porting::optional<int64_t> data_size_;
   std::shared_ptr<std::vector<unsigned char>> data_;
-  boost::optional<std::string> data_handle_;
-  boost::optional<int64_t> timestamp_;
+  porting::optional<std::string> data_handle_;
+  porting::optional<int64_t> timestamp_;
 
  public:
-  const boost::optional<std::string>& GetPartition() const {
+  const porting::optional<std::string>& GetPartition() const {
     return partition_;
   }
-  boost::optional<std::string>& GetMutablePartition() { return partition_; }
+  porting::optional<std::string>& GetMutablePartition() { return partition_; }
   void SetPartition(const std::string& value) { this->partition_ = value; }
 
-  const boost::optional<std::string>& GetChecksum() const { return checksum_; }
-  boost::optional<std::string>& GetMutableChecksum() { return checksum_; }
+  const porting::optional<std::string>& GetChecksum() const {
+    return checksum_;
+  }
+  porting::optional<std::string>& GetMutableChecksum() { return checksum_; }
   void SetChecksum(const std::string& value) { this->checksum_ = value; }
 
-  const boost::optional<int64_t>& GetCompressedDataSize() const {
+  const porting::optional<int64_t>& GetCompressedDataSize() const {
     return compressed_data_size_;
   }
-  boost::optional<int64_t>& GetMutableCompressedDataSize() {
+  porting::optional<int64_t>& GetMutableCompressedDataSize() {
     return compressed_data_size_;
   }
   void SetCompressedDataSize(const int64_t& value) {
     this->compressed_data_size_ = value;
   }
 
-  const boost::optional<int64_t>& GetDataSize() const { return data_size_; }
-  boost::optional<int64_t>& GetMutableDataSize() { return data_size_; }
+  const porting::optional<int64_t>& GetDataSize() const { return data_size_; }
+  porting::optional<int64_t>& GetMutableDataSize() { return data_size_; }
   void SetDataSize(const int64_t& value) { this->data_size_ = value; }
 
   const std::shared_ptr<std::vector<unsigned char>>& GetData() const {
@@ -83,14 +85,16 @@ class PublishPartition {
     this->data_ = value;
   }
 
-  const boost::optional<std::string>& GetDataHandle() const {
+  const porting::optional<std::string>& GetDataHandle() const {
     return data_handle_;
   }
-  boost::optional<std::string>& GetMutableDataHandle() { return data_handle_; }
+  porting::optional<std::string>& GetMutableDataHandle() {
+    return data_handle_;
+  }
   void SetDataHandle(const std::string& value) { this->data_handle_ = value; }
 
-  const boost::optional<int64_t>& GetTimestamp() const { return timestamp_; }
-  boost::optional<int64_t>& GetMutableTimestamp() { return timestamp_; }
+  const porting::optional<int64_t>& GetTimestamp() const { return timestamp_; }
+  porting::optional<int64_t>& GetMutableTimestamp() { return timestamp_; }
   void SetTimestamp(const int64_t& value) { this->timestamp_ = value; }
 };
 

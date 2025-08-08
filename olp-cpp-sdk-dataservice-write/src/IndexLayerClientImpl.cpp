@@ -74,7 +74,7 @@ olp::client::CancellationToken IndexLayerClientImpl::InitApiClients(
     ul.lock();
   }
   if (apiclient_index_ && !apiclient_index_->GetBaseUrl().empty()) {
-    callback(boost::none);
+    callback(olp::porting::none);
     return {};
   }
 
@@ -97,7 +97,7 @@ olp::client::CancellationToken IndexLayerClientImpl::InitApiClients(
       self->cond_var_.notify_one();
     } else {
       self->apiclient_index_->SetBaseUrl(apis.GetResult().at(0).GetBaseUrl());
-      callback(boost::none);
+      callback(olp::porting::none);
       self->cond_var_.notify_all();
     }
   };
@@ -250,7 +250,7 @@ client::CancellationToken IndexLayerClientImpl::DeleteIndexData(
 
   auto delete_index_data_function = [=]() -> client::CancellationToken {
     return BlobApi::deleteBlob(
-        *self->apiclient_blob_, layer_id, index_id, boost::none,
+        *self->apiclient_blob_, layer_id, index_id, olp::porting::none,
         [=](DeleteBlobRespone response) {
           self->tokenList_.RemoveTask(op_id);
           if (!response.IsSuccessful()) {
@@ -262,10 +262,10 @@ client::CancellationToken IndexLayerClientImpl::DeleteIndexData(
   };
 
   auto init_api_client_callback =
-      [=](boost::optional<client::ApiError> init_api_error) {
+      [=](porting::optional<client::ApiError> init_api_error) {
         if (init_api_error) {
           self->tokenList_.RemoveTask(op_id);
-          callback(DeleteBlobRespone(init_api_error.get()));
+          callback(DeleteBlobRespone(*init_api_error));
           return;
         }
 
@@ -319,16 +319,16 @@ client::CancellationToken IndexLayerClientImpl::UpdateIndex(
 
   auto UpdateIndex_function = [=]() -> client::CancellationToken {
     return IndexApi::performUpdate(*self->apiclient_index_, request,
-                                   boost::none, updateIndex_callback);
+                                   olp::porting::none, updateIndex_callback);
   };
 
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
-            cancel_context, [=](boost::optional<client::ApiError> api_error) {
+            cancel_context, [=](porting::optional<client::ApiError> api_error) {
               if (api_error) {
                 self->tokenList_.RemoveTask(op_id);
-                callback(UpdateIndexResponse(api_error.get()));
+                callback(UpdateIndexResponse(*api_error));
                 return;
               }
               cancel_context->ExecuteOrCancelled(UpdateIndex_function,
