@@ -23,7 +23,7 @@
 
 #include <olp/core/CoreApi.h>
 #include <olp/core/geo/tiling/TileKey.h>
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 
 namespace olp {
 namespace cache {
@@ -76,7 +76,8 @@ class CORE_API KeyGenerator {
    */
   static std::string CreatePartitionKey(
       const std::string& hrn, const std::string& layer_id,
-      const std::string& partition_id, const porting::optional<int64_t>& version);
+      const std::string& partition_id,
+      const porting::optional<int64_t>& version);
 
   /**
    * @brief Generates cache key for storing list of partitions.
@@ -113,11 +114,10 @@ class CORE_API KeyGenerator {
    *
    * @return A key used to store the quadtree in cache.
    */
-  static std::string CreateQuadTreeKey(const std::string& hrn,
-                                       const std::string& layer_id,
-                                       olp::geo::TileKey root,
-                                       const porting::optional<int64_t>& version,
-                                       int32_t depth);
+  static std::string CreateQuadTreeKey(
+      const std::string& hrn, const std::string& layer_id,
+      olp::geo::TileKey root, const porting::optional<int64_t>& version,
+      int32_t depth);
 
   /**
    * @brief Generates cache key for data handle entities.

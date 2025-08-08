@@ -36,7 +36,7 @@
 #include <olp/authentication/Types.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationToken.h>
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 
 /**
  * @brief Rules all the other namespaces.
