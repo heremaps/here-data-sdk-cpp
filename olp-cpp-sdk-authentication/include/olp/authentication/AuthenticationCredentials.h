@@ -21,7 +21,7 @@
 
 #include <string>
 
-#include <boost/optional/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 #include "AuthenticationApi.h"
 
 namespace olp {
@@ -58,12 +58,13 @@ class AUTHENTICATION_API AuthenticationCredentials {
    * @return An optional value with your credentials if the credentials were
    * read successfully, or no value in case of failure.
    */
-  static boost::optional<AuthenticationCredentials> ReadFromStream(
+  static porting::optional<AuthenticationCredentials> ReadFromStream(
       std::istream& stream);
 
   /**
-   * @brief Parses the **credentials.properties** file downloaded from the [HERE platform](https://platform.here.com/)
-   * website and retrieves a value with your credentials.
+   * @brief Parses the **credentials.properties** file downloaded from the [HERE
+   * platform](https://platform.here.com/) website and retrieves a value with
+   * your credentials.
    *
    * The file must contain the following lines:
    * * here.access.key.id &ndash; your access key ID
@@ -81,7 +82,7 @@ class AUTHENTICATION_API AuthenticationCredentials {
    * @return The optional value with your credentials if the credentials were
    * read successfully, or no value in case of failure.
    */
-  static boost::optional<AuthenticationCredentials> ReadFromFile(
+  static porting::optional<AuthenticationCredentials> ReadFromFile(
       std::string filename = {});
   AuthenticationCredentials() = delete;
 

@@ -58,7 +58,7 @@ std::string GetDefaultPath() {
 namespace olp {
 namespace authentication {
 
-boost::optional<AuthenticationCredentials>
+porting::optional<AuthenticationCredentials>
 AuthenticationCredentials::ReadFromStream(std::istream& stream) {
   static const std::regex kRegex{kRegexString};
 
@@ -89,20 +89,20 @@ AuthenticationCredentials::ReadFromStream(std::istream& stream) {
   }
 
   return (!access_key_id.empty() && !access_key_secret.empty())
-             ? boost::make_optional<AuthenticationCredentials>(
+             ? porting::make_optional<AuthenticationCredentials>(
                    {std::move(access_key_id), std::move(access_key_secret),
                     std::move(token_endpoint_url)})
-             : boost::none;
+             : porting::none;
 }
 
-boost::optional<AuthenticationCredentials>
+porting::optional<AuthenticationCredentials>
 AuthenticationCredentials::ReadFromFile(std::string filename) {
   if (filename.empty()) {
     filename = GetDefaultPath();
   }
 
   std::ifstream stream(filename, std::ios::in);
-  return stream ? ReadFromStream(stream) : boost::none;
+  return stream ? ReadFromStream(stream) : porting::none;
 }
 
 AuthenticationCredentials::AuthenticationCredentials(std::string key,

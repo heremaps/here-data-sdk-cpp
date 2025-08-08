@@ -70,7 +70,7 @@ inline client::CancellationToken AddTask(
  * @param headers http headers.
  * @return optional time_t time from headers.
  */
-boost::optional<std::time_t> GetTimestampFromHeaders(
+porting::optional<std::time_t> GetTimestampFromHeaders(
     const http::Headers& headers);
 
 /*
@@ -129,7 +129,7 @@ std::time_t ParseTime(const std::string& value);
  */
 client::OlpClient CreateOlpClient(
     const AuthenticationSettings& auth_settings,
-    boost::optional<client::AuthenticationSettings> authentication_settings,
+    porting::optional<client::AuthenticationSettings> authentication_settings,
     bool retry = true);
 
 /*

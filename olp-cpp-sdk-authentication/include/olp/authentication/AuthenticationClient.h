@@ -36,7 +36,7 @@
 #include <olp/authentication/Types.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationToken.h>
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 
 /**
  * @brief Rules all the other namespaces.
@@ -65,7 +65,7 @@ class AUTHENTICATION_API AuthenticationClient {
     /**
      * @brief (Optional) The scope assigned to the access token.
      */
-    boost::optional<std::string> scope{boost::none};
+    porting::optional<std::string> scope{porting::none};
 
     /**
      * @brief (Optional) The device ID assigned to the access token.
@@ -73,7 +73,7 @@ class AUTHENTICATION_API AuthenticationClient {
      * @note This field is only necessary if you want to apply a oauth rate
      * limit on a particular device.
      */
-    boost::optional<std::string> device_id{boost::none};
+    porting::optional<std::string> device_id{porting::none};
 
     /**
      * @brief (Optional) The number of seconds left before the access
@@ -89,7 +89,7 @@ class AUTHENTICATION_API AuthenticationClient {
      * requires it. Fully overrides default body and resets the request content
      * type.
      */
-    boost::optional<std::string> custom_body{boost::none};
+    porting::optional<std::string> custom_body{olp::porting::none};
   };
 
   /**

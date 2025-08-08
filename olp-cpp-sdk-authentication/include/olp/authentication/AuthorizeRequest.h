@@ -19,11 +19,11 @@
 
 #pragma once
 
-#include <boost/optional.hpp>
 #include <string>
 #include <vector>
 
 #include <olp/authentication/AuthenticationApi.h>
+#include <olp/core/porting/optional.hpp>
 
 namespace olp {
 namespace authentication {
@@ -83,7 +83,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
    *
    * @return The service ID.
    */
-  inline const std::string& GetServiceId() const { return service_id_; }
+  const std::string& GetServiceId() const { return service_id_; }
 
   /**
    * @brief Sets the service ID.
@@ -92,7 +92,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
    *
    * @return A reference to the updated `DecisionRequest` instance.
    */
-  inline AuthorizeRequest& WithServiceId(std::string service_id) {
+  AuthorizeRequest& WithServiceId(std::string service_id) {
     service_id_ = std::move(service_id);
     return *this;
   }
@@ -109,7 +109,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
    *
    * @return The contract ID or an error.
    */
-  inline const boost::optional<std::string>& GetContractId() const {
+  const porting::optional<std::string>& GetContractId() const {
     return contract_id_;
   }
 
@@ -122,9 +122,9 @@ class AUTHENTICATION_API AuthorizeRequest final {
    *
    * @return A reference to the updated `DecisionRequest` instance.
    */
-  inline AuthorizeRequest& WithContractId(
-      boost::optional<std::string> contract_id) {
-    contract_id_ = std::move(contract_id);
+  template <class T = porting::optional<std::string>>
+  AuthorizeRequest& WithContractId(T&& contract_id) {
+    contract_id_ = std::forward<T>(contract_id);
     return *this;
   }
 
@@ -137,7 +137,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
    *
    * @return A reference to the updated `DecisionRequest` instance.
    */
-  inline AuthorizeRequest& WithContractId(std::string contract_id) {
+  AuthorizeRequest& WithContractId(std::string contract_id) {
     contract_id_ = std::move(contract_id);
     return *this;
   }
@@ -159,8 +159,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
    *
    * @return A reference to the updated `DecisionRequest` instance.
    */
-  inline AuthorizeRequest& WithAction(std::string action,
-                                      std::string resource = "") {
+  AuthorizeRequest& WithAction(std::string action, std::string resource = "") {
     actions_.emplace_back(std::move(action), std::move(resource));
     return *this;
   }
@@ -174,7 +173,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
    *
    * @return The operator type.
    */
-  inline DecisionOperatorType GetOperatorType() const { return operator_type_; }
+  DecisionOperatorType GetOperatorType() const { return operator_type_; }
 
   /**
    * @brief Sets the operator type for the request.
@@ -185,8 +184,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
    *
    * @return A reference to the updated `DecisionRequest` instance.
    */
-  inline AuthorizeRequest& WithOperatorType(
-      DecisionOperatorType operator_type) {
+  AuthorizeRequest& WithOperatorType(DecisionOperatorType operator_type) {
     operator_type_ = operator_type;
     return *this;
   }
@@ -196,7 +194,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
    *
    * @return The diagnostics flag.
    */
-  inline bool GetDiagnostics() const { return diagnostics_; }
+  bool GetDiagnostics() const { return diagnostics_; }
 
   /**
    * @brief Sets the diagnostics flag for the request.
@@ -206,7 +204,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
    *
    * @return A reference to the updated `DecisionRequest` instance.
    */
-  inline AuthorizeRequest& WithDiagnostics(bool diagnostics) {
+  AuthorizeRequest& WithDiagnostics(bool diagnostics) {
     diagnostics_ = diagnostics;
     return *this;
   }
@@ -220,7 +218,7 @@ class AUTHENTICATION_API AuthorizeRequest final {
 
  private:
   std::string service_id_;
-  boost::optional<std::string> contract_id_;
+  porting::optional<std::string> contract_id_;
   Actions actions_;
   DecisionOperatorType operator_type_{DecisionOperatorType::kAnd};
   bool diagnostics_{false};

@@ -25,7 +25,7 @@
 #include <olp/authentication/AuthenticationApi.h>
 #include <olp/core/client/RetrySettings.h>
 #include <olp/core/http/NetworkProxySettings.h>
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.hpp>
 
 namespace olp {
 namespace http {
@@ -50,9 +50,9 @@ struct AUTHENTICATION_API AuthenticationSettings {
   /**
    * @brief The configuration settings for the network layer.
    *
-   * To remove any existing proxy settings, set to boost::none.
+   * To remove any existing proxy settings, set to olp::porting::none.
    */
-  boost::optional<http::NetworkProxySettings> network_proxy_settings{};
+  porting::optional<http::NetworkProxySettings> network_proxy_settings{};
 
   /**
    * @brief The network instance that is used to internally operate with the

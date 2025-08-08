@@ -27,11 +27,9 @@ namespace auth = olp::authentication;
 TEST(DecisionApiClientTest, AuthorizeRequestTest) {
   EXPECT_EQ(auth::AuthorizeRequest().WithServiceId("ServiceId").GetServiceId(),
             "ServiceId");
-  EXPECT_EQ(auth::AuthorizeRequest()
-                .WithContractId("ContractId")
-                .GetContractId()
-                .get(),
-            "ContractId");
+  EXPECT_EQ(
+      *auth::AuthorizeRequest().WithContractId("ContractId").GetContractId(),
+      "ContractId");
   auto request = auth::AuthorizeRequest().WithAction("action1").WithAction(
       "action2", std::string("hrn::test"));
   EXPECT_EQ(auth::AuthorizeRequest().GetDiagnostics(), false);

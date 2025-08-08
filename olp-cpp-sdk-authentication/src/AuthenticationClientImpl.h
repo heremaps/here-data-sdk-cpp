@@ -178,7 +178,7 @@ class AuthenticationClientImpl {
       const client::CancellationContext& context, const std::string& key);
 
   template <typename SignInResponseType>
-  boost::optional<SignInResponseType> FindInCache(const std::string& key);
+  porting::optional<SignInResponseType> FindInCache(const std::string& key);
 
   template <typename SignInResponseType>
   void StoreInCache(const std::string& key, SignInResponseType);

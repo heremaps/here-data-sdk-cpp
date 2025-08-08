@@ -28,7 +28,7 @@ std::string AuthorizeRequest::CreateKey() const {
   std::stringstream out;
   out << service_id_;
   if (GetContractId()) {
-    out << "[" << GetContractId().get() << "]";
+    out << "[" << *GetContractId() << "]";
   }
   return out.str();
 }

@@ -19,11 +19,11 @@
 
 #pragma once
 
-#include <boost/optional.hpp>
 #include <chrono>
 #include <ctime>
 #include <string>
 
+#include <olp/core/porting/optional.hpp>
 #include "AuthenticationApi.h"
 #include "ErrorResponse.h"
 
@@ -47,7 +47,7 @@ class AUTHENTICATION_API TokenResult {
    * @param scope The scope assigned to the access token.
    */
   TokenResult(std::string access_token, time_t expiry_time,
-              boost::optional<std::string> scope);
+              porting::optional<std::string> scope);
 
   /**
    * @brief Creates the `TokenResult` instance.
@@ -57,7 +57,7 @@ class AUTHENTICATION_API TokenResult {
    * @param scope The scope assigned to the access token.
    */
   TokenResult(std::string access_token, std::chrono::seconds expires_in,
-              boost::optional<std::string> scope);
+              porting::optional<std::string> scope);
   /**
    * @brief Creates the default `TokenResult` instance.
    */
@@ -92,13 +92,13 @@ class AUTHENTICATION_API TokenResult {
    * @return The optional string that contains the scope assigned to the access
    * token.
    */
-  const boost::optional<std::string>& GetScope() const;
+  const porting::optional<std::string>& GetScope() const;
 
  private:
   std::string access_token_;
   time_t expiry_time_{};
   std::chrono::seconds expires_in_{};
-  boost::optional<std::string> scope_;
+  porting::optional<std::string> scope_;
 };
 
 }  // namespace authentication
