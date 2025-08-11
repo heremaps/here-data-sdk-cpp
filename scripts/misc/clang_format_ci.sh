@@ -39,8 +39,8 @@ git branch --all
 git fetch origin master
 git branch --all
 # Get affected files and filter source files
-FILES=$(git diff-tree --no-commit-id --name-only -r origin/master "$CURRENT_BRANCH" \
-        | grep '\.c\|\.cpp\|\.cxx\|\.h\|\.hpp\|\.hxx')
+FILES=$(git diff-tree --no-commit-id --name-only --diff-filter=d -r origin/master "$CURRENT_BRANCH" \
+        | grep '\.c\|\.cpp\|\.cxx\|\.h\|\.hpp\|\.hxx\|\.mm')
 
 if [ -z "$FILES" ]; then
   printf "No affected files, exiting.\n"
