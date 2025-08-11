@@ -20,8 +20,8 @@
 #include "Options.h"
 #include "ProtectedCacheExample.h"
 #include "ReadExample.h"
-#include "WriteExample.h"
 #include "StreamLayerReadExample.h"
+#include "WriteExample.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -68,7 +68,7 @@ int RequiredArgumentError(const tools::Option& arg) {
 }
 int ParseArguments(const int argc, char** argv, AccessKey& access_key,
                    std::string& catalog,
-                   boost::optional<int64_t>& catalog_version,
+                   olp::porting::optional<int64_t>& catalog_version,
                    std::string& layer_id,
                    olp::dataservice::read::SubscribeRequest::SubscriptionMode&
                        subscription_mode) {
@@ -128,7 +128,7 @@ int ParseArguments(const int argc, char** argv, AccessKey& access_key,
       if (ss.fail() || !ss.eof()) {
         std::cout << "invalid catalog version value -- '" << *it
                   << "', but int64 is expected." << std::endl;
-        catalog_version = boost::none;
+        catalog_version = olp::porting::none;
       }
     } else if (IsMatch(*it, tools::kLayerIdOption)) {
       if (++it == arguments.end()) {
@@ -168,7 +168,7 @@ int ParseArguments(const int argc, char** argv, AccessKey& access_key,
 
 int RunExamples(const AccessKey& access_key, int examples_to_run,
                 const std::string& catalog,
-                const boost::optional<int64_t>& catalog_version,
+                const olp::porting::optional<int64_t>& catalog_version,
                 const std::string& layer_id,
                 olp::dataservice::read::SubscribeRequest::SubscriptionMode
                     subscription_mode) {
@@ -210,10 +210,10 @@ int RunExamples(const AccessKey& access_key, int examples_to_run,
 int main(int argc, char** argv) {
   AccessKey access_key{};  // You can specify your here.access.key.id
                            // and here.access.key.secret
-  std::string catalog;     // the HRN of the catalog to which you to publish data
-  std::string layer_id;    // the of the layer inside the catalog to which you
-                           // want to publish data
-  boost::optional<int64_t> catalog_version;  // version of the catalog.
+  std::string catalog;   // the HRN of the catalog to which you to publish data
+  std::string layer_id;  // the of the layer inside the catalog to which you
+                         // want to publish data
+  olp::porting::optional<int64_t> catalog_version;  // version of the catalog.
   auto subscription_mode =
       olp::dataservice::read::SubscribeRequest::SubscriptionMode::
           kSerial;  // subscription mode for read stream layer example

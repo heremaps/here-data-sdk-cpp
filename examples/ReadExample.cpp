@@ -119,7 +119,7 @@ bool HandleDataResponse(
 }  // namespace
 
 int RunExampleRead(const AccessKey& access_key, const std::string& catalog,
-                   const boost::optional<int64_t>& catalog_version) {
+                   const olp::porting::optional<int64_t>& catalog_version) {
   // Create a task scheduler instance
   std::shared_ptr<olp::thread::TaskScheduler> task_scheduler =
       olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
@@ -135,8 +135,8 @@ int RunExampleRead(const AccessKey& access_key, const std::string& catalog,
       olp::authentication::AuthenticationCredentials::ReadFromFile();
 
   // Initialize authentication settings.
-  olp::authentication::Settings settings{
-      read_credentials_result.get_value_or({access_key.id, access_key.secret})};
+  olp::authentication::Settings settings{olp::porting::value_or(
+      read_credentials_result, {access_key.id, access_key.secret})};
   settings.task_scheduler = task_scheduler;
   settings.network_request_handler = http_client;
 
@@ -161,8 +161,8 @@ int RunExampleRead(const AccessKey& access_key, const std::string& catalog,
         olp::client::HRN(catalog), client_settings);
 
     // Create CatalogRequest
-    auto request =
-        olp::dataservice::read::CatalogRequest().WithBillingTag(boost::none);
+    auto request = olp::dataservice::read::CatalogRequest().WithBillingTag(
+        olp::porting::none);
 
     // Run the CatalogRequest
     auto future = catalog_client.GetCatalog(request);
@@ -184,8 +184,8 @@ int RunExampleRead(const AccessKey& access_key, const std::string& catalog,
   if (!first_layer_id.empty()) {
     // Retrieve the partitions metadata
     // Create a PartitionsRequest with appropriate LayerId
-    auto request =
-        olp::dataservice::read::PartitionsRequest().WithBillingTag(boost::none);
+    auto request = olp::dataservice::read::PartitionsRequest().WithBillingTag(
+        olp::porting::none);
 
     // Run the PartitionsRequest
     auto future = layer_client.GetPartitions(request);
@@ -204,9 +204,8 @@ int RunExampleRead(const AccessKey& access_key, const std::string& catalog,
   if (!first_partition_id.empty()) {
     // Retrieve the partition data
     // Create a DataRequest with appropriate LayerId and PartitionId
-    auto request = olp::dataservice::read::DataRequest()
-                       .WithPartitionId(first_partition_id)
-                       .WithBillingTag(boost::none);
+    auto request = olp::dataservice::read::DataRequest().WithPartitionId(
+        first_partition_id);
 
     // Run the DataRequest
     auto future = layer_client.GetData(request);

@@ -85,7 +85,7 @@ void MockServerHelper::MockGetResponse(const std::string& layer,
       "/query/v1/catalogs/" + catalog_ + "/layers/" + layer + "/versions/" +
           std::to_string(version) + "/quadkeys/" + tile.ToHereTile() +
           "/depths/4",
-      tree, olp::http::HttpStatusCode::OK, false, boost::none,
+      tree, olp::http::HttpStatusCode::OK, false, olp::porting::none,
       std::vector<Expectation::QueryStringParameter>{
           {"additionalFields", {"checksum,crc,dataSize,compressedDataSize"}}});
 }

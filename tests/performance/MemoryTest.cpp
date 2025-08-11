@@ -18,10 +18,10 @@
  */
 
 #include <chrono>
-#include <memory>
-#include <thread>
 #include <fstream>
+#include <memory>
 #include <regex>
+#include <thread>
 
 #include <gtest/gtest.h>
 #include <olp/core/client/HRN.h>
@@ -205,7 +205,7 @@ TEST_P(MemoryTest, ReadNPartitionsFromVersionedLayer) {
 
   StartThreads([=](uint8_t /*thread_id*/) {
     olp::dataservice::read::VersionedLayerClient service_client(
-        kCatalog, kVersionedLayerId, boost::none, settings);
+        kCatalog, kVersionedLayerId, olp::porting::none, settings);
 
     const auto end_timestamp =
         std::chrono::steady_clock::now() + parameter.runtime;

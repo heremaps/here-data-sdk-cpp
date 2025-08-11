@@ -53,8 +53,8 @@ TEST_F(VersionedLayerClientTest, GetPartitions) {
         url_generator_.PartitionsMetadata());
   }
 
-  auto catalog_client =
-      read::VersionedLayerClient(hrn, "testlayer", boost::none, *settings_);
+  auto catalog_client = read::VersionedLayerClient(
+      hrn, "testlayer", olp::porting::none, *settings_);
 
   auto request = read::PartitionsRequest();
   auto future = catalog_client.GetPartitions(request);
@@ -78,7 +78,7 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
   const auto request = read::TileRequest().WithTileKey(tile);
 
   // authentification not needed for the test
-  settings_->authentication_settings = boost::none;
+  settings_->authentication_settings = olp::porting::none;
 
   {
     SCOPED_TRACE("Requested tile");
@@ -100,7 +100,7 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
     }
 
     auto client =
-        read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
+        read::VersionedLayerClient(hrn, kLayer, olp::porting::none, *settings_);
 
     auto future = client.GetAggregatedData(request).GetFuture();
     auto response = future.get();
@@ -138,7 +138,7 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
     }
 
     auto client =
-        read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
+        read::VersionedLayerClient(hrn, kLayer, olp::porting::none, *settings_);
 
     auto future = client.GetAggregatedData(request).GetFuture();
     auto response = future.get();
@@ -176,7 +176,7 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
     }
 
     auto client =
-        read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
+        read::VersionedLayerClient(hrn, kLayer, olp::porting::none, *settings_);
 
     auto future = client.GetAggregatedData(request).GetFuture();
     auto response = future.get();
@@ -214,7 +214,7 @@ TEST_F(VersionedLayerClientTest, GetAggregatedData) {
     settings_->cache =
         olp::client::OlpClientSettingsFactory::CreateDefaultCache({});
     auto client =
-        read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
+        read::VersionedLayerClient(hrn, kLayer, olp::porting::none, *settings_);
 
     auto future = client.GetAggregatedData(request).GetFuture();
     auto response = future.get();

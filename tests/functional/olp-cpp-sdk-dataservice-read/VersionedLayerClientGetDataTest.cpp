@@ -54,7 +54,7 @@ TEST_F(VersionedLayerClientGetDataTest, GetDataFromPartitionSync) {
   }
 
   auto catalog_client =
-      read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
+      read::VersionedLayerClient(hrn, kLayer, olp::porting::none, *settings_);
 
   auto future =
       catalog_client.GetData(read::DataRequest().WithPartitionId(partition));
@@ -86,7 +86,7 @@ TEST_F(VersionedLayerClientGetDataTest, GetDataFromPartitionAsync) {
   }
 
   auto catalog_client =
-      read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
+      read::VersionedLayerClient(hrn, kLayer, olp::porting::none, *settings_);
 
   std::promise<read::DataResponse> promise;
   std::future<read::DataResponse> future = promise.get_future();
@@ -107,7 +107,7 @@ TEST_F(VersionedLayerClientGetDataTest, GetDataFromPartitionAsync) {
 TEST_F(VersionedLayerClientGetDataTest, GetDataWithHandle) {
   olp::client::HRN hrn(kTestHrn);
 
-  const auto data_handle =
+  auto data_handle =
       mockserver::ReadDefaultResponses::GenerateDataHandle("test");
   const auto data = mockserver::ReadDefaultResponses::GenerateData();
 
@@ -118,10 +118,10 @@ TEST_F(VersionedLayerClientGetDataTest, GetDataWithHandle) {
   mock_server_client_->MockGetResponse(kLayer, data_handle, data);
 
   auto client =
-      read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
+      read::VersionedLayerClient(hrn, kLayer, olp::porting::none, *settings_);
 
   auto request = read::DataRequest();
-  request.WithDataHandle(data_handle);
+  request.WithDataHandle(std::move(data_handle));
 
   auto future = client.GetData(request);
   auto data_response = future.GetFuture().get();
@@ -148,7 +148,7 @@ TEST_F(VersionedLayerClientGetDataTest, GetDataWithInvalidLayerId) {
       url_generator_.PartitionsQuery());
 
   auto client =
-      read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
+      read::VersionedLayerClient(hrn, kLayer, olp::porting::none, *settings_);
 
   auto request = read::DataRequest();
   request.WithPartitionId("269");
@@ -220,7 +220,8 @@ TEST_F(VersionedLayerClientGetDataTest,
     mock_server_client_->MockGetResponse(kLayer, data_handle, tile_data);
   }
 
-  read::VersionedLayerClient client(kHrn, kLayer, boost::none, *settings_);
+  read::VersionedLayerClient client(kHrn, kLayer, olp::porting::none,
+                                    *settings_);
 
   std::promise<read::DataResponse> promise;
   std::future<read::DataResponse> future = promise.get_future();
@@ -252,7 +253,8 @@ TEST_F(VersionedLayerClientGetDataTest, GetDataWithInvalidDataHandle) {
         url_generator_.DataBlob(kDataHandle));
   }
 
-  read::VersionedLayerClient client(kHrn, kLayer, boost::none, *settings_);
+  read::VersionedLayerClient client(kHrn, kLayer, olp::porting::none,
+                                    *settings_);
 
   auto request = read::DataRequest();
   request.WithDataHandle(kDataHandle);

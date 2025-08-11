@@ -44,7 +44,7 @@ TEST_F(VersionedLayerClientPrefetchTest, PrefetchTiles) {
 
   const auto root_tile = olp::geo::TileKey::FromHereTile(kTileId);
   auto client =
-      read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
+      read::VersionedLayerClient(hrn, kLayer, olp::porting::none, *settings_);
   std::vector<std::string> tiles_data;
   tiles_data.reserve(4);
 
@@ -199,7 +199,7 @@ TEST_F(VersionedLayerClientPrefetchTest, PrefetchPartitions) {
   const auto data = mockserver::ReadDefaultResponses::GenerateData();
 
   auto client =
-      read::VersionedLayerClient(hrn, kLayer, boost::none, *settings_);
+      read::VersionedLayerClient(hrn, kLayer, olp::porting::none, *settings_);
 
   {
     SCOPED_TRACE("Prefetch partitions");

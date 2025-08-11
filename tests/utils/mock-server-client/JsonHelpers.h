@@ -22,9 +22,9 @@
 #include <string>
 
 #include <rapidjson/document.h>
+#include <rapidjson/istreamwrapper.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
-#include <rapidjson/istreamwrapper.h>
 
 namespace mockserver {
 
@@ -61,10 +61,10 @@ inline void to_json(const std::shared_ptr<std::vector<unsigned char>>& x,
 }
 
 template <typename T>
-inline void to_json(const boost::optional<T>& x, rapidjson::Value& value,
+inline void to_json(const olp::porting::optional<T>& x, rapidjson::Value& value,
                     rapidjson::Document::AllocatorType& allocator) {
   if (x) {
-    to_json(x.get(), value, allocator);
+    to_json(*x, value, allocator);
   } else {
     value.SetNull();
   }

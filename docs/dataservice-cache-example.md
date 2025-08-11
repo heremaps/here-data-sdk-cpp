@@ -89,7 +89,7 @@ You can get data from a [versioned layer](https://www.here.com/docs/bundle/data-
    olp::dataservice::read::VersionedLayerClient layer_client (
                        client::HRN catalog,
                        std::string layer_id,
-                       boost::optional<int64_t> catalog_version,
+                       porting::optional<int64_t> catalog_version,
                        client::OlpClientSettings settings);
    ```
 
@@ -102,7 +102,7 @@ You can get data from a [versioned layer](https://www.here.com/docs/bundle/data-
    ```cpp
    auto request = olp::dataservice::read::DataRequest()
                     .WithPartitionId(first_partition_id)
-                    .WithBillingTag(boost::none)
+                    .WithBillingTag(olp::porting::none)
                     .WithFetchOption(olp::dataservice::read::FetchOptions::OnlineIfNotFound);
    ```
 

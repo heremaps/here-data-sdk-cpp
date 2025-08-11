@@ -149,8 +149,8 @@ TEST_F(VersionedLayerClientTest, StartBatch) {
     ASSERT_TRUE(result.GetId());
     ASSERT_TRUE(result.GetDetails());
     ASSERT_TRUE(result.GetLayerIds());
-    ASSERT_EQ(result.GetLayerIds().get().size(), 1);
-    ASSERT_EQ(result.GetLayerIds().get().front(), kLayer);
+    ASSERT_EQ(result.GetLayerIds()->size(), 1);
+    ASSERT_EQ(result.GetLayerIds()->front(), kLayer);
     ASSERT_NE("", response.GetResult().GetId().value());
     Mock::VerifyAndClearExpectations(network_.get());
   }
@@ -182,8 +182,8 @@ TEST_F(VersionedLayerClientTest, StartBatch) {
     ASSERT_TRUE(result.GetId());
     ASSERT_TRUE(result.GetDetails());
     ASSERT_TRUE(result.GetLayerIds());
-    ASSERT_EQ(result.GetLayerIds().get().size(), 1);
-    ASSERT_EQ(result.GetLayerIds().get().front(), kLayer);
+    ASSERT_EQ(result.GetLayerIds()->size(), 1);
+    ASSERT_EQ(result.GetLayerIds()->front(), kLayer);
     ASSERT_NE("", response.GetResult().GetId().value());
     Mock::VerifyAndClearExpectations(network_.get());
   }
@@ -358,8 +358,7 @@ TEST_F(VersionedLayerClientTest, CompleteBatch) {
   ASSERT_FALSE(api.empty());
   ASSERT_TRUE(publication.GetId());
 
-  const auto publication_publish_url =
-      kPublishUrl + "/" + publication.GetId().get();
+  const auto publication_publish_url = kPublishUrl + "/" + *publication.GetId();
 
   // auth token should be valid till the end of all tests
   EXPECT_CALL(
@@ -572,7 +571,7 @@ TEST_F(VersionedLayerClientTest, CancelBatch) {
   const auto publication =
       mockserver::DefaultResponses::GeneratePublicationResponse({kLayer}, {});
   ASSERT_TRUE(publication.GetId());
-  const auto publication_url = kCancelBatchBaseUrl + publication.GetId().get();
+  const auto publication_url = kCancelBatchBaseUrl + *publication.GetId();
 
   // auth token should be valid till the end of all test cases
   EXPECT_CALL(

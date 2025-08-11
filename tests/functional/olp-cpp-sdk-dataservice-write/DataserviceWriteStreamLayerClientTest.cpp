@@ -176,7 +176,7 @@ class DataserviceWriteStreamLayerClientTest : public ::testing::Test {
       data_->push_back(i);
       auto error = client_->Queue(
           PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
-      ASSERT_FALSE(error) << error.get();
+      ASSERT_FALSE(error) << *error;
     }
   }
 

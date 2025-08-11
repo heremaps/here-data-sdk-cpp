@@ -452,7 +452,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   auto sync_settings = settings_;
   sync_settings.task_scheduler.reset();
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, sync_settings);
+      kCatalog, kTestLayer, olp::porting::none, sync_settings);
 
   DataResponse response;
 
@@ -475,7 +475,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   auto sync_settings = settings_;
   sync_settings.task_scheduler.reset();
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, sync_settings);
+      kCatalog, kTestLayer, olp::porting::none, sync_settings);
 
   DataResponse response;
 
@@ -861,7 +861,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, DataRequestPriority) {
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsNoError) {
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   auto request = read::PartitionsRequest();
   auto promise = std::make_shared<std::promise<PartitionsResponse>>();
@@ -884,7 +884,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsNoError) {
 TEST_F(DataserviceReadVersionedLayerClientTest,
        GetPartitionsCancellableFutureNoError) {
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   auto request = read::PartitionsRequest();
   auto cancellable_future = client->GetPartitions(request);
@@ -902,7 +902,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       []() { std::this_thread::sleep_for(std::chrono::seconds(1)); });
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   auto request = read::PartitionsRequest();
   auto cancellable_future = client->GetPartitions(request);
@@ -923,7 +923,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetEmptyPartitions) {
                                    HTTP_RESPONSE_EMPTY_PARTITIONS));
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   auto request = read::PartitionsRequest();
   auto promise = std::make_shared<std::promise<PartitionsResponse>>();
@@ -958,7 +958,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitions429Error) {
   };
   settings_.retry_settings = retry_settings;
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   auto request = read::PartitionsRequest();
   auto promise = std::make_shared<std::promise<PartitionsResponse>>();
@@ -993,7 +993,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, ApiLookup429) {
   };
   settings_.retry_settings = retry_settings;
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   auto request = read::PartitionsRequest();
   auto promise = std::make_shared<std::promise<PartitionsResponse>>();
@@ -1012,7 +1012,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsForInvalidLayer) {
   const auto layer = "somewhat_not_okay";
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, layer, boost::none, settings_);
+      kCatalog, layer, olp::porting::none, settings_);
 
   auto request = read::PartitionsRequest();
   auto promise = std::make_shared<std::promise<PartitionsResponse>>();
@@ -1029,7 +1029,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsForInvalidLayer) {
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsCacheWithUpdate) {
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   // Request 1
   {
@@ -1065,7 +1065,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsCacheWithUpdate) {
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitions403CacheClear) {
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
   {
     testing::InSequence s;
     EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
@@ -1127,7 +1127,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitions403CacheClear) {
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsGarbageResponse) {
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_LOOKUP_API), _, _, _, _))
       .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
@@ -1149,7 +1149,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsGarbageResponse) {
 TEST_F(DataserviceReadVersionedLayerClientTest,
        GetPartitionsCancelLookupMetadata) {
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   // Setup the expected calls :
   auto wait_for_cancel = std::make_shared<std::promise<void>>();
@@ -1199,7 +1199,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 TEST_F(DataserviceReadVersionedLayerClientTest,
        GetPartitionsCancelLatestCatalogVersion) {
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   // Setup the expected calls :
   auto wait_for_cancel = std::make_shared<std::promise<void>>();
@@ -1250,7 +1250,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 TEST_F(DataserviceReadVersionedLayerClientTest,
        GetPartitionsCancelLayerVersions) {
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   // Setup the expected calls :
   auto wait_for_cancel = std::make_shared<std::promise<void>>();
@@ -1361,7 +1361,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsInvalidVersion) {
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsCacheOnly) {
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_PARTITIONS), _, _, _, _))
       .Times(0);
@@ -1381,7 +1381,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsCacheOnly) {
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetPartitionsOnlineOnly) {
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   {
     testing::InSequence s;
@@ -1431,7 +1431,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithCache) {
   constexpr auto kLayerId = "hype-test-prefetch";
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kLayerId, boost::none, settings_);
+      kCatalog, kLayerId, olp::porting::none, settings_);
 
   {
     SCOPED_TRACE("Prefetch tiles online and store them in memory cache");
@@ -1518,7 +1518,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   constexpr auto kLayerId = "hype-test-prefetch";
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kLayerId, boost::none, settings_);
+      kCatalog, kLayerId, olp::porting::none, settings_);
 
   {
     SCOPED_TRACE("Prefetch tiles where tile greater min level");
@@ -1610,7 +1610,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   constexpr auto kLayerId = "hype-test-prefetch";
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kLayerId, boost::none, settings_);
+      kCatalog, kLayerId, olp::porting::none, settings_);
 
   {
     SCOPED_TRACE("Prefetch tiles online, ");
@@ -1664,7 +1664,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   const auto requested_tile = geo::TileKey::FromHereTile("23618365");
 
-  read::VersionedLayerClient client(kCatalog, kLayerId, boost::none, settings_);
+  read::VersionedLayerClient client(kCatalog, kLayerId, olp::porting::none,
+                                    settings_);
 
   {
     SCOPED_TRACE("Prefetch aggregated tile");
@@ -1717,7 +1718,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
   const auto requested_tile = geo::TileKey::FromHereTile("23618365");
 
-  read::VersionedLayerClient client(kCatalog, kLayerId, boost::none, settings_);
+  read::VersionedLayerClient client(kCatalog, kLayerId, olp::porting::none,
+                                    settings_);
 
   {
     SCOPED_TRACE("Prefetch aggregated tile");
@@ -1815,7 +1817,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   constexpr auto kParitionId = "prefetch-partition";
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kLayerId, boost::none, settings_);
+      kCatalog, kLayerId, olp::porting::none, settings_);
 
   std::vector<geo::TileKey> tile_keys = {
       geo::TileKey::FromHereTile(kParitionId)};
@@ -1863,7 +1865,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesCancelOnLookup) {
   constexpr auto kParitionId = "prefetch-partition";
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kLayerId, boost::none, settings_);
+      kCatalog, kLayerId, olp::porting::none, settings_);
 
   std::vector<geo::TileKey> tile_keys = {
       geo::TileKey::FromHereTile(kParitionId)};
@@ -1899,7 +1901,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
                      .WithMaxLevel(12);
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kLayerId, boost::none, settings_);
+      kCatalog, kLayerId, olp::porting::none, settings_);
 
   auto cancel_future = client->PrefetchTiles(request);
   auto raw_future = cancel_future.GetFuture();
@@ -1929,7 +1931,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
                      .WithMaxLevel(12);
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kLayerId, boost::none, settings_);
+      kCatalog, kLayerId, olp::porting::none, settings_);
 
   auto wait_for_cancel = std::make_shared<std::promise<void>>();
   auto pause_for_cancel = std::make_shared<std::promise<void>>();
@@ -1962,8 +1964,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesInvalidResponse) {
   constexpr auto kLayerId = "hype-test-prefetch";
 
-  auto client =
-      read::VersionedLayerClient(kCatalog, kLayerId, boost::none, settings_);
+  auto client = read::VersionedLayerClient(kCatalog, kLayerId,
+                                           olp::porting::none, settings_);
   std::vector<geo::TileKey> tile_keys = {geo::TileKey::FromHereTile("5904591")};
 
   auto request = read::PrefetchTilesRequest()
@@ -1995,8 +1997,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesInvalidResponse) {
 TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesEmptyResponse) {
   constexpr auto kLayerId = "hype-test-prefetch";
 
-  auto client =
-      read::VersionedLayerClient(kCatalog, kLayerId, boost::none, settings_);
+  auto client = read::VersionedLayerClient(kCatalog, kLayerId,
+                                           olp::porting::none, settings_);
   std::vector<geo::TileKey> tile_keys = {
       geo::TileKey::FromHereTile("23618365")};
 
@@ -2028,8 +2030,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
        PrefetchTilesEmptyResponseDefaultLevels) {
   constexpr auto kLayerId = "hype-test-prefetch";
 
-  auto client =
-      read::VersionedLayerClient(kCatalog, kLayerId, boost::none, settings_);
+  auto client = read::VersionedLayerClient(kCatalog, kLayerId,
+                                           olp::porting::none, settings_);
   std::vector<geo::TileKey> tile_keys = {
       geo::TileKey::FromHereTile("23618365")};
 
@@ -2064,8 +2066,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchSameTiles) {
   constexpr auto kLayerId = "hype-test-prefetch";
 
-  auto client =
-      read::VersionedLayerClient(kCatalog, kLayerId, boost::none, settings_);
+  auto client = read::VersionedLayerClient(kCatalog, kLayerId,
+                                           olp::porting::none, settings_);
   std::vector<geo::TileKey> tile_keys = {geo::TileKey::FromHereTile("5904591")};
 
   auto request = read::PrefetchTilesRequest()
@@ -2128,8 +2130,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchSameTiles) {
 TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesWithStatus) {
   constexpr auto kLayerId = "hype-test-prefetch";
 
-  auto client =
-      read::VersionedLayerClient(kCatalog, kLayerId, boost::none, settings_);
+  auto client = read::VersionedLayerClient(kCatalog, kLayerId,
+                                           olp::porting::none, settings_);
   std::vector<geo::TileKey> tile_keys = {geo::TileKey::FromHereTile("5904591")};
 
   auto request = read::PrefetchTilesRequest()
@@ -2217,8 +2219,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchPriority) {
   scheduler->ScheduleTask([&]() { block_future.wait_for(kWaitTimeout); },
                           std::numeric_limits<uint32_t>::max());
 
-  auto client =
-      read::VersionedLayerClient(kCatalog, kLayerId, boost::none, settings_);
+  auto client = read::VersionedLayerClient(kCatalog, kLayerId,
+                                           olp::porting::none, settings_);
   std::vector<geo::TileKey> tile_keys = {geo::TileKey::FromHereTile("5904591")};
 
   auto priority = 300u;
@@ -2274,7 +2276,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetData404Error) {
                                    "Resource not found."));
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   auto request = read::DataRequest();
   request.WithDataHandle("invalidDataHandle");
@@ -2309,7 +2311,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetData429Error) {
   };
   settings_.retry_settings = retry_settings;
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   auto request = read::DataRequest();
   request.WithDataHandle("4eed6ed1-0d32-43b9-ae79-043cb4256432");
@@ -2339,7 +2341,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetData403CacheClear) {
   }
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
   auto request = read::DataRequest();
   request.WithPartitionId(kTestPartition);
   // Populate cache
@@ -2362,7 +2364,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetData403CacheClear) {
 
 TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCacheWithUpdate) {
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
   auto request = read::DataRequest();
   request.WithPartitionId(kTestPartition)
       .WithFetchOption(FetchOptions::CacheWithUpdate);
@@ -2384,7 +2386,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCacheWithUpdate) {
 TEST_F(DataserviceReadVersionedLayerClientTest,
        CancelPendingRequestsPartitions) {
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
   auto partitions_request =
       PartitionsRequest().WithFetchOption(FetchOptions::OnlineOnly);
   auto data_request = read::DataRequest()
@@ -2442,7 +2444,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
 
 TEST_F(DataserviceReadVersionedLayerClientTest, CancelPendingRequestsPrefetch) {
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
   auto prefetch_request = PrefetchTilesRequest();
   auto data_request = read::DataRequest()
                           .WithPartitionId(kTestPartition)
@@ -2526,7 +2528,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       .Times(0);
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   auto request = read::DataRequest();
   request.WithPartitionId(kTestPartition);
@@ -2580,7 +2582,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       .Times(0);
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   auto request = read::DataRequest();
   request.WithPartitionId(kTestPartition);
@@ -2634,7 +2636,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       .Times(0);
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   auto request = read::DataRequest();
   request.WithPartitionId(kTestPartition);
@@ -2685,7 +2687,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   auto request = read::DataRequest();
   request.WithPartitionId(kTestPartition);
@@ -2738,7 +2740,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       .Times(0);
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   auto request = read::DataRequest();
   request.WithPartitionId(kTestPartition);
@@ -2788,7 +2790,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
       .WillOnce(testing::Invoke(std::move(cancel_mock)));
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   auto request = read::DataRequest();
   request.WithPartitionId(kTestPartition);
@@ -2861,7 +2863,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataCacheOnly) {
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(URL_BLOB_DATA_269), _, _, _, _))
       .Times(0);
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   auto request = read::DataRequest();
   request.WithPartitionId(kTestPartition)
@@ -2889,7 +2891,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataOnlineOnly) {
   }
 
   auto client = std::make_shared<read::VersionedLayerClient>(
-      kCatalog, kTestLayer, boost::none, settings_);
+      kCatalog, kTestLayer, olp::porting::none, settings_);
 
   auto request = read::DataRequest();
   request.WithPartitionId(kTestPartition)
@@ -3281,7 +3283,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckIfPartitionCached) {
   }
   {
     SCOPED_TRACE("Client without version can't check");
-    read::VersionedLayerClient client(kCatalog, kTestLayer, boost::none,
+    read::VersionedLayerClient client(kCatalog, kTestLayer, olp::porting::none,
                                       settings_);
     EXPECT_FALSE(client.IsCached(kTestPartition));
   }
@@ -4157,8 +4159,8 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileAndAggregatedData) {
 TEST_F(DataserviceReadVersionedLayerClientTest, PrefetchTilesAndGetAggregated) {
   constexpr auto kLayerId = "hype-test-prefetch";
 
-  auto client =
-      read::VersionedLayerClient(kCatalog, kLayerId, boost::none, settings_);
+  auto client = read::VersionedLayerClient(kCatalog, kLayerId,
+                                           olp::porting::none, settings_);
 
   {
     SCOPED_TRACE("Prefetch tiles online and store them in memory cache");

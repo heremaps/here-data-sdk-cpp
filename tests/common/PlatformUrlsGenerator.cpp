@@ -20,11 +20,10 @@
 #include "PlatformUrlsGenerator.h"
 
 #include <algorithm>
+#include <cassert>
 #include <utility>
 
 #include <olp/core/utils/Url.h>
-#include <olp/dataservice/read/model/Partitions.h>
-#include <olp/dataservice/read/model/VersionResponse.h>
 #include "ApiDefaultResponses.h"
 
 namespace {

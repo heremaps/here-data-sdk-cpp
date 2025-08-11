@@ -359,7 +359,7 @@ You can request any data version from a [versioned layer](https://www.here.com/d
    olp::dataservice::read::VersionedLayerClient layer_client (
                        client::HRN catalog,
                        std::string layer_id,
-                       boost::optional<int64_t> catalog_version,
+                       porting::optional<int64_t> catalog_version,
                        client::OlpClientSettings settings);
    ```
 

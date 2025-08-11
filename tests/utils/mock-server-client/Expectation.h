@@ -22,8 +22,8 @@
 #include <string>
 
 #include <boost/any.hpp>
-#include <boost/optional.hpp>
 
+#include <olp/core/porting/optional.h>
 #include "JsonHelpers.h"
 
 namespace mockserver {
@@ -34,10 +34,10 @@ struct Expectation {
     std::vector<std::string> values;
   };
   struct RequestMatcher {
-    boost::optional<std::string> path = boost::none;
-    boost::optional<std::string> method = boost::none;
-    boost::optional<std::vector<QueryStringParameter>> query_string_parameters =
-        boost::none;
+    olp::porting::optional<std::string> path = olp::porting::none;
+    olp::porting::optional<std::string> method = olp::porting::none;
+    olp::porting::optional<std::vector<QueryStringParameter>>
+        query_string_parameters = olp::porting::none;
   };
 
   struct ResponseDelay {
@@ -46,8 +46,8 @@ struct Expectation {
   };
 
   struct ResponseAction {
-    boost::optional<ResponseDelay> delay = boost::none;
-    boost::optional<uint16_t> status_code = boost::none;
+    olp::porting::optional<ResponseDelay> delay = olp::porting::none;
+    olp::porting::optional<uint16_t> status_code = olp::porting::none;
 
     /// Any of BinaryResponse, std::string, boost::any
     boost::any body;
@@ -64,8 +64,8 @@ struct Expectation {
   };
 
   RequestMatcher request;
-  boost::optional<ResponseAction> action = boost::none;
-  boost::optional<ResponseTimes> times = boost::none;
+  olp::porting::optional<ResponseAction> action = olp::porting::none;
+  olp::porting::optional<ResponseTimes> times = olp::porting::none;
 };
 
 void to_json(const Expectation& x, rapidjson::Value& value,
@@ -91,10 +91,10 @@ inline void to_json(const Expectation& x, rapidjson::Value& value,
   value.SetObject();
   serialize("httpRequest", x.request, value, allocator);
 
-  if (x.action != boost::none) {
+  if (x.action != olp::porting::none) {
     serialize("httpResponse", x.action, value, allocator);
   }
-  if (x.times != boost::none) {
+  if (x.times != olp::porting::none) {
     serialize("times", x.times, value, allocator);
   }
 }
@@ -147,7 +147,7 @@ inline void to_json(const Expectation::ResponseAction& x,
   }
 
   if (x.delay) {
-    serialize("delay", x.delay.get(), value, allocator);
+    serialize("delay", *x.delay, value, allocator);
   }
 }
 

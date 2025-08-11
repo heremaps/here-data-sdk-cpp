@@ -21,7 +21,7 @@
 
 #include "Examples.h"
 
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.h>
 
 /**
  * @brief Dataservice read example. Authenticate client using access key id and
@@ -33,6 +33,6 @@
  * @param catalog_version The desired version of the catalog.
  * @return result of publish data(0 - if succeed)
  */
-int RunExampleRead(
-    const AccessKey& access_key, const std::string& catalog,
-    const boost::optional<int64_t>& catalog_version = boost::none);
+int RunExampleRead(const AccessKey& access_key, const std::string& catalog,
+                   const olp::porting::optional<int64_t>& catalog_version =
+                       olp::porting::none);
