@@ -28,7 +28,7 @@ namespace read {
 
 VersionedLayerClient::VersionedLayerClient(
     client::HRN catalog, std::string layer_id,
-    boost::optional<int64_t> catalog_version,
+    porting::optional<int64_t> catalog_version,
     client::OlpClientSettings settings)
     : impl_(std::make_unique<VersionedLayerClientImpl>(
           std::move(catalog), std::move(layer_id), std::move(catalog_version),

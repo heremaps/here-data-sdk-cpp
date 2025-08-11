@@ -275,10 +275,10 @@ void QuadTreeIndex::CreateBlob(geo::TileKey root, int depth,
   }
 }
 
-boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::Find(
+porting::optional<QuadTreeIndex::IndexData> QuadTreeIndex::Find(
     const geo::TileKey& tile_key, bool aggregated_search) const {
   if (IsNull()) {
-    return boost::none;
+    return olp::porting::none;
   }
   const geo::TileKey& root_tile_key =
       geo::TileKey::FromQuadKey64(data_->root_tilekey);
@@ -292,7 +292,8 @@ boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::Find(
     const SubEntry* entry =
         std::lower_bound(SubEntryBegin(), end, SubEntry{sub, 0});
     if (entry == end || entry->sub_quadkey != sub) {
-      return aggregated_search ? FindNearestParent(tile_key) : boost::none;
+      return aggregated_search ? FindNearestParent(tile_key)
+                               : olp::porting::none;
     }
     const auto offset = entry->tag_offset;
 
@@ -311,7 +312,7 @@ boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::Find(
     }();
 
     if (!ReadIndexData(data, offset, limit, All)) {
-      return boost::none;
+      return olp::porting::none;
     }
     data.tile_key = tile_key;
     return data;
@@ -323,7 +324,7 @@ boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::Find(
   const ParentEntry* entry =
       std::lower_bound(ParentEntryBegin(), end, ParentEntry{key, 0});
   if (entry == end || entry->key != key) {
-    return aggregated_search ? FindNearestParent(tile_key) : boost::none;
+    return aggregated_search ? FindNearestParent(tile_key) : olp::porting::none;
   }
   const auto offset = entry->tag_offset;
 
@@ -334,12 +335,12 @@ boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::Find(
   }();
 
   if (!ReadIndexData(data, offset, limit, All)) {
-    return boost::none;
+    return olp::porting::none;
   }
   data.tile_key = tile_key;
   return data;
 }
-boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::FindNearestParent(
+porting::optional<QuadTreeIndex::IndexData> QuadTreeIndex::FindNearestParent(
     geo::TileKey tile_key) const {
   const geo::TileKey& root_tile_key =
       geo::TileKey::FromQuadKey64(data_->root_tilekey);
@@ -356,7 +357,7 @@ boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::FindNearestParent(
         IndexData data;
         data.tile_key = key;
         if (!ReadIndexData(data, it->tag_offset, limit, All)) {
-          return boost::none;
+          return olp::porting::none;
         }
         return data;
       }
@@ -372,13 +373,13 @@ boost::optional<QuadTreeIndex::IndexData> QuadTreeIndex::FindNearestParent(
       IndexData data;
       data.tile_key = key;
       if (!ReadIndexData(data, it->tag_offset, limit, All)) {
-        return boost::none;
+        return olp::porting::none;
       }
       return data;
     }
     limit = it->tag_offset;
   }
-  return boost::none;
+  return olp::porting::none;
 }
 
 std::vector<QuadTreeIndex::IndexData> QuadTreeIndex::GetIndexData(

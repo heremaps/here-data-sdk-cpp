@@ -32,7 +32,7 @@ namespace read {
 
 VolatileBlobApi::DataResponse VolatileBlobApi::GetVolatileBlob(
     const client::OlpClient& client, const std::string& layer_id,
-    const std::string& data_handle, boost::optional<std::string> billing_tag,
+    const std::string& data_handle, porting::optional<std::string> billing_tag,
     const client::CancellationContext& context) {
   std::multimap<std::string, std::string> header_params;
   header_params.insert(std::make_pair("Accept", "application/json"));
@@ -48,9 +48,9 @@ VolatileBlobApi::DataResponse VolatileBlobApi::GetVolatileBlob(
                      form_params, nullptr, "", context);
 
   if (api_response.GetStatus() != http::HttpStatusCode::OK) {
-    return DataResponse(
-        client::ApiError(api_response.GetStatus(), api_response.GetResponseAsString()),
-        api_response.GetNetworkStatistics());
+    return DataResponse(client::ApiError(api_response.GetStatus(),
+                                         api_response.GetResponseAsString()),
+                        api_response.GetNetworkStatistics());
   }
 
   auto result = std::make_shared<std::vector<unsigned char>>();

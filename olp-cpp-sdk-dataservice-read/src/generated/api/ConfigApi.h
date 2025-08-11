@@ -19,13 +19,13 @@
 
 #pragma once
 
-#include <boost/optional.hpp>
 #include <memory>
 #include <string>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationContext.h>
+#include <olp/core/porting/optional.h>
 #include "olp/dataservice/read/model/Catalog.h"
 
 namespace olp {
@@ -56,7 +56,7 @@ class ConfigApi {
    */
   static CatalogResponse GetCatalog(const client::OlpClient& client,
                                     const std::string& catalog_hrn,
-                                    boost::optional<std::string> billing_tag,
+                                    porting::optional<std::string> billing_tag,
                                     client::CancellationContext context);
 };
 

@@ -23,8 +23,7 @@
 #include <utility>
 #include <vector>
 
-#include <boost/optional.hpp>
-
+#include <olp/core/porting/optional.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
 
 namespace olp {
@@ -45,13 +44,13 @@ class DATASERVICE_READ_API Partition {
   virtual ~Partition() = default;
 
  private:
-  boost::optional<std::string> checksum_;
-  boost::optional<int64_t> compressed_data_size_;
+  porting::optional<std::string> checksum_;
+  porting::optional<int64_t> compressed_data_size_;
   std::string data_handle_;
-  boost::optional<int64_t> data_size_;
-  boost::optional<std::string> crc_;
+  porting::optional<int64_t> data_size_;
+  porting::optional<std::string> crc_;
   std::string partition_;
-  boost::optional<int64_t> version_;
+  porting::optional<int64_t> version_;
 
  public:
   /**
@@ -66,7 +65,9 @@ class DATASERVICE_READ_API Partition {
    *
    * @return The partition checksum.
    */
-  const boost::optional<std::string>& GetChecksum() const { return checksum_; }
+  const porting::optional<std::string>& GetChecksum() const {
+    return checksum_;
+  }
   /**
    * @brief (Optional) Gets a mutable reference to the partition checksum.
    *
@@ -74,7 +75,7 @@ class DATASERVICE_READ_API Partition {
    *
    * @return The mutable reference to the partition checksum.
    */
-  boost::optional<std::string>& GetMutableChecksum() { return checksum_; }
+  porting::optional<std::string>& GetMutableChecksum() { return checksum_; }
   /**
    * @brief (Optional) Sets the partition checksum.
    *
@@ -82,7 +83,7 @@ class DATASERVICE_READ_API Partition {
    *
    * @param value The partition checksum.
    */
-  void SetChecksum(boost::optional<std::string> value) {
+  void SetChecksum(porting::optional<std::string> value) {
     this->checksum_ = std::move(value);
   }
 
@@ -97,7 +98,7 @@ class DATASERVICE_READ_API Partition {
    *
    * @return The compressed size of the partition data.
    */
-  const boost::optional<int64_t>& GetCompressedDataSize() const {
+  const porting::optional<int64_t>& GetCompressedDataSize() const {
     return compressed_data_size_;
   }
   /**
@@ -109,7 +110,7 @@ class DATASERVICE_READ_API Partition {
    *
    * @return The mutable reference to the compressed size of the partition data.
    */
-  boost::optional<int64_t>& GetMutableCompressedDataSize() {
+  porting::optional<int64_t>& GetMutableCompressedDataSize() {
     return compressed_data_size_;
   }
   /**
@@ -120,7 +121,7 @@ class DATASERVICE_READ_API Partition {
    *
    * @param value The compressed size of the partition data.
    */
-  void SetCompressedDataSize(boost::optional<int64_t> value) {
+  void SetCompressedDataSize(porting::optional<int64_t> value) {
     this->compressed_data_size_ = value;
   }
 
@@ -166,7 +167,7 @@ class DATASERVICE_READ_API Partition {
    *
    * @return The uncompressed size of the partition data
    */
-  const boost::optional<int64_t>& GetDataSize() const { return data_size_; }
+  const porting::optional<int64_t>& GetDataSize() const { return data_size_; }
   /**
    * @brief (Optional) Gets a mutable reference to the uncompressed size of
    * the partition data in bytes.
@@ -177,7 +178,7 @@ class DATASERVICE_READ_API Partition {
    * @return The mutable reference to the uncompressed size of the partition
    * data.
    */
-  boost::optional<int64_t>& GetMutableDataSize() { return data_size_; }
+  porting::optional<int64_t>& GetMutableDataSize() { return data_size_; }
   /**
    * @brief (Optional) Sets the uncompressed size of the partition data.
    *
@@ -186,7 +187,9 @@ class DATASERVICE_READ_API Partition {
    *
    * @param value The uncompressed size of the partition data.
    */
-  void SetDataSize(boost::optional<int64_t> value) { this->data_size_ = value; }
+  void SetDataSize(porting::optional<int64_t> value) {
+    this->data_size_ = value;
+  }
 
   /**
    * Optional value for the CRC of the partition data in bytes.
@@ -197,7 +200,7 @@ class DATASERVICE_READ_API Partition {
    *
    * @return The partition CRC.
    */
-  const boost::optional<std::string>& GetCrc() const { return crc_; }
+  const porting::optional<std::string>& GetCrc() const { return crc_; }
   /**
    * @brief (Optional) Gets a mutable reference to the partition crc.
    *
@@ -205,7 +208,7 @@ class DATASERVICE_READ_API Partition {
    *
    * @return The mutable reference to the partition crc.
    */
-  boost::optional<std::string>& GetMutableCrc() { return crc_; }
+  porting::optional<std::string>& GetMutableCrc() { return crc_; }
   /**
    * @brief (Optional) Sets the partition crc.
    *
@@ -213,7 +216,7 @@ class DATASERVICE_READ_API Partition {
    *
    * @param value The partition crc.
    */
-  void SetCrc(boost::optional<std::string> value) {
+  void SetCrc(porting::optional<std::string> value) {
     this->crc_ = std::move(value);
   }
 
@@ -255,7 +258,7 @@ class DATASERVICE_READ_API Partition {
    *
    * @return The version of the catalog when this partition was last changed.
    */
-  const boost::optional<int64_t>& GetVersion() const { return version_; }
+  const porting::optional<int64_t>& GetVersion() const { return version_; }
   /**
    * @brief (Optional) Gets a mutable reference to the version of the catalog
    * when this partition was last changed.
@@ -265,7 +268,7 @@ class DATASERVICE_READ_API Partition {
    * @return The mutable reference to the version of the catalog when this
    * partition was last changed.
    */
-  boost::optional<int64_t>& GetMutableVersion() { return version_; }
+  porting::optional<int64_t>& GetMutableVersion() { return version_; }
   /**
    * @brief (Optional) Sets the partition version.
    *
@@ -274,7 +277,7 @@ class DATASERVICE_READ_API Partition {
    * @param value The version of the catalog when this partition was last
    * changed.
    */
-  void SetVersion(boost::optional<int64_t> value) { this->version_ = value; }
+  void SetVersion(porting::optional<int64_t> value) { this->version_ = value; }
 };
 
 /**

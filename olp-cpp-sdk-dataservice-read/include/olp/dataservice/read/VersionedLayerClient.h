@@ -28,6 +28,7 @@
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
+#include <olp/core/porting/optional.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
@@ -36,7 +37,6 @@
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/TileRequest.h>
 #include <olp/dataservice/read/Types.h>
-#include <boost/optional.hpp>
 
 namespace olp {
 namespace dataservice {
@@ -123,7 +123,7 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * version.
    */
   VersionedLayerClient(client::HRN catalog, std::string layer_id,
-                       boost::optional<int64_t> catalog_version,
+                       porting::optional<int64_t> catalog_version,
                        client::OlpClientSettings settings);
 
   /// A copy constructor.

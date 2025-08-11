@@ -79,7 +79,7 @@ TEST_F(MetadataApiTest, GetListVersions) {
             kHttpVersionsListResponse));
 
     auto index_response = olp::dataservice::read::MetadataApi::ListVersions(
-        *client_, kStartVersion, kEndVersion, boost::none,
+        *client_, kStartVersion, kEndVersion, olp::porting::none,
         olp::client::CancellationContext{});
 
     ASSERT_TRUE(index_response.IsSuccessful());
@@ -120,7 +120,7 @@ TEST_F(MetadataApiTest, GetListVersions) {
     context.CancelOperation();
 
     auto index_response = olp::dataservice::read::MetadataApi::ListVersions(
-        *client_, kStartVersion, kEndVersion, boost::none, context);
+        *client_, kStartVersion, kEndVersion, olp::porting::none, context);
 
     ASSERT_FALSE(index_response.IsSuccessful());
     const auto& error = index_response.GetError();
@@ -129,12 +129,12 @@ TEST_F(MetadataApiTest, GetListVersions) {
 }
 
 struct TestParameters {
-  boost::optional<int64_t> version;
+  olp::porting::optional<int64_t> version;
   std::string layer;
   std::string url;
   std::vector<std::string> additional_fields;
-  boost::optional<std::string> billing_tag;
-  boost::optional<std::string> range;
+  olp::porting::optional<std::string> billing_tag;
+  olp::porting::optional<std::string> range;
 };
 
 class MetadataApiParamTest
@@ -151,7 +151,7 @@ TEST_P(MetadataApiParamTest, GetPartitionsStream) {
 
   olp::client::CancellationContext context;
 
-  boost::optional<std::uint64_t> received_offset;
+  olp::porting::optional<std::uint64_t> received_offset;
   std::string received_stream_data;
 
   auto data_callback = [&](const std::uint8_t* data, std::uint64_t offset,
@@ -163,11 +163,11 @@ TEST_P(MetadataApiParamTest, GetPartitionsStream) {
   const std::string ref_stream_data{"reference stream data"};
   const std::uint64_t offset{7};
 
-  const auto range_header = [&]() -> boost::optional<olp::http::Header> {
+  const auto range_header = [&]() -> olp::porting::optional<olp::http::Header> {
     if (test_params.range) {
       return olp::http::Header{"Range", test_params.range.value()};
     }
-    return boost::none;
+    return olp::porting::none;
   }();
 
   EXPECT_CALL(*network_mock_, Send(AllOf(IsGetRequest(test_params.url),
@@ -194,27 +194,27 @@ std::vector<TestParameters> GetPartitionsStreamParams() {
   std::vector<TestParameters> config;
   TestParameters params;
 
-  params.billing_tag = boost::none;
+  params.billing_tag = olp::porting::none;
   params.layer = "testLayer";
-  params.range = boost::none;
-  params.version = boost::none;
+  params.range = olp::porting::none;
+  params.version = olp::porting::none;
   params.url = std::string(kNodeBaseUrl) + R"(/layers/)" + params.layer +
                R"(/partitions)";
   config.emplace_back(params);
 
-  params.billing_tag = boost::none;
+  params.billing_tag = olp::porting::none;
   params.layer = "testLayer";
-  params.range = boost::none;
+  params.range = olp::porting::none;
   params.version = kStartVersion;
   params.url = std::string(kNodeBaseUrl) + R"(/layers/)" + params.layer +
                R"(/partitions?version=)" +
                std::to_string(params.version.value());
   config.emplace_back(params);
 
-  params.billing_tag = boost::none;
+  params.billing_tag = olp::porting::none;
   params.layer = "testLayer";
   params.range = "rangeReferenceValue";
-  params.version = boost::none;
+  params.version = olp::porting::none;
   params.url = std::string(kNodeBaseUrl) + R"(/layers/)" + params.layer +
                R"(/partitions)";
   config.emplace_back(params);
@@ -222,25 +222,25 @@ std::vector<TestParameters> GetPartitionsStreamParams() {
   params.billing_tag = "billingTagValue";
   params.layer = "testLayer";
   params.range = "rangeReferenceValue";
-  params.version = boost::none;
+  params.version = olp::porting::none;
   params.url = std::string(kNodeBaseUrl) + R"(/layers/)" + params.layer +
                R"(/partitions?billingTag=)" + params.billing_tag.value();
   config.emplace_back(params);
 
   params.additional_fields = {"checksum", "compressedDataSize"};
-  params.billing_tag = boost::none;
+  params.billing_tag = olp::porting::none;
   params.layer = "testLayer";
-  params.range = boost::none;
-  params.version = boost::none;
+  params.range = olp::porting::none;
+  params.version = olp::porting::none;
   params.url = std::string(kNodeBaseUrl) + R"(/layers/)" + params.layer +
                R"(/partitions?additionalFields=)" +
                olp::utils::Url::Encode(R"(checksum,compressedDataSize)");
   config.emplace_back(params);
 
   params.additional_fields = {"compressedDataSize"};
-  params.billing_tag = boost::none;
+  params.billing_tag = olp::porting::none;
   params.layer = "testLayer";
-  params.range = boost::none;
+  params.range = olp::porting::none;
   params.version = kEndVersion;
   params.url = std::string(kNodeBaseUrl) + R"(/layers/)" + params.layer +
                R"(/partitions?additionalFields=)" +

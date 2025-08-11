@@ -35,13 +35,13 @@ class NamedMutexStorage::Impl {
   std::condition_variable& GetLockCondition(const std::string& resource);
   std::mutex& GetLockMutex(const std::string& resource);
   void SetError(const std::string& resource, const client::ApiError& error);
-  boost::optional<client::ApiError> GetError(const std::string& resource);
+  porting::optional<client::ApiError> GetError(const std::string& resource);
 
  private:
   struct RefCounterMutex {
     std::mutex mutex;
     uint32_t use_count{0u};
-    boost::optional<client::ApiError> optional_error;
+    porting::optional<client::ApiError> optional_error;
     std::condition_variable lock_condition;
     std::mutex lock_mutex;
   };
@@ -92,12 +92,12 @@ void NamedMutexStorage::Impl::SetError(const std::string& resource,
   }
 }
 
-boost::optional<client::ApiError> NamedMutexStorage::Impl::GetError(
+porting::optional<client::ApiError> NamedMutexStorage::Impl::GetError(
     const std::string& resource) {
   std::lock_guard<std::mutex> lock(mutex_);
   auto mutex_it = mutexes_.find(resource);
   if (mutex_it == mutexes_.end()) {
-    return boost::none;
+    return olp::porting::none;
   }
 
   return mutex_it->second.optional_error;
@@ -127,7 +127,7 @@ void NamedMutexStorage::SetError(const std::string& resource,
   impl_->SetError(resource, error);
 }
 
-boost::optional<client::ApiError> NamedMutexStorage::GetError(
+porting::optional<client::ApiError> NamedMutexStorage::GetError(
     const std::string& resource) {
   return impl_->GetError(resource);
 }
@@ -179,7 +179,7 @@ void NamedMutex::SetError(const client::ApiError& error) {
   storage_.SetError(name_, error);
 }
 
-boost::optional<client::ApiError> NamedMutex::GetError() {
+porting::optional<client::ApiError> NamedMutex::GetError() {
   return storage_.GetError(name_);
 }
 

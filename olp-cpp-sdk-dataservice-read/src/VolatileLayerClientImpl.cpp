@@ -142,9 +142,9 @@ client::ApiNoResponse VolatileLayerClientImpl::DeleteFromCache(
     const std::string& partition_id) {
   repository::PartitionsCacheRepository cache_repository(catalog_, layer_id_,
                                                          settings_.cache);
-  boost::optional<model::Partition> partition;
+  porting::optional<model::Partition> partition;
   auto clear_response = cache_repository.ClearPartitionMetadata(
-      partition_id, boost::none, partition);
+      partition_id, olp::porting::none, partition);
   if (!clear_response) {
     return clear_response;
   }
@@ -155,7 +155,7 @@ client::ApiNoResponse VolatileLayerClientImpl::DeleteFromCache(
   }
 
   repository::DataCacheRepository data_repository(catalog_, settings_.cache);
-  return data_repository.Clear(layer_id_, partition.get().GetDataHandle());
+  return data_repository.Clear(layer_id_, partition->GetDataHandle());
 }
 
 client::ApiNoResponse VolatileLayerClientImpl::DeleteFromCache(
@@ -199,7 +199,8 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
           return;
         }
 
-        OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles: using key=%s", key.c_str());
+        OLP_SDK_LOG_DEBUG_F(kLogTag, "PrefetchTiles: using key=%s",
+                            key.c_str());
 
         // Calculate the minimal set of Tile keys and depth to
         // cover tree.

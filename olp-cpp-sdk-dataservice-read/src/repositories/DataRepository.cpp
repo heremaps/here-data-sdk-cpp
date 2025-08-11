@@ -118,7 +118,7 @@ BlobApi::DataResponse DataRepository::GetVersionedData(
       OLP_SDK_LOG_INFO_F(
           kLogTag,
           "GetVersionedData partition %s not found, hrn='%s', key='%s'",
-          request.GetPartitionId() ? request.GetPartitionId().get().c_str()
+          request.GetPartitionId() ? request.GetPartitionId()->c_str()
                                    : "<none>",
           catalog_.ToCatalogHRNString().c_str(),
           request.CreateKey(layer_id, version).c_str());
@@ -147,7 +147,7 @@ BlobApi::DataResponse DataRepository::GetVersionedData(
 BlobApi::DataResponse DataRepository::GetBlobData(
     const std::string& layer, const std::string& service,
     const model::Partition& partition, FetchOptions fetch_option,
-    const boost::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& billing_tag,
     client::CancellationContext context, const bool fail_on_cache_error) {
   const auto& data_handle = partition.GetDataHandle();
   if (data_handle.empty()) {
@@ -210,7 +210,7 @@ BlobApi::DataResponse DataRepository::GetBlobData(
   if (service == kBlobService) {
     storage_response =
         BlobApi::GetBlob(storage_api_lookup.GetResult(), layer, partition,
-                         billing_tag, boost::none, context);
+                         billing_tag, olp::porting::none, context);
   } else {
     auto volatile_blob =
         VolatileBlobApi::GetVolatileBlob(storage_api_lookup.GetResult(), layer,
@@ -264,7 +264,7 @@ BlobApi::DataResponse DataRepository::GetVolatileData(
     PartitionsRepository repository(catalog_, layer_id, settings_,
                                     lookup_client_, storage_);
     auto partitions_response =
-        repository.GetPartitionById(request, boost::none, context);
+        repository.GetPartitionById(request, olp::porting::none, context);
 
     if (!partitions_response.IsSuccessful()) {
       return partitions_response.GetError();
@@ -276,10 +276,10 @@ BlobApi::DataResponse DataRepository::GetVolatileData(
     if (partitions.empty()) {
       OLP_SDK_LOG_INFO_F(
           kLogTag, "GetVolatileData partition %s not found, hrn='%s', key='%s'",
-          request.GetPartitionId() ? request.GetPartitionId().get().c_str()
+          request.GetPartitionId() ? request.GetPartitionId()->c_str()
                                    : "<none>",
           catalog_.ToCatalogHRNString().c_str(),
-          request.CreateKey(layer_id, boost::none).c_str());
+          request.CreateKey(layer_id, olp::porting::none).c_str());
 
       return client::ApiError::NotFound("Partition not found");
     }

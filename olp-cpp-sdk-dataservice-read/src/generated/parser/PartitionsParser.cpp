@@ -23,21 +23,22 @@
 
 namespace olp {
 namespace parser {
-using namespace olp::dataservice::read;
+using dataservice::read::model::Partition;
+using dataservice::read::model::Partitions;
 
-void from_json(const rapidjson::Value& value, model::Partition& x) {
-  x.SetChecksum(parse<boost::optional<std::string>>(value, "checksum"));
+void from_json(const rapidjson::Value& value, Partition& x) {
+  x.SetChecksum(parse<porting::optional<std::string>>(value, "checksum"));
   x.SetCompressedDataSize(
-      parse<boost::optional<int64_t>>(value, "compressedDataSize"));
+      parse<porting::optional<int64_t>>(value, "compressedDataSize"));
   x.SetDataHandle(parse<std::string>(value, "dataHandle"));
-  x.SetDataSize(parse<boost::optional<int64_t>>(value, "dataSize"));
-  x.SetCrc(parse<boost::optional<std::string>>(value, "crc"));
+  x.SetDataSize(parse<porting::optional<int64_t>>(value, "dataSize"));
+  x.SetCrc(parse<porting::optional<std::string>>(value, "crc"));
   x.SetPartition(parse<std::string>(value, "partition"));
-  x.SetVersion(parse<boost::optional<int64_t>>(value, "version"));
+  x.SetVersion(parse<porting::optional<int64_t>>(value, "version"));
 }
 
-void from_json(const rapidjson::Value& value, model::Partitions& x) {
-  x.SetPartitions(parse<std::vector<model::Partition>>(value, "partitions"));
+void from_json(const rapidjson::Value& value, Partitions& x) {
+  x.SetPartitions(parse<std::vector<Partition>>(value, "partitions"));
 }
 
 }  // namespace parser

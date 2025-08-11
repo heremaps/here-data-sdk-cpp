@@ -25,7 +25,6 @@
 #include <vector>
 
 #include <olp/dataservice/read/DataServiceReadApi.h>
-#include <boost/optional.hpp>
 
 namespace olp {
 namespace dataservice {

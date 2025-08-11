@@ -101,8 +101,8 @@ client::CancellationToken StreamLayerClientImpl::Subscribe(
         kLogTag,
         "Subscribe: started, subscription_id=%s, consumer_id=%s, "
         "subscription_mode=%s",
-        request.GetSubscriptionId().get_value_or("none").c_str(),
-        request.GetConsumerId().get_value_or("none").c_str(),
+        olp::porting::value_or(request.GetSubscriptionId(), "none").c_str(),
+        olp::porting::value_or(request.GetConsumerId(), "none").c_str(),
         subscription_mode.c_str());
 
     auto stream_api = lookup_client_.LookupApi(
@@ -262,7 +262,7 @@ client::CancellationToken StreamLayerClientImpl::GetData(
 
     const auto blob_response =
         BlobApi::GetBlob(blob_api.GetResult(), layer_id_, partition,
-                         boost::none, boost::none, context);
+                         olp::porting::none, olp::porting::none, context);
 
     OLP_SDK_LOG_INFO_F(kLogTag,
                        "GetData: done, blob_response is successful: %s",

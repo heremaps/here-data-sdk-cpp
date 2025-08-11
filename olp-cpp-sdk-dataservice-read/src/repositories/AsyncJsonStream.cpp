@@ -100,7 +100,7 @@ void AsyncJsonStream::ResetStream(const char* content, size_t length) {
   current_stream_->AppendContent(content, length);
 }
 
-void AsyncJsonStream::CloseStream(boost::optional<client::ApiError> error) {
+void AsyncJsonStream::CloseStream(porting::optional<client::ApiError> error) {
   std::unique_lock<std::mutex> lock(mutex_);
   if (closed_) {
     return;
@@ -110,7 +110,7 @@ void AsyncJsonStream::CloseStream(boost::optional<client::ApiError> error) {
   closed_ = true;
 }
 
-boost::optional<client::ApiError> AsyncJsonStream::GetError() const {
+porting::optional<client::ApiError> AsyncJsonStream::GetError() const {
   std::unique_lock<std::mutex> lock(mutex_);
   return error_;
 }

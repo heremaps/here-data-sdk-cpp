@@ -28,7 +28,7 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/CancellationContext.h>
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.h>
 
 namespace olp {
 namespace dataservice {
@@ -63,10 +63,10 @@ class NamedMutexStorage {
    *
    * @param resource A name of a mutex to get an error for.
    *
-   * @return The stored `ApiError` instance or `boost::none` if no error has
-   * been stored for this resource.
+   * @return The stored `ApiError` instance or `olp::porting::none` if no error
+   * has been stored for this resource.
    */
-  boost::optional<client::ApiError> GetError(const std::string& resource);
+  porting::optional<client::ApiError> GetError(const std::string& resource);
 
  private:
   class Impl;
@@ -106,10 +106,10 @@ class NamedMutex final {
   /**
    * @brief Gets the stored error for this mutex.
    *
-   * @return The stored `ApiError` instance  or `boost::none` if no error has
-   * been stored for this mutex.
+   * @return The stored `ApiError` instance  or `olp::porting::none` if no error
+   * has been stored for this mutex.
    */
-  boost::optional<client::ApiError> GetError();
+  porting::optional<client::ApiError> GetError();
 
  private:
   /// Notify waiting threads method.

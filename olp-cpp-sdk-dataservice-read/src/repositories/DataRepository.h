@@ -60,7 +60,7 @@ class DataRepository final {
   BlobApi::DataResponse GetBlobData(
       const std::string& layer, const std::string& service,
       const model::Partition& partition, FetchOptions fetch_option,
-      const boost::optional<std::string>& billing_tag,
+      const porting::optional<std::string>& billing_tag,
       client::CancellationContext context, bool fail_on_cache_error);
 
  private:

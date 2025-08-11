@@ -215,7 +215,7 @@ VersionsResponse CatalogRepository::GetVersionsList(
 }
 
 CatalogVersionResponse CatalogRepository::GetLatestVersionOnline(
-    const boost::optional<std::string>& billing_tag,
+    const porting::optional<std::string>& billing_tag,
     client::CancellationContext context) {
   auto metadata_api = lookup_client_.LookupApi(
       "metadata", "v1", client::OnlineIfNotFound, context);

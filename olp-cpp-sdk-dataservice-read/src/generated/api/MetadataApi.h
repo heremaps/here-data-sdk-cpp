@@ -25,7 +25,7 @@
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/http/Network.h>
-#include <boost/optional.hpp>
+#include <olp/core/porting/optional.h>
 #include "ExtendedApiResponse.h"
 #include "generated/model/LayerVersions.h"
 #include "olp/dataservice/read/model/Partitions.h"
@@ -78,7 +78,7 @@ class MetadataApi {
    */
   static LayerVersionsResponse GetLayerVersions(
       const client::OlpClient& client, int64_t version,
-      boost::optional<std::string> billing_tag,
+      porting::optional<std::string> billing_tag,
       const client::CancellationContext& context);
 
   /**
@@ -106,10 +106,10 @@ class MetadataApi {
    */
   static PartitionsExtendedResponse GetPartitions(
       const client::OlpClient& client, const std::string& layer_id,
-      boost::optional<int64_t> version,
+      porting::optional<int64_t> version,
       const std::vector<std::string>& additional_fields,
-      boost::optional<std::string> range,
-      boost::optional<std::string> billing_tag,
+      porting::optional<std::string> range,
+      porting::optional<std::string> billing_tag,
       const client::CancellationContext& context);
 
   /**
@@ -138,10 +138,10 @@ class MetadataApi {
    */
   static client::HttpResponse GetPartitionsStream(
       const client::OlpClient& client, const std::string& layer_id,
-      boost::optional<int64_t> version,
+      porting::optional<int64_t> version,
       const std::vector<std::string>& additional_fields,
-      boost::optional<std::string> range,
-      boost::optional<std::string> billing_tag,
+      porting::optional<std::string> range,
+      porting::optional<std::string> billing_tag,
       http::Network::DataCallback data_callback,
       const client::CancellationContext& context);
 
@@ -161,12 +161,12 @@ class MetadataApi {
    */
   static CatalogVersionResponse GetLatestCatalogVersion(
       const client::OlpClient& client, int64_t start_version,
-      boost::optional<std::string> billing_tag,
+      porting::optional<std::string> billing_tag,
       const client::CancellationContext& context);
 
   static VersionsResponse ListVersions(
       const client::OlpClient& client, int64_t start_version,
-      int64_t end_version, boost::optional<std::string> billing_tag,
+      int64_t end_version, porting::optional<std::string> billing_tag,
       const client::CancellationContext& context);
 
   static CompatibleVersionsResponse GetCompatibleVersions(

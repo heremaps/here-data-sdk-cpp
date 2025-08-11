@@ -64,7 +64,7 @@ bool CatalogCacheRepository::Put(const model::Catalog& catalog) {
                      default_expiry_);
 }
 
-boost::optional<model::Catalog> CatalogCacheRepository::Get() {
+porting::optional<model::Catalog> CatalogCacheRepository::Get() {
   const std::string hrn(hrn_.ToCatalogHRNString());
   const auto key = cache::KeyGenerator::CreateCatalogKey(hrn);
   OLP_SDK_LOG_TRACE_F(kLogTag, "Get -> '%s'", key.c_str());
@@ -74,7 +74,7 @@ boost::optional<model::Catalog> CatalogCacheRepository::Get() {
   });
 
   if (cached_catalog.empty()) {
-    return boost::none;
+    return olp::porting::none;
   }
 
   return boost::any_cast<model::Catalog>(cached_catalog);
@@ -90,7 +90,7 @@ bool CatalogCacheRepository::PutVersion(const model::VersionResponse& version) {
                      default_expiry_);
 }
 
-boost::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
+porting::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
   const std::string hrn(hrn_.ToCatalogHRNString());
   const auto key = cache::KeyGenerator::CreateLatestVersionKey(hrn);
   OLP_SDK_LOG_TRACE_F(kLogTag, "GetVersion -> '%s'", key.c_str());
@@ -100,7 +100,7 @@ boost::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
   });
 
   if (cached_version.empty()) {
-    return boost::none;
+    return olp::porting::none;
   }
   return boost::any_cast<model::VersionResponse>(cached_version);
 }
