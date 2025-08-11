@@ -24,7 +24,7 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 #include "generated/model/LayerVersions.h"
 #include "generated/model/Partitions.h"
 #include "olp/dataservice/write/model/VersionResponse.h"

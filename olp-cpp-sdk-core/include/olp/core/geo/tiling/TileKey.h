@@ -24,7 +24,7 @@
 #include <string>
 
 #include <olp/core/CoreApi.h>
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 
 namespace olp {
 namespace geo {
@@ -46,12 +46,13 @@ namespace geo {
  * To create a tile key, use `FromRowColumnLevel()`.
  *
  * For vertical navigation within the tree, use the following functions:
- * `Parent()`, `ChangedLevelBy()`, and `ChangedLevelTo()`. To navigate within a level, use
- * the `HasNextRow()`, `NextRow()`, `HasNextColumn()`, and `NextColumn()` functions.
- * To get the number of available rows and columns on the tile level, use `RowCount()` and
- * `ColumnCount()`.
+ * `Parent()`, `ChangedLevelBy()`, and `ChangedLevelTo()`. To navigate within a
+ * level, use the `HasNextRow()`, `NextRow()`, `HasNextColumn()`, and
+ * `NextColumn()` functions. To get the number of available rows and columns on
+ * the tile level, use `RowCount()` and `ColumnCount()`.
  *
- * You can also create tile keys from and converted them into various alternative formats:
+ * You can also create tile keys from and converted them into various
+ * alternative formats:
  *
  *  - `ToQuadKey()` / `FromQuadKey()` – 4-based string representation.
  *
@@ -121,7 +122,8 @@ class CORE_API TileKey {
   }
 
   /**
-   * @brief Creates a quad string from a tile key to later use it in REST API calls.
+   * @brief Creates a quad string from a tile key to later use it in REST API
+   * calls.
    *
    * If the tile is the root tile, the quadkey is '-'.
    * Otherwise, the string is a number to the base of 4 without the leading
@@ -142,11 +144,13 @@ class CORE_API TileKey {
   static TileKey FromQuadKey(const std::string& quad_key);
 
   /**
-   * @brief Creates a HERE tile code string from a tile key to later use it in REST API calls.
+   * @brief Creates a HERE tile code string from a tile key to later use it in
+   * REST API calls.
    *
    * The string is a quadkey Morton code.
    *
-   * To convert the HERE tile code string back into the tile key, use `FromHereTile()`.
+   * To convert the HERE tile code string back into the tile key, use
+   * `FromHereTile()`.
    */
   std::string ToHereTile() const;
 
@@ -160,7 +164,8 @@ class CORE_API TileKey {
   /**
    * @brief Creates a 64-bit Morton code from a tile key.
    *
-   * To convert the 64-bit Morton code back into the tile key, use `FromQuadKey64()`.
+   * To convert the 64-bit Morton code back into the tile key, use
+   * `FromQuadKey64()`.
    */
   std::uint64_t ToQuadKey64() const;
 
@@ -174,7 +179,8 @@ class CORE_API TileKey {
   /**
    * @brief Creates a tile key.
    *
-   * @param row The requested row. Must be less than 2 to the power of the level.
+   * @param row The requested row. Must be less than 2 to the power of the
+   * level.
    * @param column The requested column. Must be less than 2 to the power of
    * the level.
    * @param level The requested level.

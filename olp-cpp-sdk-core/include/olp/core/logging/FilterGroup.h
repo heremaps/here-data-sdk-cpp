@@ -26,7 +26,7 @@
 
 #include <olp/core/CoreApi.h>
 #include <olp/core/logging/Level.h>
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 
 namespace olp {
 namespace logging {
@@ -54,7 +54,8 @@ class CORE_API FilterGroup {
   /**
    * @brief Gets the default log level.
    *
-   * @return The default log level or `olp::porting::none` if the level is not set.
+   * @return The default log level or `olp::porting::none` if the level is not
+   * set.
    */
   inline porting::optional<Level> getLevel() const;
 
@@ -78,7 +79,8 @@ class CORE_API FilterGroup {
    *
    * @param tag The tag for which to get the log level.
    *
-   * @return The log level for the tag, or `olp::porting::none` if the level is not set.
+   * @return The log level for the tag, or `olp::porting::none` if the level is
+   * not set.
    */
   inline porting::optional<Level> getLevel(const std::string& tag) const;
 
@@ -184,7 +186,8 @@ inline FilterGroup& FilterGroup::clearLevel() {
 inline porting::optional<Level> FilterGroup::getLevel(
     const std::string& tag) const {
   auto foundIter = m_tagLevels.find(tag);
-  if (foundIter == m_tagLevels.end()) return porting::none;
+  if (foundIter == m_tagLevels.end())
+    return porting::none;
   return foundIter->second;
 }
 

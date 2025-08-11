@@ -24,7 +24,7 @@
 
 #include <olp/core/Config.h>
 #include <olp/core/CoreApi.h>
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 
 namespace olp {
 namespace cache {

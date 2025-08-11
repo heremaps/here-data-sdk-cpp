@@ -24,8 +24,7 @@
 
 #include <olp/core/client/RetrySettings.h>
 #include <olp/core/http/NetworkProxySettings.h>
-#include <olp/core/porting/optional.hpp>
-
+#include <olp/core/porting/optional.h>
 #include "AuthenticationApi.h"
 #include "AuthenticationCredentials.h"
 

@@ -28,7 +28,7 @@
 #include <olp/core/logging/Level.h>
 
 #include <olp/core/CoreApi.h>
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 #include <olp/core/utils/WarningWorkarounds.h>
 
 /**

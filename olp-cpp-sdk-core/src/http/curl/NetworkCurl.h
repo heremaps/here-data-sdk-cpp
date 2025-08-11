@@ -31,7 +31,7 @@
 #include <thread>
 #include <vector>
 
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 
 #if defined(OLP_SDK_ENABLE_ANDROID_CURL) && !defined(ANDROID_HOST)
 #include <openssl/ossl_typ.h>
