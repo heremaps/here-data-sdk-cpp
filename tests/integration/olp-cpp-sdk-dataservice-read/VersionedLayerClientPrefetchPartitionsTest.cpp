@@ -63,8 +63,8 @@ std::vector<std::string> GeneratePartitionIds(size_t partitions_count) {
 
 TEST_F(VersionedLayerClientPrefetchPartitionsTest, PrefetchPartitions) {
   auto partitions_count = 3u;
-  auto client =
-      read::VersionedLayerClient(kCatalogHrn, kLayer, boost::none, settings_);
+  auto client = read::VersionedLayerClient(kCatalogHrn, kLayer,
+                                           olp::porting::none, settings_);
   auto partitions = GeneratePartitionIds(partitions_count);
   auto partitions_response =
       ReadDefaultResponses::GeneratePartitionsResponse(partitions_count);
@@ -164,8 +164,8 @@ TEST_F(VersionedLayerClientPrefetchPartitionsTest, PrefetchPartitions) {
 
 TEST_F(VersionedLayerClientPrefetchPartitionsTest, PrefetchPartitionsFails) {
   auto partitions_count = 3u;
-  auto client =
-      read::VersionedLayerClient(kCatalogHrn, kLayer, boost::none, settings_);
+  auto client = read::VersionedLayerClient(kCatalogHrn, kLayer,
+                                           olp::porting::none, settings_);
   auto partitions = GeneratePartitionIds(partitions_count);
   auto partitions_response =
       ReadDefaultResponses::GeneratePartitionsResponse(partitions_count);
@@ -293,8 +293,8 @@ TEST_F(VersionedLayerClientPrefetchPartitionsTest, PrefetchBatchFails) {
 
 TEST_F(VersionedLayerClientPrefetchPartitionsTest, PrefetchPartitionsCancel) {
   auto partitions_count = 1u;
-  auto client =
-      read::VersionedLayerClient(kCatalogHrn, kLayer, boost::none, settings_);
+  auto client = read::VersionedLayerClient(kCatalogHrn, kLayer,
+                                           olp::porting::none, settings_);
   auto partitions = GeneratePartitionIds(partitions_count);
   auto partitions_response =
       ReadDefaultResponses::GeneratePartitionsResponse(partitions_count);
@@ -326,8 +326,8 @@ TEST_F(VersionedLayerClientPrefetchPartitionsTest, CheckPriority) {
   // this priority should be less than priority, but greater than LOW
   auto finish_task_priority = 200u;
   auto partitions_count = 3u;
-  auto client =
-      read::VersionedLayerClient(kCatalogHrn, kLayer, boost::none, settings_);
+  auto client = read::VersionedLayerClient(kCatalogHrn, kLayer,
+                                           olp::porting::none, settings_);
   auto partitions = GeneratePartitionIds(partitions_count);
   auto partitions_response =
       ReadDefaultResponses::GeneratePartitionsResponse(partitions_count);

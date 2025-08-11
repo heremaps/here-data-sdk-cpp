@@ -112,8 +112,8 @@ void FillSubQuads(std::int32_t depth, std::vector<std::uint16_t>& sub_quads_) {
   sub_quads_.insert(sub_quads_.end(), layer_ids.begin(), layer_ids.end());
 }
 
-mockserver::TileMetadata MakePartition(std::string data_handle,
-                                       boost::optional<int32_t> version) {
+mockserver::TileMetadata MakePartition(
+    std::string data_handle, olp::porting::optional<int32_t> version) {
   mockserver::TileMetadata partition;
   partition.data_handle = std::move(data_handle);
   partition.version = version;
@@ -173,17 +173,17 @@ std::string ReadDefaultResponses::GenerateQuadTreeResponse(
 }
 
 QuadTreeBuilder::QuadTreeBuilder(olp::geo::TileKey root_tile,
-                                 boost::optional<int32_t> version)
+                                 olp::porting::optional<int32_t> version)
     : root_tile_(root_tile), base_version_(version) {}
 
-QuadTreeBuilder& QuadTreeBuilder::WithParent(olp::geo::TileKey parent,
-                                             std::string data_handle,
-                                             boost::optional<int32_t> version) {
+QuadTreeBuilder& QuadTreeBuilder::WithParent(
+    olp::geo::TileKey parent, std::string data_handle,
+    olp::porting::optional<int32_t> version) {
   assert(root_tile_.IsChildOf(parent));
 
   // Make sure to set version when the base_version is set
-  if (version != boost::none) {
-    assert(base_version_ != boost::none);
+  if (version != olp::porting::none) {
+    assert(base_version_ != olp::porting::none);
   } else if (base_version_) {
     version = base_version_;
   }
@@ -208,11 +208,11 @@ QuadTreeBuilder& QuadTreeBuilder::FillParents() {
 
 QuadTreeBuilder& QuadTreeBuilder::WithSubQuad(
     olp::geo::TileKey tile, std::string datahandle,
-    boost::optional<int32_t> version) {
+    olp::porting::optional<int32_t> version) {
   assert(tile.IsChildOf(root_tile_) || tile == root_tile_);
   assert((tile.Level() - root_tile_.Level()) <= 4);
-  if (version != boost::none) {
-    assert(base_version_ != boost::none);
+  if (version != olp::porting::none) {
+    assert(base_version_ != olp::porting::none);
   }
 
   auto origin = root_tile_.ChangedLevelTo(tile.Level());

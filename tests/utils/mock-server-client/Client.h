@@ -49,9 +49,9 @@ class Client {
       const std::string& method_matcher, const std::string& path_matcher,
       const std::string& response_body,
       int https_status = olp::http::HttpStatusCode::OK, bool unlimited = false,
-      boost::optional<int32_t> delay_ms = boost::none,
-      boost::optional<std::vector<Expectation::QueryStringParameter>>
-          query_params = boost::none);
+      olp::porting::optional<int32_t> delay_ms = olp::porting::none,
+      olp::porting::optional<std::vector<Expectation::QueryStringParameter>>
+          query_params = olp::porting::none);
 
   void MockBinaryResponse(const std::string& method_matcher,
                           const std::string& path_matcher,
@@ -81,24 +81,24 @@ inline Client::Client(olp::client::OlpClientSettings settings) {
 inline void Client::MockResponse(
     const std::string& method_matcher, const std::string& path_matcher,
     const std::string& response_body, int https_status, bool unlimited,
-    boost::optional<int32_t> delay_ms,
-    boost::optional<std::vector<Expectation::QueryStringParameter>>
+    olp::porting::optional<int32_t> delay_ms,
+    olp::porting::optional<std::vector<Expectation::QueryStringParameter>>
         query_params) {
   auto expectation = Expectation{};
   expectation.request.path = path_matcher;
   expectation.request.method = method_matcher;
   expectation.request.query_string_parameters = std::move(query_params);
 
-  boost::optional<Expectation::ResponseAction> action =
+  olp::porting::optional<Expectation::ResponseAction> action =
       Expectation::ResponseAction{};
   action->body = response_body;
   action->status_code = static_cast<uint16_t>(https_status);
   if (delay_ms) {
-    action->delay = {{delay_ms.get(), "MILLISECONDS"}};
+    action->delay = {{*delay_ms, "MILLISECONDS"}};
   }
   expectation.action = action;
 
-  boost::optional<Expectation::ResponseTimes> times =
+  olp::porting::optional<Expectation::ResponseTimes> times =
       Expectation::ResponseTimes{};
   times->remaining_times = 1;
   times->unlimited = unlimited;
@@ -117,12 +117,12 @@ inline void Client::MockBinaryResponse(const std::string& method_matcher,
   auto binary_response = Expectation::BinaryResponse{};
   binary_response.base64_string = response_body;
 
-  boost::optional<Expectation::ResponseAction> action =
+  olp::porting::optional<Expectation::ResponseAction> action =
       Expectation::ResponseAction{};
   action->body = binary_response;
   expectation.action = action;
 
-  boost::optional<Expectation::ResponseTimes> times =
+  olp::porting::optional<Expectation::ResponseTimes> times =
       Expectation::ResponseTimes{};
   times->remaining_times = 1;
   times->unlimited = false;

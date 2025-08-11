@@ -135,7 +135,7 @@ TEST_P(PrefetchTest, PrefetchPartitionsFromVersionedLayer) {
 
   StartThreads([=](uint8_t thread_id) {
     olp::dataservice::read::VersionedLayerClient service_client(
-        kCatalog, kVersionedLayerId, boost::none, settings);
+        kCatalog, kVersionedLayerId, olp::porting::none, settings);
 
     const auto level = 10;
 

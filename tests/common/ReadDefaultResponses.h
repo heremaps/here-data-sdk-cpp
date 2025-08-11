@@ -34,7 +34,7 @@ namespace mockserver {
 
 struct TileMetadata {
   std::string data_handle;
-  boost::optional<int32_t> version;
+  olp::porting::optional<int32_t> version;
   std::string crc;
   std::string checksum;
   int32_t data_size{0};
@@ -87,15 +87,17 @@ class QuadTreeBuilder {
  public:
   // if version is set, the quad tree is considered to be a versioned type.
   explicit QuadTreeBuilder(olp::geo::TileKey root_tile,
-                           boost::optional<int32_t> base_version);
+                           olp::porting::optional<int32_t> base_version);
 
-  QuadTreeBuilder& WithParent(olp::geo::TileKey parent, std::string data_handle,
-                              boost::optional<int32_t> version = boost::none);
+  QuadTreeBuilder& WithParent(
+      olp::geo::TileKey parent, std::string data_handle,
+      olp::porting::optional<int32_t> version = olp::porting::none);
   QuadTreeBuilder& FillParents();
 
   // tile is represented as a normal tilekey
-  QuadTreeBuilder& WithSubQuad(olp::geo::TileKey tile, std::string datahandle,
-                               boost::optional<int32_t> version = boost::none);
+  QuadTreeBuilder& WithSubQuad(
+      olp::geo::TileKey tile, std::string datahandle,
+      olp::porting::optional<int32_t> version = olp::porting::none);
 
   std::string BuildJson() const;
 
@@ -103,7 +105,7 @@ class QuadTreeBuilder {
 
  protected:
   olp::geo::TileKey root_tile_;
-  boost::optional<int32_t> base_version_;
+  olp::porting::optional<int32_t> base_version_;
 
   std::map<std::uint64_t, TileMetadata> sub_quads_;
   std::map<std::uint64_t, TileMetadata> parent_quads_;

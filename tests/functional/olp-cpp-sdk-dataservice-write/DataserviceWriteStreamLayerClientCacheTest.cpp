@@ -128,7 +128,7 @@ class DataserviceWriteStreamLayerClientCacheTest : public ::testing::Test {
       auto error = client_->Queue(
           model::PublishDataRequest().WithData(data_).WithLayerId(
               GetTestLayer()));
-      ASSERT_FALSE(error) << error.get();
+      ASSERT_FALSE(error) << *error;
     }
   }
 
@@ -190,7 +190,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, Queue) {
   auto error = client_->Queue(
       model::PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
 
-  ASSERT_FALSE(error) << error.get();
+  ASSERT_FALSE(error) << *error;
 }
 
 TEST_F(DataserviceWriteStreamLayerClientCacheTest, QueueNullData) {
@@ -210,7 +210,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, QueueExtraRequestParams) {
                                   .WithTraceId(uuid)
                                   .WithBillingTag(kBillingTag));
 
-  ASSERT_FALSE(error) << error.get();
+  ASSERT_FALSE(error) << *error;
 }
 
 #ifdef DATASERVICE_WRITE_HAS_OPENSSL
@@ -223,7 +223,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, QueueWithChecksum) {
                                   .WithLayerId(GetTestLayer())
                                   .WithChecksum(checksum));
 
-  ASSERT_FALSE(error) << error.get();
+  ASSERT_FALSE(error) << *error;
 }
 #endif
 
@@ -231,7 +231,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataSingle) {
   auto error = client_->Queue(
       model::PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
 
-  ASSERT_FALSE(error) << error.get();
+  ASSERT_FALSE(error) << *error;
 
   auto response = client_->Flush(model::FlushRequest()).GetFuture().get();
 
@@ -254,7 +254,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataSingleAsync) {
   auto error = client_->Queue(
       model::PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
 
-  ASSERT_FALSE(error) << error.get();
+  ASSERT_FALSE(error) << *error;
 
   std::promise<write::StreamLayerClient::FlushResponse> response_promise;
   bool call_is_async = true;
@@ -307,7 +307,7 @@ TEST_F(DataserviceWriteStreamLayerClientCacheTest, FlushDataCancel) {
   auto error = client_->Queue(
       model::PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
 
-  ASSERT_FALSE(error) << error.get();
+  ASSERT_FALSE(error) << *error;
 
   auto cancel_future = client_->Flush(model::FlushRequest());
 

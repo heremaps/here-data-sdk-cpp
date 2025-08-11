@@ -62,13 +62,15 @@ bool HandleDataResponse(
 }  // namespace
 
 int RunExampleReadWithCache(const AccessKey& access_key,
-                            const olp::cache::CacheSettings& cache_settings, const std::string& catalog) {
+                            const olp::cache::CacheSettings& cache_settings,
+                            const std::string& catalog) {
   OLP_SDK_LOG_INFO_F(
       kLogTag, "Mutable cache path is \"%s\"",
-      cache_settings.disk_path_mutable.get_value_or("none").c_str());
+      olp::porting::value_or(cache_settings.disk_path_mutable, "none").c_str());
   OLP_SDK_LOG_INFO_F(
       kLogTag, "Protected cache path is \"%s\"",
-      cache_settings.disk_path_protected.get_value_or("none").c_str());
+      olp::porting::value_or(cache_settings.disk_path_protected, "none")
+          .c_str());
   // Create a task scheduler instance
   std::shared_ptr<olp::thread::TaskScheduler> task_scheduler =
       olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u);
@@ -84,8 +86,8 @@ int RunExampleReadWithCache(const AccessKey& access_key,
       olp::authentication::AuthenticationCredentials::ReadFromFile();
 
   // Initialize authentication settings.
-  olp::authentication::Settings settings{
-      read_credentials_result.get_value_or({access_key.id, access_key.secret})};
+  olp::authentication::Settings settings{olp::porting::value_or(
+      read_credentials_result, {access_key.id, access_key.secret})};
   settings.task_scheduler = task_scheduler;
   settings.network_request_handler = http_client;
 
@@ -108,14 +110,14 @@ int RunExampleReadWithCache(const AccessKey& access_key,
 
   // Create appropriate layer client with HRN, layer name and settings.
   olp::dataservice::read::VersionedLayerClient layer_client(
-      olp::client::HRN(catalog), first_layer_id, boost::none, client_settings);
+      olp::client::HRN(catalog), first_layer_id, olp::porting::none,
+      client_settings);
 
   // Retrieve the partition data
   // Create a DataRequest with appropriate LayerId and PartitionId
-  auto request = olp::dataservice::read::DataRequest()
-                   .WithPartitionId(first_partition_id)
-                   .WithBillingTag(boost::none);
-  if (cache_settings.disk_path_protected.is_initialized()) {
+  auto request =
+      olp::dataservice::read::DataRequest().WithPartitionId(first_partition_id);
+  if (cache_settings.disk_path_protected.has_value()) {
     request.WithFetchOption(olp::dataservice::read::FetchOptions::CacheOnly);
   }
 
@@ -123,8 +125,7 @@ int RunExampleReadWithCache(const AccessKey& access_key,
   auto future = layer_client.GetData(request);
 
   // Wait for DataResponse
-  olp::dataservice::read::DataResponse data_response =
-    future.GetFuture().get();
+  olp::dataservice::read::DataResponse data_response = future.GetFuture().get();
 
   // Compact mutable cache, so it can be used as protected cache
   cache->Compact();
@@ -133,8 +134,8 @@ int RunExampleReadWithCache(const AccessKey& access_key,
   return (HandleDataResponse(data_response) ? 0 : -1);
 }
 
-int RunExampleProtectedCache(const AccessKey& access_key, const std::string& catalog)
-{
+int RunExampleProtectedCache(const AccessKey& access_key,
+                             const std::string& catalog) {
   // Read data with mutable cache.
   olp::cache::CacheSettings cache_settings;
   cache_settings.disk_path_mutable =
@@ -145,6 +146,6 @@ int RunExampleProtectedCache(const AccessKey& access_key, const std::string& cat
   }
   // Read data with protected cache. Set mutable cache to none.
   cache_settings.disk_path_protected = cache_settings.disk_path_mutable;
-  cache_settings.disk_path_mutable = boost::none;
+  cache_settings.disk_path_mutable = olp::porting::none;
   return RunExampleReadWithCache(access_key, cache_settings, catalog);
 }

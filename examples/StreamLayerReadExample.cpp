@@ -63,8 +63,7 @@ int GetDataFromMessages(dataread::StreamLayerClient& client,
     auto handle = message.GetMetaData().GetDataHandle();
     if (handle) {
       OLP_SDK_LOG_INFO_F(kLogTag, "Message data: handle - %s, size - %lu",
-                         handle.get().c_str(),
-                         message.GetMetaData().GetDataSize().get());
+                         handle->c_str(), *message.GetMetaData().GetDataSize());
       // use GetData(const model::Message& message) with message instance to
       // request actual data with data handle.
       auto message_future = client.GetData(message);
@@ -73,14 +72,14 @@ int GetDataFromMessages(dataread::StreamLayerClient& client,
         OLP_SDK_LOG_WARNING_F(kLogTag,
                               "Failed to get data for data handle %s - HTTP "
                               "Status: %d Message: %s",
-                              handle.get().c_str(),
+                              handle->c_str(),
                               message_result.GetError().GetHttpStatusCode(),
                               message_result.GetError().GetMessage().c_str());
         continue;
       }
       auto message_data = message_result.MoveResult();
       OLP_SDK_LOG_INFO_F(kLogTag, "GetData for %s successful: size - %lu",
-                         handle.get().c_str(), message_data->size());
+                         handle->c_str(), message_data->size());
     } else {
       // If data is less than 1 MB, the data  content published directly in the
       // metadata and encoded in Base64.

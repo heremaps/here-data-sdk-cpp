@@ -92,7 +92,7 @@ TEST_F(VersionedLayerClientProtectTest, ProtectAndReleaseWithEviction) {
   }
 
   auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-      hrn, kLayer, boost::none, *settings_);
+      hrn, kLayer, olp::porting::none, *settings_);
 
   auto check_if_tiles_cached = [&](const std::vector<olp::geo::TileKey>& tiles,
                                    bool expected_result) {
@@ -257,7 +257,7 @@ TEST_F(VersionedLayerClientProtectTest, OverlappedQuads) {
   const auto base_tile = olp::geo::TileKey::FromHereTile(kTileId);
 
   auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-      hrn, kLayer, boost::none, *settings_);
+      hrn, kLayer, olp::porting::none, *settings_);
 
   auto check_if_quads_protected =
       [&](const std::vector<olp::geo::TileKey>& tiles, bool expected_result) {

@@ -64,13 +64,13 @@ class VolatileLayerClientCacheTest : public integration::CatalogClientTestBase {
         settings.max_memory_cache_size = 0;
         settings.disk_path_mutable =
             olp::utils::Dir::TempDirectory() + kClientTestCacheDir;
-        ClearCache(settings.disk_path_mutable.get());
+        ClearCache(*settings.disk_path_mutable);
         break;
       }
       case integration::CacheType::BOTH: {
         settings.disk_path_mutable =
             olp::utils::Dir::TempDirectory() + kClientTestCacheDir;
-        ClearCache(settings.disk_path_mutable.get());
+        ClearCache(*settings.disk_path_mutable);
         break;
       }
       case integration::CacheType::NONE: {

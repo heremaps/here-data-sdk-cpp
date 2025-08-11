@@ -140,7 +140,7 @@ class StreamLayerClientTest : public ::testing::Test {
       auto error = client_->Queue(
           model::PublishDataRequest().WithData(data_).WithLayerId(
               GetTestLayer()));
-      ASSERT_FALSE(error) << error.get();
+      ASSERT_FALSE(error) << *error;
     }
   }
 

@@ -128,7 +128,7 @@ class StreamLayerClientCacheTest : public ::testing::Test {
       auto error = client_->Queue(
           model::PublishDataRequest().WithData(data_).WithLayerId(
               GetTestLayer()));
-      ASSERT_FALSE(error) << error.get();
+      ASSERT_FALSE(error) << *error;
     }
   }
 
@@ -233,14 +233,15 @@ class StreamLayerClientCacheTest : public ::testing::Test {
   }
 
   void FlushDataOnSettingSuccessAssertions(
-      const boost::optional<int>& max_events_per_flush = boost::none) {
+      const olp::porting::optional<int>& max_events_per_flush =
+          olp::porting::none) {
     for (int i = 0; i < 5; i++) {
       data_->push_back(' ');
       data_->push_back(i);
       auto error = client_->Queue(
           model::PublishDataRequest().WithData(data_).WithLayerId(
               GetTestLayer()));
-      EXPECT_FALSE(error) << error.get();
+      EXPECT_FALSE(error) << *error;
     }
 
     const auto num_requests_to_flush =
@@ -324,7 +325,7 @@ TEST_F(StreamLayerClientCacheTest, FlushDataSingle) {
   auto error = client_->Queue(
       model::PublishDataRequest().WithData(data_).WithLayerId(GetTestLayer()));
 
-  ASSERT_FALSE(error) << error.get();
+  ASSERT_FALSE(error) << *error;
 
   auto response = client_->Flush(model::FlushRequest()).GetFuture().get();
 
@@ -405,7 +406,7 @@ TEST_F(StreamLayerClientCacheTest, FlushDataCancel) {
         kHrn, write::StreamLayerClientSettings{}, client_settings);
     auto error = client->Queue(publish_request);
 
-    EXPECT_FALSE(error) << error.get();
+    EXPECT_FALSE(error) << *error;
 
     auto promise = client->Flush(model::FlushRequest());
     wait_for_cancel->get_future().get();
@@ -432,7 +433,7 @@ TEST_F(StreamLayerClientCacheTest, FlushDataCancel) {
         kHrn, write::StreamLayerClientSettings{}, client_settings);
     auto error = client->Queue(publish_request);
 
-    EXPECT_FALSE(error) << error.get();
+    EXPECT_FALSE(error) << *error;
 
     auto promise = client->Flush(model::FlushRequest());
     wait_for_cancel->get_future().get();

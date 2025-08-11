@@ -63,13 +63,13 @@ class VersionedLayerClientCacheTest
         settings.max_memory_cache_size = 0;
         settings.disk_path_mutable =
             olp::utils::Dir::TempDirectory() + kClientTestCacheDir;
-        ClearCache(settings.disk_path_mutable.get());
+        ClearCache(*settings.disk_path_mutable);
         break;
       }
       case CacheType::BOTH: {
         settings.disk_path_mutable =
             olp::utils::Dir::TempDirectory() + kClientTestCacheDir;
-        ClearCache(settings.disk_path_mutable.get());
+        ClearCache(*settings.disk_path_mutable);
         break;
       }
       case CacheType::NONE: {
@@ -121,7 +121,7 @@ TEST_P(VersionedLayerClientCacheTest, GetDataWithPartitionId) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", boost::none, settings_);
+          hrn, "testlayer", olp::porting::none, settings_);
 
   auto request = olp::dataservice::read::DataRequest();
   request.WithPartitionId("269");
@@ -168,7 +168,7 @@ TEST_P(VersionedLayerClientCacheTest, GetPartitionsLayerVersions) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", boost::none, settings_);
+          hrn, "testlayer", olp::porting::none, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   auto future = catalog_client->GetPartitions(request);
@@ -194,7 +194,7 @@ TEST_P(VersionedLayerClientCacheTest, GetPartitions) {
 
   auto catalog_client =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", boost::none, settings_);
+          hrn, "testlayer", olp::porting::none, settings_);
 
   auto request = olp::dataservice::read::PartitionsRequest();
   auto future = catalog_client->GetPartitions(request);
@@ -246,7 +246,7 @@ TEST_P(VersionedLayerClientCacheTest, GetDataWithPartitionIdDifferentVersions) {
 
   auto catalog_client_1 =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(
-          hrn, "testlayer", boost::none, settings_);
+          hrn, "testlayer", olp::porting::none, settings_);
 
   auto catalog_client_2 =
       std::make_unique<olp::dataservice::read::VersionedLayerClient>(

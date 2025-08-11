@@ -38,7 +38,8 @@ constexpr auto kTimeout = std::chrono::seconds(3);
 
 class ConcurrencyTest : public NetworkTestBase {
  public:
-  void AddExpectation(int i, boost::optional<int32_t> delay_ms = boost::none) {
+  void AddExpectation(
+      int i, olp::porting::optional<int32_t> delay_ms = olp::porting::none) {
     const auto url = kApiBase + std::to_string(i);
     mock_server_client_->MockResponse(
         "GET", url, mockserver::ReadDefaultResponses::GenerateData(), 200, true,
