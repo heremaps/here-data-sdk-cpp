@@ -24,7 +24,7 @@
 #include <string>
 
 #include <olp/core/client/HRN.h>
-#include <olp/core/porting/optional.hpp>
+#include <olp/core/porting/optional.h>
 
 namespace olp {
 namespace cache {
@@ -44,7 +44,7 @@ class ApiCacheRepository final {
            const std::string& url, porting::optional<time_t> expiry);
 
   porting::optional<std::string> Get(const std::string& service,
-                                   const std::string& version);
+                                     const std::string& version);
 
  private:
   std::string hrn_;

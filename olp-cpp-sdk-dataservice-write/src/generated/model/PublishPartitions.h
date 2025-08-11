@@ -22,9 +22,8 @@
 #include <string>
 #include <vector>
 
-#include <olp/core/porting/optional.hpp>
-
 #include <generated/model/PublishPartition.h>
+#include <olp/core/porting/optional.h>
 
 namespace olp {
 namespace dataservice {

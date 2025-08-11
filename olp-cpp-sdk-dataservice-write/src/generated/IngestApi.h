@@ -21,10 +21,9 @@
 
 #include <vector>
 
-#include <olp/core/porting/optional.hpp>
-
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/porting/optional.h>
 
 namespace olp {
 namespace client {

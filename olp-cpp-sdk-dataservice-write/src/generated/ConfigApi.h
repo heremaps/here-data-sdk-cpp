@@ -22,13 +22,11 @@
 #include <memory>
 #include <string>
 
-#include <olp/core/porting/optional.hpp>
-
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/OlpClient.h>
-
+#include <olp/core/porting/optional.h>
 #include "model/Catalog.h"
 
 namespace olp {

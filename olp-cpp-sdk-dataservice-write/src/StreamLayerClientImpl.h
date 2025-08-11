@@ -21,11 +21,9 @@
 
 #include <mutex>
 
-#include <olp/core/porting/optional.hpp>
-
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
-
+#include <olp/core/porting/optional.h>
 #include <olp/dataservice/write/StreamLayerClient.h>
 #include "CatalogSettings.h"
 #include "generated/model/Catalog.h"

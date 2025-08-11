@@ -24,8 +24,7 @@
 #include <string>
 #include <utility>
 
-#include <olp/core/porting/optional.hpp>
-
+#include <olp/core/porting/optional.h>
 #include <olp/dataservice/write/DataServiceWriteApi.h>
 
 namespace olp {

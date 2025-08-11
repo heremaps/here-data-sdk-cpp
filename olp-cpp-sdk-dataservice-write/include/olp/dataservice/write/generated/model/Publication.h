@@ -22,8 +22,7 @@
 #include <string>
 #include <vector>
 
-#include <olp/core/porting/optional.hpp>
-
+#include <olp/core/porting/optional.h>
 #include <olp/dataservice/write/DataServiceWriteApi.h>
 #include <olp/dataservice/write/generated/model/Details.h>
 #include <olp/dataservice/write/generated/model/VersionDependency.h>
