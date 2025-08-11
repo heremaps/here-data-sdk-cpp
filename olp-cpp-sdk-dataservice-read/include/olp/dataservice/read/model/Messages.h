@@ -20,11 +20,10 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
-#include <boost/optional.hpp>
-
+#include <olp/core/porting/optional.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <olp/dataservice/read/model/Data.h>
 #include <olp/dataservice/read/model/StreamOffsets.h>
@@ -66,7 +65,9 @@ class DATASERVICE_READ_API Metadata final {
    *
    * @return The checksum of the content.
    */
-  const boost::optional<std::string>& GetChecksum() const { return checksum_; }
+  const porting::optional<std::string>& GetChecksum() const {
+    return checksum_;
+  }
   /**
    * @brief (Optional) Sets the checksum of this metadata content.
    *
@@ -74,7 +75,7 @@ class DATASERVICE_READ_API Metadata final {
    *
    * @param value The checksum string.
    */
-  void SetChecksum(boost::optional<std::string> value) {
+  void SetChecksum(porting::optional<std::string> value) {
     checksum_ = std::move(value);
   }
 
@@ -87,7 +88,7 @@ class DATASERVICE_READ_API Metadata final {
    *
    * @return The compressed size of the content (in bytes).
    */
-  const boost::optional<int64_t>& GetCompressedDataSize() const {
+  const porting::optional<int64_t>& GetCompressedDataSize() const {
     return compressed_data_size_;
   }
   /**
@@ -98,7 +99,7 @@ class DATASERVICE_READ_API Metadata final {
    *
    * @param value The compressed size of the content (in bytes).
    */
-  void SetCompressedDataSize(boost::optional<int64_t> value) {
+  void SetCompressedDataSize(porting::optional<int64_t> value) {
     compressed_data_size_ = value;
   }
 
@@ -112,7 +113,7 @@ class DATASERVICE_READ_API Metadata final {
    *
    * @return The data size in bytes.
    */
-  const boost::optional<int64_t>& GetDataSize() const { return data_size_; }
+  const porting::optional<int64_t>& GetDataSize() const { return data_size_; }
   /**
    * @brief (Optional) Sets the nominal size of the content.
    *
@@ -120,7 +121,7 @@ class DATASERVICE_READ_API Metadata final {
    *
    * @param value The nominal size of the content in bytes.
    */
-  void SetDataSize(boost::optional<int64_t> value) { data_size_ = value; }
+  void SetDataSize(porting::optional<int64_t> value) { data_size_ = value; }
 
   /**
    * @brief Gets the data of this `Metadata` instance.
@@ -153,7 +154,7 @@ class DATASERVICE_READ_API Metadata final {
    *
    * @return The data handle created when the content was uploaded.
    */
-  const boost::optional<std::string>& GetDataHandle() const {
+  const porting::optional<std::string>& GetDataHandle() const {
     return data_handle_;
   }
 
@@ -164,7 +165,7 @@ class DATASERVICE_READ_API Metadata final {
    *
    * @param value The data handle represented as a string.
    */
-  void SetDataHandle(boost::optional<std::string> value) {
+  void SetDataHandle(porting::optional<std::string> value) {
     data_handle_ = std::move(value);
   }
 
@@ -176,7 +177,7 @@ class DATASERVICE_READ_API Metadata final {
    *
    * @return The Unix timestamp of the content (in milliseconds).
    */
-  const boost::optional<int64_t>& GetTimestamp() const { return timestamp_; }
+  const porting::optional<int64_t>& GetTimestamp() const { return timestamp_; }
   /**
    * @brief (Optional) Sets the timestamp of the content.
    *
@@ -184,16 +185,16 @@ class DATASERVICE_READ_API Metadata final {
    *
    * @param value The Unix timestamp of the content (in milliseconds).
    */
-  void SetTimestamp(boost::optional<int64_t> value) { timestamp_ = value; }
+  void SetTimestamp(porting::optional<int64_t> value) { timestamp_ = value; }
 
  private:
   Data data_;
   std::string partition_;
-  boost::optional<int64_t> compressed_data_size_;
-  boost::optional<int64_t> data_size_;
-  boost::optional<int64_t> timestamp_;
-  boost::optional<std::string> checksum_;
-  boost::optional<std::string> data_handle_;
+  porting::optional<int64_t> compressed_data_size_;
+  porting::optional<int64_t> data_size_;
+  porting::optional<int64_t> timestamp_;
+  porting::optional<std::string> checksum_;
+  porting::optional<std::string> data_handle_;
 };
 
 /**

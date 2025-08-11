@@ -62,24 +62,24 @@ namespace read {
 
 StreamApi::SubscribeApiResponse StreamApi::Subscribe(
     const client::OlpClient& client, const std::string& layer_id,
-    const boost::optional<std::string>& subscription_id,
-    const boost::optional<std::string>& mode,
-    const boost::optional<std::string>& consumer_id,
-    const boost::optional<ConsumerProperties>& subscription_properties,
+    const porting::optional<std::string>& subscription_id,
+    const porting::optional<std::string>& mode,
+    const porting::optional<std::string>& consumer_id,
+    const porting::optional<ConsumerProperties>& subscription_properties,
     const client::CancellationContext& context, std::string& x_correlation_id) {
   const std::string metadata_uri = "/layers/" + layer_id + "/subscribe";
 
   std::multimap<std::string, std::string> query_params;
   if (subscription_id) {
-    query_params.emplace("subscriptionId", subscription_id.get());
+    query_params.emplace("subscriptionId", *subscription_id);
   }
 
   if (mode) {
-    query_params.emplace("mode", mode.get());
+    query_params.emplace("mode", *mode);
   }
 
   if (consumer_id) {
-    query_params.emplace("consumerId", consumer_id.get());
+    query_params.emplace("consumerId", *consumer_id);
   }
 
   std::multimap<std::string, std::string> header_params;
@@ -88,7 +88,7 @@ StreamApi::SubscribeApiResponse StreamApi::Subscribe(
   model::Data data;
   if (subscription_properties) {
     const auto serialized_subscription_properties =
-        serializer::serialize(subscription_properties.get());
+        serializer::serialize(*subscription_properties);
     data = std::make_shared<std::vector<unsigned char>>(
         serialized_subscription_properties.begin(),
         serialized_subscription_properties.end());
@@ -98,30 +98,32 @@ StreamApi::SubscribeApiResponse StreamApi::Subscribe(
       metadata_uri, "POST", std::move(query_params), std::move(header_params),
       {}, data, "application/json", context);
   if (http_response.GetStatus() != http::HttpStatusCode::CREATED) {
-    return client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString());
+    return client::ApiError(http_response.GetStatus(),
+                            http_response.GetResponseAsString());
   }
 
   OLP_SDK_LOG_DEBUG_F(kLogTag, "subscribe, uri=%s, status=%d",
                       metadata_uri.c_str(), http_response.GetStatus());
 
   HandleCorrelationId(http_response.GetHeaders(), x_correlation_id);
-  return parser::parse_result<SubscribeApiResponse>(http_response.GetRawResponse());
+  return parser::parse_result<SubscribeApiResponse>(
+      http_response.GetRawResponse());
 }
 
 StreamApi::ConsumeDataApiResponse StreamApi::ConsumeData(
     const client::OlpClient& client, const std::string& layer_id,
-    const boost::optional<std::string>& subscription_id,
-    const boost::optional<std::string>& mode,
+    const porting::optional<std::string>& subscription_id,
+    const porting::optional<std::string>& mode,
     const client::CancellationContext& context, std::string& x_correlation_id) {
   const std::string metadata_uri = "/layers/" + layer_id + "/partitions";
 
   std::multimap<std::string, std::string> query_params;
   if (subscription_id) {
-    query_params.emplace("subscriptionId", subscription_id.get());
+    query_params.emplace("subscriptionId", *subscription_id);
   }
 
   if (mode) {
-    query_params.emplace("mode", mode.get());
+    query_params.emplace("mode", *mode);
   }
 
   std::multimap<std::string, std::string> header_params;
@@ -132,21 +134,23 @@ StreamApi::ConsumeDataApiResponse StreamApi::ConsumeData(
       metadata_uri, "GET", std::move(query_params), std::move(header_params),
       {}, nullptr, std::string{}, context);
   if (http_response.GetStatus() != http::HttpStatusCode::OK) {
-    return client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString());
+    return client::ApiError(http_response.GetStatus(),
+                            http_response.GetResponseAsString());
   }
 
   OLP_SDK_LOG_DEBUG_F(kLogTag, "consumeData, uri=%s, status=%d",
                       metadata_uri.c_str(), http_response.GetStatus());
 
   HandleCorrelationId(http_response.GetHeaders(), x_correlation_id);
-  return parser::parse_result<ConsumeDataApiResponse>(http_response.GetRawResponse());
+  return parser::parse_result<ConsumeDataApiResponse>(
+      http_response.GetRawResponse());
 }
 
 StreamApi::CommitOffsetsApiResponse StreamApi::CommitOffsets(
     const client::OlpClient& client, const std::string& layer_id,
     const model::StreamOffsets& commit_offsets,
-    const boost::optional<std::string>& subscription_id,
-    const boost::optional<std::string>& mode,
+    const porting::optional<std::string>& subscription_id,
+    const porting::optional<std::string>& mode,
     const client::CancellationContext& context, std::string& x_correlation_id) {
   return HandleOffsets(client, layer_id, commit_offsets, subscription_id, mode,
                        context, "offsets", x_correlation_id);
@@ -155,8 +159,8 @@ StreamApi::CommitOffsetsApiResponse StreamApi::CommitOffsets(
 StreamApi::SeekToOffsetApiResponse StreamApi::SeekToOffset(
     const client::OlpClient& client, const std::string& layer_id,
     const model::StreamOffsets& seek_offsets,
-    const boost::optional<std::string>& subscription_id,
-    const boost::optional<std::string>& mode,
+    const porting::optional<std::string>& subscription_id,
+    const porting::optional<std::string>& mode,
     const client::CancellationContext& context, std::string& x_correlation_id) {
   return HandleOffsets(client, layer_id, seek_offsets, subscription_id, mode,
                        context, "seek", x_correlation_id);
@@ -183,7 +187,8 @@ StreamApi::UnsubscribeApiResponse StreamApi::DeleteSubscription(
       metadata_uri, "DELETE", std::move(query_params), std::move(header_params),
       {}, nullptr, std::string{}, context);
   if (http_response.GetStatus() != http::HttpStatusCode::OK) {
-    return client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString());
+    return client::ApiError(http_response.GetStatus(),
+                            http_response.GetResponseAsString());
   }
 
   OLP_SDK_LOG_DEBUG_F(kLogTag, "deleteSubscription, uri=%s, status=%d",
@@ -195,19 +200,19 @@ StreamApi::UnsubscribeApiResponse StreamApi::DeleteSubscription(
 Response<int> StreamApi::HandleOffsets(
     const client::OlpClient& client, const std::string& layer_id,
     const model::StreamOffsets& offsets,
-    const boost::optional<std::string>& subscription_id,
-    const boost::optional<std::string>& mode,
+    const porting::optional<std::string>& subscription_id,
+    const porting::optional<std::string>& mode,
     const client::CancellationContext& context, const std::string& endpoint,
     std::string& x_correlation_id) {
   const std::string metadata_uri = "/layers/" + layer_id + "/" + endpoint;
 
   std::multimap<std::string, std::string> query_params;
   if (subscription_id) {
-    query_params.emplace("subscriptionId", subscription_id.get());
+    query_params.emplace("subscriptionId", *subscription_id);
   }
 
   if (mode) {
-    query_params.emplace("mode", mode.get());
+    query_params.emplace("mode", *mode);
   }
 
   std::multimap<std::string, std::string> header_params;
@@ -222,7 +227,8 @@ Response<int> StreamApi::HandleOffsets(
       metadata_uri, "PUT", std::move(query_params), std::move(header_params),
       {}, data, "application/json", context);
   if (http_response.GetStatus() != http::HttpStatusCode::OK) {
-    return client::ApiError(http_response.GetStatus(), http_response.GetResponseAsString());
+    return client::ApiError(http_response.GetStatus(),
+                            http_response.GetResponseAsString());
   }
 
   OLP_SDK_LOG_DEBUG_F(kLogTag, "handleOffsets, uri=%s, status=%d",

@@ -155,8 +155,8 @@ TEST_F(StreamApiTest, Subscribe) {
     std::string x_correlation_id;
     client::CancellationContext context;
     const auto subscribe_response = read::StreamApi::Subscribe(
-        olp_client_, kLayerId, boost::none, boost::none, boost::none,
-        boost::none, context, x_correlation_id);
+        olp_client_, kLayerId, olp::porting::none, olp::porting::none,
+        olp::porting::none, olp::porting::none, context, x_correlation_id);
 
     EXPECT_TRUE(subscribe_response.IsSuccessful())
         << ApiErrorToString(subscribe_response.GetError());
@@ -212,8 +212,8 @@ TEST_F(StreamApiTest, Subscribe) {
     std::string x_correlation_id;
     client::CancellationContext context;
     const auto subscribe_response = read::StreamApi::Subscribe(
-        olp_client_, kLayerId, boost::none, boost::none, boost::none,
-        boost::none, context, x_correlation_id);
+        olp_client_, kLayerId, olp::porting::none, olp::porting::none,
+        olp::porting::none, olp::porting::none, context, x_correlation_id);
 
     EXPECT_FALSE(subscribe_response.IsSuccessful());
     EXPECT_EQ(subscribe_response.GetError().GetHttpStatusCode(),
@@ -239,9 +239,9 @@ TEST_F(StreamApiTest, ConsumeData) {
 
     std::string x_correlation_id = kCorrelationId;
     client::CancellationContext context;
-    const auto consume_data_response =
-        read::StreamApi::ConsumeData(olp_client_, kLayerId, boost::none,
-                                     boost::none, context, x_correlation_id);
+    const auto consume_data_response = read::StreamApi::ConsumeData(
+        olp_client_, kLayerId, olp::porting::none, olp::porting::none, context,
+        x_correlation_id);
 
     EXPECT_TRUE(consume_data_response.IsSuccessful())
         << ApiErrorToString(consume_data_response.GetError());
@@ -287,9 +287,9 @@ TEST_F(StreamApiTest, ConsumeData) {
 
     std::string x_correlation_id = kCorrelationId;
     client::CancellationContext context;
-    const auto consume_data_response =
-        read::StreamApi::ConsumeData(olp_client_, kLayerId, boost::none,
-                                     boost::none, context, x_correlation_id);
+    const auto consume_data_response = read::StreamApi::ConsumeData(
+        olp_client_, kLayerId, olp::porting::none, olp::porting::none, context,
+        x_correlation_id);
 
     EXPECT_FALSE(consume_data_response.IsSuccessful());
     EXPECT_EQ(consume_data_response.GetError().GetHttpStatusCode(),
@@ -321,8 +321,8 @@ TEST_F(StreamApiTest, CommitOffsets) {
     std::string x_correlation_id = kCorrelationId;
     client::CancellationContext context;
     const auto commit_offsets_response = read::StreamApi::CommitOffsets(
-        olp_client_, kLayerId, stream_offsets, boost::none, boost::none,
-        context, x_correlation_id);
+        olp_client_, kLayerId, stream_offsets, olp::porting::none,
+        olp::porting::none, context, x_correlation_id);
 
     EXPECT_TRUE(commit_offsets_response.IsSuccessful())
         << ApiErrorToString(commit_offsets_response.GetError());
@@ -371,8 +371,8 @@ TEST_F(StreamApiTest, CommitOffsets) {
     std::string x_correlation_id = kCorrelationId;
     client::CancellationContext context;
     const auto commit_offsets_response = read::StreamApi::CommitOffsets(
-        olp_client_, kLayerId, stream_offsets, boost::none, boost::none,
-        context, x_correlation_id);
+        olp_client_, kLayerId, stream_offsets, olp::porting::none,
+        olp::porting::none, context, x_correlation_id);
 
     EXPECT_FALSE(commit_offsets_response.IsSuccessful());
     EXPECT_EQ(commit_offsets_response.GetError().GetHttpStatusCode(),
@@ -403,8 +403,8 @@ TEST_F(StreamApiTest, SeekToOffset) {
     std::string x_correlation_id = kCorrelationId;
     client::CancellationContext context;
     const auto seek_to_offset_response = read::StreamApi::SeekToOffset(
-        olp_client_, kLayerId, stream_offsets, boost::none, boost::none,
-        context, x_correlation_id);
+        olp_client_, kLayerId, stream_offsets, olp::porting::none,
+        olp::porting::none, context, x_correlation_id);
 
     EXPECT_TRUE(seek_to_offset_response.IsSuccessful())
         << ApiErrorToString(seek_to_offset_response.GetError());
@@ -454,8 +454,8 @@ TEST_F(StreamApiTest, SeekToOffset) {
     std::string x_correlation_id = kCorrelationId;
     client::CancellationContext context;
     const auto commit_offsets_response = read::StreamApi::SeekToOffset(
-        olp_client_, kLayerId, stream_offsets, boost::none, boost::none,
-        context, x_correlation_id);
+        olp_client_, kLayerId, stream_offsets, olp::porting::none,
+        olp::porting::none, context, x_correlation_id);
 
     EXPECT_FALSE(commit_offsets_response.IsSuccessful());
     EXPECT_EQ(commit_offsets_response.GetError().GetHttpStatusCode(),

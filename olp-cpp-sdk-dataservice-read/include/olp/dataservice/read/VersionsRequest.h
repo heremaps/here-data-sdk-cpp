@@ -23,10 +23,8 @@
 #include <string>
 #include <utility>
 
-#include <olp/core/porting/deprecated.h>
+#include <olp/core/porting/optional.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
-#include <olp/dataservice/read/FetchOptions.h>
-#include <boost/optional.hpp>
 
 namespace olp {
 namespace dataservice {
@@ -51,7 +49,7 @@ class DATASERVICE_READ_API VersionsRequest final {
    * @return A reference to the updated `VersionsRequest` instance.
    *
    */
-  inline VersionsRequest& WithStartVersion(std::int64_t version) {
+  VersionsRequest& WithStartVersion(std::int64_t version) {
     start_version_ = version;
     return *this;
   }
@@ -63,7 +61,7 @@ class DATASERVICE_READ_API VersionsRequest final {
    * @return The catalog metadata start version.
    *
    */
-  inline std::int64_t GetStartVersion() const { return start_version_; }
+  std::int64_t GetStartVersion() const { return start_version_; }
 
   /**
    * @brief Sets the catalog metadata end version.
@@ -79,7 +77,7 @@ class DATASERVICE_READ_API VersionsRequest final {
    * @return A reference to the updated `VersionsRequest` instance.
    *
    */
-  inline VersionsRequest& WithEndVersion(std::int64_t version) {
+  VersionsRequest& WithEndVersion(std::int64_t version) {
     end_version_ = version;
     return *this;
   }
@@ -91,7 +89,7 @@ class DATASERVICE_READ_API VersionsRequest final {
    * @return The catalog metadata end version.
    *
    */
-  inline std::int64_t GetEndVersion() const { return end_version_; }
+  std::int64_t GetEndVersion() const { return end_version_; }
 
   /**
    * @brief Gets the billing tag to group billing records together.
@@ -100,10 +98,10 @@ class DATASERVICE_READ_API VersionsRequest final {
    * billing records together. If supplied, it must be 4–16 characters
    * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
    *
-   * @return The `BillingTag` string or `boost::none` if the billing tag is not
-   * set.
+   * @return The `BillingTag` string or `olp::porting::none` if the billing tag
+   * is not set.
    */
-  inline const boost::optional<std::string>& GetBillingTag() const {
+  const porting::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
@@ -112,12 +110,13 @@ class DATASERVICE_READ_API VersionsRequest final {
    *
    * @see `GetBillingTag()` for information on usage and format.
    *
-   * @param tag The `BillingTag` string or `boost::none`.
+   * @param tag The `BillingTag` string or `olp::porting::none`.
    *
    * @return A reference to the updated `VersionsRequest` instance.
    */
-  inline VersionsRequest& WithBillingTag(boost::optional<std::string> tag) {
-    billing_tag_ = std::move(tag);
+  template <class T = porting::optional<std::string>>
+  VersionsRequest& WithBillingTag(T&& tag) {
+    billing_tag_ = std::forward<T>(tag);
     return *this;
   }
 
@@ -127,11 +126,11 @@ class DATASERVICE_READ_API VersionsRequest final {
    * @see `GetBillingTag()` for information on usage and format.
    *
    * @param tag The rvalue reference to the `BillingTag` string or
-   * `boost::none`.
+   * `olp::porting::none`.
    *
    * @return A reference to the updated `VersionsRequest` instance.
    */
-  inline VersionsRequest& WithBillingTag(std::string tag) {
+  VersionsRequest& WithBillingTag(std::string tag) {
     billing_tag_ = std::move(tag);
     return *this;
   }
@@ -141,21 +140,21 @@ class DATASERVICE_READ_API VersionsRequest final {
    *
    * @return A string representation of the request.
    */
-  inline std::string CreateKey() const {
+  std::string CreateKey() const {
     std::stringstream out;
     out << "[";
     out << GetStartVersion() << ", " << GetEndVersion();
     out << "]";
     if (GetBillingTag()) {
-      out << "$" << GetBillingTag().get();
+      out << "$" << *GetBillingTag();
     }
     return out.str();
   }
 
  private:
-  std::int64_t start_version_;
-  std::int64_t end_version_;
-  boost::optional<std::string> billing_tag_;
+  std::int64_t start_version_ = -1;
+  std::int64_t end_version_ = -1;
+  porting::optional<std::string> billing_tag_;
 };
 
 }  // namespace read

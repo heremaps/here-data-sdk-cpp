@@ -24,10 +24,9 @@
 #include <utility>
 #include <vector>
 
-#include <olp/core/porting/deprecated.h>
+#include <olp/core/porting/optional.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
 #include <olp/dataservice/read/FetchOptions.h>
-#include <boost/optional.hpp>
 
 namespace olp {
 namespace dataservice {
@@ -69,7 +68,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
    *
    * @return A reference to the updated `PartitionsRequest` instance.
    */
-  inline PartitionsRequest& WithPartitionIds(PartitionIds partition_ids) {
+  PartitionsRequest& WithPartitionIds(PartitionIds partition_ids) {
     partition_ids_ = std::move(partition_ids);
     return *this;
   }
@@ -79,7 +78,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
    *
    * @return The vector of strings that represent partitions.
    */
-  inline const PartitionIds& GetPartitionIds() const { return partition_ids_; }
+  const PartitionIds& GetPartitionIds() const { return partition_ids_; }
 
   /**
    * @brief Sets the list of additional fields.
@@ -95,8 +94,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
    *
    * @return A reference to the updated `PartitionsRequest` instance.
    */
-  inline PartitionsRequest& WithAdditionalFields(
-      AdditionalFields additional_fields) {
+  PartitionsRequest& WithAdditionalFields(AdditionalFields additional_fields) {
     additional_fields_ = std::move(additional_fields);
     return *this;
   }
@@ -106,7 +104,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
    *
    * @return The set of additional fields.
    */
-  inline const AdditionalFields& GetAdditionalFields() const {
+  const AdditionalFields& GetAdditionalFields() const {
     return additional_fields_;
   }
 
@@ -117,10 +115,10 @@ class DATASERVICE_READ_API PartitionsRequest final {
    * billing records together. If supplied, it must be 4–16 characters
    * long and contain only alphanumeric ASCII characters [A-Za-z0-9].
    *
-   * @return The `BillingTag` string or `boost::none` if the billing tag is not
-   * set.
+   * @return The `BillingTag` string or `olp::porting::none` if the billing tag
+   * is not set.
    */
-  inline const boost::optional<std::string>& GetBillingTag() const {
+  const porting::optional<std::string>& GetBillingTag() const {
     return billing_tag_;
   }
 
@@ -129,28 +127,13 @@ class DATASERVICE_READ_API PartitionsRequest final {
    *
    * @see `GetBillingTag()` for information on usage and format.
    *
-   * @param billingTag The `BillingTag` string or `boost::none`.
+   * @param billingTag The `BillingTag` string or `olp::porting::none`.
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
-  inline PartitionsRequest& WithBillingTag(
-      boost::optional<std::string> billingTag) {
-    billing_tag_ = std::move(billingTag);
-    return *this;
-  }
-
-  /**
-   * @brief Sets the billing tag for the request.
-   *
-   * @see `GetBillingTag()` for information on usage and format.
-   *
-   * @param billingTag The rvalue reference to the `BillingTag` string or
-   * `boost::none`.
-   *
-   * @return A reference to the updated `PrefetchTilesRequest` instance.
-   */
-  inline PartitionsRequest& WithBillingTag(std::string&& billingTag) {
-    billing_tag_ = std::move(billingTag);
+  template <class T = porting::optional<std::string>>
+  PartitionsRequest& WithBillingTag(T&& billingTag) {
+    billing_tag_ = std::forward<T>(billingTag);
     return *this;
   }
 
@@ -162,7 +145,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
    *
    * @return The fetch option.
    */
-  inline FetchOptions GetFetchOption() const { return fetch_option_; }
+  FetchOptions GetFetchOption() const { return fetch_option_; }
 
   /**
    * @brief Sets the fetch option that you can use to set the source from
@@ -174,7 +157,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
    *
    * @return A reference to the updated `PrefetchTilesRequest` instance.
    */
-  inline PartitionsRequest& WithFetchOption(FetchOptions fetch_option) {
+  PartitionsRequest& WithFetchOption(FetchOptions fetch_option) {
     fetch_option_ = fetch_option;
     return *this;
   }
@@ -187,15 +170,16 @@ class DATASERVICE_READ_API PartitionsRequest final {
    *
    * @return A string representation of the request.
    */
-  std::string CreateKey(const std::string& layer_id,
-                        boost::optional<int64_t> version = boost::none) const {
+  std::string CreateKey(
+      const std::string& layer_id,
+      porting::optional<int64_t> version = porting::none) const {
     std::stringstream out;
     out << layer_id;
     if (version) {
-      out << "@" << version.get();
+      out << "@" << *version;
     }
     if (GetBillingTag()) {
-      out << "$" << GetBillingTag().get();
+      out << "$" << *GetBillingTag();
     }
     out << "^" << GetFetchOption();
     return out.str();
@@ -204,7 +188,7 @@ class DATASERVICE_READ_API PartitionsRequest final {
  private:
   PartitionIds partition_ids_;
   AdditionalFields additional_fields_;
-  boost::optional<std::string> billing_tag_;
+  porting::optional<std::string> billing_tag_;
   FetchOptions fetch_option_{OnlineIfNotFound};
 };
 

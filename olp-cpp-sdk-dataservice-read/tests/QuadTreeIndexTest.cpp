@@ -44,34 +44,34 @@ TEST(QuadTreeIndexTest, ParseBlob) {
     SCOPED_TRACE("Parse json and store to blob");
 
     auto data1 = index.Find(tile_key, false);
-    ASSERT_FALSE(data1 == boost::none);
+    ASSERT_FALSE(data1 == olp::porting::none);
     EXPECT_EQ(data1->data_handle, "BD53A6D60A34C20DC42ACAB2650FE361.48");
     EXPECT_EQ(data1->tile_key, olp::geo::TileKey::FromHereTile("381"));
     EXPECT_EQ(data1->version, 48);
 
     auto data2 = index.Find(olp::geo::TileKey::FromHereTile("95"), false);
-    ASSERT_FALSE(data2 == boost::none);
+    ASSERT_FALSE(data2 == olp::porting::none);
     EXPECT_EQ(data2->data_handle, "B6F7614316BB8B81478ED7AE370B22A6.253");
     EXPECT_EQ(data2->tile_key, olp::geo::TileKey::FromHereTile("95"));
     EXPECT_EQ(data2->version, 253);
 
     auto data3 = index.Find(tile_key.AddedSubHereTile("2"), false);
-    ASSERT_FALSE(data3 == boost::none);
+    ASSERT_FALSE(data3 == olp::porting::none);
     EXPECT_EQ(data3->data_handle, "9772F5E1822DFF25F48F150294B1ECF5.282");
     EXPECT_EQ(data3->tile_key, olp::geo::TileKey::FromHereTile("1526"));
     EXPECT_EQ(data3->version, 282);
 
     auto data4 = index.Find(tile_key.AddedSubHereTile("4"), false);
-    ASSERT_FALSE(data4 == boost::none);
+    ASSERT_FALSE(data4 == olp::porting::none);
     EXPECT_EQ(data4->data_handle, "7636348E50215979A39B5F3A429EDDB4.282");
     EXPECT_EQ(data4->tile_key, olp::geo::TileKey::FromHereTile("1524"));
     EXPECT_EQ(data4->version, 282);
 
     auto data5 = index.Find(olp::geo::TileKey::FromHereTile("1561298"), false);
-    EXPECT_TRUE(data5 == boost::none);
+    EXPECT_TRUE(data5 == olp::porting::none);
 
     auto data6 = index.Find(olp::geo::TileKey::FromHereTile("3"), false);
-    EXPECT_TRUE(data6 == boost::none);
+    EXPECT_TRUE(data6 == olp::porting::none);
   }
 
   {
@@ -79,14 +79,14 @@ TEST(QuadTreeIndexTest, ParseBlob) {
 
     // Find in parents
     auto data1 = index.Find(olp::geo::TileKey::FromHereTile("5842"), true);
-    ASSERT_FALSE(data1 == boost::none);
+    ASSERT_FALSE(data1 == olp::porting::none);
     EXPECT_EQ(data1->data_handle, "13E2C624E0136C3357D092EE7F231E87.282");
     EXPECT_EQ(data1->tile_key, olp::geo::TileKey::FromHereTile("5"));
     EXPECT_EQ(data1->version, 282);
 
     // Find in sub quads
     auto data2 = index.Find(olp::geo::TileKey::FromHereTile("1561298"), true);
-    ASSERT_FALSE(data2 == boost::none);
+    ASSERT_FALSE(data2 == olp::porting::none);
     EXPECT_EQ(data2->data_handle, "7636348E50215979A39B5F3A429EDDB4.282");
     EXPECT_EQ(data2->tile_key, olp::geo::TileKey::FromHereTile("1524"));
     EXPECT_EQ(data2->version, 282);
@@ -94,7 +94,7 @@ TEST(QuadTreeIndexTest, ParseBlob) {
     // Use bottom tile so the algorithm will try to look in childs and parents
     // and will fail due to no nearest parent present in data
     auto data3 = index.Find(olp::geo::TileKey::FromHereTile("4818"), true);
-    EXPECT_TRUE(data3 == boost::none);
+    EXPECT_TRUE(data3 == olp::porting::none);
   }
 
   {
@@ -117,7 +117,7 @@ TEST(QuadTreeIndexTest, ParseBlob) {
     auto stream = std::stringstream(HTTP_RESPONSE_MAILFORMED);
     read::QuadTreeIndex index(tile_key, 1, stream);
     auto data = index.Find(tile_key, false);
-    EXPECT_TRUE(data == boost::none);
+    EXPECT_TRUE(data == olp::porting::none);
   }
 
   {
@@ -136,7 +136,7 @@ TEST(QuadTreeIndexTest, ParseBlob) {
     auto stream = std::stringstream(HTTP_RESPONSE_WRONG_FORMAT);
     read::QuadTreeIndex index(tile_key, 1, stream);
     auto data = index.Find(tile_key, false);
-    EXPECT_TRUE(data == boost::none);
+    EXPECT_TRUE(data == olp::porting::none);
   }
 }
 
@@ -198,34 +198,34 @@ TEST(QuadTreeIndexTest, BackwardsCompatibility) {
     SCOPED_TRACE("Parse json and store to blob");
 
     auto data1 = index.Find(tile_key, false);
-    ASSERT_FALSE(data1 == boost::none);
+    ASSERT_FALSE(data1 == olp::porting::none);
     EXPECT_EQ(data1->data_handle, "BD53A6D60A34C20DC42ACAB2650FE361.48");
     EXPECT_EQ(data1->tile_key, olp::geo::TileKey::FromHereTile("381"));
     EXPECT_EQ(data1->version, 48);
 
     auto data2 = index.Find(olp::geo::TileKey::FromHereTile("95"), false);
-    ASSERT_FALSE(data2 == boost::none);
+    ASSERT_FALSE(data2 == olp::porting::none);
     EXPECT_EQ(data2->data_handle, "B6F7614316BB8B81478ED7AE370B22A6.253");
     EXPECT_EQ(data2->tile_key, olp::geo::TileKey::FromHereTile("95"));
     EXPECT_EQ(data2->version, 253);
 
     auto data3 = index.Find(tile_key.AddedSubHereTile("2"), false);
-    ASSERT_FALSE(data3 == boost::none);
+    ASSERT_FALSE(data3 == olp::porting::none);
     EXPECT_EQ(data3->data_handle, "9772F5E1822DFF25F48F150294B1ECF5.282");
     EXPECT_EQ(data3->tile_key, olp::geo::TileKey::FromHereTile("1526"));
     EXPECT_EQ(data3->version, 282);
 
     auto data4 = index.Find(tile_key.AddedSubHereTile("4"), false);
-    ASSERT_FALSE(data4 == boost::none);
+    ASSERT_FALSE(data4 == olp::porting::none);
     EXPECT_EQ(data4->data_handle, "7636348E50215979A39B5F3A429EDDB4.282");
     EXPECT_EQ(data4->tile_key, olp::geo::TileKey::FromHereTile("1524"));
     EXPECT_EQ(data4->version, 282);
 
     auto data5 = index.Find(olp::geo::TileKey::FromHereTile("1561298"), false);
-    EXPECT_TRUE(data5 == boost::none);
+    EXPECT_TRUE(data5 == olp::porting::none);
 
     auto data6 = index.Find(olp::geo::TileKey::FromHereTile("3"), false);
-    EXPECT_TRUE(data6 == boost::none);
+    EXPECT_TRUE(data6 == olp::porting::none);
   }
 
   {
@@ -233,14 +233,14 @@ TEST(QuadTreeIndexTest, BackwardsCompatibility) {
 
     // Find in parents
     auto data1 = index.Find(olp::geo::TileKey::FromHereTile("5842"), true);
-    ASSERT_FALSE(data1 == boost::none);
+    ASSERT_FALSE(data1 == olp::porting::none);
     EXPECT_EQ(data1->data_handle, "13E2C624E0136C3357D092EE7F231E87.282");
     EXPECT_EQ(data1->tile_key, olp::geo::TileKey::FromHereTile("5"));
     EXPECT_EQ(data1->version, 282);
 
     // Find in sub quads
     auto data2 = index.Find(olp::geo::TileKey::FromHereTile("1561298"), true);
-    ASSERT_FALSE(data2 == boost::none);
+    ASSERT_FALSE(data2 == olp::porting::none);
     EXPECT_EQ(data2->data_handle, "7636348E50215979A39B5F3A429EDDB4.282");
     EXPECT_EQ(data2->tile_key, olp::geo::TileKey::FromHereTile("1524"));
     EXPECT_EQ(data2->version, 282);
@@ -248,7 +248,7 @@ TEST(QuadTreeIndexTest, BackwardsCompatibility) {
     // Use bottom tile so the algorithm will try to look in childs and parents
     // and will fail due to no nearest parent present in data
     auto data3 = index.Find(olp::geo::TileKey::FromHereTile("4818"), true);
-    EXPECT_TRUE(data3 == boost::none);
+    EXPECT_TRUE(data3 == olp::porting::none);
   }
 
   {

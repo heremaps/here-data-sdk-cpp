@@ -66,7 +66,8 @@ TEST(PartitionsSaxHandlerTest, NormalFlow) {
   ASSERT_TRUE(handler.String(kChecksumValue, len(kChecksumValue), true));
   ASSERT_TRUE(handler.String(kDataSize, len(kDataSize), true));
   ASSERT_TRUE(handler.Uint(150));
-  ASSERT_TRUE(handler.String(kCompressedDataSize, len(kCompressedDataSize), true));
+  ASSERT_TRUE(
+      handler.String(kCompressedDataSize, len(kCompressedDataSize), true));
   ASSERT_TRUE(handler.Uint(100));
   ASSERT_TRUE(handler.String(kVersion, len(kVersion), true));
   ASSERT_TRUE(handler.Uint(6));
@@ -79,12 +80,14 @@ TEST(PartitionsSaxHandlerTest, NormalFlow) {
 
   EXPECT_EQ(parsed_partition.GetDataHandle(), std::string(kDataHandleValue));
   EXPECT_EQ(parsed_partition.GetPartition(), std::string(kPartitionValue));
-  EXPECT_EQ(parsed_partition.GetChecksum().get_value_or(""),
+  EXPECT_EQ(olp::porting::value_or(parsed_partition.GetChecksum(), ""),
             std::string(kChecksumValue));
-  EXPECT_EQ(parsed_partition.GetCrc().get_value_or(""), std::string(kCrcValue));
-  EXPECT_EQ(parsed_partition.GetDataSize().get_value_or(0), 150);
-  EXPECT_EQ(parsed_partition.GetCompressedDataSize().get_value_or(0), 100);
-  EXPECT_EQ(parsed_partition.GetVersion().get_value_or(0), 6);
+  EXPECT_EQ(olp::porting::value_or(parsed_partition.GetCrc(), ""),
+            std::string(kCrcValue));
+  EXPECT_EQ(olp::porting::value_or(parsed_partition.GetDataSize(), 0), 150);
+  EXPECT_EQ(olp::porting::value_or(parsed_partition.GetCompressedDataSize(), 0),
+            100);
+  EXPECT_EQ(olp::porting::value_or(parsed_partition.GetVersion(), 0), 6);
 }
 
 TEST(PartitionsSaxHandlerTest, WrongJSONStructure) {

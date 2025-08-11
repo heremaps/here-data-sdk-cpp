@@ -72,8 +72,8 @@ class QuadTreeIndex {
 
   bool IsNull() const { return data_ == nullptr; }
 
-  boost::optional<IndexData> Find(const geo::TileKey& tile_key,
-                                  bool aggregated_search) const;
+  porting::optional<IndexData> Find(const geo::TileKey& tile_key,
+                                    bool aggregated_search) const;
 
   cache::KeyValueCache::ValueTypePtr GetRawData() const { return raw_data_; }
 
@@ -115,7 +115,7 @@ class QuadTreeIndex {
   void CreateBlob(geo::TileKey root, int depth, std::vector<IndexData> parents,
                   std::vector<IndexData> subs);
 
-  boost::optional<IndexData> FindNearestParent(geo::TileKey tile_key) const;
+  porting::optional<IndexData> FindNearestParent(geo::TileKey tile_key) const;
 
   const SubEntry* SubEntryBegin() const { return data_->entries; }
   const SubEntry* SubEntryEnd() const {

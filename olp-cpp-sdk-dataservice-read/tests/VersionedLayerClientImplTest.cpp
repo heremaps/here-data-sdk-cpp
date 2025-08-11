@@ -72,9 +72,11 @@ constexpr auto kUrlLookup =
     R"(https://api-lookup.data.api.platform.here.com/lookup/v1/resources/hrn:here:data::olp-here-test:hereos-internal-test-v2/apis)";
 
 TEST(VersionedLayerClientTest, CanBeMoved) {
-  read::VersionedLayerClient client_a(olp::client::HRN(), "", boost::none, {});
+  read::VersionedLayerClient client_a(olp::client::HRN(), "",
+                                      olp::porting::none, {});
   read::VersionedLayerClient client_b(std::move(client_a));
-  read::VersionedLayerClient client_c(olp::client::HRN(), "", boost::none, {});
+  read::VersionedLayerClient client_c(olp::client::HRN(), "",
+                                      olp::porting::none, {});
   client_c = std::move(client_b);
 }
 
@@ -85,7 +87,8 @@ TEST(VersionedLayerClientTest, GetData) {
   settings.network_request_handler = network_mock;
   settings.cache = cache_mock;
 
-  read::VersionedLayerClient client(kHrn, kLayerId, boost::none, settings);
+  read::VersionedLayerClient client(kHrn, kLayerId, olp::porting::none,
+                                    settings);
   {
     SCOPED_TRACE("Get Data with PartitionId and DataHandle");
     std::promise<read::DataResponse> promise;
@@ -484,7 +487,7 @@ TEST(VersionedLayerClientTest, ProtectThenReleasePartition) {
   {
     SCOPED_TRACE("invalid version");
     read::VersionedLayerClient client_without_version(
-        kHrn, kLayerId, boost::none, olp::client::OlpClientSettings());
+        kHrn, kLayerId, olp::porting::none, olp::client::OlpClientSettings());
     ASSERT_FALSE(client_without_version.Protect(kPartitionId));
     ASSERT_FALSE(client_without_version.Release(kPartitionId));
   }
@@ -524,7 +527,8 @@ TEST(VersionedLayerClientTest, ProtectThenRelease) {
       ReadDefaultResponses::GenerateDataHandle(kOtherHereTile));
   ASSERT_FALSE(other_tile_path.empty());
 
-  read::VersionedLayerClientImpl client(kHrn, kLayerId, boost::none, settings);
+  read::VersionedLayerClientImpl client(kHrn, kLayerId, olp::porting::none,
+                                        settings);
   {
     SCOPED_TRACE("Cache tile key");
 
@@ -702,7 +706,8 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsSplitted) {
   std::vector<std::string> partitions = partitions1;
   partitions.insert(partitions.end(), partitions2.begin(), partitions2.end());
 
-  read::VersionedLayerClientImpl client(kHrn, kLayerId, boost::none, settings);
+  read::VersionedLayerClientImpl client(kHrn, kLayerId, olp::porting::none,
+                                        settings);
   {
     SCOPED_TRACE("Prefetch multiple partitions");
 
@@ -833,7 +838,8 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsSomeFail) {
       ReadDefaultResponses::GeneratePartitionsResponse(partitions_count);
   const auto request =
       read::PrefetchPartitionsRequest().WithPartitionIds(partitions);
-  read::VersionedLayerClientImpl client(kHrn, kLayerId, boost::none, settings);
+  read::VersionedLayerClientImpl client(kHrn, kLayerId, olp::porting::none,
+                                        settings);
   auto partitions_path = generator.PartitionsQuery(partitions, version);
   ASSERT_FALSE(partitions_path.empty());
   {
@@ -963,7 +969,8 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsFail) {
 
   const auto request =
       read::PrefetchPartitionsRequest().WithPartitionIds(partitions);
-  read::VersionedLayerClientImpl client(kHrn, kLayerId, boost::none, settings);
+  read::VersionedLayerClientImpl client(kHrn, kLayerId, olp::porting::none,
+                                        settings);
   auto partitions_path = generator.PartitionsQuery(partitions, version);
   ASSERT_FALSE(partitions_path.empty());
   {
@@ -1127,7 +1134,8 @@ TEST(VersionedLayerClientTest, PrefetchPartitionsCancel) {
   }
   const auto request =
       read::PrefetchPartitionsRequest().WithPartitionIds(partitions);
-  read::VersionedLayerClientImpl client(kHrn, kLayerId, boost::none, settings);
+  read::VersionedLayerClientImpl client(kHrn, kLayerId, olp::porting::none,
+                                        settings);
   {
     SCOPED_TRACE("Cancel request");
     std::promise<void> block_promise;
@@ -1368,7 +1376,7 @@ TEST(VersionedLayerClientTest, QuadTreeIndex) {
 
   const auto tile_key = olp::geo::TileKey::FromHereTile(kHereTile);
   auto client = std::make_shared<read::VersionedLayerClientImpl>(
-      kHrn, kLayerId, boost::none, settings);
+      kHrn, kLayerId, olp::porting::none, settings);
 
   {
     SCOPED_TRACE("Invalid tile key");
@@ -1473,7 +1481,8 @@ TEST(VersionedLayerClientTest, PropagateAllCacheErrors) {
 
   const auto kVersion = 4u;
 
-  read::VersionedLayerClientImpl client(kHrn, kLayerId, boost::none, settings);
+  read::VersionedLayerClientImpl client(kHrn, kLayerId, olp::porting::none,
+                                        settings);
 
   auto apis = ApiDefaultResponses::GenerateResourceApisResponse(kCatalog);
   auto api_response = ResponseGenerator::ResourceApis(apis);

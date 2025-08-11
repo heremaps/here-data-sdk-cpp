@@ -68,18 +68,18 @@ class PartitionsRepository {
       client::CancellationContext context, bool fail_on_cache_error = false);
 
   PartitionsResponse GetPartitionById(const DataRequest& request,
-                                      boost::optional<int64_t> version,
+                                      porting::optional<int64_t> version,
                                       client::CancellationContext context);
 
   static model::Partition PartitionFromSubQuad(const model::SubQuad& sub_quad,
                                                const std::string& partition);
 
   PartitionResponse GetAggregatedTile(
-      TileRequest request, boost::optional<int64_t> version,
+      TileRequest request, porting::optional<int64_t> version,
       const client::CancellationContext& context);
 
   PartitionResponse GetTile(const TileRequest& request,
-                            boost::optional<int64_t> version,
+                            porting::optional<int64_t> version,
                             client::CancellationContext context,
                             const std::vector<std::string>& required_fields);
 
@@ -91,28 +91,28 @@ class PartitionsRepository {
   void StreamPartitions(const std::shared_ptr<AsyncJsonStream>& async_stream,
                         std::int64_t version,
                         const std::vector<std::string>& additional_fields,
-                        boost::optional<std::string> billing_tag,
+                        porting::optional<std::string> billing_tag,
                         const client::CancellationContext& context);
 
  private:
   QuadTreeIndexResponse GetQuadTreeIndexForTile(
-      const TileRequest& request, boost::optional<int64_t> version,
+      const TileRequest& request, porting::optional<int64_t> version,
       client::CancellationContext context,
       const std::vector<std::string>& required_fields);
 
   QueryApi::PartitionsExtendedResponse GetPartitionsExtendedResponse(
       const read::PartitionsRequest& request,
-      boost::optional<std::int64_t> version,
+      porting::optional<std::int64_t> version,
       client::CancellationContext context,
-      boost::optional<time_t> expiry = boost::none,
+      porting::optional<time_t> expiry = porting::none,
       bool fail_on_cache_error = false);
 
   QueryApi::PartitionsExtendedResponse QueryPartitionsInBatches(
       const client::OlpClient& client,
       const PartitionsRequest::PartitionIds& partitions,
-      boost::optional<std::int64_t> version,
+      porting::optional<std::int64_t> version,
       const PartitionsRequest::AdditionalFields& additional_fields,
-      boost::optional<std::string> billing_tag,
+      porting::optional<std::string> billing_tag,
       client::CancellationContext context);
 
   const client::HRN catalog_;

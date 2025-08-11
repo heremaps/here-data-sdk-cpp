@@ -80,8 +80,8 @@ TEST_F(QueryApiTest, QuadTreeIndexVolatile) {
     int32_t depth = 2;
     auto index_response =
         olp::dataservice::read::QueryApi::QuadTreeIndexVolatile(
-            *client_, kLayerid, kQuadKey, depth, boost::none, boost::none,
-            olp::client::CancellationContext{});
+            *client_, kLayerid, kQuadKey, depth, olp::porting::none,
+            olp::porting::none, olp::client::CancellationContext{});
 
     ASSERT_TRUE(index_response.IsSuccessful());
     auto result = index_response.GetResult();
@@ -123,8 +123,8 @@ TEST_F(QueryApiTest, QuadTreeIndexVolatile) {
     int32_t depth = 2;
     auto index_response =
         olp::dataservice::read::QueryApi::QuadTreeIndexVolatile(
-            *client_, kLayerid, kQuadKey, depth, boost::none, boost::none,
-            olp::client::CancellationContext{});
+            *client_, kLayerid, kQuadKey, depth, olp::porting::none,
+            olp::porting::none, olp::client::CancellationContext{});
 
     ASSERT_FALSE(index_response.IsSuccessful());
     auto error = index_response.GetError();
@@ -137,8 +137,8 @@ TEST_F(QueryApiTest, QuadTreeIndexVolatile) {
     int32_t depth = 2;
     auto index_response =
         olp::dataservice::read::QueryApi::QuadTreeIndexVolatile(
-            client, kLayerid, kQuadKey, depth, boost::none, boost::none,
-            olp::client::CancellationContext{});
+            client, kLayerid, kQuadKey, depth, olp::porting::none,
+            olp::porting::none, olp::client::CancellationContext{});
 
     ASSERT_FALSE(index_response.IsSuccessful());
     auto error = index_response.GetError();
@@ -154,8 +154,8 @@ TEST_F(QueryApiTest, QuadTreeIndexVolatile) {
     int32_t depth = 2;
     auto index_response =
         olp::dataservice::read::QueryApi::QuadTreeIndexVolatile(
-            *client_, {}, kQuadKey, depth, boost::none, boost::none,
-            olp::client::CancellationContext{});
+            *client_, {}, kQuadKey, depth, olp::porting::none,
+            olp::porting::none, olp::client::CancellationContext{});
 
     ASSERT_FALSE(index_response.IsSuccessful());
     auto error = index_response.GetError();
@@ -171,8 +171,8 @@ TEST_F(QueryApiTest, QuadTreeIndexVolatile) {
     int32_t depth = 2;
     auto index_response =
         olp::dataservice::read::QueryApi::QuadTreeIndexVolatile(
-            *client_, kLayerid, {}, depth, boost::none, boost::none,
-            olp::client::CancellationContext{});
+            *client_, kLayerid, {}, depth, olp::porting::none,
+            olp::porting::none, olp::client::CancellationContext{});
 
     ASSERT_FALSE(index_response.IsSuccessful());
     auto error = index_response.GetError();
@@ -188,8 +188,8 @@ TEST_F(QueryApiTest, QuadTreeIndexVolatile) {
     int32_t depth = -1;
     auto index_response =
         olp::dataservice::read::QueryApi::QuadTreeIndexVolatile(
-            *client_, kLayerid, kQuadKey, depth, boost::none, boost::none,
-            olp::client::CancellationContext{});
+            *client_, kLayerid, kQuadKey, depth, olp::porting::none,
+            olp::porting::none, olp::client::CancellationContext{});
 
     ASSERT_FALSE(index_response.IsSuccessful());
     auto error = index_response.GetError();
@@ -207,8 +207,8 @@ TEST_F(QueryApiTest, QuadTreeIndexVolatile) {
     std::vector<std::string> empty_fields;
     auto index_response =
         olp::dataservice::read::QueryApi::QuadTreeIndexVolatile(
-            *client_, kLayerid, kQuadKey, depth, empty_fields, boost::none,
-            olp::client::CancellationContext{});
+            *client_, kLayerid, kQuadKey, depth, empty_fields,
+            olp::porting::none, olp::client::CancellationContext{});
 
     ASSERT_FALSE(index_response.IsSuccessful());
     auto error = index_response.GetError();
@@ -226,7 +226,7 @@ TEST_F(QueryApiTest, QuadTreeIndexVolatile) {
     std::string empty_tag;
     auto index_response =
         olp::dataservice::read::QueryApi::QuadTreeIndexVolatile(
-            *client_, kLayerid, kQuadKey, depth, boost::none, empty_tag,
+            *client_, kLayerid, kQuadKey, depth, olp::porting::none, empty_tag,
             olp::client::CancellationContext{});
 
     ASSERT_FALSE(index_response.IsSuccessful());
@@ -242,8 +242,8 @@ TEST_F(QueryApiTest, QuadTreeIndexVolatile) {
     int32_t depth = 2;
     auto index_response =
         olp::dataservice::read::QueryApi::QuadTreeIndexVolatile(
-            *client_, kLayerid, kQuadKey, depth, boost::none, boost::none,
-            context);
+            *client_, kLayerid, kQuadKey, depth, olp::porting::none,
+            olp::porting::none, context);
 
     ASSERT_FALSE(index_response.IsSuccessful());
     auto error = index_response.GetError();

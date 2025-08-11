@@ -425,10 +425,10 @@ TEST(ParserTest, Index) {
     ASSERT_TRUE(optional->GetCompressedDataSize());
     ASSERT_TRUE(optional->GetDataSize());
 
-    ASSERT_EQ("add-meta", optional->GetAdditionalMetadata().get());
-    ASSERT_EQ("checksum", optional->GetChecksum().get());
-    ASSERT_EQ(10101, optional->GetCompressedDataSize().get());
-    ASSERT_EQ(21212, optional->GetDataSize().get());
+    ASSERT_EQ("add-meta", *optional->GetAdditionalMetadata());
+    ASSERT_EQ("checksum", *optional->GetChecksum());
+    ASSERT_EQ(10101, *optional->GetCompressedDataSize());
+    ASSERT_EQ(21212, *optional->GetDataSize());
   }
 
   ASSERT_EQ(2, index.GetSubQuads().size());
@@ -455,10 +455,10 @@ TEST(ParserTest, Index) {
     ASSERT_TRUE(optional->GetCompressedDataSize());
     ASSERT_TRUE(optional->GetDataSize());
 
-    ASSERT_EQ("add-meta", optional->GetAdditionalMetadata().get());
-    ASSERT_EQ("checksum", optional->GetChecksum().get());
-    ASSERT_EQ(10101, optional->GetCompressedDataSize().get());
-    ASSERT_EQ(21212, optional->GetDataSize().get());
+    ASSERT_EQ("add-meta", *optional->GetAdditionalMetadata());
+    ASSERT_EQ("checksum", *optional->GetChecksum());
+    ASSERT_EQ(10101, *optional->GetCompressedDataSize());
+    ASSERT_EQ(21212, *optional->GetDataSize());
   }
 }
 
@@ -519,12 +519,12 @@ TEST(ParserTest, Messages) {
         ASSERT_TRUE(metadata.GetTimestamp());
 
         EXPECT_EQ(std::string("ff7494d6f17da702862e550c907c0a91"),
-                  metadata.GetChecksum().get());
-        EXPECT_EQ(152417, metadata.GetCompressedDataSize().get());
-        EXPECT_EQ(250110, metadata.GetDataSize().get());
+                  *metadata.GetChecksum());
+        EXPECT_EQ(152417, *metadata.GetCompressedDataSize());
+        EXPECT_EQ(250110, *metadata.GetDataSize());
         EXPECT_EQ(std::string("bb76b7747e7523596e74a138b15d92ec"),
-                  metadata.GetDataHandle().get());
-        EXPECT_EQ(1517916706, metadata.GetTimestamp().get());
+                  *metadata.GetDataHandle());
+        EXPECT_EQ(1517916706, *metadata.GetTimestamp());
       }
 
       {

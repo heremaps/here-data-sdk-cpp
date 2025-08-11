@@ -23,23 +23,23 @@
 
 namespace olp {
 namespace parser {
-using namespace olp::dataservice::read;
+namespace model = dataservice::read::model;
 
 void from_json(const rapidjson::Value& value,
                std::shared_ptr<model::SubQuad>& x) {
   auto quad = std::make_shared<model::SubQuad>();
 
   quad->SetAdditionalMetadata(
-      parse<boost::optional<std::string>>(value, "additionalMetadata"));
+      parse<porting::optional<std::string>>(value, "additionalMetadata"));
 
-  quad->SetChecksum(parse<boost::optional<std::string>>(value, "checksum"));
+  quad->SetChecksum(parse<porting::optional<std::string>>(value, "checksum"));
 
   quad->SetCompressedDataSize(
-      parse<boost::optional<int64_t>>(value, "compressedDataSize"));
+      parse<porting::optional<int64_t>>(value, "compressedDataSize"));
 
   quad->SetDataHandle(parse<std::string>(value, "dataHandle"));
 
-  quad->SetDataSize(parse<boost::optional<int64_t>>(value, "dataSize"));
+  quad->SetDataSize(parse<porting::optional<int64_t>>(value, "dataSize"));
 
   quad->SetSubQuadKey(parse<std::string>(value, "subQuadKey"));
   quad->SetVersion(parse<int64_t>(value, "version"));
@@ -52,16 +52,16 @@ void from_json(const rapidjson::Value& value,
   auto quad = std::make_shared<model::ParentQuad>();
 
   quad->SetAdditionalMetadata(
-      parse<boost::optional<std::string>>(value, "additionalMetadata"));
+      parse<porting::optional<std::string>>(value, "additionalMetadata"));
 
-  quad->SetChecksum(parse<boost::optional<std::string>>(value, "checksum"));
+  quad->SetChecksum(parse<porting::optional<std::string>>(value, "checksum"));
 
   quad->SetCompressedDataSize(
-      parse<boost::optional<int64_t>>(value, "compressedDataSize"));
+      parse<porting::optional<int64_t>>(value, "compressedDataSize"));
 
   quad->SetDataHandle(parse<std::string>(value, "dataHandle"));
 
-  quad->SetDataSize(parse<boost::optional<int64_t>>(value, "dataSize"));
+  quad->SetDataSize(parse<porting::optional<int64_t>>(value, "dataSize"));
 
   quad->SetPartition(parse<std::string>(value, "partition"));
   quad->SetVersion(parse<int64_t>(value, "version"));
