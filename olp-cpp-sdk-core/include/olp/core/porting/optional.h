@@ -19,7 +19,7 @@
 
 #pragma once
 
-#if (__cplusplus >= 201703L) && !defined(OLP_CPP_SDK_USE_BOOST_OPTIONAL)
+#if (__cplusplus >= 201703L) && defined(OLP_CPP_SDK_USE_STD_OPTIONAL)
 #include <optional>
 
 namespace olp {
