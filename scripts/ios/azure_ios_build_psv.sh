@@ -22,11 +22,11 @@
 # Sometimes there is no boost and there is no need to fail in this case.
 brew uninstall --ignore-dependencies boost || true
 
-if [[ ${USE_LATEST_XCODE} == 0 ]]; then
+if [[ -n ${SELECT_XCODE_LOCATION} ]]; then
   # Due to some bug which is cmake cannot detect compiler while called
   # from cmake itself when project is compiled with XCode 12.4 we must
   # switch to old XCode as a workaround.
-  sudo xcode-select -s /Applications/Xcode_14.3.app
+  sudo xcode-select -s ${SELECT_XCODE_LOCATION}
 fi
 
 mkdir -p build && cd build
