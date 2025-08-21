@@ -817,6 +817,9 @@ ErrorCode NetworkCurl::SendImplementation(
 
 #if CURL_AT_LEAST_VERSION(7, 21, 0)
   curl_easy_setopt(curl_handle, CURLOPT_ACCEPT_ENCODING, "");
+#endif
+
+#if CURL_AT_LEAST_VERSION(8, 12, 0)
   curl_easy_setopt(curl_handle, CURLOPT_TRANSFER_ENCODING, 1L);
 #endif
 
