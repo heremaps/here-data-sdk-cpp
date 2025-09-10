@@ -19,6 +19,8 @@ if(NOT ANDROID OR OLP_SDK_ENABLE_ANDROID_CURL)
     return()
 endif()
 
+set(OLP_SDK_JAVA_TARGET "1.7" CACHE STRING "Java source and target version for Android network module")
+
 add_definitions(-DOLP_SDK_NETWORK_HAS_ANDROID)
 set(NETWORK_ANDROID_LIBRARIES ${ANDROID_LIBRARY})
 include_directories(${ANDROID_INCLUDE_DIR})
@@ -32,7 +34,7 @@ if(CMAKE_HOST_WIN32 AND NOT WIN32)
     set(WIN32 TRUE)
 endif()
 
-set(CMAKE_JAVA_COMPILE_FLAGS -source 1.7 -target 1.7)
+set(CMAKE_JAVA_COMPILE_FLAGS -source ${OLP_SDK_JAVA_TARGET} -target ${OLP_SDK_JAVA_TARGET})
 set(CMAKE_JAR_CLASSES_PREFIX com/here/olp/network)
 
 include(${CMAKE_CURRENT_LIST_DIR}/GetAndroidVariables.cmake)
