@@ -452,34 +452,14 @@ class EnterBackgroundSubscriberImpl
                           "didReceiveChallenge failed - invalid session, "
                           "task_id=%u",
                           (unsigned int)dataTask.taskIdentifier);
+    // Don't hang in non-happy path
+    completionHandler(NSURLSessionAuthChallengeCancelAuthenticationChallenge,
+                      nil);
     return;
   }
 
-  @autoreleasepool {
-    if ([challenge.protectionSpace.authenticationMethod
-            isEqualToString:NSURLAuthenticationMethodServerTrust]) {
-      if (dataTask) {
-        OLPHttpTask* httpTask =
-            [self taskWithTaskDescription:dataTask.taskDescription];
-        if (![httpTask isValid]) {
-          return;
-        }
-        // TODO: Don't verify certificate is not implemented
-        if (![self shouldTrustProtectionSpace:challenge.protectionSpace]) {
-          completionHandler(
-              NSURLSessionAuthChallengeCancelAuthenticationChallenge, nil);
-          return;
-        }
-      }
-
-      NSURLCredential* credential = [NSURLCredential
-          credentialForTrust:challenge.protectionSpace.serverTrust];
-      completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
-      return;
-    }
-
-    completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, nil);
-  }
+  // Use iOS default certificate validation for all authentication challenges
+  completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, nil);
 }
 
 - (void)URLSession:(NSURLSession*)session
@@ -531,31 +511,6 @@ class EnterBackgroundSubscriberImpl
         forHTTPHeaderField:@"Authorization"];
   }
   completionHandler(newRequest);
-}
-
-// http://goo.gl/jmZ4Uv
-- (BOOL)shouldTrustProtectionSpace:(NSURLProtectionSpace*)protectionSpace {
-  if (!protectionSpace) {
-    return NO;
-  }
-
-  SecTrustRef serverTrust = protectionSpace.serverTrust;
-  if (!serverTrust) {
-    return NO;
-  }
-
-  // TODO - certificate paths are not supported!
-
-  // evaluate server trust against certificate
-  SecTrustResultType trustResult = kSecTrustResultInvalid;
-  OSStatus status = SecTrustEvaluate(serverTrust, &trustResult);
-
-  if (errSecSuccess != status) {
-    return NO;
-  }
-
-  return (trustResult == kSecTrustResultUnspecified ||
-          trustResult == kSecTrustResultProceed);
 }
 
 - (void)URLSession:(NSURLSession*)session
