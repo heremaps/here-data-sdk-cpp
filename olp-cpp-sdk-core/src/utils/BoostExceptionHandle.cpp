@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include <exception>
 
+#include <boost/version.hpp>
+
 namespace {
 constexpr auto kLogTag = "BoostExceptionHandle";
 }
@@ -35,6 +37,14 @@ namespace boost {
 OLP_CPP_SDK_DECL_EXPORT void throw_exception(const std::exception& e) {
   OLP_SDK_LOG_ABORT_F(kLogTag, "Exception occurred: '%s'", e.what());
 }
+
+#if BOOST_VERSION >= 107300
+OLP_CPP_SDK_DECL_EXPORT void throw_exception(
+    const std::exception& e, boost::source_location const& loc) {
+  OLP_SDK_LOG_ABORT_F(kLogTag, "Exception occurred: '%s' location: '%s'",
+                      e.what(), loc.to_string().c_str());
+}
+#endif
 
 }  // namespace boost
 #endif
