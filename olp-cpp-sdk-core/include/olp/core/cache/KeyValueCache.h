@@ -244,6 +244,20 @@ class CORE_API KeyValueCache {
     OLP_SDK_CORE_UNUSED(prefix);
     return client::ApiError(client::ErrorCode::Unknown, "Not implemented");
   }
+
+  /**
+   * @brief Lists the keys that match the given prefix.
+   *
+   * @param prefix The prefix that matches the keys.
+   *
+   * @return The collection of matched keys or an error. Empty collection if not
+   * keys match the prefix.
+   */
+  virtual OperationOutcome<KeyListType> ListKeysWithPrefix(
+      const std::string& prefix) {
+    OLP_SDK_CORE_UNUSED(prefix);
+    return client::ApiError(client::ErrorCode::Unknown, "Not implemented");
+  }
 };
 
 }  // namespace cache
