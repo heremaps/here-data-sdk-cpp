@@ -255,13 +255,17 @@ set(OLP_SDK_CACHE_SOURCES
     ./src/cache/DiskCacheSizeLimitEnv.h
     ./src/cache/DiskCacheSizeLimitWritableFile.cpp
     ./src/cache/DiskCacheSizeLimitWritableFile.h
-    ./src/cache/KeyGenerator.cpp
     ./src/cache/ProtectedKeyList.cpp
     ./src/cache/ProtectedKeyList.h
     ./src/cache/InMemoryCache.cpp
     ./src/cache/InMemoryCache.h
     ./src/cache/ReadOnlyEnv.cpp
     ./src/cache/ReadOnlyEnv.h
+)
+
+# Separately since it is used outside of cache
+set(OLP_SDK_KEY_GENERATOR_SOURCES
+    ./src/cache/KeyGenerator.cpp
 )
 
 set(OLP_SDK_CLIENT_SOURCES
@@ -409,6 +413,7 @@ set(OLP_SDK_CORE_SOURCES
     ${OLP_SDK_LOGGING_SOURCES}
     ${OLP_SDK_THREAD_SOURCES}
     ${OLP_SDK_GEO_SOURCES}
+    ${OLP_SDK_KEY_GENERATOR_SOURCES}
 )
 
 if(OLP_SDK_ENABLE_DEFAULT_CACHE)
