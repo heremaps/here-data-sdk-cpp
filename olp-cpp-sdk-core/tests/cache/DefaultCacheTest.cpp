@@ -749,6 +749,16 @@ TEST(DefaultCacheTest, OpenTypeCache) {
   }
 }
 
+TEST(DefaultCacheTest, ListKeysWithPrefixNotImplemented) {
+  olp::cache::DefaultCache cache;
+
+  const auto result = cache.ListKeysWithPrefix("prefix");
+
+  EXPECT_FALSE(result.IsSuccessful());
+  EXPECT_EQ(olp::client::ErrorCode::Unknown, result.GetError().GetErrorCode());
+  EXPECT_EQ("Not implemented", result.GetError().GetMessage());
+}
+
 struct TestParameters {
   OptionalString disk_path_mutable = kTempDirMutable;
   OptionalString disk_path_protected = olp::porting::none;
