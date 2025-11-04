@@ -23,6 +23,7 @@
 
 #include <olp/core/logging/Configuration.h>
 #include <olp/core/logging/FilterGroup.h>
+#include <olp/core/porting/optional.h>
 #include <olp/core/thread/Atomic.h>
 
 #include <string>
@@ -30,6 +31,15 @@
 
 namespace olp {
 namespace logging {
+
+namespace {
+constexpr auto kSecretMask = "*****";
+}
+
+struct LogMessageExt : public LogMessage {
+  olp::porting::optional<std::string> adjusted_message;
+};
+
 class LogImpl {
  public:
   friend class olp::thread::Atomic<logging::LogImpl>;
@@ -67,14 +77,20 @@ class LogImpl {
                   unsigned int line, const char* function,
                   const char* fullFunction);
 
+  void censor(std::string msg);
+
  private:
   LogImpl();
   template <class LogItem>
   void appendLogItem(const LogItem& log_item);
 
+  template <class LogItem>
+  void censorLogItem(LogItem& log_item, const std::string& original);
+
   Configuration m_configuration;
   std::unordered_map<std::string, Level> m_logLevels;
   Level m_defaultLevel;
+  std::vector<std::string> m_toCensor;
 };
 
 LogImpl::LogImpl()
@@ -120,7 +136,8 @@ void LogImpl::setLevel(Level level, const std::string& tag) {
 }
 
 porting::optional<Level> LogImpl::getLevel(const std::string& tag) const {
-  if (tag.empty()) return getLevel();
+  if (tag.empty())
+    return getLevel();
 
   auto foundIter = m_logLevels.find(tag);
   if (foundIter == m_logLevels.end())
@@ -130,7 +147,8 @@ porting::optional<Level> LogImpl::getLevel(const std::string& tag) const {
 }
 
 void LogImpl::clearLevel(const std::string& tag) {
-  if (tag.empty()) return;
+  if (tag.empty())
+    return;
 
   m_logLevels.erase(tag);
 }
@@ -138,13 +156,15 @@ void LogImpl::clearLevel(const std::string& tag) {
 void LogImpl::clearLevels() { m_logLevels.clear(); }
 
 bool LogImpl::isEnabled(Level level) const {
-  if (level == Level::Off) return false;
+  if (level == Level::Off)
+    return false;
 
   return static_cast<int>(level) >= static_cast<int>(m_defaultLevel);
 }
 
 bool LogImpl::isEnabled(Level level, const std::string& tag) const {
-  if (level == Level::Off) return false;
+  if (level == Level::Off)
+    return false;
 
   auto foundIter = m_logLevels.find(tag);
   Level targetLevel;
@@ -159,7 +179,7 @@ void LogImpl::logMessage(Level level, const std::string& tag,
                          const std::string& message, const char* file,
                          unsigned int line, const char* function,
                          const char* fullFunction) {
-  LogMessage logMessage;
+  LogMessageExt logMessage;
   logMessage.level = level;
   logMessage.tag = tag.c_str();
   logMessage.message = message.c_str();
@@ -170,6 +190,7 @@ void LogImpl::logMessage(Level level, const std::string& tag,
   logMessage.time = std::chrono::system_clock::now();
   logMessage.threadId = getThreadId();
 
+  censorLogItem(logMessage, message);
   appendLogItem(logMessage);
 }
 
@@ -181,11 +202,38 @@ void LogImpl::appendLogItem(const LogItem& log_item) {
   }
 }
 
+template <class LogItem>
+void LogImpl::censorLogItem(LogItem& log_item, const std::string& original) {
+  bool has_copy = log_item.adjusted_message.has_value();
+  const std::string& src =
+      has_copy ? log_item.adjusted_message.value() : original;
+
+  for (const std::string& secret : m_toCensor) {
+    auto found_pos = src.find(secret);
+    while (found_pos != std::string::npos) {
+      if (!has_copy) {
+        log_item.adjusted_message = original;
+        has_copy = true;
+        log_item.message = log_item.adjusted_message.value().c_str();
+      }
+      log_item.adjusted_message.value().replace(found_pos, secret.length(),
+                                                kSecretMask);
+      found_pos = log_item.adjusted_message.value().find(
+          secret, found_pos + std::strlen(kSecretMask));
+    }
+  }
+}
+
+void LogImpl::censor(std::string msg) {
+  m_toCensor.emplace_back(std::move(msg));
+}
+
 // implementation of public static Log API
 //--------------------------------------------------------
 
 bool Log::configure(Configuration configuration) {
-  if (!LogImpl::aliveStatus()) return false;
+  if (!LogImpl::aliveStatus())
+    return false;
 
   return LogImpl::getInstance().locked([&configuration](LogImpl& log) {
     return log.configure(std::move(configuration));
@@ -193,27 +241,31 @@ bool Log::configure(Configuration configuration) {
 }
 
 Configuration Log::getConfiguration() {
-  if (!LogImpl::aliveStatus()) return Configuration();
+  if (!LogImpl::aliveStatus())
+    return Configuration();
 
   return LogImpl::getInstance().locked(
       [](const LogImpl& log) { return log.getConfiguration(); });
 }
 
 void Log::setLevel(Level level) {
-  if (!LogImpl::aliveStatus()) return;
+  if (!LogImpl::aliveStatus())
+    return;
 
   LogImpl::getInstance().locked([level](LogImpl& log) { log.setLevel(level); });
 }
 
 Level Log::getLevel() {
-  if (!LogImpl::aliveStatus()) return Level::Off;
+  if (!LogImpl::aliveStatus())
+    return Level::Off;
 
   return LogImpl::getInstance().locked(
       [](const LogImpl& log) { return log.getLevel(); });
 }
 
 void Log::setLevel(Level level, const std::string& tag) {
-  if (!LogImpl::aliveStatus()) return;
+  if (!LogImpl::aliveStatus())
+    return;
 
   LogImpl::getInstance().locked(
       [level, &tag](LogImpl& log) { log.setLevel(level, tag); });
@@ -221,55 +273,64 @@ void Log::setLevel(Level level, const std::string& tag) {
 
 void Log::setLevel(const std::string& level, const std::string& tag) {
   auto log_level = FilterGroup::stringToLevel(level);
-  if (!log_level) return;
+  if (!log_level)
+    return;
 
-  if (!LogImpl::aliveStatus()) return;
+  if (!LogImpl::aliveStatus())
+    return;
 
   LogImpl::getInstance().locked(
       [&log_level, &tag](LogImpl& log) { log.setLevel(*log_level, tag); });
 }
 
 porting::optional<Level> Log::getLevel(const std::string& tag) {
-  if (!LogImpl::aliveStatus()) return porting::none;
+  if (!LogImpl::aliveStatus())
+    return porting::none;
 
   return LogImpl::getInstance().locked(
       [&tag](const LogImpl& log) { return log.getLevel(tag); });
 }
 
 void Log::clearLevel(const std::string& tag) {
-  if (!LogImpl::aliveStatus()) return;
+  if (!LogImpl::aliveStatus())
+    return;
 
   LogImpl::getInstance().locked([&tag](LogImpl& log) { log.clearLevel(tag); });
 }
 
 void Log::clearLevels() {
-  if (!LogImpl::aliveStatus()) return;
+  if (!LogImpl::aliveStatus())
+    return;
 
   LogImpl::getInstance().locked([](LogImpl& log) { log.clearLevels(); });
 }
 
 void Log::applyFilterGroup(const FilterGroup& filters) {
-  if (!LogImpl::aliveStatus()) return;
+  if (!LogImpl::aliveStatus())
+    return;
 
   LogImpl::getInstance().locked([&filters](LogImpl& log) {
     log.clearLevels();
     log.clearLevels();
     auto defaultLevel = filters.getLevel();
-    if (defaultLevel) log.setLevel(*defaultLevel);
+    if (defaultLevel)
+      log.setLevel(*defaultLevel);
     for (const auto& tagLevel : filters.m_tagLevels)
       log.setLevel(tagLevel.second, tagLevel.first);
   });
 }
 
 bool Log::isEnabled(Level level) {
-  if (!LogImpl::aliveStatus()) return false;
+  if (!LogImpl::aliveStatus())
+    return false;
 
   return LogImpl::getInstance().locked(
       [level](const LogImpl& log) { return log.isEnabled(level); });
 }
 
 bool Log::isEnabled(Level level, const std::string& tag) {
-  if (!LogImpl::aliveStatus()) return false;
+  if (!LogImpl::aliveStatus())
+    return false;
 
   return LogImpl::getInstance().locked(
       [level, &tag](const LogImpl& log) { return log.isEnabled(level, tag); });
@@ -279,11 +340,19 @@ void Log::logMessage(Level level, const std::string& tag,
                      const std::string& message, const char* file,
                      unsigned int line, const char* function,
                      const char* fullFunction) {
-  if (!LogImpl::aliveStatus()) return;
+  if (!LogImpl::aliveStatus())
+    return;
 
   LogImpl::getInstance().locked([&](LogImpl& log) {
     log.logMessage(level, tag, message, file, line, function, fullFunction);
   });
+}
+
+void Log::censor(const std::string& message) {
+  if (!LogImpl::aliveStatus())
+    return;
+
+  LogImpl::getInstance().locked([&](LogImpl& log) { log.censor(message); });
 }
 
 }  // namespace logging
