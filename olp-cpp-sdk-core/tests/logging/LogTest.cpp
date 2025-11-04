@@ -43,8 +43,9 @@ TEST(LogTest, Levels) {
   EXPECT_TRUE(olp::logging::Log::isEnabled(olp::logging::Level::Info));
   EXPECT_FALSE(olp::logging::Log::isEnabled(olp::logging::Level::Debug));
 
-  olp::logging::Log::setLevel(olp::logging::Level::Debug, "test1");
+  olp::logging::Log::setLevel("Debug", "test1");
   olp::logging::Log::setLevel(olp::logging::Level::Warning, "test2");
+  olp::logging::Log::setLevel("WrongLevel", "test1");
 
   EXPECT_EQ(olp::logging::Level::Debug, olp::logging::Log::getLevel("test1"));
   EXPECT_EQ(olp::logging::Level::Warning, olp::logging::Log::getLevel("test2"));
@@ -66,6 +67,14 @@ TEST(LogTest, Levels) {
       olp::logging::Log::isEnabled(olp::logging::Level::Debug, "test3"));
 
   olp::logging::Log::clearLevel("test2");
+  EXPECT_EQ(olp::logging::Level::Debug, olp::logging::Log::getLevel("test1"));
+  EXPECT_EQ(olp::porting::none, olp::logging::Log::getLevel("test2"));
+  EXPECT_TRUE(
+      olp::logging::Log::isEnabled(olp::logging::Level::Warning, "test2"));
+  EXPECT_FALSE(
+      olp::logging::Log::isEnabled(olp::logging::Level::Debug, "test2"));
+
+  olp::logging::Log::clearLevel("");
   EXPECT_EQ(olp::logging::Level::Debug, olp::logging::Log::getLevel("test1"));
   EXPECT_EQ(olp::porting::none, olp::logging::Log::getLevel("test2"));
   EXPECT_TRUE(
@@ -662,6 +671,22 @@ TEST(LogTest, LogLevelOff) {
   EXPECT_NE("LogTest_LogOff_Test::TestBody()",
             appender->messages_[index].function_);
   ++index;
+}
+
+TEST(LogTest, IsEnabled_ReturnsFalse_WhenLogLevelOff_) {
+  auto appender = std::make_shared<testing::MockAppender>();
+  olp::logging::Configuration configuration;
+  configuration.addAppender(appender);
+  EXPECT_TRUE(olp::logging::Log::configure(configuration));
+
+  EXPECT_FALSE(olp::logging::Log::isEnabled(olp::logging::Level::Off));
+  olp::logging::Log::setLevel(olp::logging::Level::Off);
+  EXPECT_FALSE(olp::logging::Log::isEnabled(olp::logging::Level::Off));
+
+  constexpr auto tag = "random tag";
+  EXPECT_FALSE(olp::logging::Log::isEnabled(olp::logging::Level::Off, tag));
+  olp::logging::Log::setLevel(olp::logging::Level::Off, tag);
+  EXPECT_FALSE(olp::logging::Log::isEnabled(olp::logging::Level::Off, tag));
 }
 
 TEST(LogTest, ReConfigure) {
