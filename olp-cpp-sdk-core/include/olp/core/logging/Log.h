@@ -571,7 +571,17 @@ class CORE_API Log {
    *
    * @param message The line to be censored out from the log.
    */
-  static void censor(const std::string& message);
+  static void addCensor(const std::string& message);
+
+  /**
+   * @brief Removes a line from censoring out from the log.
+   *
+   * Censoring out is a replacement with a predefiend mask with length not
+   * correlated with the original line length.
+   *
+   * @param message The line to be excluded from censoring out from the log.
+   */
+  static void removeCensor(const std::string& message);
 };
 }  // namespace logging
 }  // namespace olp

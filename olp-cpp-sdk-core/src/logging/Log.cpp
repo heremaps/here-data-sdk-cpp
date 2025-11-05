@@ -26,6 +26,7 @@
 #include <olp/core/porting/optional.h>
 #include <olp/core/thread/Atomic.h>
 
+#include <algorithm>
 #include <string>
 #include <unordered_map>
 
@@ -34,7 +35,8 @@ namespace logging {
 
 namespace {
 constexpr auto kSecretMask = "*****";
-}
+const auto kSecretMaskLength = std::strlen(kSecretMask);
+}  // namespace
 
 struct LogMessageExt : public LogMessage {
   olp::porting::optional<std::string> adjusted_message;
@@ -77,7 +79,8 @@ class LogImpl {
                   unsigned int line, const char* function,
                   const char* fullFunction);
 
-  void censor(std::string msg);
+  void addCensor(std::string msg);
+  void removeCensor(const std::string& msg);
 
  private:
   LogImpl();
@@ -219,13 +222,20 @@ void LogImpl::censorLogItem(LogItem& log_item, const std::string& original) {
       log_item.adjusted_message.value().replace(found_pos, secret.length(),
                                                 kSecretMask);
       found_pos = log_item.adjusted_message.value().find(
-          secret, found_pos + std::strlen(kSecretMask));
+          secret, found_pos + kSecretMaskLength);
     }
   }
 }
 
-void LogImpl::censor(std::string msg) {
+void LogImpl::addCensor(std::string msg) {
   m_toCensor.emplace_back(std::move(msg));
+}
+
+void LogImpl::removeCensor(const std::string& msg) {
+  auto it = std::find(m_toCensor.begin(), m_toCensor.end(), msg);
+  if (it != m_toCensor.end()) {
+    m_toCensor.erase(it);
+  }
 }
 
 // implementation of public static Log API
@@ -348,11 +358,19 @@ void Log::logMessage(Level level, const std::string& tag,
   });
 }
 
-void Log::censor(const std::string& message) {
+void Log::addCensor(const std::string& message) {
   if (!LogImpl::aliveStatus())
     return;
 
-  LogImpl::getInstance().locked([&](LogImpl& log) { log.censor(message); });
+  LogImpl::getInstance().locked([&](LogImpl& log) { log.addCensor(message); });
+}
+
+void Log::removeCensor(const std::string& message) {
+  if (!LogImpl::aliveStatus())
+    return;
+
+  LogImpl::getInstance().locked(
+      [&](LogImpl& log) { log.removeCensor(message); });
 }
 
 }  // namespace logging

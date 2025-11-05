@@ -429,9 +429,9 @@ TEST(LogTest, LogCensor) {
   constexpr auto secret_02 = "to hide";
   constexpr auto secret_mask = "******";
 
-  olp::logging::Log::censor(secret_01);
-  olp::logging::Log::censor(secret_02);
-  olp::logging::Log::censor(secret_mask);
+  olp::logging::Log::addCensor(secret_01);
+  olp::logging::Log::addCensor(secret_02);
+  olp::logging::Log::addCensor(secret_mask);
 
   OLP_SDK_LOG_INFO_F("", "Nothing to censor");
   OLP_SDK_LOG_INFO_F("", "Inlined1st secretin message");
@@ -452,6 +452,16 @@ TEST(LogTest, LogCensor) {
   EXPECT_EQ("***** twice *****", appender->messages_[5].message_);
   EXPECT_EQ("no loop **********", appender->messages_[6].message_);
   EXPECT_EQ("Fatal *****", appender->messages_[7].message_);
+
+  olp::logging::Log::removeCensor("not exisiting secret");
+  OLP_SDK_LOG_TRACE_F("trace", "%s %s", "plain", secret_01);
+  olp::logging::Log::removeCensor(secret_01);
+  OLP_SDK_LOG_TRACE_F("trace", "%s %s", "plain", secret_01);
+
+  ASSERT_EQ(10U, appender->messages_.size());
+
+  EXPECT_EQ("plain *****", appender->messages_[8].message_);
+  EXPECT_EQ("plain 1st secret", appender->messages_[9].message_);
 }
 
 TEST(LogTest, LogLimits) {
