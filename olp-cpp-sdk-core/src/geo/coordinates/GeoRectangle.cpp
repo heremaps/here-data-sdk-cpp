@@ -120,6 +120,14 @@ bool GeoRectangle::Overlaps(const GeoRectangle& rectangle) const {
   return !(west >= rectangle_east || rectangle_west >= east);
 }
 
+bool GeoRectangle::operator==(const GeoRectangle& other) const {
+  return south_west_ == other.south_west_ && north_east_ == other.north_east_;
+}
+
+bool GeoRectangle::operator!=(const GeoRectangle& other) const {
+  return !(*this == other);
+}
+
 GeoRectangle GeoRectangle::BooleanUnion(const GeoRectangle& other) const {
   if (IsEmpty()) {
     return other;

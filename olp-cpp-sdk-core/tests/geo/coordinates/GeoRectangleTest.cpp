@@ -19,10 +19,10 @@
 
 #include <gtest/gtest.h>
 
-#include "../testutil/CompareGeoCoordinates.h"
-#include "../testutil/CompareGeoRectangle.h"
 #include <olp/core/geo/coordinates/GeoRectangle.h>
 #include <olp/core/math/Math.h>
+#include "../testutil/CompareGeoCoordinates.h"
+#include "../testutil/CompareGeoRectangle.h"
 
 namespace olp {
 namespace geo {
@@ -85,6 +85,18 @@ TEST(GeoRectangleTest, Containment) {
 
   EXPECT_TRUE(rectangle.Overlaps(
       GeoRectangle(GeoCoordinates(0, 0), GeoCoordinates(0.05, 0.15))));
+}
+
+TEST(GeoRectangleTest, OperatorEqual) {
+  EXPECT_EQ(GeoRectangle(GeoCoordinates(1, 2), GeoCoordinates(10, 20)),
+            GeoRectangle(GeoCoordinates(1, 2), GeoCoordinates(10, 20)));
+}
+
+TEST(GeoRectangleTest, OperatorNotEqual) {
+  EXPECT_NE(GeoRectangle(GeoCoordinates(0, 0), GeoCoordinates(1, 1)),
+            GeoRectangle(GeoCoordinates(0, 0), GeoCoordinates(1, 2)));
+  EXPECT_NE(GeoRectangle(GeoCoordinates(0, 0), GeoCoordinates(1, 1)),
+            GeoRectangle(GeoCoordinates(1, 0), GeoCoordinates(1, 1)));
 }
 
 TEST(GeoRectangleTest, BooleanUnion) {
