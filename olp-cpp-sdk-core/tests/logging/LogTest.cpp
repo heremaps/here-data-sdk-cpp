@@ -43,8 +43,9 @@ TEST(LogTest, Levels) {
   EXPECT_TRUE(olp::logging::Log::isEnabled(olp::logging::Level::Info));
   EXPECT_FALSE(olp::logging::Log::isEnabled(olp::logging::Level::Debug));
 
-  olp::logging::Log::setLevel(olp::logging::Level::Debug, "test1");
+  olp::logging::Log::setLevel("Debug", "test1");
   olp::logging::Log::setLevel(olp::logging::Level::Warning, "test2");
+  olp::logging::Log::setLevel("WrongLevel", "test1");
 
   EXPECT_EQ(olp::logging::Level::Debug, olp::logging::Log::getLevel("test1"));
   EXPECT_EQ(olp::logging::Level::Warning, olp::logging::Log::getLevel("test2"));
@@ -66,6 +67,14 @@ TEST(LogTest, Levels) {
       olp::logging::Log::isEnabled(olp::logging::Level::Debug, "test3"));
 
   olp::logging::Log::clearLevel("test2");
+  EXPECT_EQ(olp::logging::Level::Debug, olp::logging::Log::getLevel("test1"));
+  EXPECT_EQ(olp::porting::none, olp::logging::Log::getLevel("test2"));
+  EXPECT_TRUE(
+      olp::logging::Log::isEnabled(olp::logging::Level::Warning, "test2"));
+  EXPECT_FALSE(
+      olp::logging::Log::isEnabled(olp::logging::Level::Debug, "test2"));
+
+  olp::logging::Log::clearLevel("");
   EXPECT_EQ(olp::logging::Level::Debug, olp::logging::Log::getLevel("test1"));
   EXPECT_EQ(olp::porting::none, olp::logging::Log::getLevel("test2"));
   EXPECT_TRUE(
@@ -409,6 +418,52 @@ TEST(LogTest, LogFormat) {
   ++index;
 }
 
+TEST(LogTest, LogCensor) {
+  auto appender = std::make_shared<testing::MockAppender>();
+  olp::logging::Configuration configuration;
+  configuration.addAppender(appender);
+  EXPECT_TRUE(olp::logging::Log::configure(configuration));
+  olp::logging::Log::setLevel(olp::logging::Level::Trace);
+
+  constexpr auto secret_01 = "1st secret";
+  constexpr auto secret_02 = "to hide";
+  constexpr auto secret_mask = "******";
+
+  olp::logging::Log::addCensor(secret_01);
+  olp::logging::Log::addCensor(secret_02);
+  olp::logging::Log::addCensor(secret_mask);
+
+  OLP_SDK_LOG_INFO_F("", "Nothing to censor");
+  OLP_SDK_LOG_INFO_F("", "Inlined1st secretin message");
+  OLP_SDK_LOG_TRACE_F("trace", "%s %s", "plain", secret_01);
+  OLP_SDK_LOG_DEBUG_F("debug", "%s %s%s", "no spaces", secret_02, "**");
+  OLP_SDK_LOG_INFO_F("info", "%s %s %s", secret_02, "several", secret_01);
+  OLP_SDK_LOG_WARNING_F("warning", "%s %s %s", secret_02, "twice", secret_02);
+  OLP_SDK_LOG_ERROR_F("error", "%s %s%s", "no loop", secret_mask, secret_mask);
+  OLP_SDK_LOG_FATAL_F("fatal", "%s %s", "Fatal", secret_02);
+
+  ASSERT_EQ(8U, appender->messages_.size());
+
+  EXPECT_EQ("Nothing to censor", appender->messages_[0].message_);
+  EXPECT_EQ("Inlined*****in message", appender->messages_[1].message_);
+  EXPECT_EQ("plain *****", appender->messages_[2].message_);
+  EXPECT_EQ("no spaces *******", appender->messages_[3].message_);
+  EXPECT_EQ("***** several *****", appender->messages_[4].message_);
+  EXPECT_EQ("***** twice *****", appender->messages_[5].message_);
+  EXPECT_EQ("no loop **********", appender->messages_[6].message_);
+  EXPECT_EQ("Fatal *****", appender->messages_[7].message_);
+
+  olp::logging::Log::removeCensor("not exisiting secret");
+  OLP_SDK_LOG_TRACE_F("trace", "%s %s", "plain", secret_01);
+  olp::logging::Log::removeCensor(secret_01);
+  OLP_SDK_LOG_TRACE_F("trace", "%s %s", "plain", secret_01);
+
+  ASSERT_EQ(10U, appender->messages_.size());
+
+  EXPECT_EQ("plain *****", appender->messages_[8].message_);
+  EXPECT_EQ("plain 1st secret", appender->messages_[9].message_);
+}
+
 TEST(LogTest, LogLimits) {
   auto appender = std::make_shared<testing::MockAppender>();
   olp::logging::Configuration configuration;
@@ -626,6 +681,22 @@ TEST(LogTest, LogLevelOff) {
   EXPECT_NE("LogTest_LogOff_Test::TestBody()",
             appender->messages_[index].function_);
   ++index;
+}
+
+TEST(LogTest, IsEnabled_ReturnsFalse_WhenLogLevelOff_) {
+  auto appender = std::make_shared<testing::MockAppender>();
+  olp::logging::Configuration configuration;
+  configuration.addAppender(appender);
+  EXPECT_TRUE(olp::logging::Log::configure(configuration));
+
+  EXPECT_FALSE(olp::logging::Log::isEnabled(olp::logging::Level::Off));
+  olp::logging::Log::setLevel(olp::logging::Level::Off);
+  EXPECT_FALSE(olp::logging::Log::isEnabled(olp::logging::Level::Off));
+
+  constexpr auto tag = "random tag";
+  EXPECT_FALSE(olp::logging::Log::isEnabled(olp::logging::Level::Off, tag));
+  olp::logging::Log::setLevel(olp::logging::Level::Off, tag);
+  EXPECT_FALSE(olp::logging::Log::isEnabled(olp::logging::Level::Off, tag));
 }
 
 TEST(LogTest, ReConfigure) {
