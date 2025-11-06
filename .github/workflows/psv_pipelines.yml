@@ -173,28 +173,8 @@ jobs:
       run: scripts/android/build.sh
       shell: bash
 
-  psv-macos-13-x86_64-xcode-15-build:
-    name: PSV.MacOS13.Xcode15.x86_64
-    runs-on: macOS-13
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-    - name: MacOS Build Xcode15
-      run: scripts/macos/psv/azure_macos_build_psv.sh
-      shell: bash
-
-  psv-macos-14-arm64-xcode-15-build:
-    name: PSV.MacOS14.Xcode15
-    runs-on: macos-14
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-    - name: MacOS Build Xcode15
-      run: scripts/macos/psv/azure_macos_build_psv.sh
-      shell: bash
-
   psv-macos-15-arm64-xcode-16-build:
-    name: PSV.MacOS15.Xcode16
+    name: PSV.MacOS15.Xcode16.ARM64
     runs-on: macos-15
     steps:
     - name: Check out repository
@@ -203,30 +183,20 @@ jobs:
       run: scripts/macos/psv/azure_macos_build_psv.sh
       shell: bash
 
-  psv-ios-x86_64-xcode-15-build:
-    name: PSV.iOS.MacOS13.Xcode15
-    runs-on: macOS-13
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-    - name: iOS Xcode 15 Build
-      run: scripts/ios/azure_ios_build_psv.sh
-      shell: bash
-
-  psv-ios-x86_64-xcode-14-build:
-    name: PSV.iOS.MacOS13.Xcode14
-    runs-on: macOS-13
+  psv-ios-arm64-xcode-26-build:
+    name: PSV.iOS.MacOS15.Xcode26.ARM64
+    runs-on: macos-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      - name: iOS Xcode 14.3 Build
+      - name: iOS Xcode 26 Build
         run: scripts/ios/azure_ios_build_psv.sh
         shell: bash
         env:
-          SELECT_XCODE_LOCATION: "/Applications/Xcode_14.3.app"
+          SELECT_XCODE_LOCATION: "/Applications/Xcode_26.0.app"
 
   psv-ios-os15-arm64-xcode-16-build:
-    name: PSV.iOS.MacOS15.Xcode16
+    name: PSV.iOS.MacOS15.Xcode16.ARM64
     runs-on: macOS-15
     steps:
     - name: Check out repository
@@ -234,11 +204,9 @@ jobs:
     - name: iOS Xcode 16 Build
       run: scripts/ios/azure_ios_build_psv.sh
       shell: bash
-      env:
-        SELECT_XCODE_LOCATION: "/Applications/Xcode_16.4.app"
 
   psv-ios-os14-arm64-xcode-15-build:
-    name: PSV.iOS.MacOS14.Xcode15
+    name: PSV.iOS.MacOS14.Xcode15.ARM64
     runs-on: macOS-14
     steps:
       - name: Check out repository
