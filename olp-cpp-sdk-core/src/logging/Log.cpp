@@ -80,7 +80,7 @@ class LogImpl {
                   unsigned int line, const char* function,
                   const char* fullFunction);
 
-  void addCensor(std::string msg);
+  void addCensor(const std::string& msg);
   void removeCensor(const std::string& msg);
 
  private:
@@ -228,11 +228,19 @@ void LogImpl::censorLogItem(LogItem& log_item, const std::string& original) {
   }
 }
 
-void LogImpl::addCensor(std::string msg) {
-  m_toCensor.emplace_back(std::move(msg));
+void LogImpl::addCensor(const std::string& msg) {
+  if (msg.empty()) {
+    return;
+  }
+
+  m_toCensor.emplace_back(msg);
 }
 
 void LogImpl::removeCensor(const std::string& msg) {
+  if (msg.empty()) {
+    return;
+  }
+
   auto it = std::find(m_toCensor.begin(), m_toCensor.end(), msg);
   if (it != m_toCensor.end()) {
     m_toCensor.erase(it);
