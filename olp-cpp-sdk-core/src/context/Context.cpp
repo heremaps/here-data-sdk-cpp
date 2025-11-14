@@ -31,13 +31,20 @@
 #undef max
 #elif defined(ANDROID) || defined(ANDROID_HOST)
 #include <jni.h>
+#ifdef OLP_SDK_ANDROID_AUTO_INITIALIZE_CARES
+#include <ares.h>
+#include <olp/core/logging/Log.h>
+#endif
 #endif
 
 #include "ContextInternal.h"
 
 namespace {
 std::atomic_flag gDeInitializing = ATOMIC_FLAG_INIT;
-}
+#ifdef OLP_SDK_ANDROID_AUTO_INITIALIZE_CARES
+constexpr auto kLogTag = "Context";
+#endif
+}  // namespace
 
 namespace olp {
 namespace context {
@@ -84,6 +91,11 @@ void Context::init() {
 void Context::deinit() {
 #if defined(ANDROID) || defined(ANDROID_HOST)
   auto cd = Instance();
+
+#ifdef OLP_SDK_ANDROID_AUTO_INITIALIZE_CARES
+  ares_library_cleanup();
+#endif
+
   // Release the global reference of Context.
   // Technically not needed if we took the application context,
   // but good to release just in case.
@@ -128,6 +140,34 @@ void Context::init(JavaVM* vm, jobject context) {
     assert(0);
   }
   cd->context = env->NewGlobalRef(context);
+
+#ifdef OLP_SDK_ANDROID_AUTO_INITIALIZE_CARES
+  {
+    OLP_SDK_LOG_INFO(kLogTag, "Auto-initializing C-ares");
+
+    ares_library_init_jvm(cd->java_vm);
+
+    jclass context_class = env->GetObjectClass(context);
+    jmethodID system_service_method =
+        env->GetMethodID(context_class, "getSystemService",
+                         "(Ljava/lang/String;)Ljava/lang/Object;");
+    jclass context_class_static = env->FindClass("android/content/Context");
+    jfieldID service_field = env->GetStaticFieldID(
+        context_class_static, "CONNECTIVITY_SERVICE", "Ljava/lang/String;");
+    jstring connectivity_service =
+        (jstring)env->GetStaticObjectField(context_class_static, service_field);
+    jobject connectivity_manager = env->CallObjectMethod(
+        context, system_service_method, connectivity_service);
+
+    if (connectivity_manager != NULL) {
+      ares_library_init_android(connectivity_manager);
+      OLP_SDK_LOG_INFO(kLogTag, "Successfuly auto-initialized C-ares");
+    } else {
+      OLP_SDK_LOG_WARNING(kLogTag, "Failed to auto-initialize C-ares");
+    }
+  }
+#endif
+
   initialize();
 }
 
