@@ -27,8 +27,8 @@
 #include <tuple>
 #include <vector>
 
+#include <olp/core/porting/any.h>
 #include <olp/core/utils/LruCache.h>
-#include <boost/any.hpp>
 
 namespace olp {
 namespace cache {
@@ -42,7 +42,7 @@ class InMemoryCache {
   static constexpr size_t kSizeMax = std::numeric_limits<std::size_t>::max();
   static constexpr time_t kExpiryMax = std::numeric_limits<time_t>::max();
 
-  using ItemTuple = std::tuple<std::string, time_t, boost::any, size_t>;
+  using ItemTuple = std::tuple<std::string, time_t, olp::porting::any, size_t>;
   using ItemTuples = std::vector<ItemTuple>;
   using TimeProvider = std::function<time_t()>;
   using ModelCacheCostFunc = std::function<std::size_t(const ItemTuple&)>;
@@ -70,10 +70,10 @@ class InMemoryCache {
                 ModelCacheCostFunc cache_cost = DefaultCacheCost(),
                 TimeProvider time_provider = DefaultTimeProvider());
 
-  bool Put(const std::string& key, const boost::any& item,
+  bool Put(const std::string& key, const olp::porting::any& item,
            time_t expire_seconds = kExpiryMax, size_t = 1u);
 
-  boost::any Get(const std::string& key);
+  olp::porting::any Get(const std::string& key);
   size_t Size() const;
   void Clear();
 

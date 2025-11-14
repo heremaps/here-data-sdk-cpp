@@ -140,7 +140,7 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyNotFound) {
 
   EXPECT_CALL(*cache_, Get(_, _))
       .Times(1)
-      .WillOnce(testing::Return(boost::any{}));
+      .WillOnce(testing::Return(olp::porting::any{}));
 
   ON_CALL(*network_, Send(_, _, _, _, _))
       .WillByDefault([](olp::http::NetworkRequest, olp::http::Network::Payload,
@@ -169,7 +169,7 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionCacheOnlyRequestWithMinVersion) {
 
   EXPECT_CALL(*cache_, Get(_, _))
       .Times(2)
-      .WillRepeatedly(testing::Return(boost::any{}));
+      .WillRepeatedly(testing::Return(olp::porting::any{}));
 
   ON_CALL(*network_, Send(_, _, _, _, _))
       .WillByDefault([](olp::http::NetworkRequest, olp::http::Network::Payload,
@@ -218,11 +218,11 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyNotFound) {
   ON_CALL(*cache_, Get(_, _))
       .WillByDefault([](const std::string&, const olp::cache::Decoder&) {
         ADD_FAILURE() << "Cache should not be used in OnlineOnly request";
-        return boost::any{};
+        return olp::porting::any{};
       });
 
   EXPECT_CALL(*cache_, Get(testing::Eq(kMetadataCacheKey), _))
-      .WillOnce(testing::Return(boost::any()));
+      .WillOnce(testing::Return(olp::porting::any()));
 
   EXPECT_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
       .Times(1)
@@ -247,11 +247,11 @@ TEST_F(CatalogRepositoryTest, GetLatestVersionOnlineOnlyFound) {
   ON_CALL(*cache_, Get(_, _))
       .WillByDefault([](const std::string&, const olp::cache::Decoder&) {
         ADD_FAILURE() << "Cache should not be used in OnlineOnly request";
-        return boost::any{};
+        return olp::porting::any{};
       });
 
   EXPECT_CALL(*cache_, Get(testing::Eq(kMetadataCacheKey), _))
-      .WillOnce(testing::Return(boost::any()));
+      .WillOnce(testing::Return(olp::porting::any()));
 
   EXPECT_CALL(*network_, Send(IsGetRequest(kLookupMetadata), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -411,7 +411,7 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyFound) {
   ON_CALL(*cache_, Get(_, _))
       .WillByDefault([](const std::string&, const olp::cache::Decoder&) {
         ADD_FAILURE() << "Cache should not be used in OnlineOnly request";
-        return boost::any{};
+        return olp::porting::any{};
       });
 
   ON_CALL(*network_, Send(IsGetRequest(kUrlLookupConfig), _, _, _, _))
@@ -437,7 +437,8 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineIfNotFound) {
   auto request = read::CatalogRequest();
   request.WithFetchOption(read::OnlineIfNotFound);
 
-  EXPECT_CALL(*cache_, Get(_, _)).WillRepeatedly(testing::Return(boost::any{}));
+  EXPECT_CALL(*cache_, Get(_, _))
+      .WillRepeatedly(testing::Return(olp::porting::any{}));
 
   EXPECT_CALL(*cache_,
               Put(testing::Eq(kCatalog + "::config::v1::api"), _, _, _))
@@ -517,7 +518,7 @@ TEST_F(CatalogRepositoryTest, GetCatalogCacheOnlyNotFound) {
 
   EXPECT_CALL(*cache_, Get(_, _))
       .Times(1)
-      .WillOnce(testing::Return(boost::any{}));
+      .WillOnce(testing::Return(olp::porting::any{}));
 
   ON_CALL(*network_, Send(_, _, _, _, _))
       .WillByDefault([](olp::http::NetworkRequest, olp::http::Network::Payload,
@@ -545,7 +546,7 @@ TEST_F(CatalogRepositoryTest, GetCatalogOnlineOnlyNotFound) {
   ON_CALL(*cache_, Get(_, _))
       .WillByDefault([](const std::string&, const olp::cache::Decoder&) {
         ADD_FAILURE() << "Cache should not be used in OnlineOnly request";
-        return boost::any{};
+        return olp::porting::any{};
       });
 
   EXPECT_CALL(*network_, Send(IsGetRequest(kUrlLookupConfig), _, _, _, _))

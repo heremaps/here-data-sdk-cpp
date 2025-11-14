@@ -42,7 +42,7 @@ bool DefaultCache::Clear() { return impl_->Clear(); }
 
 void DefaultCache::Compact() { return impl_->Compact(); }
 
-bool DefaultCache::Put(const std::string& key, const boost::any& value,
+bool DefaultCache::Put(const std::string& key, const olp::porting::any& value,
                        const Encoder& encoder, time_t expiry) {
   return impl_->Put(key, value, encoder, expiry);
 }
@@ -52,7 +52,8 @@ bool DefaultCache::Put(const std::string& key,
   return impl_->Put(key, value, expiry);
 }
 
-boost::any DefaultCache::Get(const std::string& key, const Decoder& decoder) {
+olp::porting::any DefaultCache::Get(const std::string& key,
+                                    const Decoder& decoder) {
   return impl_->Get(key, decoder);
 }
 

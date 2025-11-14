@@ -653,7 +653,7 @@ TEST_F(DataRepositoryTest, GetBlobDataFailedToCache) {
       .WillRepeatedly(testing::Return(olp::client::ApiError::CacheIO()));
 
   EXPECT_CALL(*cache_mock, Get(_, _))
-      .WillRepeatedly(testing::Return(boost::any()));
+      .WillRepeatedly(testing::Return(olp::porting::any()));
   EXPECT_CALL(*cache_mock, Get(_)).WillRepeatedly(testing::Return(nullptr));
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlLookup), _, _, _, _))
@@ -698,7 +698,7 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileFailedToCache) {
       .WillRepeatedly(testing::Return(olp::client::ApiError::CacheIO()));
 
   EXPECT_CALL(*cache_mock, Get(_, _))
-      .WillRepeatedly(testing::Return(boost::any()));
+      .WillRepeatedly(testing::Return(olp::porting::any()));
   EXPECT_CALL(*cache_mock, Get(_)).WillRepeatedly(testing::Return(nullptr));
 
   EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlLookup), _, _, _, _))

@@ -27,7 +27,7 @@ class KeyValueCacheTestable : public olp::cache::KeyValueCache {
       std::shared_ptr<olp::cache::KeyValueCache> base_cache)
       : base_cache_{std::move(base_cache)} {}
 
-  bool Put(const std::string& key, const boost::any& value,
+  bool Put(const std::string& key, const olp::porting::any& value,
            const olp::cache::Encoder& encoder, time_t expiry) override {
     return base_cache_->Put(key, value, encoder, expiry);
   }
@@ -37,8 +37,8 @@ class KeyValueCacheTestable : public olp::cache::KeyValueCache {
     return base_cache_->Put(key, value, expiry);
   }
 
-  boost::any Get(const std::string& key,
-                 const olp::cache::Decoder& encoder) override {
+  olp::porting::any Get(const std::string& key,
+                        const olp::cache::Decoder& encoder) override {
     return base_cache_->Get(key, encoder);
   }
 
@@ -97,8 +97,8 @@ class KeyValueCacheTestable : public olp::cache::KeyValueCache {
 struct CacheWithPutErrors : public KeyValueCacheTestable {
   using KeyValueCacheTestable::KeyValueCacheTestable;
 
-  bool Put(const std::string&, const boost::any&, const olp::cache::Encoder&,
-           time_t) override {
+  bool Put(const std::string&, const olp::porting::any&,
+           const olp::cache::Encoder&, time_t) override {
     return false;
   }
 

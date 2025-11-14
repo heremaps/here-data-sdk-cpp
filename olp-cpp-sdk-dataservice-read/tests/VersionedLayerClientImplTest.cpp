@@ -1514,7 +1514,7 @@ TEST(VersionedLayerClientTest, PropagateAllCacheErrors) {
         .WillRepeatedly(testing::Return(olp::client::ApiError::CacheIO()));
 
     EXPECT_CALL(*cache_mock, Get(_, _))
-        .WillRepeatedly(testing::Return(boost::any()));
+        .WillRepeatedly(testing::Return(olp::porting::any()));
     EXPECT_CALL(*cache_mock, Get(_)).WillRepeatedly(testing::Return(nullptr));
     EXPECT_CALL(*cache_mock, Read(_))
         .WillRepeatedly(testing::Return(olp::client::ApiError::NotFound()));
@@ -1569,7 +1569,7 @@ TEST(VersionedLayerClientTest, PropagateAllCacheErrors) {
         .WillRepeatedly(testing::Return(olp::client::ApiError::CacheIO()));
 
     EXPECT_CALL(*cache_mock, Get(_, _))
-        .WillRepeatedly(testing::Return(boost::any()));
+        .WillRepeatedly(testing::Return(olp::porting::any()));
     EXPECT_CALL(*cache_mock, Get(_)).WillRepeatedly(testing::Return(nullptr));
     EXPECT_CALL(*cache_mock, Read(_))
         .WillRepeatedly(testing::Return(olp::client::ApiError::NotFound()));

@@ -77,7 +77,7 @@ TEST(ApiClientLookupTest, LookupApi) {
     SCOPED_TRACE("Fetch from cache [CacheOnly] negative");
     EXPECT_CALL(*cache, Get(cache_key, _))
         .Times(1)
-        .WillOnce(Return(boost::any()));
+        .WillOnce(Return(olp::porting::any()));
 
     client::CancellationContext context;
     auto response = read::ApiClientLookup::LookupApi(
@@ -251,7 +251,7 @@ TEST(ApiClientLookupTest, LookupApiConcurrent) {
 
   testing::InSequence s;
 
-  EXPECT_CALL(*cache, Get(cache_key, _)).WillOnce(Return(boost::any()));
+  EXPECT_CALL(*cache, Get(cache_key, _)).WillOnce(Return(olp::porting::any()));
   EXPECT_CALL(*network, Send(IsGetRequest(lookup_url), _, _, _, _))
       .Times(1)
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(

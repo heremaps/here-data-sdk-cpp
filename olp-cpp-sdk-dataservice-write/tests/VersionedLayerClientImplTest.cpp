@@ -139,7 +139,8 @@ TEST_F(VersionedLayerClientImplTest, StartBatch) {
     // mock apis caching
     EXPECT_CALL(*cache_, Get(_, _)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
-        .WillOnce([](const std::string& /*key*/, const boost::any& /*value*/,
+        .WillOnce([](const std::string& /*key*/,
+                     const olp::porting::any& /*value*/,
                      const olp::cache::Encoder& /*encoder*/,
                      time_t /*expiry*/) { return true; });
 
@@ -176,7 +177,8 @@ TEST_F(VersionedLayerClientImplTest, StartBatch) {
     // mock apis caching
     EXPECT_CALL(*cache_, Get(_, _)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
-        .WillOnce([](const std::string& /*key*/, const boost::any& /*value*/,
+        .WillOnce([](const std::string& /*key*/,
+                     const olp::porting::any& /*value*/,
                      const olp::cache::Encoder& /*encoder*/,
                      time_t /*expiry*/) { return true; });
 
@@ -444,7 +446,8 @@ TEST_F(VersionedLayerClientImplTest, CompleteBatch) {
     // mock apis caching
     EXPECT_CALL(*cache_, Get(_, _)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
-        .WillOnce([](const std::string& /*key*/, const boost::any& /*value*/,
+        .WillOnce([](const std::string& /*key*/,
+                     const olp::porting::any& /*value*/,
                      const olp::cache::Encoder& /*encoder*/,
                      time_t /*expiry*/) { return true; });
 
@@ -475,7 +478,8 @@ TEST_F(VersionedLayerClientImplTest, CompleteBatch) {
     // mock apis caching
     EXPECT_CALL(*cache_, Get(_, _)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
-        .WillOnce([](const std::string& /*key*/, const boost::any& /*value*/,
+        .WillOnce([](const std::string& /*key*/,
+                     const olp::porting::any& /*value*/,
                      const olp::cache::Encoder& /*encoder*/,
                      time_t /*expiry*/) { return true; });
 
