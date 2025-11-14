@@ -158,7 +158,7 @@ class CORE_API DefaultCache : public KeyValueCache {
    *
    * @return True if the operation is successful; false otherwise.
    */
-  bool Put(const std::string& key, const boost::any& value,
+  bool Put(const std::string& key, const olp::porting::any& value,
            const Encoder& encoder, time_t expiry) override;
 
   /**
@@ -181,7 +181,8 @@ class CORE_API DefaultCache : public KeyValueCache {
    *
    * @return The key-value pair.
    */
-  boost::any Get(const std::string& key, const Decoder& decoder) override;
+  olp::porting::any Get(const std::string& key,
+                        const Decoder& decoder) override;
 
   /**
    * @brief Gets the key and binary data from the cache.

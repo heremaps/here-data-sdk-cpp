@@ -131,6 +131,7 @@ cmake --build . --target docs
 | `OLP_SDK_BUILD_EXTERNAL_DEPS` | Defaults to `ON`. If enabled, CMake downloads and compiles dependencies. |
 | `OLP_SDK_NO_EXCEPTION` | Defaults to `OFF`. If enabled, all libraries are built without exceptions. |
 | `OLP_SDK_USE_STD_OPTIONAL` | Defaults to `OFF`. If enabled, all libraries are built with std::optional type instead of boost::optional for C++17 and above. |
+| `OLP_SDK_USE_STD_ANY` | Defaults to `OFF`. If enabled, all libraries are built with std::any type instead of boost::any for C++17 and above. |
 | `OLP_SDK_BOOST_THROW_EXCEPTION_EXTERNAL` | Defaults to `OFF`. When `OLP_SDK_NO_EXCEPTION` is `ON`, `boost` requires `boost::throw_exception()` to be defined. If enabled, the external definition of `boost::throw_exception()` is used. Otherwise, the library uses own definition. |
 | `OLP_SDK_MSVC_PARALLEL_BUILD_ENABLE` (Windows Only) | Defaults to `ON`. If enabled, the `/MP` compilation flag is added to build the Data SDK using multiple cores. |
 | `OLP_SDK_DISABLE_DEBUG_LOGGING`| Defaults to `OFF`. If enabled, the debug and trace level log messages are not printed. |

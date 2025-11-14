@@ -128,6 +128,7 @@ set(OLP_SDK_PLATFORM_HEADERS
 )
 
 set(OLP_SDK_PORTING_HEADERS
+    ./include/olp/core/porting/any.h
     ./include/olp/core/porting/deprecated.h
     ./include/olp/core/porting/export.h
     ./include/olp/core/porting/make_unique.h
@@ -448,6 +449,11 @@ endif()
 if (OLP_SDK_USE_STD_OPTIONAL)
     target_compile_definitions(${PROJECT_NAME}
         PUBLIC OLP_CPP_SDK_USE_STD_OPTIONAL)
+endif()
+
+if (OLP_SDK_USE_STD_ANY)
+    target_compile_definitions(${PROJECT_NAME}
+        PUBLIC OLP_SDK_USE_STD_ANY)
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC

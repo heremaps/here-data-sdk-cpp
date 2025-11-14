@@ -3349,7 +3349,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, CheckLookupApiCacheExpiration) {
                           "v2::query::v1::api",
                           _))
       .Times(1)
-      .WillOnce(Return(boost::any()));
+      .WillOnce(Return(olp::porting::any()));
   EXPECT_CALL(*cache, Put("hrn:here:data::olp-here-test:hereos-internal-test-"
                           "v2::query::v1::api",
                           _, _, expiration_time))

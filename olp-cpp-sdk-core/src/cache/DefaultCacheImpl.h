@@ -51,10 +51,10 @@ class DefaultCacheImpl {
   bool Put(const std::string& key, const KeyValueCache::ValueTypePtr value,
            time_t expiry);
 
-  bool Put(const std::string& key, const boost::any& value,
+  bool Put(const std::string& key, const olp::porting::any& value,
            const Encoder& encoder, time_t expiry);
 
-  boost::any Get(const std::string& key, const Decoder& decoder);
+  olp::porting::any Get(const std::string& key, const Decoder& decoder);
 
   DefaultCache::ValueTypePtr Get(const std::string& key);
 

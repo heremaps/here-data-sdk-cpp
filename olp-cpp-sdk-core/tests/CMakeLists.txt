@@ -61,6 +61,8 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./logging/MessageFormatterTest.cpp
     ./logging/MockAppender.cpp
 
+    ./porting/AnyTest.cpp
+
     ./thread/ContinuationTest.cpp
     ./thread/ExecutionContextTest.cpp
     ./thread/PriorityQueueExtendedTest.cpp

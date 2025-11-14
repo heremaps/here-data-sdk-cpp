@@ -33,7 +33,7 @@ class CacheMock : public olp::cache::KeyValueCache {
   ~CacheMock() override;
 
   MOCK_METHOD(bool, Put,
-              (const std::string&, const boost::any&,
+              (const std::string&, const olp::porting::any&,
                const olp::cache::Encoder&, time_t),
               (override));
 
@@ -43,8 +43,8 @@ class CacheMock : public olp::cache::KeyValueCache {
                time_t expiry),
               (override));
 
-  MOCK_METHOD(boost::any, Get, (const std::string&, const olp::cache::Decoder&),
-              (override));
+  MOCK_METHOD(olp::porting::any, Get,
+              (const std::string&, const olp::cache::Decoder&), (override));
 
   MOCK_METHOD(std::shared_ptr<std::vector<unsigned char>>, Get,
               (const std::string&), (override));

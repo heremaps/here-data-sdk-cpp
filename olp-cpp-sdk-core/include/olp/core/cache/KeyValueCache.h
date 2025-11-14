@@ -30,14 +30,14 @@
 #include <olp/core/client/ApiError.h>
 #include <olp/core/client/ApiNoResult.h>
 #include <olp/core/client/ApiResponse.h>
+#include <olp/core/porting/any.h>
 #include <olp/core/utils/WarningWorkarounds.h>
-#include <boost/any.hpp>
 
 namespace olp {
 namespace cache {
 
 using Encoder = std::function<std::string()>;
-using Decoder = std::function<boost::any(const std::string&)>;
+using Decoder = std::function<olp::porting::any(const std::string&)>;
 
 template <typename Result>
 using OperationOutcome = client::ApiResponse<Result, client::ApiError>;
@@ -74,7 +74,7 @@ class CORE_API KeyValueCache {
    *
    * @return True if the operation is successful; false otherwise.
    */
-  virtual bool Put(const std::string& key, const boost::any& value,
+  virtual bool Put(const std::string& key, const olp::porting::any& value,
                    const Encoder& encoder, time_t expiry = kDefaultExpiry) = 0;
 
   /**
@@ -97,7 +97,8 @@ class CORE_API KeyValueCache {
    *
    * @return The key-value pair.
    */
-  virtual boost::any Get(const std::string& key, const Decoder& encoder) = 0;
+  virtual olp::porting::any Get(const std::string& key,
+                                const Decoder& encoder) = 0;
 
   /**
    * @brief Gets the key and binary data from the cache.
