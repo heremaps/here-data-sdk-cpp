@@ -18,6 +18,7 @@
  */
 
 #include <chrono>
+#include <fstream>
 #include <thread>
 
 #include <gtest/gtest.h>
@@ -31,6 +32,10 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #undef max
+#else
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #endif
 
 #include "Helpers.h"
@@ -1399,21 +1404,23 @@ class DefaultCacheImplOpenTest
       public testing::WithParamInterface<OpenTestParameters> {};
 
 TEST_P(DefaultCacheImplOpenTest, ReadOnlyDir) {
-  const auto setup_dir = [&](const olp::porting::optional<std::string>& cache_path) {
-    if (cache_path) {
-      if (olp::utils::Dir::Exists(*cache_path)) {
-        ASSERT_TRUE(olp::utils::Dir::Remove(*cache_path));
-      }
-      ASSERT_TRUE(olp::utils::Dir::Create(*cache_path));
-      ASSERT_TRUE(SetRights(*cache_path, true));
-    }
-  };
+  const auto setup_dir =
+      [&](const olp::porting::optional<std::string>& cache_path) {
+        if (cache_path) {
+          if (olp::utils::Dir::Exists(*cache_path)) {
+            ASSERT_TRUE(olp::utils::Dir::Remove(*cache_path));
+          }
+          ASSERT_TRUE(olp::utils::Dir::Create(*cache_path));
+          ASSERT_TRUE(SetRights(*cache_path, true));
+        }
+      };
 
-  const auto reset_dir = [&](const olp::porting::optional<std::string>& cache_path) {
-    if (cache_path) {
-      ASSERT_TRUE(olp::utils::Dir::Remove(*cache_path));
-    }
-  };
+  const auto reset_dir =
+      [&](const olp::porting::optional<std::string>& cache_path) {
+        if (cache_path) {
+          ASSERT_TRUE(olp::utils::Dir::Remove(*cache_path));
+        }
+      };
 
   const OpenTestParameters test_params = GetParam();
 
@@ -1446,5 +1453,96 @@ std::vector<OpenTestParameters> DefaultCacheImplOpenParams() {
 
 INSTANTIATE_TEST_SUITE_P(, DefaultCacheImplOpenTest,
                          testing::ValuesIn(DefaultCacheImplOpenParams()));
+
+TEST_F(DefaultCacheImplTest, ProtectedCacheIOErrorFallbackToReadOnly) {
+  SCOPED_TRACE("IOError fallback to read-only for protected cache");
+
+  const std::string ioerror_path =
+      olp::utils::Dir::TempDirectory() + "/unittest_ioerror_fallback";
+
+  if (olp::utils::Dir::Exists(ioerror_path)) {
+    helpers::MakeDirectoryAndContentReadonly(ioerror_path, false);
+    ASSERT_TRUE(olp::utils::Dir::Remove(ioerror_path));
+  }
+
+  ASSERT_TRUE(olp::utils::Dir::Create(ioerror_path));
+
+  {
+    cache::CacheSettings temp_settings;
+    temp_settings.disk_path_protected = ioerror_path;
+    DefaultCacheImplHelper temp_cache(temp_settings);
+    ASSERT_EQ(temp_cache.Open(),
+              cache::DefaultCache::StorageOpenResult::Success);
+    temp_cache.Close();
+  }
+
+  // Make all the database files read-only, but keep directory writable.
+  // This way Dir::IsReadOnly(directory) returns false (directory is writable),
+  // but LevelDB gets IOError when trying to write to the read-only DB files.
+#ifndef _WIN32
+  DIR* dir = opendir(ioerror_path.c_str());
+  ASSERT_TRUE(dir != nullptr);
+  struct dirent* entry;
+  while ((entry = readdir(dir)) != nullptr) {
+    if (entry->d_type == DT_REG) {
+      std::string file_path = ioerror_path + "/" + entry->d_name;
+      if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+        continue;
+      ASSERT_EQ(chmod(file_path.c_str(), S_IRUSR | S_IRGRP | S_IROTH), 0);
+    }
+  }
+  closedir(dir);
+
+  chmod(ioerror_path.c_str(),
+        S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+#else
+  WIN32_FIND_DATAA find_data;
+  HANDLE hFind = FindFirstFileA((ioerror_path + "\\*").c_str(), &find_data);
+  ASSERT_NE(hFind, INVALID_HANDLE_VALUE);
+
+  do {
+    if (strcmp(find_data.cFileName, ".") == 0 ||
+        strcmp(find_data.cFileName, "..") == 0) {
+      continue;
+    }
+    if ((find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
+      // It's a file, make it read-only
+      std::string file_path = ioerror_path + "\\" + find_data.cFileName;
+      DWORD attrs = GetFileAttributesA(file_path.c_str());
+      ASSERT_NE(attrs, INVALID_FILE_ATTRIBUTES);
+      ASSERT_TRUE(SetFileAttributesA(file_path.c_str(),
+                                     attrs | FILE_ATTRIBUTE_READONLY));
+    }
+  } while (FindNextFileA(hFind, &find_data));
+  FindClose(hFind);
+
+  // Ensure directory itself is not read-only (keep it writable)
+  DWORD dir_attrs = GetFileAttributesA(ioerror_path.c_str());
+  ASSERT_NE(dir_attrs, INVALID_FILE_ATTRIBUTES);
+  if (dir_attrs & FILE_ATTRIBUTE_READONLY) {
+    ASSERT_TRUE(SetFileAttributesA(ioerror_path.c_str(),
+                                   dir_attrs & ~FILE_ATTRIBUTE_READONLY));
+  }
+#endif
+  ASSERT_FALSE(olp::utils::Dir::IsReadOnly(ioerror_path));
+
+  cache::CacheSettings settings;
+  settings.disk_path_protected = ioerror_path;
+  settings.openOptions = cache::OpenOptions::Default;
+  DefaultCacheImplHelper cache(settings);
+
+  // Open should attempt R/W first, get IOError because files are read-only,
+  // then retry in read-only mode.
+  auto open_result = cache.Open();
+  EXPECT_TRUE(
+      open_result == cache::DefaultCache::StorageOpenResult::Success ||
+      open_result ==
+          cache::DefaultCache::StorageOpenResult::ProtectedCacheCorrupted ||
+      open_result ==
+          cache::DefaultCache::StorageOpenResult::OpenDiskPathFailure);
+
+  helpers::MakeDirectoryAndContentReadonly(ioerror_path, false);
+  ASSERT_TRUE(olp::utils::Dir::Remove(ioerror_path));
+}
 
 }  // namespace

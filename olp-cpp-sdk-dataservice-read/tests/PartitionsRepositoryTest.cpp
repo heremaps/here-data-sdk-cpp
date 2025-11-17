@@ -205,7 +205,7 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
     ON_CALL(*cache, Get(_, _))
         .WillByDefault([](const std::string&, const cache::Decoder&) {
           ADD_FAILURE() << "Cache should not be used in OnlineOnly request";
-          return boost::any{};
+          return olp::porting::any{};
         });
   };
 
@@ -1011,7 +1011,7 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
                                          olp::http::HttpStatusCode::OK),
                                      kSubQuadsWithParent));
     EXPECT_CALL(*mock_cache, Get(_, _))
-        .WillOnce(Return(boost::any(kUrlQueryApi)));
+        .WillOnce(Return(olp::porting::any(kUrlQueryApi)));
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
     EXPECT_CALL(*mock_cache, Write(_, _, _))
@@ -1051,7 +1051,7 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
                                      kSubQuads));
-    EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(boost::any()));
+    EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(olp::porting::any()));
     EXPECT_CALL(*mock_cache, Put(_, _, _, _)).WillOnce(Return(true));
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
@@ -1117,7 +1117,7 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::BAD_REQUEST),
                                kErrorServiceUnavailable));
-    EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(boost::any()));
+    EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(olp::porting::any()));
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
 
@@ -1158,7 +1158,7 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                    olp::http::HttpStatusCode::BAD_REQUEST),
                                kErrorServiceUnavailable));
-    EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(boost::any()));
+    EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(olp::porting::any()));
     EXPECT_CALL(*mock_cache, Put(_, _, _, _)).WillOnce(Return(true));
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
@@ -1199,7 +1199,7 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
                                      kInvalidJson));
-    EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(boost::any()));
+    EXPECT_CALL(*mock_cache, Get(_, _)).WillOnce(Return(olp::porting::any()));
     EXPECT_CALL(*mock_cache, Put(_, _, _, _)).WillOnce(Return(true));
     EXPECT_CALL(*mock_cache, Get(_))
         .WillRepeatedly(Return(KeyValueCache::ValueTypePtr()));
@@ -1744,7 +1744,8 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitionsBatch_MockedCache) {
         settings.network_request_handler = mock_network;
         settings.retry_settings.timeout = 1;
 
-        EXPECT_CALL(*cache, Get(_, _)).WillRepeatedly(Return(boost::any{}));
+        EXPECT_CALL(*cache, Get(_, _))
+            .WillRepeatedly(Return(olp::porting::any{}));
         EXPECT_CALL(*cache, Put(Eq(kCacheKeyMetadata), _, _, _))
             .WillRepeatedly(Return(true));
         EXPECT_CALL(*cache, Read(_))
@@ -1985,7 +1986,7 @@ TEST_F(PartitionsRepositoryTest, StreamPartitions) {
     auto async_stream = std::make_shared<repository::AsyncJsonStream>();
     client::CancellationContext context;
 
-    EXPECT_CALL(*cache, Get(_, _)).WillOnce(Return(boost::any()));
+    EXPECT_CALL(*cache, Get(_, _)).WillOnce(Return(olp::porting::any()));
     EXPECT_CALL(*network, Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
         .WillOnce(
             ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -2008,7 +2009,7 @@ TEST_F(PartitionsRepositoryTest, StreamPartitions) {
     auto async_stream = std::make_shared<repository::AsyncJsonStream>();
     client::CancellationContext context;
 
-    EXPECT_CALL(*cache, Get(_, _)).WillOnce(Return(boost::any()));
+    EXPECT_CALL(*cache, Get(_, _)).WillOnce(Return(olp::porting::any()));
     EXPECT_CALL(*network, Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
@@ -2054,7 +2055,7 @@ TEST_F(PartitionsRepositoryTest, StreamPartitions) {
     auto async_stream = std::make_shared<repository::AsyncJsonStream>();
     client::CancellationContext context;
 
-    EXPECT_CALL(*cache, Get(_, _)).WillOnce(Return(boost::any()));
+    EXPECT_CALL(*cache, Get(_, _)).WillOnce(Return(olp::porting::any()));
     EXPECT_CALL(*network, Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
         .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
                                          olp::http::HttpStatusCode::OK),
@@ -2149,7 +2150,7 @@ TEST_F(PartitionsRepositoryTest_GetPartitionById,
   EXPECT_CALL(*cache_, Read(cache_key_))
       .WillOnce(Return(client::ApiError::NotFound()));
   EXPECT_CALL(*cache_, Get(Eq(kCacheKeyMetadata), _))
-      .WillOnce(Return(boost::any{}));
+      .WillOnce(Return(olp::porting::any{}));
 
   EXPECT_CALL(*network_, Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
@@ -2194,7 +2195,7 @@ TEST_F(PartitionsRepositoryTest_GetPartitionById,
       .WillOnce(Return(client::ApiError::NotFound()))
       .WillOnce(Return(response_data));
   EXPECT_CALL(*cache_, Get(Eq(kCacheKeyMetadata), _))
-      .WillOnce(Return(boost::any{}));
+      .WillOnce(Return(olp::porting::any{}));
 
   EXPECT_CALL(*network_, Send(IsGetRequest(kOlpSdkUrlLookupQuery), _, _, _, _))
       .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(

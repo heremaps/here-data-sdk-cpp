@@ -104,7 +104,7 @@ TEST_F(ApiLookupClientImplTest, LookupApi) {
     SCOPED_TRACE("Fetch from cache [CacheOnly] negative");
     EXPECT_CALL(*cache_, Get(cache_key, _))
         .Times(1)
-        .WillOnce(Return(boost::any()));
+        .WillOnce(Return(olp::porting::any()));
 
     client::CancellationContext context;
     client::ApiLookupClientImpl client(catalog_hrn, settings_);
@@ -154,7 +154,7 @@ TEST_F(ApiLookupClientImplTest, LookupApi) {
         .WillRepeatedly(Return(true));
     EXPECT_CALL(*cache_, Get(cache_key, _))
         .Times(1)
-        .WillOnce(Return(boost::any()));
+        .WillOnce(Return(olp::porting::any()));
 
     client::CancellationContext context;
     client::ApiLookupClientImpl client(catalog_hrn, settings_);
@@ -183,7 +183,9 @@ TEST_F(ApiLookupClientImplTest, LookupApi) {
     EXPECT_CALL(*cache_, Put(_, _, _, expiry))
         .Times(3)
         .WillRepeatedly(Return(true));
-    EXPECT_CALL(*cache_, Get(_, _)).Times(1).WillOnce(Return(boost::any()));
+    EXPECT_CALL(*cache_, Get(_, _))
+        .Times(1)
+        .WillOnce(Return(olp::porting::any()));
 
     client::CancellationContext context;
     client::ApiLookupClientImpl client(catalog_hrn, settings_);
@@ -368,7 +370,9 @@ TEST_F(ApiLookupClientImplTest, LookupApi) {
                                          olp::http::HttpStatusCode::OK),
                                      kResponseLookupResource));
 
-    EXPECT_CALL(*cache_, Get(_, _)).Times(1).WillOnce(Return(boost::any()));
+    EXPECT_CALL(*cache_, Get(_, _))
+        .Times(1)
+        .WillOnce(Return(olp::porting::any()));
 
     // Response contains three services that are cached independently.
     EXPECT_CALL(*cache_, Put(_, _, _, _)).Times(3);
@@ -569,7 +573,7 @@ TEST_F(ApiLookupClientImplTest, LookupApiAsync) {
     SCOPED_TRACE("Fetch from cache [CacheOnly] negative");
     EXPECT_CALL(*cache_, Get(cache_key, _))
         .Times(1)
-        .WillOnce(Return(boost::any()));
+        .WillOnce(Return(olp::porting::any()));
 
     std::promise<client::ApiLookupClient::LookupApiResponse> promise;
     auto future = promise.get_future();
@@ -631,7 +635,7 @@ TEST_F(ApiLookupClientImplTest, LookupApiAsync) {
         .WillRepeatedly(Return(true));
     EXPECT_CALL(*cache_, Get(cache_key, _))
         .Times(1)
-        .WillOnce(Return(boost::any()));
+        .WillOnce(Return(olp::porting::any()));
 
     std::promise<client::ApiLookupClient::LookupApiResponse> promise;
     auto future = promise.get_future();
@@ -665,7 +669,9 @@ TEST_F(ApiLookupClientImplTest, LookupApiAsync) {
     EXPECT_CALL(*cache_, Put(_, _, _, expiry))
         .Times(3)
         .WillRepeatedly(Return(true));
-    EXPECT_CALL(*cache_, Get(_, _)).Times(1).WillOnce(Return(boost::any()));
+    EXPECT_CALL(*cache_, Get(_, _))
+        .Times(1)
+        .WillOnce(Return(olp::porting::any()));
 
     std::promise<client::ApiLookupClient::LookupApiResponse> promise;
     auto future = promise.get_future();
@@ -803,7 +809,9 @@ TEST_F(ApiLookupClientImplTest, LookupApiAsync) {
                                          olp::http::HttpStatusCode::OK),
                                      kResponseLookupResource));
 
-    EXPECT_CALL(*cache_, Get(_, _)).Times(1).WillOnce(Return(boost::any()));
+    EXPECT_CALL(*cache_, Get(_, _))
+        .Times(1)
+        .WillOnce(Return(olp::porting::any()));
 
     // Response contains three services that are cached independently.
     EXPECT_CALL(*cache_, Put(_, _, _, _)).Times(3);

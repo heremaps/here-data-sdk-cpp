@@ -273,7 +273,8 @@ void DefaultCacheImpl::Compact() {
   }
 }
 
-bool DefaultCacheImpl::Put(const std::string& key, const boost::any& value,
+bool DefaultCacheImpl::Put(const std::string& key,
+                           const olp::porting::any& value,
                            const Encoder& encoder, time_t expiry) {
   std::lock_guard<std::mutex> lock(cache_lock_);
   if (!is_open_) {
@@ -301,11 +302,11 @@ bool DefaultCacheImpl::Put(const std::string& key,
   return Write(key, value, expiry).IsSuccessful();
 }
 
-boost::any DefaultCacheImpl::Get(const std::string& key,
-                                 const Decoder& decoder) {
+olp::porting::any DefaultCacheImpl::Get(const std::string& key,
+                                        const Decoder& decoder) {
   std::lock_guard<std::mutex> lock(cache_lock_);
   if (!is_open_) {
-    return boost::any();
+    return olp::porting::any();
   }
 
   if (memory_cache_) {
@@ -329,7 +330,7 @@ boost::any DefaultCacheImpl::Get(const std::string& key,
     return decoded_item;
   }
 
-  return boost::any();
+  return olp::porting::any();
 }
 
 KeyValueCache::ValueTypePtr DefaultCacheImpl::Get(const std::string& key) {
@@ -784,10 +785,9 @@ DefaultCache::StorageOpenResult DefaultCacheImpl::SetupProtectedCache() {
         settings_.disk_path_protected->c_str());
 
     open_mode = static_cast<OpenOptions>(open_mode | OpenOptions::ReadOnly);
-    status =
-        protected_cache_->Open(*settings_.disk_path_protected,
-                               *settings_.disk_path_protected,
-                               protected_storage_settings, open_mode, false);
+    status = protected_cache_->Open(
+        *settings_.disk_path_protected, *settings_.disk_path_protected,
+        protected_storage_settings, open_mode, false);
   }
 
   if (status != OpenResult::Success) {
@@ -1068,7 +1068,7 @@ OperationOutcome<KeyValueCache::ValueTypePtr> DefaultCacheImpl::Read(
     auto value = memory_cache_->Get(key);
     if (!value.empty()) {
       PromoteKeyLru(key);
-      return boost::any_cast<KeyValueCache::ValueTypePtr>(value);
+      return olp::porting::any_cast<KeyValueCache::ValueTypePtr>(value);
     }
   }
 

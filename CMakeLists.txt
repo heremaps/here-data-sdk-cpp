@@ -38,6 +38,7 @@ option(OLP_SDK_ENABLE_TESTING "Flag to enable/disable building unit and integrat
 option(OLP_SDK_BUILD_DOC "Build SDK documentation" OFF)
 option(OLP_SDK_NO_EXCEPTION "Disable exception handling" OFF)
 option(OLP_SDK_USE_STD_OPTIONAL "Use std::optional instead of boost::optional with C++17 and above" OFF)
+option(OLP_SDK_USE_STD_ANY "Use std::any instead of boost::any with C++17 and above" OFF)
 option(OLP_SDK_BOOST_THROW_EXCEPTION_EXTERNAL "The boost::throw_exception() is defined externally" OFF)
 option(OLP_SDK_BUILD_EXTERNAL_DEPS "Download and build external dependencies" ON)
 option(OLP_SDK_BUILD_EXAMPLES "Enable examples targets" OFF)

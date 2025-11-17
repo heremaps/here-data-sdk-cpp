@@ -202,7 +202,7 @@ TEST_F(VersionedLayerClientImplPublishToBatchTest, PublishToBatch) {
     EXPECT_CALL(*cache_, Contains(_)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
         .WillRepeatedly([](const std::string& /*key*/,
-                           const boost::any& /*value*/,
+                           const olp::porting::any& /*value*/,
                            const olp::cache::Encoder& /*encoder*/,
                            time_t /*expiry*/) { return true; });
 
@@ -234,7 +234,7 @@ TEST_F(VersionedLayerClientImplPublishToBatchTest, PublishToBatch) {
     EXPECT_CALL(*cache_, Contains(_)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
         .WillRepeatedly([](const std::string& /*key*/,
-                           const boost::any& /*value*/,
+                           const olp::porting::any& /*value*/,
                            const olp::cache::Encoder& /*encoder*/,
                            time_t /*expiry*/) { return true; });
 
@@ -311,7 +311,7 @@ TEST_F(VersionedLayerClientImplPublishToBatchTest, PublishToBatch) {
     EXPECT_CALL(*cache_, Contains(_)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
         .WillRepeatedly([](const std::string& /*key*/,
-                           const boost::any& /*value*/,
+                           const olp::porting::any& /*value*/,
                            const olp::cache::Encoder& /*encoder*/,
                            time_t /*expiry*/) { return true; });
 
@@ -344,7 +344,7 @@ TEST_F(VersionedLayerClientImplPublishToBatchTest, PublishToBatch) {
     EXPECT_CALL(*cache_, Contains(_)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
         .WillRepeatedly([](const std::string& /*key*/,
-                           const boost::any& /*value*/,
+                           const olp::porting::any& /*value*/,
                            const olp::cache::Encoder& /*encoder*/,
                            time_t /*expiry*/) { return true; });
 
@@ -368,7 +368,7 @@ TEST_F(VersionedLayerClientImplPublishToBatchTest, PublishToBatch) {
     EXPECT_CALL(*cache_, Contains(_)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
         .WillRepeatedly([](const std::string& /*key*/,
-                           const boost::any& /*value*/,
+                           const olp::porting::any& /*value*/,
                            const olp::cache::Encoder& /*encoder*/,
                            time_t /*expiry*/) { return true; });
 
@@ -408,7 +408,7 @@ TEST_F(VersionedLayerClientImplPublishToBatchTest, NetworkErrors) {
     EXPECT_CALL(*cache_, Contains(_)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
         .WillRepeatedly([](const std::string& /*key*/,
-                           const boost::any& /*value*/,
+                           const olp::porting::any& /*value*/,
                            const olp::cache::Encoder& /*encoder*/,
                            time_t /*expiry*/) { return true; });
 
@@ -440,7 +440,7 @@ TEST_F(VersionedLayerClientImplPublishToBatchTest, NetworkErrors) {
     EXPECT_CALL(*cache_, Contains(_)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
         .WillRepeatedly([](const std::string& /*key*/,
-                           const boost::any& /*value*/,
+                           const olp::porting::any& /*value*/,
                            const olp::cache::Encoder& /*encoder*/,
                            time_t /*expiry*/) { return true; });
 
@@ -471,7 +471,7 @@ TEST_F(VersionedLayerClientImplPublishToBatchTest, NetworkErrors) {
     EXPECT_CALL(*cache_, Contains(_)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
         .WillRepeatedly([](const std::string& /*key*/,
-                           const boost::any& /*value*/,
+                           const olp::porting::any& /*value*/,
                            const olp::cache::Encoder& /*encoder*/,
                            time_t /*expiry*/) { return true; });
 
@@ -502,7 +502,7 @@ TEST_F(VersionedLayerClientImplPublishToBatchTest, NetworkErrors) {
     EXPECT_CALL(*cache_, Contains(_)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
         .WillRepeatedly([](const std::string& /*key*/,
-                           const boost::any& /*value*/,
+                           const olp::porting::any& /*value*/,
                            const olp::cache::Encoder& /*encoder*/,
                            time_t /*expiry*/) { return true; });
 
@@ -532,7 +532,7 @@ TEST_F(VersionedLayerClientImplPublishToBatchTest, NetworkErrors) {
     EXPECT_CALL(*cache_, Contains(_)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
         .WillRepeatedly([](const std::string& /*key*/,
-                           const boost::any& /*value*/,
+                           const olp::porting::any& /*value*/,
                            const olp::cache::Encoder& /*encoder*/,
                            time_t /*expiry*/) { return true; });
 
@@ -611,7 +611,7 @@ TEST_F(VersionedLayerClientImplPublishToBatchTest, Cancel) {
     EXPECT_CALL(*cache_, Contains(_)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
         .WillRepeatedly([](const std::string& /*key*/,
-                           const boost::any& /*value*/,
+                           const olp::porting::any& /*value*/,
                            const olp::cache::Encoder& /*encoder*/,
                            time_t /*expiry*/) { return true; });
 
@@ -668,7 +668,7 @@ TEST_F(VersionedLayerClientImplPublishToBatchTest, Cancel) {
     EXPECT_CALL(*cache_, Contains(_)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
         .WillRepeatedly([](const std::string& /*key*/,
-                           const boost::any& /*value*/,
+                           const olp::porting::any& /*value*/,
                            const olp::cache::Encoder& /*encoder*/,
                            time_t /*expiry*/) { return true; });
 
@@ -721,7 +721,7 @@ TEST_F(VersionedLayerClientImplPublishToBatchTest, Cancel) {
     EXPECT_CALL(*cache_, Contains(_)).Times(1);
     EXPECT_CALL(*cache_, Put(_, _, _, _))
         .WillRepeatedly([](const std::string& /*key*/,
-                           const boost::any& /*value*/,
+                           const olp::porting::any& /*value*/,
                            const olp::cache::Encoder& /*encoder*/,
                            time_t /*expiry*/) { return true; });
 

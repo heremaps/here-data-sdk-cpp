@@ -21,8 +21,7 @@
 
 #include <string>
 
-#include <boost/any.hpp>
-
+#include <olp/core/porting/any.h>
 #include <olp/core/porting/optional.h>
 #include "JsonHelpers.h"
 
@@ -49,8 +48,8 @@ struct Expectation {
     olp::porting::optional<ResponseDelay> delay = olp::porting::none;
     olp::porting::optional<uint16_t> status_code = olp::porting::none;
 
-    /// Any of BinaryResponse, std::string, boost::any
-    boost::any body;
+    /// Any of BinaryResponse, std::string, olp::porting::any
+    olp::porting::any body;
   };
 
   struct BinaryResponse {
@@ -140,9 +139,11 @@ inline void to_json(const Expectation::ResponseAction& x,
   serialize("statusCode", x.status_code, value, allocator);
 
   if (x.body.type() == typeid(std::string)) {
-    serialize("body", boost::any_cast<std::string>(x.body), value, allocator);
+    serialize("body", olp::porting::any_cast<std::string>(x.body), value,
+              allocator);
   } else if (x.body.type() == typeid(Expectation::BinaryResponse)) {
-    serialize("body", boost::any_cast<Expectation::BinaryResponse>(x.body),
+    serialize("body",
+              olp::porting::any_cast<Expectation::BinaryResponse>(x.body),
               value, allocator);
   }
 
