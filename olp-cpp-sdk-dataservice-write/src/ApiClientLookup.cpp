@@ -149,7 +149,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApiClient(
     auto url =
         cache->Get(cache_key, [](const std::string& value) { return value; });
     if (!url.empty()) {
-      auto base_url = boost::any_cast<std::string>(url);
+      auto base_url = olp::porting::any_cast<std::string>(url);
       OLP_SDK_LOG_INFO_F(kLogTag, "LookupApiClient(%s, %s) -> from cache",
                          service.c_str(), service_version.c_str());
       client::OlpClient client(settings, base_url);

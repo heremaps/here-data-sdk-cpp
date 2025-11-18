@@ -431,7 +431,7 @@ TEST_F(DefaultCacheImplTest, MutableCacheExpired) {
 
   ASSERT_NE(value.get(), nullptr);
   ASSERT_EQ(value2.type(), typeid(std::string));
-  auto str = boost::any_cast<std::string>(value2);
+  auto str = olp::porting::any_cast<std::string>(value2);
   EXPECT_EQ(str, data_string);
 
   std::this_thread::sleep_for(std::chrono::seconds(3));
@@ -473,7 +473,7 @@ TEST_F(DefaultCacheImplTest, ProtectedCacheExpired) {
 
   EXPECT_FALSE(value.get() == nullptr);
   EXPECT_EQ(value2.type(), typeid(std::string));
-  auto str = boost::any_cast<std::string>(value2);
+  auto str = olp::porting::any_cast<std::string>(value2);
   EXPECT_EQ(str, data_string);
 
   std::this_thread::sleep_for(std::chrono::seconds(3));
@@ -892,7 +892,8 @@ TEST_F(DefaultCacheImplTest, ProtectTest) {
     auto key2_data_read =
         cache.Get(key2, [](const std::string& data) { return data; });
     ASSERT_FALSE(key2_data_read.empty());
-    ASSERT_EQ(key2_data_string, boost::any_cast<std::string>(key2_data_read));
+    ASSERT_EQ(key2_data_string,
+              olp::porting::any_cast<std::string>(key2_data_read));
   }
   {
     SCOPED_TRACE("Check if key still protected exist after closing");
@@ -901,7 +902,8 @@ TEST_F(DefaultCacheImplTest, ProtectTest) {
     auto key2_data_read =
         cache.Get(key2, [](const std::string& data) { return data; });
     ASSERT_FALSE(key2_data_read.empty());
-    ASSERT_EQ(key2_data_string, boost::any_cast<std::string>(key2_data_read));
+    ASSERT_EQ(key2_data_string,
+              olp::porting::any_cast<std::string>(key2_data_read));
     ASSERT_TRUE(cache.IsProtected(key2));
     ASSERT_TRUE(cache.IsProtected(key3));
     // key which do not exist

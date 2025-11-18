@@ -112,7 +112,8 @@ CatalogSettings::LayerSettingsResult CatalogSettings::GetLayerSettings(
             .str());
   }
 
-  const auto& catalog = boost::any_cast<const model::Catalog&>(cached_catalog);
+  const auto& catalog =
+      olp::porting::any_cast<const model::Catalog&>(cached_catalog);
   return GetLayerSettingsFromModel(catalog, layer_id);
 }
 

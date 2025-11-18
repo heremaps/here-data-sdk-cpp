@@ -94,7 +94,7 @@ size_t StreamLayerClientImpl::QueueSize() const {
       cache_->Get(GetUuidListKey(), [](const std::string& s) { return s; });
   std::string uuid_list = "";
   if (!uuid_list_any.empty()) {
-    uuid_list = boost::any_cast<std::string>(uuid_list_any);
+    uuid_list = olp::porting::any_cast<std::string>(uuid_list_any);
     return std::count(uuid_list.cbegin(), uuid_list.cend(), ',');
   }
 
@@ -135,7 +135,7 @@ porting::optional<std::string> StreamLayerClientImpl::Queue(
         cache_->Get(GetUuidListKey(), [](const std::string& s) { return s; });
     std::string uuid_list = "";
     if (!uuid_list_any.empty()) {
-      uuid_list = boost::any_cast<std::string>(uuid_list_any);
+      uuid_list = olp::porting::any_cast<std::string>(uuid_list_any);
     }
     uuid_list += publish_data_key + ",";
 
@@ -158,7 +158,7 @@ StreamLayerClientImpl::PopFromQueue() {
     return olp::porting::none;
   }
 
-  auto uuid_list = boost::any_cast<std::string>(uuid_list_any);
+  auto uuid_list = olp::porting::any_cast<std::string>(uuid_list_any);
 
   auto pos = uuid_list.find(",");
   if (pos == std::string::npos) {
@@ -182,7 +182,7 @@ StreamLayerClientImpl::PopFromQueue() {
     return olp::porting::none;
   }
 
-  return boost::any_cast<model::PublishDataRequest>(publish_data_any);
+  return olp::porting::any_cast<model::PublishDataRequest>(publish_data_any);
 }
 
 olp::client::CancellableFuture<StreamLayerClient::FlushResponse>

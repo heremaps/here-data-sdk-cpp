@@ -62,11 +62,11 @@ TEST(InMemoryCacheTest, NoLimit) {
 
   auto i0 = cache.Get("key0");
   ASSERT_FALSE(i0.empty());
-  ASSERT_EQ("value0", boost::any_cast<std::string>(i0));
+  ASSERT_EQ("value0", olp::porting::any_cast<std::string>(i0));
 
   auto i9 = cache.Get("key9");
   ASSERT_FALSE(i9.empty());
-  ASSERT_EQ("value9", boost::any_cast<std::string>(i9));
+  ASSERT_EQ("value9", olp::porting::any_cast<std::string>(i9));
 
   ASSERT_TRUE(cache.Get("key10").empty());
 }
@@ -127,14 +127,14 @@ TEST(InMemoryCacheTest, PutOverwritesPrevious) {
   ASSERT_EQ(1u, cache.Size());
   auto value = cache.Get(key);
   ASSERT_FALSE(value.empty());
-  ASSERT_EQ(orig_value, boost::any_cast<std::string>(value));
+  ASSERT_EQ(orig_value, olp::porting::any_cast<std::string>(value));
 
   std::string updated_value("updatedValue");
   cache.Put(key, updated_value);
 
   value = cache.Get(key);
   ASSERT_FALSE(value.empty());
-  ASSERT_EQ(updated_value, boost::any_cast<std::string>(value));
+  ASSERT_EQ(updated_value, olp::porting::any_cast<std::string>(value));
 }
 
 TEST(InMemoryCacheTest, InsertOverLimit) {
@@ -145,7 +145,7 @@ TEST(InMemoryCacheTest, InsertOverLimit) {
   ASSERT_TRUE(cache.Get("key0").empty());
   auto i1 = cache.Get("key1");
   ASSERT_FALSE(i1.empty());
-  ASSERT_EQ("value1", boost::any_cast<std::string>(i1));
+  ASSERT_EQ("value1", olp::porting::any_cast<std::string>(i1));
 }
 
 TEST(InMemoryCacheTest, GetReorders) {
@@ -155,14 +155,14 @@ TEST(InMemoryCacheTest, GetReorders) {
 
   auto i0 = cache.Get("key0");
   ASSERT_FALSE(i0.empty());
-  ASSERT_EQ("value0", boost::any_cast<std::string>(i0));
+  ASSERT_EQ("value0", olp::porting::any_cast<std::string>(i0));
 
   Populate(cache, 1, 2);
   ASSERT_TRUE(cache.Get("key1").empty());
 
   auto i2 = cache.Get("key2");
   ASSERT_FALSE(i2.empty());
-  ASSERT_EQ("value2", boost::any_cast<std::string>(i2));
+  ASSERT_EQ("value2", olp::porting::any_cast<std::string>(i2));
 }
 
 TEST(InMemoryCacheTest, GetSingleExpired) {
@@ -370,7 +370,7 @@ TEST(InMemoryCacheTest, ClassBasedCustomCost) {
     auto model_item = std::get<2>(tuple);
     std::size_t result(1u);
 
-    if (auto data_container = boost::any_cast<Data>(model_item)) {
+    if (auto data_container = olp::porting::any_cast<Data>(model_item)) {
       auto data_size = data_container->size();
       result = (data_size > 0) ? data_size : result;
     }
