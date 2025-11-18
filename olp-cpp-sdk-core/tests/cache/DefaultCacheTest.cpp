@@ -55,7 +55,7 @@ void BasicCacheTestWithSettings(const olp::cache::CacheSettings& settings) {
         cache.Get("key", [](const std::string& data) { return data; });
 
     EXPECT_FALSE(data_read.empty());
-    EXPECT_EQ(data_string, boost::any_cast<std::string>(data_read));
+    EXPECT_EQ(data_string, olp::porting::any_cast<std::string>(data_read));
   }
 
   {
@@ -218,7 +218,7 @@ TEST(DefaultCacheTest, BasicTest) {
   auto key1DataRead =
       cache.Get("key1", [](const std::string& data) { return data; });
   ASSERT_FALSE(key1DataRead.empty());
-  ASSERT_EQ(key1DataString, boost::any_cast<std::string>(key1DataRead));
+  ASSERT_EQ(key1DataString, olp::porting::any_cast<std::string>(key1DataRead));
   ASSERT_TRUE(cache.Clear());
 }
 
@@ -232,7 +232,7 @@ TEST(DefaultCacheTest, BasicInMemTest) {
   auto key1DataRead =
       cache.Get("key1", [](const std::string& data) { return data; });
   ASSERT_FALSE(key1DataRead.empty());
-  ASSERT_EQ(key1DataString, boost::any_cast<std::string>(key1DataRead));
+  ASSERT_EQ(key1DataString, olp::porting::any_cast<std::string>(key1DataRead));
   ASSERT_TRUE(cache.Clear());
 }
 
@@ -250,7 +250,8 @@ TEST(DefaultCacheTest, MemSizeTest) {
     auto key1DataRead =
         cache.Get(key1, [](const std::string& data) { return data; });
     ASSERT_FALSE(key1DataRead.empty());
-    ASSERT_EQ(key1DataString, boost::any_cast<std::string>(key1DataRead));
+    ASSERT_EQ(key1DataString,
+              olp::porting::any_cast<std::string>(key1DataRead));
   }
 
   std::string key2{"key2"};
@@ -261,7 +262,8 @@ TEST(DefaultCacheTest, MemSizeTest) {
     auto key2DataRead =
         cache.Get(key2, [](const std::string& data) { return data; });
     ASSERT_FALSE(key2DataRead.empty());
-    ASSERT_EQ(key2DataString, boost::any_cast<std::string>(key2DataRead));
+    ASSERT_EQ(key2DataString,
+              olp::porting::any_cast<std::string>(key2DataRead));
 
     auto key1DataRead =
         cache.Get(key1, [](const std::string& data) { return data; });
@@ -282,7 +284,7 @@ TEST(DefaultCacheTest, BasicDiskTest) {
   auto key1DataRead =
       cache.Get("key1", [](const std::string& data) { return data; });
   ASSERT_FALSE(key1DataRead.empty());
-  ASSERT_EQ(key1DataString, boost::any_cast<std::string>(key1DataRead));
+  ASSERT_EQ(key1DataString, olp::porting::any_cast<std::string>(key1DataRead));
   ASSERT_TRUE(cache.Clear());
 }
 
@@ -367,7 +369,8 @@ TEST(DefaultCacheTest, ProtectedCacheTest) {
     auto key1_data_read =
         cache.Get(key1, [](const std::string& data) { return data; });
     ASSERT_FALSE(key1_data_read.empty());
-    ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+    ASSERT_EQ(key1_data_string,
+              olp::porting::any_cast<std::string>(key1_data_read));
   }
   {
     SCOPED_TRACE("Get from protected - missing key");
@@ -402,7 +405,8 @@ TEST(DefaultCacheTest, ProtectedCacheTest) {
     auto key2_data_read =
         cache.Get(key2, [](const std::string& data) { return data; });
     ASSERT_FALSE(key2_data_read.empty());
-    ASSERT_EQ(key2_data_string, boost::any_cast<std::string>(key2_data_read));
+    ASSERT_EQ(key2_data_string,
+              olp::porting::any_cast<std::string>(key2_data_read));
     ASSERT_TRUE(cache.Clear());
   }
   {
@@ -417,7 +421,8 @@ TEST(DefaultCacheTest, ProtectedCacheTest) {
     auto key1_data_read =
         cache.Get(key1, [](const std::string& data) { return data; });
     ASSERT_FALSE(key1_data_read.empty());
-    ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+    ASSERT_EQ(key1_data_string,
+              olp::porting::any_cast<std::string>(key1_data_read));
   }
   {
     SCOPED_TRACE("Put to protected - blocked");
@@ -440,7 +445,8 @@ TEST(DefaultCacheTest, ProtectedCacheTest) {
     auto key1_data_read =
         cache.Get(key1, [](const std::string& data) { return data; });
     ASSERT_FALSE(key1_data_read.empty());
-    ASSERT_EQ(key1_data_string, boost::any_cast<std::string>(key1_data_read));
+    ASSERT_EQ(key1_data_string,
+              olp::porting::any_cast<std::string>(key1_data_read));
   }
 
   {

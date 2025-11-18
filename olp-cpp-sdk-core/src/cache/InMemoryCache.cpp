@@ -65,7 +65,7 @@ bool InMemoryCache::Put(const std::string& key, const boost::any& item,
   return ret.second;
 }
 
-boost::any InMemoryCache::Get(const std::string& key) {
+olp::porting::any InMemoryCache::Get(const std::string& key) {
   std::lock_guard<std::mutex> lock{mutex_};
   auto it = item_tuples_.Find(key);
   if (it != item_tuples_.end()) {

@@ -190,7 +190,7 @@ porting::optional<model::LayerVersions> PartitionsCacheRepository::Get(
   }
 
   return std::move(
-      boost::any_cast<model::LayerVersions&&>(cached_layer_versions));
+      olp::porting::any_cast<model::LayerVersions&&>(cached_layer_versions));
 }
 
 client::ApiNoResponse PartitionsCacheRepository::Put(

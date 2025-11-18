@@ -77,7 +77,7 @@ porting::optional<model::Catalog> CatalogCacheRepository::Get() {
     return olp::porting::none;
   }
 
-  return boost::any_cast<model::Catalog>(cached_catalog);
+  return olp::porting::any_cast<model::Catalog>(cached_catalog);
 }
 
 bool CatalogCacheRepository::PutVersion(const model::VersionResponse& version) {
@@ -102,7 +102,7 @@ porting::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
   if (cached_version.empty()) {
     return olp::porting::none;
   }
-  return boost::any_cast<model::VersionResponse>(cached_version);
+  return olp::porting::any_cast<model::VersionResponse>(cached_version);
 }
 
 bool CatalogCacheRepository::Clear() {

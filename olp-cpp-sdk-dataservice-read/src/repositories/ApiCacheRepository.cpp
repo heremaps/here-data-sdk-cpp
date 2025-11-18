@@ -57,7 +57,7 @@ porting::optional<std::string> ApiCacheRepository::Get(
     return olp::porting::none;
   }
 
-  return boost::any_cast<std::string>(url);
+  return olp::porting::any_cast<std::string>(url);
 }
 
 }  // namespace repository
