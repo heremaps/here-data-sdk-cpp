@@ -558,6 +558,11 @@ void NetworkCurl::Deinitialize() {
     }
 #endif
     thread_.join();
+
+#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
+    close(pipe_[0]);
+    close(pipe_[1]);
+#endif
   } else {
     // We are trying to stop the very thread we are in. This is not recommended,
     // but we try to handle it gracefully. This could happen by calling from one
@@ -589,11 +594,6 @@ void NetworkCurl::Teardown() {
     // cURL teardown
     curl_multi_cleanup(curl_);
     curl_ = nullptr;
-
-#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
-    close(pipe_[0]);
-    close(pipe_[1]);
-#endif
   }
 
   // Handle completed messages
