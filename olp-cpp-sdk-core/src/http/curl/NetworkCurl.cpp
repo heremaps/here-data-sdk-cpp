@@ -155,8 +155,14 @@ int BlockSigpipeResult = BlockSigpipe();
 
 #endif  // IGNORE_SIGPIPE
 
+#if CURL_AT_LEAST_VERSION(8, 16, 0)
+using CurlProxyType = long;
+#else
+using CurlProxyType = curl_proxytype;
+#endif
+
 // To avoid static_cast and possible values changes in CURL
-curl_proxytype ToCurlProxyType(olp::http::NetworkProxySettings::Type type) {
+CurlProxyType ToCurlProxyType(olp::http::NetworkProxySettings::Type type) {
   using ProxyType = olp::http::NetworkProxySettings::Type;
   switch (type) {
     case ProxyType::HTTP:
