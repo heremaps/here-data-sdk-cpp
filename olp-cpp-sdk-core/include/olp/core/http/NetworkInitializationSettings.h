@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 HERE Europe B.V.
+ * Copyright (C) 2023-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@
 
 #pragma once
 
-#include "olp/core/CoreApi.h"
-#include "olp/core/http/CertificateSettings.h"
+#include <olp/core/CoreApi.h>
+#include <olp/core/http/CertificateSettings.h>
+#include <olp/core/porting/optional.h>
 
 namespace olp {
 namespace http {
@@ -38,6 +39,15 @@ struct CORE_API NetworkInitializationSettings {
    * @brief The custom certificate settings.
    */
   CertificateSettings certificate_settings;
+
+  /**
+   * @brief The path to the network diagnostic output.
+   * If not set, diagnostics will not be produced.
+   *
+   * @note Currently, only CURL-based network implementation supports this
+   * setting.
+   */
+  porting::optional<std::string> diagnostic_output_path = porting::none;
 };
 
 }  // namespace http
