@@ -457,6 +457,20 @@ NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
   OLP_SDK_LOG_INFO_F(
       kLogTag, "TLS backend: %s",
       version_data->ssl_version ? version_data->ssl_version : "<empty>");
+
+  if (settings.diagnostic_output_path) {
+    stderr_ = fopen(settings.diagnostic_output_path->c_str(), "a");
+    if (!stderr_) {
+      const auto* path_error = strerror(errno);
+      OLP_SDK_LOG_ERROR_F(
+          kLogTag, "Failed to open diagnostic output file, error=%s, path=%s",
+          path_error, settings.diagnostic_output_path->c_str());
+    } else {
+      OLP_SDK_LOG_INFO_F(kLogTag, "Using diagnostic output file, path=%s",
+                         settings.diagnostic_output_path->c_str());
+      verbose_ = true;
+    }
+  }
 }
 
 NetworkCurl::~NetworkCurl() {
