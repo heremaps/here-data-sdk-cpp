@@ -34,26 +34,24 @@
 #endif
 
 #ifndef THROW_OR_ABORT
-# if __cpp_exceptions
-#  define THROW_OR_ABORT(exception) (throw (exception))
-# else
-#  include <cstdlib>
-#  define THROW_OR_ABORT(exception) \
-    do {                            \
-      (void)exception;              \
-      std::abort();                 \
-    } while (0)
-# endif
+#if __cpp_exceptions
+#define THROW_OR_ABORT(exception) (throw(exception))
+#else
+#include <cstdlib>
+#define THROW_OR_ABORT(exception) \
+  do {                            \
+    (void)exception;              \
+    std::abort();                 \
+  } while (0)
+#endif
 #endif
 
 namespace std {
 namespace detail {
 
 // C++11 compatible std::exchange
-template<class T, class U = T>
-T
-exchange(T& obj, U&& new_value)
-{
+template <class T, class U = T>
+T exchange(T& obj, U&& new_value) {
   T old_value = std::move(obj);
   obj = std::forward<U>(new_value);
   return old_value;
@@ -341,6 +339,15 @@ class shared_mutex {
 #endif
 };
 
+}  // namespace std
+
+// `std::shared_lock` is available since C++14
+#if ((__cplusplus >= 201402L) || (defined(_MSC_VER) && _MSC_VER >= 1900))
+#include <shared_mutex>
+#else
+
+namespace std {
+
 template <typename Mutex>
 /**
  * @brief A shared mutex wrapper that supports timed lock operations
@@ -556,6 +563,7 @@ void swap(shared_lock<_Mutex>& __x, shared_lock<_Mutex>& __y) noexcept {
 }
 
 }  // namespace std
+#endif
 
 #if defined(HAVE_PTHREAD_RWLOCK)
 #undef HAVE_PTHREAD_RWLOCK
