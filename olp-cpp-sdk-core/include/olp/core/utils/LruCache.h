@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,20 +47,21 @@ struct CacheCost {
  * @brief A generic key-value LRU cache.
  *
  * This cache stores elements in a map up to the specified maximum size.
- * The cache eviction follows the LRU principle: the element that was accessed last
- * is evicted last.
+ * The cache eviction follows the LRU principle: the element that was accessed
+ * last is evicted last.
  *
  * The specializations return a non-zero value for any given object.
- * 
+ *
  * @tparam Key The `LruCache` key type.
  * @tparam Value The `LruCache` value type.
  * @tparam CacheCostFunc The cache cost functor.
  * The specializations should return a non-zero value for any given object.
  * The default implementation returns "1" as the size for each object.
  * @tparam Compare The comparison function to be used for sorting keys.
- * The default value of `std::less` is used, which sorts the keys in ascending order.
+ * The default value of `std::less` is used, which sorts the keys in ascending
+ * order.
  * @tparam Alloc The allocator to be used for allocating internal data.
- * The default value of `std::allocator` is used. 
+ * The default value of `std::allocator` is used.
  */
 template <typename Key, typename Value,
           typename CacheCostFunc = CacheCost<Value>,
@@ -88,16 +89,16 @@ class LruCache {
    */
   class ValueType {
    public:
-   /**
-    * @brief Gets the key of the `ValueType` object.
-    * 
-    * @return The key of the `ValueType` object.
-    */
+    /**
+     * @brief Gets the key of the `ValueType` object.
+     *
+     * @return The key of the `ValueType` object.
+     */
     inline const Key& key() const;
 
     /**
      * @brief Gets the value of the `ValueType` object.
-     * 
+     *
      * @return The value of the `ValueType` object.
      */
     inline const Value& value() const;
@@ -121,13 +122,13 @@ class LruCache {
     /// A typedef for the `ValueType` constant pointer.
     typedef const value_type* pointer;
 
-    ///Creates a constant iterator object.
+    /// Creates a constant iterator object.
     const_iterator() = default;
-    ///Creates a constant iterator object.
+    /// Creates a constant iterator object.
     const_iterator(const const_iterator&) = default;
     /**
      * @brief Copies this and the specified iterator to this.
-     * 
+     *
      * @return A refenrence to this object.
      */
     const_iterator& operator=(const const_iterator&) = default;
@@ -135,7 +136,7 @@ class LruCache {
     /**
      * @brief Checks whether the values of the `const_iterator`
      * parameter are the same as the values of the `other` parameter.
-     * 
+     *
      * @param other The `const_iterator` instance.
      *
      * @return True if the values are the same; false otherwise.
@@ -144,9 +145,9 @@ class LruCache {
     /**
      * @brief Checks whether the values of the `const_iterator`
      * parameter are not the same as the values of the `other` parameter.
-     * 
+     *
      * @param other The `const_iterator` instance.
-     * 
+     *
      * @return True if the values are not the same; false otherwise.
      */
     inline bool operator!=(const const_iterator& other) const {
@@ -155,40 +156,42 @@ class LruCache {
 
     /**
      * @brief Iterates to the next `LruCache` object.
-     * 
+     *
      * @return A reference to this.
      */
     inline const_iterator& operator++();
     /**
-     * @brief Iterates the specified number of times to the next `LruCache` object.
-     * 
+     * @brief Iterates the specified number of times to the next `LruCache`
+     * object.
+     *
      * @return A new constant iterator.
      */
     inline const_iterator operator++(int);
 
     /**
      * @brief Iterates to the previous `LruCache` object.
-     * 
+     *
      * @return A reference to this.
      */
     inline const_iterator& operator--();
     /**
-     * @brief Iterates the specified number of times to the previous `LruCache` object.
-     * 
+     * @brief Iterates the specified number of times to the previous `LruCache`
+     * object.
+     *
      * @return A new constant iterator.
      */
     inline const_iterator operator--(int);
 
     /**
      * @brief Gets a reference to this object.
-     * 
+     *
      * @return The reference to this.
      */
     reference operator*() const { return *this; }
 
     /**
      * @brief Gets a pointer to this object.
-     * 
+     *
      * @return The pointer to this.
      */
     pointer operator->() const { return this; }
@@ -277,29 +280,32 @@ class LruCache {
    * @brief Inserts a key-value pair in the cache.
    *
    * @note If the key already exists in the cache, it is promoted in the
-   * LRU, but its value and cost are not updated. To update or insert existing values,
-   * use `InsertOrAssign` instead.
+   * LRU, but its value and cost are not updated. To update or insert existing
+   * values, use `InsertOrAssign` instead.
    *
    * If the key or value is an rvalue reference, they are moved;
    * copied otherwise.
    *
-   * @note This function behaves analogously to `std::map`. Even if the insertion
-   * fails, the key and value can be moved. Do not access them further.
+   * @note This function behaves analogously to `std::map`. Even if the
+   * insertion fails, the key and value can be moved. Do not access them
+   * further.
    *
    * @param key The key to add.
    * @param value The value to add.
    *
-   * @return A pair of bool and an iterator, analogously to `std::map::insert()`.
-   *         If the bool is true, the item is inserted, and the iterator points
-   * to the newly inserted item. If the bool is false and the iterator points to
-   * `end()`, the item cannot be inserted. Otherwise, the bool is false, and
-   * the iterator points to the item that prevented the insertion.
+   * @return A pair of bool and an iterator, analogously to
+   * `std::map::insert()`. If the bool is true, the item is inserted, and the
+   * iterator points to the newly inserted item. If the bool is false and the
+   * iterator points to `end()`, the item cannot be inserted. Otherwise, the
+   * bool is false, and the iterator points to the item that prevented the
+   * insertion.
    */
   template <typename _Key, typename _Value>
   std::pair<const_iterator, bool> Insert(_Key&& key, _Value&& value);
 
   /**
-   * @brief Inserts a key-value pair in the cache or updates an existing key-value pair.
+   * @brief Inserts a key-value pair in the cache or updates an existing
+   * key-value pair.
    *
    * @note If the key already exists in the cache, its value and cost are
    * updated. Not to update the existing key-value pair, use `Insert` instead.
@@ -335,7 +341,7 @@ class LruCache {
 
   /**
    * @brief Removes a key from the cache.
-   * 
+   *
    * @param it The iterator of the key that should be removed.
    *
    * @return A new iterator.
@@ -748,7 +754,7 @@ inline typename LruCache<Key, Value, CacheCostFunc, Compare,
                          Alloc>::const_iterator&
 LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::const_iterator::
 operator--() {
-  this->m_it = this->m_it->second.m_previous;
+  this->m_it = this->m_it->second.previous_;
   return *this;
 }
 
@@ -759,7 +765,7 @@ inline
     LruCache<Key, Value, CacheCostFunc, Compare, Alloc>::const_iterator::
     operator--(int) {
   typename MapType::const_iterator old_value = this->m_it;
-  this->m_it = this->m_it->second.m_previous;
+  this->m_it = this->m_it->second.previous_;
   return const_iterator{old_value};
 }
 
