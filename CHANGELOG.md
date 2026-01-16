@@ -1,3 +1,28 @@
+## v1.24.0 (19/01/2026)
+
+**Common**
+* Added CMake option `OLP_SDK_USE_STD_OPTIONAL` to enforce `std::optional` for C++17 and above instead of `boost::optional`.
+* Added CMake option `OLP_SDK_USE_STD_ANY` to enforce `std::any` for C++17 and above instead of `boost::any`.
+* Migrated from `boost::optional` to `olp::porting::optional` throughout the codebase.
+* Migrated from `boost::any_cast` to `olp::porting::any_cast` throughout the codebase.
+* Added missing headers for compatibility with newer compilers.
+* Fixed compatibility issues with older Boost versions.
+
+**olp-cpp-sdk-authentication**
+* Added support for custom request body `olp::authentication::AuthenticationClient::SignInProperties::custom_body` to be sent to authentication endpoint URL from credentials.
+
+**olp-cpp-sdk-core**
+* Added censoring API `olp::logging::Log::addCensor` to mask sensitive values from log messages at runtime.
+* Added optional diagnostic output to the network layer with `olp::http::NetworkInitializationSettings::diagnostic_output_path`.
+* Added `olp::cache::KeyValueCache::ListKeys()` method to list keys available in the cache.
+* Use standard version of `shared_lock` for C++14.
+* Added implementation for `olp::geo::GeoRectangle` operators `==` and `!=`.
+* Fixed thread safety and lifetime issues in the network layer implementations.
+* Removed custom certificate handling in iOS network implementation due to deprecated API usage and transient errors.
+* Disabled cURL transfer encoding for old versions to prevent "TE" header issues in HTTP/2 (fixed in cURL 8.12.0).
+* Fixed KeyGenerator to be always included in `olp-sdk-core` regardless of `OLP_SDK_ENABLE_DEFAULT_CACHE` value.
+* Added ability to override Java version via `OLP_SDK_JAVA_TARGET` for Android builds to support newer Java compilers.
+
 ## v1.23.1 (16/05/2025)
 
 **olp-cpp-sdk-core**
