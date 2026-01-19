@@ -1,4 +1,5 @@
 <map id="olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;::ValueType" name="olp::utils::LruCache&lt; Key, Value, CacheCostFunc, Compare, Alloc &gt;::ValueType">
-<area shape="rect" id="node1" title="A type of objects to be stored." alt="" coords="5,13,221,69"/>
-<area shape="rect" id="node2" href="$classolp_1_1utils_1_1LruCache_1_1const__iterator.html" title="A constant iterator of the LruCache object." alt="" coords="269,5,485,76"/>
+<area shape="rect" id="Node000001" title="A type of objects to be stored." alt="" coords="5,13,221,67"/>
+<area shape="rect" id="Node000002" href="$classolp_1_1utils_1_1LruCache_1_1const__iterator.html" title="A constant iterator of the LruCache object." alt="" coords="269,5,485,75"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="235,37,269,37,269,43,235,43"/>
 </map>

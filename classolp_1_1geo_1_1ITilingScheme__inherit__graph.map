@@ -1,4 +1,5 @@
 <map id="olp::geo::ITilingScheme" name="olp::geo::ITilingScheme">
-<area shape="rect" id="node1" title="Represents how data is tiled." alt="" coords="6,5,181,32"/>
-<area shape="rect" id="node2" href="$classolp_1_1geo_1_1TilingScheme.html" title="Represents how data is tiled." alt="" coords="5,80,181,136"/>
+<area shape="rect" id="Node000001" title="Represents how data is tiled." alt="" coords="6,5,181,31"/>
+<area shape="rect" id="Node000002" href="$classolp_1_1geo_1_1TilingScheme.html" title="Represents how data is tiled." alt="" coords="5,79,181,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,44,96,79,91,79,91,44"/>
 </map>

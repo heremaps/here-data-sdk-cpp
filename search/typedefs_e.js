@@ -1,9 +1,14 @@
 var searchData=
 [
-  ['reference_2642',['reference',['../classolp_1_1utils_1_1LruCache_1_1const__iterator.html#a18a0accec48bc72b5491e852d501ada7',1,'olp::utils::LruCache::const_iterator']]],
-  ['requestbodytype_2643',['RequestBodyType',['../classolp_1_1client_1_1OlpClient.html#a859cddf8f5ccf4c47ae7cd20e12ab876',1,'olp::client::OlpClient::RequestBodyType()'],['../classolp_1_1http_1_1NetworkRequest.html#aae13881b97baa0d2d3d9a416dde924c9',1,'olp::http::NetworkRequest::RequestBodyType()']]],
-  ['requestid_2644',['RequestId',['../namespaceolp_1_1http.html#ab4ebd4de6206da6920482383a686e7b4',1,'olp::http']]],
-  ['response_2645',['Response',['../namespaceolp_1_1authentication.html#a819f0f43099044c4df61cc38d3cb3b1b',1,'olp::authentication']]],
-  ['resulttype_2646',['ResultType',['../classolp_1_1client_1_1ApiResponse.html#aa79938195944f87836fdff4ef0358c05',1,'olp::client::ApiResponse']]],
-  ['retrycondition_2647',['RetryCondition',['../structolp_1_1client_1_1RetrySettings.html#a8912b47049a4184e3dad2bccd7ed7570',1,'olp::client::RetrySettings']]]
+  ['sha256digest_0',['Sha256Digest',['../classolp_1_1authentication_1_1Crypto.html#a3c19451c084a73c1458f56434e340c86',1,'olp::authentication::Crypto']]],
+  ['signinclientcallback_1',['SignInClientCallback',['../classolp_1_1authentication_1_1AuthenticationClient.html#aac3b31b8dbd7b424622df144db8ca25b',1,'olp::authentication::AuthenticationClient']]],
+  ['signinclientresponse_2',['SignInClientResponse',['../classolp_1_1authentication_1_1AuthenticationClient.html#a76f9da2cf6767414ab9d7f4683c15887',1,'olp::authentication::AuthenticationClient']]],
+  ['signinusercallback_3',['SignInUserCallback',['../classolp_1_1authentication_1_1AuthenticationClient.html#a92c94cdb324c080fb4c74918a5b7dc90',1,'olp::authentication::AuthenticationClient']]],
+  ['signinuserresponse_4',['SignInUserResponse',['../classolp_1_1authentication_1_1AuthenticationClient.html#a3216d2b1e64eca2b0724adf9ffa83185',1,'olp::authentication::AuthenticationClient']]],
+  ['signoutusercallback_5',['SignOutUserCallback',['../classolp_1_1authentication_1_1AuthenticationClient.html#a7f2a67946b8234fbeea376b992362f21',1,'olp::authentication::AuthenticationClient']]],
+  ['signoutuserresponse_6',['SignOutUserResponse',['../classolp_1_1authentication_1_1AuthenticationClient.html#a75f7a2c8d4687dbb9d62afa3fd023f6c',1,'olp::authentication::AuthenticationClient']]],
+  ['signupcallback_7',['SignUpCallback',['../classolp_1_1authentication_1_1AuthenticationClient.html#af3ee13c216810f43f0c7a826b2c939c9',1,'olp::authentication::AuthenticationClient']]],
+  ['signupresponse_8',['SignUpResponse',['../classolp_1_1authentication_1_1AuthenticationClient.html#a42a06aaa923ec45d9f1240cc2af380d2',1,'olp::authentication::AuthenticationClient']]],
+  ['streamoffsets_9',['StreamOffsets',['../classolp_1_1dataservice_1_1read_1_1SeekRequest.html#ac389b19f7e8780b795b835ab30225da0',1,'olp::dataservice::read::SeekRequest']]],
+  ['subdivisionscheme_10',['SubdivisionScheme',['../classolp_1_1geo_1_1TilingScheme.html#a1f6290e81785d59e00cfa2516000e625',1,'olp::geo::TilingScheme']]]
 ];

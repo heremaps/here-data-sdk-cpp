@@ -1,4 +1,5 @@
 <map id="olp::dataservice::write::model::HereTileIndexValue" name="olp::dataservice::write::model::HereTileIndexValue">
-<area shape="rect" id="node1" title="Represents the index layer of the HERE tile type." alt="" coords="5,95,212,136"/>
-<area shape="rect" id="node2" href="$classolp_1_1dataservice_1_1write_1_1model_1_1IndexValue.html" title="Represents values supported by the HERE platform index layer." alt="" coords="25,5,192,47"/>
+<area shape="rect" id="Node000001" title="Represents the index layer of the HERE tile type." alt="" coords="5,93,212,133"/>
+<area shape="rect" id="Node000002" href="$classolp_1_1dataservice_1_1write_1_1model_1_1IndexValue.html" title="Represents values supported by the HERE platform index layer." alt="" coords="25,5,192,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,59,111,93,106,93,106,59"/>
 </map>

@@ -1,11 +1,9 @@
 var searchData=
 [
-  ['parameterstype_2634',['ParametersType',['../classolp_1_1client_1_1OlpClient.html#ae4e8583352532039a6d3561eb7990247',1,'olp::client::OlpClient']]],
-  ['partitionids_2635',['PartitionIds',['../classolp_1_1dataservice_1_1read_1_1PartitionsRequest.html#a90011fac34ccea0beab00f63072d7dec',1,'olp::dataservice::read::PartitionsRequest::PartitionIds()'],['../classolp_1_1dataservice_1_1read_1_1PrefetchPartitionsRequest.html#a61ea2076bd92a6874930e6ee385e1383',1,'olp::dataservice::read::PrefetchPartitionsRequest::PartitionIds()']]],
-  ['pathcallback_2636',['PathCallback',['../classolp_1_1utils_1_1Dir.html#aa9b83187d2a19d04f193260f32396003',1,'olp::utils::Dir']]],
-  ['payload_2637',['Payload',['../classolp_1_1http_1_1Network.html#a2d55d803454a41277d8200f25d4e2714',1,'olp::http::Network']]],
-  ['payloadtype_2638',['PayloadType',['../classolp_1_1client_1_1ApiResponse.html#a2cceafc27d8bb38630f7c377c6176a8a',1,'olp::client::ApiResponse']]],
-  ['pointer_2639',['pointer',['../classolp_1_1utils_1_1LruCache_1_1const__iterator.html#ab7312e552529943de5ae329b49d390b2',1,'olp::utils::LruCache::const_iterator']]],
-  ['projection_2640',['Projection',['../classolp_1_1geo_1_1TilingScheme.html#aa664582a3ac5b5bd597178106499cb78',1,'olp::geo::TilingScheme']]],
-  ['promiseptr_2641',['PromisePtr',['../classolp_1_1client_1_1CancellableFuture.html#a27868331f026830fa414d922116fef8e',1,'olp::client::CancellableFuture']]]
+  ['reference_0',['reference',['../classolp_1_1utils_1_1LruCache_1_1const__iterator.html#a18a0accec48bc72b5491e852d501ada7',1,'olp::utils::LruCache::const_iterator']]],
+  ['requestbodytype_1',['requestbodytype',['../classolp_1_1client_1_1OlpClient.html#a859cddf8f5ccf4c47ae7cd20e12ab876',1,'olp::client::OlpClient::RequestBodyType'],['../classolp_1_1http_1_1NetworkRequest.html#aae13881b97baa0d2d3d9a416dde924c9',1,'olp::http::NetworkRequest::RequestBodyType']]],
+  ['requestid_2',['RequestId',['../namespaceolp_1_1http.html#ab4ebd4de6206da6920482383a686e7b4',1,'olp::http']]],
+  ['response_3',['Response',['../namespaceolp_1_1authentication.html#a819f0f43099044c4df61cc38d3cb3b1b',1,'olp::authentication']]],
+  ['resulttype_4',['ResultType',['../classolp_1_1client_1_1ApiResponse.html#aa79938195944f87836fdff4ef0358c05',1,'olp::client::ApiResponse']]],
+  ['retrycondition_5',['RetryCondition',['../structolp_1_1client_1_1RetrySettings.html#a8912b47049a4184e3dad2bccd7ed7570',1,'olp::client::RetrySettings']]]
 ];

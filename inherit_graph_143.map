@@ -1,3 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classolp_1_1geo_1_1LineSliceIterator.html" title="An iterator that slices a line into tile segments." alt="" coords="5,5,193,47"/>
+<area shape="rect" id="Node000000" href="$classolp_1_1geo_1_1ISubdivisionScheme.html" title="An abstract tiling subdivision scheme." alt="" coords="5,45,219,70"/>
+<area shape="rect" id="Node000001" href="$classolp_1_1geo_1_1HalfQuadTreeSubdivisionScheme.html" title="A subdivision scheme used to represent half quadtrees." alt="" coords="267,5,512,45"/>
+<area shape="poly" id="edge19_Node000000_Node000001" title=" " alt="" coords="232,41,266,37,267,42,232,46"/>
+<area shape="rect" id="Node000002" href="$classolp_1_1geo_1_1QuadTreeSubdivisionScheme.html" title="A quadtree subdivision scheme." alt="" coords="280,69,499,109"/>
+<area shape="poly" id="edge20_Node000000_Node000002" title=" " alt="" coords="233,69,280,74,279,79,232,74"/>
 </map>

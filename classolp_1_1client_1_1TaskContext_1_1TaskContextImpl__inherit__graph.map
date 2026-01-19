@@ -1,4 +1,5 @@
 <map id="olp::client::TaskContext::TaskContextImpl&lt; Response &gt;" name="olp::client::TaskContext::TaskContextImpl&lt; Response &gt;">
-<area shape="rect" id="node1" title="Implements the Impl interface." alt="" coords="5,95,237,136"/>
-<area shape="rect" id="node2" href="$classolp_1_1client_1_1TaskContext_1_1Impl.html" title="An implementation helper interface used to declare the Execute, BlockingCancel, and CancelToken funct..." alt="" coords="34,5,209,47"/>
+<area shape="rect" id="Node000001" title="Implements the Impl interface." alt="" coords="5,93,237,133"/>
+<area shape="rect" id="Node000002" href="$classolp_1_1client_1_1TaskContext_1_1Impl.html" title="An implementation helper interface used to declare the Execute, BlockingCancel, and CancelToken funct..." alt="" coords="34,5,209,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,59,124,93,119,93,119,59"/>
 </map>

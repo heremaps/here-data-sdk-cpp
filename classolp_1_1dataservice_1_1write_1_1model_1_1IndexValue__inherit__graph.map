@@ -1,10 +1,17 @@
 <map id="olp::dataservice::write::model::IndexValue" name="olp::dataservice::write::model::IndexValue">
-<area shape="rect" id="node1" title="Represents values supported by the HERE platform index layer." alt="" coords="5,201,172,243"/>
-<area shape="rect" id="node2" href="$classolp_1_1dataservice_1_1write_1_1model_1_1BooleanIndexValue.html" title="Represents the index layer of the boolean type." alt="" coords="236,5,440,47"/>
-<area shape="rect" id="node3" href="$classolp_1_1dataservice_1_1write_1_1model_1_1EmptyIndexValue.html" title="Represents the index layer with an empty index value." alt="" coords="241,71,435,112"/>
-<area shape="rect" id="node4" href="$classolp_1_1dataservice_1_1write_1_1model_1_1HereTileIndexValue.html" title="Represents the index layer of the HERE tile type." alt="" coords="235,136,441,177"/>
-<area shape="rect" id="node5" href="$classolp_1_1dataservice_1_1write_1_1model_1_1IntIndexValue.html" title="Represents the index layer of the integer type." alt="" coords="254,201,422,243"/>
-<area shape="rect" id="node6" href="$classolp_1_1dataservice_1_1write_1_1model_1_1StringIndexValue.html" title="Represents the index layer of the string type." alt="" coords="243,267,433,308"/>
-<area shape="rect" id="node7" href="$classolp_1_1dataservice_1_1write_1_1model_1_1TimeWindowIndexValue.html" title="Represents the index layer of the time window type." alt="" coords="220,332,456,373"/>
-<area shape="rect" id="node8" href="$classolp_1_1dataservice_1_1write_1_1model_1_1UnsupportedIndexValue.html" title="Represents values that are not supported by the index layer." alt="" coords="221,397,455,439"/>
+<area shape="rect" id="Node000001" title="Represents values supported by the HERE platform index layer." alt="" coords="5,197,172,237"/>
+<area shape="rect" id="Node000002" href="$classolp_1_1dataservice_1_1write_1_1model_1_1BooleanIndexValue.html" title="Represents the index layer of the boolean type." alt="" coords="236,5,440,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,184,151,118,182,84,219,55,241,43,244,48,221,60,186,88,155,122,110,187"/>
+<area shape="rect" id="Node000003" href="$classolp_1_1dataservice_1_1write_1_1model_1_1EmptyIndexValue.html" title="Represents the index layer with an empty index value." alt="" coords="241,69,435,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="121,186,165,151,219,119,248,107,250,112,221,124,168,156,124,190"/>
+<area shape="rect" id="Node000004" href="$classolp_1_1dataservice_1_1write_1_1model_1_1HereTileIndexValue.html" title="Represents the index layer of the HERE tile type." alt="" coords="235,133,441,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="180,191,259,171,260,176,181,196"/>
+<area shape="rect" id="Node000005" href="$classolp_1_1dataservice_1_1write_1_1model_1_1IntIndexValue.html" title="Represents the index layer of the integer type." alt="" coords="254,197,422,237"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="186,215,254,215,254,220,186,220"/>
+<area shape="rect" id="Node000006" href="$classolp_1_1dataservice_1_1write_1_1model_1_1StringIndexValue.html" title="Represents the index layer of the string type." alt="" coords="243,261,433,301"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="181,238,260,259,259,264,180,243"/>
+<area shape="rect" id="Node000007" href="$classolp_1_1dataservice_1_1write_1_1model_1_1TimeWindowIndexValue.html" title="Represents the index layer of the time window type." alt="" coords="220,325,456,365"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="124,244,168,279,221,311,250,323,248,328,219,316,165,283,121,248"/>
+<area shape="rect" id="Node000008" href="$classolp_1_1dataservice_1_1write_1_1model_1_1UnsupportedIndexValue.html" title="Represents values that are not supported by the index layer." alt="" coords="221,389,455,429"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="110,248,155,313,186,347,221,375,244,387,241,392,219,380,182,351,151,316,105,251"/>
 </map>

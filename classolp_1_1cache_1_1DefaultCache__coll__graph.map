@@ -1,4 +1,5 @@
 <map id="olp::cache::DefaultCache" name="olp::cache::DefaultCache">
-<area shape="rect" id="node1" title="A default cache that provides a memory LRU cache and persistence of cached key&#45;value pairs." alt="" coords="11,80,195,107"/>
-<area shape="rect" id="node2" href="$classolp_1_1cache_1_1KeyValueCache.html" title="An interface for a cache that expects a key&#45;value pair." alt="" coords="5,5,201,32"/>
+<area shape="rect" id="Node000001" title="A default cache that provides a memory LRU cache and persistence of cached key&#45;value pairs." alt="" coords="11,79,195,104"/>
+<area shape="rect" id="Node000002" href="$classolp_1_1cache_1_1KeyValueCache.html" title="An interface for a cache that expects a key&#45;value pair." alt="" coords="5,5,201,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,44,106,79,101,79,101,44"/>
 </map>

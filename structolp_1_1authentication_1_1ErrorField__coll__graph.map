@@ -1,4 +1,5 @@
 <map id="olp::authentication::ErrorField" name="olp::authentication::ErrorField">
-<area shape="rect" id="node1" title="An input field error." alt="" coords="5,95,149,136"/>
-<area shape="rect" id="node2" href="$structolp_1_1authentication_1_1ErrorResponse.html" title="Detailed descriptions of errors returned as a response to an authentication operation." alt="" coords="5,5,149,47"/>
+<area shape="rect" id="Node000001" title="An input field error." alt="" coords="5,93,149,133"/>
+<area shape="rect" id="Node000002" href="$structolp_1_1authentication_1_1ErrorResponse.html" title="Detailed descriptions of errors returned as a response to an authentication operation." alt="" coords="5,5,149,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="80,59,80,93,75,93,75,59"/>
 </map>

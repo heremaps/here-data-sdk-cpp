@@ -133,7 +133,6 @@ var menudata={children:[
 {text:"i",url:"functions_type.html#index_i"},
 {text:"k",url:"functions_type.html#index_k"},
 {text:"l",url:"functions_type.html#index_l"},
-{text:"m",url:"functions_type.html#index_m"},
 {text:"n",url:"functions_type.html#index_n"},
 {text:"o",url:"functions_type.html#index_o"},
 {text:"p",url:"functions_type.html#index_p"},
@@ -145,7 +144,7 @@ var menudata={children:[
 {text:"w",url:"functions_type.html#index_w"}]},
 {text:"Enumerations",url:"functions_enum.html"},
 {text:"Enumerator",url:"functions_eval.html"},
-{text:"Related Functions",url:"functions_rela.html"}]}]},
+{text:"Related Symbols",url:"functions_rela.html"}]}]},
 {text:"Files",url:"files.html",children:[
 {text:"File List",url:"files.html"},
 {text:"File Members",url:"globals.html",children:[

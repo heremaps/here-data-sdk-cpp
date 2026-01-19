@@ -1,6 +1,9 @@
 <map id="olp::dataservice::read::PrefetchTileResult" name="olp::dataservice::read::PrefetchTileResult">
-<area shape="rect" id="node1" title="Represents the result of a prefetch operation." alt="" coords="565,61,728,102"/>
-<area shape="rect" id="node2" href="$classolp_1_1client_1_1ApiResponse.html" title=" " alt="" coords="276,5,455,61"/>
-<area shape="rect" id="node3" href="$classolp_1_1client_1_1ResponseExtension_3_01void_01_4.html" title="The ApiResponse extension class specialization without any payload." alt="" coords="5,13,227,54"/>
-<area shape="rect" id="node4" href="$classolp_1_1geo_1_1TileKey.html" title="Addresses a tile in a quadtree." alt="" coords="300,85,431,112"/>
+<area shape="rect" id="Node000001" title="Represents the result of a prefetch operation." alt="" coords="565,59,728,99"/>
+<area shape="rect" id="Node000002" href="$classolp_1_1client_1_1ApiResponse.html" title=" " alt="" coords="276,5,455,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="469,47,566,63,565,69,468,52"/>
+<area shape="rect" id="Node000003" href="$classolp_1_1client_1_1ResponseExtension.html" title=" " alt="" coords="5,13,227,53"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="240,30,276,30,276,35,240,35"/>
+<area shape="rect" id="Node000004" href="$classolp_1_1geo_1_1TileKey.html" title="Addresses a tile in a quadtree." alt="" coords="300,84,431,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="444,89,565,82,565,87,445,94"/>
 </map>

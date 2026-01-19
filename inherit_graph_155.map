@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structolp_1_1http_1_1Network_1_1Statistics.html" title="Network statistics for a specific bucket." alt="" coords="5,5,144,47"/>
+<area shape="rect" id="Node000000" href="$classolp_1_1http_1_1Network.html" title="An HTTP client abstraction." alt="" coords="5,5,144,31"/>
+<area shape="rect" id="Node000001" href="$classolp_1_1http_1_1HarCaptureAdapter.html" title="A network adapter that captures HTTP requests and responses, generating a HAR (HTTP Archive) file." alt="" coords="192,5,401,31"/>
+<area shape="poly" id="edge22_Node000000_Node000001" title=" " alt="" coords="158,15,192,15,192,21,158,21"/>
 </map>
