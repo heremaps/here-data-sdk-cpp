@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2025 HERE Europe B.V.
+# Copyright (C) 2019-2026 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 # License-Filename: LICENSE
 
 
-project(olp-cpp-sdk-core VERSION 1.23.1)
+project(olp-cpp-sdk-core VERSION 1.24.0)
 set(DESCRIPTION "Core network and utility library for the HERE OLP SDK C++")
 
 find_package(RapidJSON 1.1.0 REQUIRED)
