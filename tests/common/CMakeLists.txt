@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2021 HERE Europe B.V.
+# Copyright (C) 2019-2026 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -49,6 +49,9 @@ target_include_directories(olp-cpp-sdk-tests-common
     PRIVATE 
         ${CMAKE_CURRENT_SOURCE_DIR}/../../olp-cpp-sdk-dataservice-read/src/
 )
+
+target_compile_definitions(olp-cpp-sdk-tests-common PUBLIC BOOST_CONTAINER_NO_LIB)
+target_compile_definitions(olp-cpp-sdk-tests-common PUBLIC BOOST_JSON_NO_LIB)
 
 target_link_libraries(olp-cpp-sdk-tests-common
     PUBLIC

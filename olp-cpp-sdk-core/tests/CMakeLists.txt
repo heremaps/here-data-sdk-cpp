@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2025 HERE Europe B.V.
+# Copyright (C) 2019-2026 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -73,6 +73,7 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./http/NetworkSettingsTest.cpp
     ./http/NetworkUtils.cpp
 
+    ./utils/JsonTest.cpp
     ./utils/UtilsTest.cpp
     ./utils/UrlTest.cpp
 )
