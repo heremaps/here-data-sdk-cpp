@@ -50,6 +50,9 @@ target_include_directories(olp-cpp-sdk-tests-common
         ${CMAKE_CURRENT_SOURCE_DIR}/../../olp-cpp-sdk-dataservice-read/src/
 )
 
+target_compile_definitions(olp-cpp-sdk-tests-common PUBLIC BOOST_CONTAINER_NO_LIB)
+target_compile_definitions(olp-cpp-sdk-tests-common PUBLIC BOOST_JSON_NO_LIB)
+
 target_link_libraries(olp-cpp-sdk-tests-common
     PUBLIC
         gmock
