@@ -193,7 +193,7 @@ jobs:
         run: scripts/ios/azure_ios_build_psv.sh
         shell: bash
         env:
-          SELECT_XCODE_LOCATION: "/Applications/Xcode_26.0.app"
+          SELECT_XCODE_LOCATION: "/Applications/Xcode_26.1.app"
 
   psv-ios-os15-arm64-xcode-16-build:
     name: PSV.iOS.MacOS15.Xcode16.ARM64
