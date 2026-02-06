@@ -38,4 +38,4 @@ cmake ../ -GXcode \
     -DSIMULATOR=YES \
     -DOLP_SDK_BUILD_EXAMPLES=ON
 
-xcodebuild
+xcodebuild -downloadPlatform iOS
