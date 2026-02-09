@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - 'task/ocmam-442-integrate-boost-json'
   pull_request:
     branches:
       - '*'
