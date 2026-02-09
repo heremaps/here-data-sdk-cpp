@@ -61,7 +61,7 @@ The table below lists the dependencies of the Data SDK.
 |:---------------------|:--------------------|
 | Libcurl              | 7.52.1              |
 | OpenSSL              | 1.1.1w              |
-| Boost (headers only) | 1.82.0              |
+| Boost (headers only) | 1.84.0              |
 | LevelDB              | 1.21                |
 | Snappy               | 1.1.7               |
 | RapidJSON            | latest              |
