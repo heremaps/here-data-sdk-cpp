@@ -6,7 +6,7 @@ on:
       - master
   pull_request:
     branches:
-      - '*'
+      - '**'
 
 env:
   SEGFAULT_SIGNALS: all
