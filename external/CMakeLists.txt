@@ -53,7 +53,7 @@ set(OLP_SDK_CPP_RAPIDJSON_URL "https://github.com/Tencent/rapidjson.git")
 set(OLP_SDK_CPP_RAPIDJSON_TAG "d621dc9e9c77f81e5c8a35b8dcc16dcd63351321")
 
 set(OLP_SDK_CPP_BOOST_URL "https://github.com/boostorg/boost.git")
-set(OLP_SDK_CPP_BOOST_TAG "boost-1.82.0")
+set(OLP_SDK_CPP_BOOST_TAG "boost-1.84.0")
 
 set(OLP_SDK_CPP_LMDB_URL "https://github.com/LMDB/lmdb.git")
 set(OLP_SDK_CPP_LMDB_TAG "LMDB_0.9.29")
@@ -97,7 +97,7 @@ if(OLP_SDK_ENABLE_DEFAULT_CACHE_LMDB)
     endif()
 endif()
 
-find_package(Boost 1.82.0 QUIET)
+find_package(Boost 1.84.0 QUIET)
 if(NOT TARGET Boost AND NOT Boost_FOUND)
     add_subdirectory(boost)
     set(BOOST_ROOT ${EXTERNAL_BOOST_ROOT} PARENT_SCOPE)
