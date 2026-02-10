@@ -91,6 +91,21 @@ jobs:
         run: gcc --version && ./scripts/linux/psv/build_psv.sh
         shell: bash
 
+  psv-linux-22-04-gcc11-build-no-exceptions:
+    name: PSV.Linux.22.04.gcc11.OLP_SDK_NO_EXCEPTION=ON
+    runs-on: ubuntu-22.04
+    env:
+      BUILD_TYPE: RelWithDebInfo
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install Ubuntu dependencies
+        run: sudo apt-get update && sudo apt-get install -y ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
+        shell: bash
+      - name: Compile project with cmake and ccache
+        run: gcc --version && ./scripts/linux/psv/build_psv_no_exceptions.sh
+        shell: bash
+
   psv-linux-latest-gcc14-build-no-cache:
     name: PSV.Linux.latest.gcc14.OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
     runs-on: ubuntu-latest
