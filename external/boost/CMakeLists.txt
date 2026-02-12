@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2020 HERE Europe B.V.
+# Copyright (C) 2019-2026 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,6 +31,8 @@ else()
     set(BOOTSTRAP_CMD unset CXX && ./bootstrap.sh)
     set(B2_CMD ./b2)
 endif()
+
+set(PATCH_BOOST_CMD "git apply -v ${CMAKE_CURRENT_SOURCE_DIR}/boost_182_json_noexceptions.diff")
 
 configure_file(CMakeLists.txt.boost.in download/CMakeLists.txt @ONLY)
 

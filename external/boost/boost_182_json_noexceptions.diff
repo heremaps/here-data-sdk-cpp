@@ -1,0 +1,30 @@
+diff --git a/libs/json/include/boost/json/impl/value.ipp b/libs/json/include/boost/json/impl/value.ipp
+index 7460c02..7513b38 100644
+--- a/libs/json/include/boost/json/impl/value.ipp
++++ b/libs/json/include/boost/json/impl/value.ipp
+@@ -381,7 +381,9 @@ operator>>(
+     char read_buf[BOOST_JSON_STACK_BUFFER_SIZE / 2];
+     std::streambuf& buf = *is.rdbuf();
+     std::ios::iostate err = std::ios::goodbit;
++#ifndef BOOST_NO_EXCEPTIONS
+     try
++#endif
+     {
+         while( true )
+         {
+@@ -437,6 +439,7 @@ operator>>(
+                 break;
+         }
+     }
++#ifndef BOOST_NO_EXCEPTIONS
+     catch(...)
+     {
+         try
+@@ -450,6 +453,7 @@ operator>>(
+         if( is.exceptions() & std::ios::badbit )
+             throw;
+     }
++#endif
+ 
+     is.setstate(err | std::ios::failbit);
+     return is;
