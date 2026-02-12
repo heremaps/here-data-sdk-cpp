@@ -359,6 +359,7 @@ endif()
 set(OLP_SDK_UTILS_SOURCES
     ./src/utils/Base64.cpp
     ./src/utils/BoostExceptionHandle.cpp
+    ./src/utils/BoostJsonSrc.cpp
     ./src/utils/Credentials.cpp
     ./src/utils/Dir.cpp
     ./src/utils/Thread.cpp
@@ -455,6 +456,9 @@ if (OLP_SDK_USE_STD_ANY)
     target_compile_definitions(${PROJECT_NAME}
         PUBLIC OLP_SDK_USE_STD_ANY)
 endif()
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE BOOST_ALL_NO_LIB)
+target_compile_definitions(${PROJECT_NAME} PRIVATE BOOST_JSON_NO_LIB)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
