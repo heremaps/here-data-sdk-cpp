@@ -90,6 +90,9 @@ jobs:
       - name: Compile project with cmake and ccache
         run: gcc --version && ./scripts/linux/psv/build_psv.sh
         shell: bash
+      - name: Run unit and integration tests
+        run: ./scripts/linux/psv/test_psv.sh
+        shell: bash
 
   psv-linux-latest-gcc14-build-no-cache:
     name: PSV.Linux.latest.gcc14.OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
@@ -124,6 +127,9 @@ jobs:
       - name: Compile project with cmake and ccache
         run: gcc --version && ./scripts/linux/psv/build_psv.sh
         shell: bash
+      - name: Run unit and integration tests
+        run: ./scripts/linux/psv/test_psv.sh
+        shell: bash
 
   psv-linux-22-04-gcc11-build-no-cache:
     name: PSV.Linux.22.04.gcc11.OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
@@ -156,6 +162,9 @@ jobs:
       shell: bash
     - name: Compile project on Clang
       run: scripts/linux/psv/build_psv.sh
+      shell: bash
+    - name: Run unit and integration tests
+      run: scripts/linux/psv/test_psv.sh
       shell: bash
 
   psv-android-22-04-build:
