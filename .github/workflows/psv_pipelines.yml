@@ -77,7 +77,7 @@ jobs:
       shell: bash
 
   psv-linux-22-04-gcc11-build:
-    name: PSV.Linux.22.04.gcc11
+    name: PSV.Linux.22.04.gcc11.Tests
     runs-on: ubuntu-22.04
     env:
       BUILD_TYPE: RelWithDebInfo
@@ -95,7 +95,7 @@ jobs:
         shell: bash
 
   psv-linux-latest-gcc14-build:
-    name: PSV.Linux.latest.gcc14
+    name: PSV.Linux.latest.gcc14.Tests
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: RelWithDebInfo
@@ -132,7 +132,7 @@ jobs:
       shell: bash
 
   psv-linux-22-04-gcc13-build:
-    name: PSV.Linux.22.04.gcc13
+    name: PSV.Linux.22.04.gcc13.Tests
     runs-on: ubuntu-22.04
     env:
       BUILD_TYPE: RelWithDebInfo
@@ -167,7 +167,7 @@ jobs:
       shell: bash
 
   psv-linux-22-04-clang-build:
-    name: PSV.Linux.22.04.clang
+    name: PSV.Linux.22.04.clang.Tests
     runs-on: ubuntu-22.04
     env:
       BUILD_TYPE: RelWithDebInfo
