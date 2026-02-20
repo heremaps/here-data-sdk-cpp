@@ -21,6 +21,7 @@
 
 #include <chrono>
 #include <iomanip>
+#include <locale>
 #include <sstream>
 #include <utility>
 
@@ -108,18 +109,37 @@ std::time_t ParseTime(const std::string& value) {
 
 #else
 
+std::string TrimDateHeaderValue(const std::string& value) {
+  const auto begin = value.find_first_not_of(" \t\r\n");
+  if (begin == std::string::npos) {
+    return {};
+  }
+  const auto end = value.find_last_not_of(" \t\r\n");
+  return value.substr(begin, end - begin + 1);
+}
+
 std::time_t ParseTime(const std::string& value) {
   std::tm tm = {};
-  const auto format = "%a, %d %b %Y %H:%M:%S %Z";
-  const auto parsed_until = ::strptime(value.c_str(), format, &tm);
-  if (parsed_until != value.c_str() + value.size()) {
-    OLP_SDK_LOG_WARNING(kLogTag, "Timestamp is not fully parsed" << value);
+  const auto trimmed_value = TrimDateHeaderValue(value);
+
+  // Use a C locale to keep RFC1123 parsing locale-independent.
+  // Literal "GMT" avoids platform-specific %Z behaviour.
+  locale_t c_locale = newlocale(LC_ALL_MASK, "C", (locale_t)0);
+  if (c_locale == (locale_t)0) {
+    OLP_SDK_LOG_WARNING(kLogTag, "Failed to create C locale");
+    return static_cast<std::time_t>(-1);
   }
-  // MacOS updates `tm_isdst`, `tm_zone` and `tm_gmtoff` fields in `timegm`
-  // call.
-  const auto gmtoff = tm.tm_gmtoff;
-  const auto local_time = timegm(&tm);
-  return local_time - gmtoff;
+
+  const auto parsed_until = ::strptime_l(
+      trimmed_value.c_str(), "%a, %d %b %Y %H:%M:%S GMT", &tm, c_locale);
+  freelocale(c_locale);
+
+  if (parsed_until != trimmed_value.c_str() + trimmed_value.size()) {
+    OLP_SDK_LOG_WARNING(kLogTag, "Timestamp is not fully parsed " << value);
+    return static_cast<std::time_t>(-1);
+  }
+
+  return timegm(&tm);
 }
 
 #endif
@@ -133,7 +153,10 @@ porting::optional<std::time_t> GetTimestampFromHeaders(
                          obg.first, kDate);
                    });
   if (it != end(headers)) {
-    return ParseTime(it->second);
+    const auto timestamp = ParseTime(it->second);
+    if (timestamp != static_cast<std::time_t>(-1)) {
+      return timestamp;
+    }
   }
   return porting::none;
 }
