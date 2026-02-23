@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2025 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,6 +143,10 @@ const std::string kHttpResponseLookupQuery =
 
 const std::string kUrlQueryApi =
     R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2)";
+
+const std::string kUrlQueryVersionedPartition =
+    kUrlQueryApi +
+    R"(/layers/testlayer/partitions?partition=1111&version=100)";
 
 const std::string kQueryTreeIndexWithAdditionalFields =
     R"(https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2/layers/testlayer/versions/100/quadkeys/23064/depths/4?additionalFields=)" +
@@ -592,9 +596,6 @@ TEST_F(PartitionsRepositoryTest, GetPartitionById) {
 TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
   using testing::Return;
 
-  std::shared_ptr<cache::KeyValueCache> default_cache =
-      client::OlpClientSettingsFactory::CreateDefaultCache({});
-
   auto mock_network = std::make_shared<NetworkMock>();
   auto cache = std::make_shared<testing::StrictMock<CacheMock>>();
   const auto catalog = HRN::FromString(kCatalog);
@@ -641,6 +642,147 @@ TEST_F(PartitionsRepositoryTest, GetVersionedPartitions) {
     ASSERT_FALSE(response.IsSuccessful());
     EXPECT_TRUE(response.GetResult().GetPartitions().empty());
   }
+  {
+    SCOPED_TRACE(
+        "Succeeds the cache look up when one of the partitions has no content");
+    OlpClientSettings settings;
+    settings.cache = cache;
+    settings.network_request_handler = mock_network;
+    settings.retry_settings.timeout = 1;
+
+    const std::string cache_key_1 =
+        kCatalog + "::" + kVersionedLayerId + "::" + kPartitionId +
+        "::" + std::to_string(kVersion) + "::partition";
+
+    const std::string cache_key_2 =
+        kCatalog + "::" + kVersionedLayerId + "::" + kInvalidPartitionId +
+        "::" + std::to_string(kVersion) + "::partition";
+
+    const std::string query_cache_response =
+        R"jsonString({"version":100,"partition":"1111","layer":"testlayer","dataHandle":"qwerty"})jsonString";
+
+    const std::string no_content_cache_response =
+        R"jsonString({"partition":"2222"})jsonString";
+
+    auto response_data = std::make_shared<cache::KeyValueCache::ValueType>(
+        query_cache_response.begin(), query_cache_response.end());
+
+    EXPECT_CALL(*cache, Read(cache_key_1)).WillOnce(Return(response_data));
+
+    EXPECT_CALL(*cache, Read(cache_key_2))
+        .WillOnce(Return(std::make_shared<cache::KeyValueCache::ValueType>(
+            no_content_cache_response.cbegin(),
+            no_content_cache_response.cend())));
+
+    client::CancellationContext context;
+    ApiLookupClient lookup_client(catalog, settings);
+    repository::PartitionsRepository repository(catalog, kVersionedLayerId,
+                                                settings, lookup_client);
+
+    read::PartitionsRequest request;
+    request.WithPartitionIds({kPartitionId, kInvalidPartitionId});
+    request.WithFetchOption(read::CacheOnly);
+
+    auto response = repository.GetVersionedPartitionsExtendedResponse(
+        request, kVersion, context);
+
+    ASSERT_TRUE(response.IsSuccessful());
+    EXPECT_EQ(response.GetResult().GetPartitions().size(), 1);
+  }
+  {
+    SCOPED_TRACE("Cache utilised for not existing partitions");
+
+    OlpClientSettings settings;
+    settings.cache = cache;
+    settings.network_request_handler = mock_network;
+    settings.retry_settings.timeout = 1;
+
+    const std::string cache_key_1 =
+        kCatalog + "::" + kVersionedLayerId + "::" + kPartitionId +
+        "::" + std::to_string(kVersion) + "::partition";
+
+    EXPECT_CALL(*cache, Read(cache_key_1))
+        .WillOnce(Return(client::ApiError::NotFound()));
+
+    EXPECT_CALL(*cache, Write(_, _, _)).WillOnce(Return(client::ApiNoResult()));
+
+    EXPECT_CALL(*cache, Get(kCacheKeyMetadata, _))
+        .WillOnce(Return(kUrlQueryApi));
+
+    EXPECT_CALL(*mock_network,
+                Send(IsGetRequest(kUrlQueryVersionedPartition), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kOlpSdkHttpResponseEmptyPartitionList));
+
+    client::CancellationContext context;
+    ApiLookupClient lookup_client(catalog, settings);
+    repository::PartitionsRepository repository(catalog, kVersionedLayerId,
+                                                settings, lookup_client);
+
+    read::PartitionsRequest request;
+    request.WithPartitionIds({kPartitionId});
+    request.WithFetchOption(read::OnlineIfNotFound);
+
+    auto response = repository.GetVersionedPartitionsExtendedResponse(
+        request, kVersion, context);
+
+    ASSERT_TRUE(response.IsSuccessful());
+    EXPECT_TRUE(response.GetResult().GetPartitions().empty());
+  }
+  {
+    SCOPED_TRACE("Cache utilised for valid partition");
+
+    OlpClientSettings settings;
+    settings.cache = cache;
+    settings.network_request_handler = mock_network;
+    settings.retry_settings.timeout = 1;
+
+    const std::string cache_key_1 =
+        kCatalog + "::" + kVersionedLayerId + "::" + kPartitionId +
+        "::" + std::to_string(kVersion) + "::partition";
+
+    EXPECT_CALL(*cache, Read(cache_key_1))
+        .WillOnce(Return(client::ApiError::NotFound()));
+
+    EXPECT_CALL(*cache, Write(_, _, _))
+        .Times(4)
+        .WillRepeatedly(Return(client::ApiNoResult()));
+
+    EXPECT_CALL(*cache, Get(kCacheKeyMetadata, _))
+        .WillOnce(Return(kUrlQueryApi));
+
+    EXPECT_CALL(*mock_network,
+                Send(IsGetRequest(kUrlQueryVersionedPartition), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     kOlpSdkHttpResponsePartitions));
+
+    client::CancellationContext context;
+    ApiLookupClient lookup_client(catalog, settings);
+    repository::PartitionsRepository repository(catalog, kVersionedLayerId,
+                                                settings, lookup_client);
+
+    read::PartitionsRequest request;
+    request.WithPartitionIds({kPartitionId});
+    request.WithFetchOption(read::OnlineIfNotFound);
+
+    auto response = repository.GetVersionedPartitionsExtendedResponse(
+        request, kVersion, context);
+
+    ASSERT_TRUE(response.IsSuccessful());
+    EXPECT_EQ(response.GetResult().GetPartitions().size(), 4);
+  }
+}
+
+TEST_F(PartitionsRepositoryTest, GetVersionedPartitions_WithCache) {
+  using testing::Return;
+
+  auto mock_network = std::make_shared<NetworkMock>();
+  const auto catalog = HRN::FromString(kCatalog);
+  std::shared_ptr<cache::KeyValueCache> default_cache =
+      client::OlpClientSettingsFactory::CreateDefaultCache({});
+
   {
     SCOPED_TRACE("Successful fetch from network with a list of partitions");
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2057,7 +2057,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   for (auto tile_result : response.GetResult()) {
     std::string str = tile_result->tile_key_.ToHereTile();
     ASSERT_FALSE(tile_result->IsSuccessful());
-    ASSERT_EQ(olp::client::ErrorCode::NotFound,
+    ASSERT_EQ(olp::client::ErrorCode::NoContent,
               tile_result->GetError().GetErrorCode());
     ASSERT_TRUE(tile_result->tile_key_.IsValid());
   }
