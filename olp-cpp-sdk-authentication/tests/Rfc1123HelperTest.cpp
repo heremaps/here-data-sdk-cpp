@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2024 HERE Europe B.V.
+ * Copyright (C) 2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,8 +62,17 @@ INSTANTIATE_TEST_SUITE_P(
                   static_cast<std::time_t>(1582977600)},
         ParseCase{"EndOfYear", "Thu, 31 Dec 2020 23:59:59 GMT",
                   static_cast<std::time_t>(1609459199)},
+        ParseCase{"March", "Sun, 8 Mar 2020 23:59:59 GMT",
+                  static_cast<std::time_t>(1583711999)},
+        ParseCase{"Birthday", "Wed, 8 Apr 2020 23:59:59 GMT",
+                  static_cast<std::time_t>(1586390399)},
+        ParseCase{"July", "Wed, 8 Jul 2020 23:59:59 GMT",
+                  static_cast<std::time_t>(1594252799)},
+        ParseCase{"August", "Sat, 8 Aug 2020 23:59:59 GMT",
+                  static_cast<std::time_t>(1596931199)},
+        // --- Before Epoch ---
         ParseCase{"MinValidYear", "Mon, 01 Jan 1400 00:00:00 GMT",
-                  kParseFailed},  // before epoch
+                  kParseFailed},
         // --- Empty / garbled input ---
         ParseCase{"EmptyString", "", kParseFailed},
         ParseCase{"WhitespaceOnly", "   \t\r\n  ", kParseFailed},
@@ -88,7 +97,7 @@ INSTANTIATE_TEST_SUITE_P(
                   kParseFailed},
         ParseCase{"MinuteTooLarge", "Thu, 01 Jan 1970 12:60:00 GMT",
                   kParseFailed},
-        ParseCase{"SecondTooLarge", "Thu, 01 Jan 1970 12:00:60 GMT",
+        ParseCase{"SecondTooLarge", "Thu, 01 Jan 1970 12:00:61 GMT",
                   kParseFailed},
         ParseCase{"MalformedClock", "Thu, 01 Jan 1970 1:2:3 GMT", kParseFailed},
         // --- Invalid year ---
@@ -109,7 +118,14 @@ INSTANTIATE_TEST_SUITE_P(
         ParseCase{"WeekdayTooShort", "Th, 01 Jan 1970 00:00:00 GMT",
                   kParseFailed},
         ParseCase{"WeekdayTooLong", "Thurs, 01 Jan 1970 00:00:00 GMT",
-                  kParseFailed}),
+                  kParseFailed},
+        // --- Specific edge cases ---
+        ParseCase{"DayAsLetters", "Thu, AA Dec 2020 23:59:59 GMT",
+                  static_cast<std::time_t>(kParseFailed)},
+        ParseCase{"NonNumericClock", "Thu, 12 Dec 2020 11:AA:10 GMT",
+                  static_cast<std::time_t>(kParseFailed)}
+
+        ),
     [](const ::testing::TestParamInfo<ParseCase>& info) {
       return info.param.name;
     });

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2024 HERE Europe B.V.
+ * Copyright (C) 2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,8 +62,9 @@ static_assert(std::numeric_limits<HourType>::max() >= 23,
               "HourType must be able to store values up to 23");
 static_assert(std::numeric_limits<MinuteType>::max() >= 59,
               "MinuteType must be able to store values up to 59");
-static_assert(std::numeric_limits<SecondType>::max() >= 59,
-              "SecondType must be able to store values up to 59");
+static_assert(std::numeric_limits<SecondType>::max() >= 60,
+              "SecondType must be able to store values up to 60, accounting "
+              "for leap seconds");
 
 std::string TrimDateHeaderValue(const std::string& value) {
   const auto begin = value.find_first_not_of(" \t\r\n");
@@ -164,7 +165,7 @@ bool ParseClockToken(const std::string& token, HourType* hour,
     return false;
   }
 
-  if (parsed_hour > 23 || parsed_minute > 59 || parsed_second > 59) {
+  if (parsed_hour > 23 || parsed_minute > 59 || parsed_second > 60) {
     return false;
   }
 
