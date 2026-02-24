@@ -49,6 +49,9 @@ if(BUILD_SHARED_LIBS)
         PUBLIC AUTHENTICATION_SHARED_LIBRARY)
 endif()
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE BOOST_ALL_NO_LIB)
+target_compile_definitions(${PROJECT_NAME} PRIVATE BOOST_JSON_NO_LIB)
+
 # install component
 install (FILES ${AUTHENTICATION_INC} DESTINATION ${INCLUDE_DIRECTORY}/olp/authentication)
 
