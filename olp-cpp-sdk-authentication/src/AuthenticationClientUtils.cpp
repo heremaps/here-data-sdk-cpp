@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2024 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@
 #include <rapidjson/writer.h>
 #include "Constants.h"
 #include "ResponseFromJsonBuilder.h"
+#include "Rfc1123Helper.h"
 #include "olp/core/http/NetworkResponse.h"
 #include "olp/core/http/NetworkUtils.h"
 #include "olp/core/logging/Log.h"
@@ -58,7 +59,6 @@ constexpr auto kOauthTimestamp = "oauth_timestamp";
 constexpr auto kOauthSignatureMethod = "oauth_signature_method";
 constexpr auto kVersion = "1.0";
 constexpr auto kHmac = "HMAC-SHA256";
-constexpr auto kLogTag = "AuthenticationClientUtils";
 
 std::string Base64Encode(const Crypto::Sha256Digest& digest) {
   std::string ret = olp::utils::Base64Encode(digest.data(), digest.size());
@@ -98,51 +98,9 @@ namespace client = olp::client;
 
 constexpr auto kDate = "date";
 
-#ifdef _WIN32
-// Windows does not have ::strptime and ::timegm
 std::time_t ParseTime(const std::string& value) {
-  std::tm tm = {};
-  std::istringstream ss(value);
-  ss >> std::get_time(&tm, "%a, %d %b %Y %H:%M:%S %z");
-  return _mkgmtime(&tm);
+  return internal::ParseRfc1123GmtNoExceptions(value);
 }
-
-#else
-
-std::string TrimDateHeaderValue(const std::string& value) {
-  const auto begin = value.find_first_not_of(" \t\r\n");
-  if (begin == std::string::npos) {
-    return {};
-  }
-  const auto end = value.find_last_not_of(" \t\r\n");
-  return value.substr(begin, end - begin + 1);
-}
-
-std::time_t ParseTime(const std::string& value) {
-  std::tm tm = {};
-  const auto trimmed_value = TrimDateHeaderValue(value);
-
-  // Use a C locale to keep RFC1123 parsing locale-independent.
-  // Literal "GMT" avoids platform-specific %Z behaviour.
-  locale_t c_locale = newlocale(LC_ALL_MASK, "C", (locale_t)0);
-  if (c_locale == (locale_t)0) {
-    OLP_SDK_LOG_WARNING(kLogTag, "Failed to create C locale");
-    return static_cast<std::time_t>(-1);
-  }
-
-  const auto parsed_until = ::strptime_l(
-      trimmed_value.c_str(), "%a, %d %b %Y %H:%M:%S GMT", &tm, c_locale);
-  freelocale(c_locale);
-
-  if (parsed_until != trimmed_value.c_str() + trimmed_value.size()) {
-    OLP_SDK_LOG_WARNING(kLogTag, "Timestamp is not fully parsed " << value);
-    return static_cast<std::time_t>(-1);
-  }
-
-  return timegm(&tm);
-}
-
-#endif
 
 porting::optional<std::time_t> GetTimestampFromHeaders(
     const olp::http::Headers& headers) {

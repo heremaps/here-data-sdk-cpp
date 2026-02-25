@@ -21,6 +21,7 @@ set(OLP_AUTHENTICATION_TEST_SOURCES
     DecisionApiClientTest.cpp
     CryptoTest.cpp
     SignInResultImplTest.cpp
+    Rfc1123HelperTest.cpp
 )
 
 if (ANDROID OR IOS)
