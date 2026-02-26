@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include "PartitionsRepository.h"
 
 #include <algorithm>
+#include <memory>
 #include <utility>
 
 #include <olp/core/cache/KeyGenerator.h>
@@ -169,6 +170,36 @@ bool CheckAdditionalFields(
 
   return true;
 }
+
+model::Partitions CreateNoContentPartitions(
+    const std::vector<std::string>& partition_ids) {
+  model::Partitions result;
+  auto& partitions = result.GetMutablePartitions();
+  partitions.reserve(partition_ids.size());
+
+  std::transform(partition_ids.cbegin(), partition_ids.cend(),
+                 std::back_inserter(partitions),
+                 [&](const std::string& partition_id) {
+                   // Partition can't be empty, see `Partition::GetPartition`.
+                   // Data handle is the only not optional field and actual data
+                   // is requested by the data handle so not setting it is a
+                   // sign that `Partition` object has no corresponding data.
+                   model::Partition partition;
+                   partition.SetPartition(partition_id);
+                   return partition;
+                 });
+
+  return result;
+}
+
+bool HasNoContent(const model::Partition& partition) {
+  // There's client code that caches mocked partitions with zero size for not
+  // existing data so it's better to check all fields.
+  return partition.GetDataHandle().empty() && !partition.GetDataSize() &&
+         !partition.GetCompressedDataSize() && !partition.GetChecksum() &&
+         !partition.GetCrc() && !partition.GetVersion();
+}
+
 }  // namespace
 
 namespace olp {
@@ -252,6 +283,16 @@ PartitionsRepository::GetPartitionsExtendedResponse(
       OLP_SDK_LOG_TRACE_F(kLogTag,
                           "GetPartitions found in cache, hrn='%s', key='%s'",
                           catalog_str.c_str(), key.c_str());
+
+      // Clear from cached NoContent partitions
+      auto& mutable_partitions = cached_partitions->GetMutablePartitions();
+      mutable_partitions.erase(
+          std::remove_if(mutable_partitions.begin(), mutable_partitions.end(),
+                         [](const model::Partition& partition) {
+                           return HasNoContent(partition);
+                         }),
+          mutable_partitions.end());
+
       return *cached_partitions;
     } else if (fetch_option == CacheOnly) {
       OLP_SDK_LOG_TRACE_F(
@@ -302,8 +343,13 @@ PartitionsRepository::GetPartitionsExtendedResponse(
     OLP_SDK_LOG_TRACE_F(kLogTag,
                         "GetPartitions put to cache, hrn='%s', key='%s'",
                         catalog_str.c_str(), key.c_str());
+
     const auto put_result =
-        cache_.Put(response.GetResult(), version, expiry, is_layer_metadata);
+        cache_.Put(!response.GetResult().GetPartitions().empty()
+                       ? response.GetResult()
+                       : CreateNoContentPartitions(partition_ids),
+                   version, expiry, is_layer_metadata);
+
     if (!put_result.IsSuccessful() && fail_on_cache_error) {
       OLP_SDK_LOG_ERROR_F(kLogTag,
                           "Failed to write data to cache, hrn='%s', key='%s'",
@@ -356,6 +402,16 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
       OLP_SDK_LOG_TRACE_F(kLogTag,
                           "GetPartitionById found in cache, hrn='%s', key='%s'",
                           catalog_.ToCatalogHRNString().c_str(), key.c_str());
+
+      // Clear from cached NoContent partitions
+      auto& mutable_partitions = cached_partitions.GetMutablePartitions();
+      mutable_partitions.erase(
+          std::remove_if(mutable_partitions.begin(), mutable_partitions.end(),
+                         [](const model::Partition& partition) {
+                           return HasNoContent(partition);
+                         }),
+          mutable_partitions.end());
+
       return cached_partitions;
     } else if (fetch_option == CacheOnly) {
       OLP_SDK_LOG_TRACE_F(
@@ -383,8 +439,13 @@ PartitionsResponse PartitionsRepository::GetPartitionById(
     OLP_SDK_LOG_TRACE_F(kLogTag,
                         "GetPartitionById put to cache, hrn='%s', key='%s'",
                         catalog_.ToCatalogHRNString().c_str(), key.c_str());
+
     const auto put_result =
-        cache_.Put(query_response.GetResult(), version, olp::porting::none);
+        cache_.Put(!query_response.GetResult().GetPartitions().empty()
+                       ? query_response.GetResult()
+                       : CreateNoContentPartitions(partitions),
+                   version, olp::porting::none);
+
     if (!put_result.IsSuccessful()) {
       OLP_SDK_LOG_ERROR_F(kLogTag,
                           "GetPartitionById failed to write data to cache, "

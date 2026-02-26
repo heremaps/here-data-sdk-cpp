@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,8 +123,9 @@ BlobApi::DataResponse DataRepository::GetVersionedData(
           catalog_.ToCatalogHRNString().c_str(),
           request.CreateKey(layer_id, version).c_str());
 
-      return DataResponse(client::ApiError::NotFound("Partition not found"),
-                          network_statistics);
+      return DataResponse(
+          client::ApiError(client::ErrorCode::NoContent, "Partition is empty"),
+          network_statistics);
     }
 
     partition = std::move(partitions.front());
@@ -281,7 +282,8 @@ BlobApi::DataResponse DataRepository::GetVolatileData(
           catalog_.ToCatalogHRNString().c_str(),
           request.CreateKey(layer_id, olp::porting::none).c_str());
 
-      return client::ApiError::NotFound("Partition not found");
+      return client::ApiError(client::ErrorCode::NoContent,
+                              "Partition is empty");
     }
 
     partition = std::move(partitions.front());
