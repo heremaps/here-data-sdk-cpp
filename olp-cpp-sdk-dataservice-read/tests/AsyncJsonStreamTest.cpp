@@ -40,6 +40,15 @@ TEST(AsyncJsonStreamTest, NormalFlow) {
   EXPECT_EQ(current_stream->Tell(), 2u);
   EXPECT_EQ(current_stream->Take(), '3');
 
+  stream.ResetStream("123", 4);
+  current_stream = stream.GetCurrentStream();
+  auto view = current_stream->ReadView();
+  EXPECT_EQ(view.size(), 3);
+  EXPECT_FALSE(current_stream->ReadEmpty());
+  EXPECT_EQ(current_stream->Peek(), '\0');
+  EXPECT_EQ(current_stream->Take(), '\0');
+  EXPECT_TRUE(current_stream->ReadEmpty());
+
   stream.ResetStream("234", 3);
 
   auto new_current_stream = stream.GetCurrentStream();
@@ -80,18 +89,6 @@ TEST(AsyncJsonStreamTest, NormalFlow) {
   EXPECT_TRUE(new_current_stream->ReadEmpty());
   stream.ResetStream("4", 1);
   EXPECT_TRUE(new_current_stream->ReadEmpty());
-
-  {
-    repository::AsyncJsonStream json_stream;
-    json_stream.AppendContent("123", 4);
-    auto current_json_stream = json_stream.GetCurrentStream();
-    auto view = current_json_stream->ReadView();
-    EXPECT_EQ(view.size(), 3);
-    EXPECT_FALSE(current_json_stream->ReadEmpty());
-    EXPECT_EQ(current_json_stream->Peek(), '\0');
-    EXPECT_EQ(current_json_stream->Take(), '\0');
-    EXPECT_TRUE(current_json_stream->ReadEmpty());
-  }
 }
 
 }  // namespace
