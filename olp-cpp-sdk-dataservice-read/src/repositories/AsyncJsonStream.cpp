@@ -35,10 +35,9 @@ boost::json::string_view RapidJsonByteStream::ReadView() {
   if (ReadEmpty()) {
     SwapBuffers();
   }
-  auto terminator_it =
-      std::find(read_buffer_.begin() + count_, read_buffer_.end(), '\0');
   auto begin = read_buffer_.begin() + count_;
-  boost::core::basic_string_view<char>::size_type size =
+  auto terminator_it = std::find(begin, read_buffer_.end(), '\0');
+  boost::json::string_view::size_type size =
       std::distance(begin, terminator_it);
   count_ += size;
   full_count_ += size;

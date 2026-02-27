@@ -660,7 +660,6 @@ client::ApiNoResponse PartitionsRepository::ParsePartitionsStream(
 
     auto reader_cancellation_token =
         client::CancellationToken([parser, &async_stream]() {
-          // partitions_handler->Abort();
           parser->handler().Abort();
           async_stream->CloseStream(client::ApiError::Cancelled());
         });
