@@ -25,6 +25,11 @@ add_library(${PROJECT_NAME}
     ${SRC}
     ${INC})
 
+target_compile_definitions(${PROJECT_NAME}
+    PRIVATE
+    BOOST_ALL_NO_LIB
+    BOOST_JSON_NO_LIB)
+
 target_include_directories(${PROJECT_NAME}
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
