@@ -18,12 +18,27 @@
 # License-Filename: LICENSE
 
 
-mkdir -p build
-cd build
-cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-    -DOLP_SDK_BUILD_EXAMPLES=ON \
-    -DBUILD_SHARED_LIBS=ON \
-    -DOLP_SDK_ENABLE_TESTING=NO \
-    ..
-make -j
-cd ..
+#!/usr/bin/env bash
+set -euo pipefail
+
+#
+# Build HERE Data SDK for C++ on macOS.
+#
+
+readonly BUILD_DIR="build"
+
+echo "=== Configuring macOS build ==="
+
+mkdir -p "${BUILD_DIR}"
+cd "${BUILD_DIR}"
+
+cmake .. \
+  -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
+  -DBUILD_SHARED_LIBS=ON \
+  -DOLP_SDK_ENABLE_TESTING=OFF \
+  -DOLP_SDK_BUILD_EXAMPLES=ON
+
+echo "=== Building project ==="
+make -j"$(sysctl -n hw.ncpu)"
+
+echo "macOS build completed successfully."

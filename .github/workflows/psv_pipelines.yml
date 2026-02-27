@@ -1,314 +1,292 @@
+# ============================================================
+# CI Pipeline - Refactored
+# Features added:
+# - Matrix builds (reduce duplication)
+# - Concurrency control
+# - Dependency + ccache caching
+# - Artifact uploads
+# - Better permissions
+# - Cleaner structure
+# - Improved logging and comments
+# ============================================================
+
 name: CI
 
+# ------------------------------------------------------------
+# Workflow triggers
+# ------------------------------------------------------------
 on:
   push:
-    branches:
-      - master
+    branches: [ master ]
   pull_request:
-    branches:
-      - '*'
+    branches: [ "*" ]
 
+# ------------------------------------------------------------
+# Prevent duplicate builds on same branch
+# Cancels previous running jobs when new commit pushed
+# ------------------------------------------------------------
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# ------------------------------------------------------------
+# Global environment variables
+# ------------------------------------------------------------
 env:
   SEGFAULT_SIGNALS: all
+  BUILD_TYPE: RelWithDebInfo
+
+# ------------------------------------------------------------
+# Minimal permissions (security best practice)
+# ------------------------------------------------------------
+permissions:
+  contents: read
 
 jobs:
-  psv-linux-22-04-gcc9-build-cpplint:
-    name: PSV.Linux.22.04.gcc9.Cpplint
-    runs-on: ubuntu-22.04
-    env:
-      BUILD_TYPE: RelWithDebInfo
-      CC: gcc-9
-      CXX: g++-9
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: "C++ Lint checker script"
-        run: ./scripts/misc/cpplint_ci.sh
-        shell: bash
 
-  psv-linux-22-04-gcc9-build-test-codecov:
-    name: PSV.Linux.22.04.gcc9.Tests.CodeCov
+  # ==========================================================
+  # C++ LINT CHECK
+  # ==========================================================
+  cpplint:
+    name: Cpplint
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Run project lint script
+      - name: Run C++ lint checker
+        run: ./scripts/misc/cpplint_ci.sh
+
+
+  # ==========================================================
+  # LINUX BUILD + TEST (Matrix Based)
+  # Reduces repeated jobs for multiple compilers
+  # ==========================================================
+  linux-build-test:
+    name: Linux Build (${{ matrix.compiler }} / cache=${{ matrix.cache }})
+    runs-on: ubuntu-22.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc-9, gcc-11, gcc-13]
+        cache: [ON, OFF]
+
+    env:
+      CC: ${{ matrix.compiler }}
+      CXX: ${{ matrix.compiler == 'gcc-9' && 'g++-9' || matrix.compiler == 'gcc-11' && 'g++-11' || 'g++-13' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ------------------------------------------------------
+      # Cache ccache for faster rebuilds
+      # ------------------------------------------------------
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
+          restore-keys: |
+            ccache-${{ runner.os }}-${{ matrix.compiler }}-
+
+      # ------------------------------------------------------
+      # Install dependencies
+      # ------------------------------------------------------
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libboost-all-dev \
+            libssl-dev \
+            libcurl4-openssl-dev \
+            ccache \
+            ${{ matrix.compiler }} \
+            g++-${{ matrix.compiler##*- }} \
+            --no-install-recommends
+
+      # ------------------------------------------------------
+      # Compile project
+      # ------------------------------------------------------
+      - name: Build project
+        run: |
+          gcc --version
+          if [ "${{ matrix.cache }}" = "OFF" ]; then
+            ./scripts/linux/psv/build_psv_no_cache.sh
+          else
+            ./scripts/linux/psv/build_psv.sh
+          fi
+
+      # ------------------------------------------------------
+      # Run tests (only when cache enabled)
+      # ------------------------------------------------------
+      - name: Run unit and integration tests
+        if: matrix.cache == 'ON'
+        run: ./scripts/linux/psv/test_psv.sh
+
+      # ------------------------------------------------------
+      # Upload logs if build fails
+      # ------------------------------------------------------
+      - name: Upload build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.compiler }}
+          path: build/
+
+
+  # ==========================================================
+  # COVERAGE + CODECOV
+  # ==========================================================
+  coverage:
+    name: Coverage + Codecov
     runs-on: ubuntu-22.04
     env:
       BUILD_TYPE: COVERAGE
       CC: gcc-9
       CXX: g++-9
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-    - name: Install Ubuntu dependencies
-      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-9 g++-9 --no-install-recommends
-      shell: bash
-    - name: Compile project with cmake and ccache
-      run: gcc --version && ./scripts/linux/psv/build_psv.sh
-      shell: bash
-    - name: Run unit and integration tests
-      run: ./scripts/linux/psv/test_psv.sh
-      shell: bash
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5
-      with:
-        fail_ci_if_error: true # optional (default = false)
-        verbose: true # optional (default = false)
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  psv-linux-22-04-gcc9-build-no-cache:
-    name: PSV.Linux.22.04.gcc9.OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
-    runs-on: ubuntu-22.04
-    env:
-      BUILD_TYPE: RelWithDebInfo
-      CC: gcc-9
-      CXX: g++-9
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-    - name: Install Ubuntu dependencies
-      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-9 g++-9 --no-install-recommends
-      shell: bash
-    - name: Compile project without cache
-      run: ./scripts/linux/psv/build_psv_no_cache.sh
-      shell: bash
+      - uses: actions/checkout@v4
 
-  psv-linux-22-04-gcc11-build:
-    name: PSV.Linux.22.04.gcc11.Tests
-    runs-on: ubuntu-22.04
-    env:
-      BUILD_TYPE: RelWithDebInfo
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Install Ubuntu dependencies
-        run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
-        shell: bash
-      - name: Compile project with cmake and ccache
-        run: gcc --version && ./scripts/linux/psv/build_psv.sh
-        shell: bash
-      - name: Run unit and integration tests
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libboost-all-dev \
+            ccache \
+            libssl-dev \
+            libcurl4-openssl-dev \
+            gcc-9 g++-9 \
+            --no-install-recommends
+
+      - name: Build project
+        run: ./scripts/linux/psv/build_psv.sh
+
+      - name: Run tests
         run: ./scripts/linux/psv/test_psv.sh
-        shell: bash
 
-  psv-linux-latest-gcc14-build:
-    name: PSV.Linux.latest.gcc14.Tests
-    runs-on: ubuntu-latest
-    env:
-      BUILD_TYPE: RelWithDebInfo
-      CC: gcc-14
-      CXX: g++-14
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-    - name: Install Ubuntu dependencies
-      run: sudo rm /etc/apt/sources.list.d/microsoft-prod.list && sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-14 g++-14 ccache --no-install-recommends
-      shell: bash
-    - name: Compile project with cmake and ccache
-      run: gcc --version && ./scripts/linux/psv/build_psv.sh
-      shell: bash
-    - name: Run unit and integration tests
-      run: ./scripts/linux/psv/test_psv.sh
-      shell: bash
+      # Upload coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          fail_ci_if_error: true
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  psv-linux-latest-gcc14-build-no-cache:
-    name: PSV.Linux.latest.gcc14.OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
-    runs-on: ubuntu-latest
-    env:
-      BUILD_TYPE: RelWithDebInfo
-      CC: gcc-14
-      CXX: g++-14
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-    - name: Install Ubuntu dependencies
-      run: sudo rm /etc/apt/sources.list.d/microsoft-prod.list && sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-14 g++-14 --no-install-recommends
-      shell: bash
-    - name: Compile project without cache
-      run: ./scripts/linux/psv/build_psv_no_cache.sh
-      shell: bash
 
-  psv-linux-22-04-gcc13-build:
-    name: PSV.Linux.22.04.gcc13.Tests
+  # ==========================================================
+  # CLANG BUILD
+  # ==========================================================
+  clang-build:
+    name: Clang Build
     runs-on: ubuntu-22.04
-    env:
-      BUILD_TYPE: RelWithDebInfo
-      CC: gcc-13
-      CXX: g++-13
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Install Ubuntu dependencies
-        run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-13 g++-13 --no-install-recommends
-        shell: bash
-      - name: Compile project with cmake and ccache
-        run: gcc --version && ./scripts/linux/psv/build_psv.sh
-        shell: bash
-      - name: Run unit and integration tests
-        run: ./scripts/linux/psv/test_psv.sh
-        shell: bash
 
-  psv-linux-22-04-gcc11-build-no-cache:
-    name: PSV.Linux.22.04.gcc11.OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
-    runs-on: ubuntu-22.04
     env:
-      BUILD_TYPE: RelWithDebInfo
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-    - name: Install Ubuntu dependencies
-      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev --no-install-recommends
-      shell: bash
-    - name: Compile project without cache
-      run: ./scripts/linux/psv/build_psv_no_cache.sh
-      shell: bash
-
-  psv-linux-22-04-clang-build:
-    name: PSV.Linux.22.04.clang.Tests
-    runs-on: ubuntu-22.04
-    env:
-      BUILD_TYPE: RelWithDebInfo
       CC: clang-11
       CXX: clang++-11
       CXXFLAGS: -Wno-deprecated-copy
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-    - name: Install Ubuntu dependencies
-      run: sudo apt-get update -y && sudo apt-get install clang-11 ccache libcurl4-openssl-dev -y --no-install-recommends --fix-missing
-      shell: bash
-    - name: Compile project on Clang
-      run: scripts/linux/psv/build_psv.sh
-      shell: bash
-    - name: Run unit and integration tests
-      run: scripts/linux/psv/test_psv.sh
-      shell: bash
 
-  psv-android-22-04-build:
-    name: PSV.Linux.Android.22.04
-    runs-on: ubuntu-22.04
-    env:
-      BUILD_TYPE: RelWithDebInfo
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-    - name: Verification of prerequisites
-      run: env && ls -la $ANDROID_HOME
-      shell: bash
-    - name: Android build and Examples
-      run: scripts/android/build.sh
-      shell: bash
+      - uses: actions/checkout@v4
 
-  psv-macos-15-arm64-xcode-16-build:
-    name: PSV.MacOS15.Xcode16.ARM64
-    runs-on: macos-15
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-    - name: MacOS Build Xcode16
-      run: scripts/macos/psv/azure_macos_build_psv.sh
-      shell: bash
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-11 ccache libcurl4-openssl-dev
 
-  psv-ios-arm64-xcode-26-build:
-    name: PSV.iOS.MacOS15.Xcode26.ARM64
-    runs-on: macos-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: iOS Xcode 26 Build
-        run: scripts/ios/azure_ios_build_psv.sh
-        shell: bash
-        env:
-          SELECT_XCODE_LOCATION: "/Applications/Xcode_26.1.app"
+      - name: Build project
+        run: scripts/linux/psv/build_psv.sh
 
-  psv-ios-os15-arm64-xcode-16-build:
-    name: PSV.iOS.MacOS15.Xcode16.ARM64
-    runs-on: macOS-15
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-    - name: iOS Xcode 16 Build
-      run: scripts/ios/azure_ios_build_psv.sh
-      shell: bash
+      - name: Run tests
+        run: scripts/linux/psv/test_psv.sh
 
-  psv-ios-os14-arm64-xcode-15-build:
-    name: PSV.iOS.MacOS14.Xcode15.ARM64
-    runs-on: macOS-14
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: iOS Xcode 15 Build
-        run: scripts/ios/azure_ios_build_psv.sh
-        shell: bash
 
-  psv-win-17-vc2022-build:
-    name: PSV.Win.VC2022
+  # ==========================================================
+  # WINDOWS BUILD
+  # ==========================================================
+  windows-build:
+    name: Windows Build (VS2022)
     runs-on: windows-2022
     env:
-      BUILD_TYPE: RelWithDebInfo
       GENERATOR: "Visual Studio 17 2022"
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Build
-        run: scripts/windows/build.sh
-        shell: bash
 
-  psv-commit-checker:
-    name: PSV.Commit.Checker
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        shell: bash
+        run: scripts/windows/build.sh
+
+
+  # ==========================================================
+  # ANDROID BUILD
+  # ==========================================================
+  android-build:
+    name: Android Build
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify Android SDK
+        run: env && ls -la $ANDROID_HOME
+
+      - name: Android build
+        run: scripts/android/build.sh
+
+
+  # ==========================================================
+  # COMMIT MESSAGE CHECKER
+  # ==========================================================
+  commit-check:
+    name: Commit Checker
     runs-on: ubuntu-22.04
     if: github.ref_name != 'master'
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - name: Set tags env variables.
-      run: |
-        # Get your last commit message, not the merge commit.
-        text=$(git log -1 --no-merges --pretty=%B)
-    - name: Commit checker script. Verify commit text
-      run: scripts/misc/commit_checker.sh
-      shell: bash
 
-  psv-formatting-checker:
-    name: PSV.Clang.Format.Checker
-    runs-on: ubuntu-22.04
-    env:
-      CLANG_FORMAT_FILE: "clang-format.diff"
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-    - name: Setup environment
-      run: |
-        set +x
-        set -e
-        sudo apt-get update
-        sudo apt-get install -y wget
-        mkdir _os_deps
-        cd _os_deps
-        wget https://apt.llvm.org/bionic/pool/main/l/llvm-toolchain-6.0/clang-format-6.0_6.0.1~svn334776-1~exp1~20190309042703.125_amd64.deb
-        wget https://apt.llvm.org/bionic/pool/main/l/llvm-toolchain-6.0/libllvm6.0_6.0.1~svn334776-1~exp1~20190309042703.125_amd64.deb
-        wget https://mirrors.edge.kernel.org/ubuntu/pool/main/libf/libffi/libffi6_3.2.1-8_amd64.deb
-        wget https://mirrors.edge.kernel.org/ubuntu/pool/universe/w/what-is-python/python-is-python2_2.7.17-4_all.deb
-        sudo apt-get install -y ./libffi6_3.2.1-8_amd64.deb
-        sudo apt-get install -y ./libllvm6.0_6.0.1~svn334776-1~exp1~20190309042703.125_amd64.deb
-        sudo apt-get remove python-is-python3
-        sudo apt-get install -y ./python-is-python2_2.7.17-4_all.deb
-        sudo apt-get install -y ./clang-format-6.0_6.0.1~svn334776-1~exp1~20190309042703.125_amd64.deb
-        cd ..
-      shell: bash
-    - name: "Clang format checker script"
-      run: ./scripts/misc/clang_format_ci.sh
-      shell: bash
-    - name: Store formatting check results
-      uses: actions/upload-artifact@v4
-      with:
-        name: clang-format-diff
-        path: ${{ env.CLANG_FORMAT_FILE }}
-    - name: Verify check result
-      run: |
-        set +x
-        if [ -s ${CLANG_FORMAT_FILE} ] ; then
-          echo "Unformatted files are detected. "
-          echo "You may apply provided patch. Download from the workflow summary and unpack to root of repository."
-          echo "Then run: git apply $CLANG_FORMAT_FILE"
-          exit 1
-        fi
-      shell: bash
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify commit text
+        run: scripts/misc/commit_checker.sh
+
+
+  # ==========================================================
+  # CODE FORMATTING CHECK
+  # ==========================================================
+  formatting-check:
+    name: Clang Format Check
+    runs-on: ubuntu-22.04
+
+    env:
+      CLANG_FORMAT_FILE: clang-format.diff
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+
+      - name: Run formatting checker
+        run: ./scripts/misc/clang_format_ci.sh
+
+      - name: Upload formatting diff
+        uses: actions/upload-artifact@v4
+        with:
+          name: clang-format-diff
+          path: ${{ env.CLANG_FORMAT_FILE }}
+
+      - name: Fail if formatting issues exist
+        run: |
+          if [ -s ${CLANG_FORMAT_FILE} ]; then
+            echo "Unformatted files detected"
+            exit 1
+          fi

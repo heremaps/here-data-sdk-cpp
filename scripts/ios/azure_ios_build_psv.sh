@@ -20,22 +20,43 @@
 # Getting rid of boost installed to the CI image (not clear when it appeared)
 # asciidoc and source-highlight are using it so dependencies are ignored.
 # Sometimes there is no boost and there is no need to fail in this case.
+
+
+#!/usr/bin/env bash
+set -euo pipefail
+
+#
+# Build HERE Data SDK for C++ for iOS using Xcode.
+#
+
+readonly BUILD_DIR="build"
+
+echo "=== Preparing environment ==="
+
+# Remove conflicting Boost installation (if present)
 brew uninstall --ignore-dependencies boost || true
 
-if [[ -n ${SELECT_XCODE_LOCATION} ]]; then
-  # Due to some bug which is cmake cannot detect compiler while called
-  # from cmake itself when project is compiled with XCode 12.4 we must
-  # switch to old XCode as a workaround.
-  sudo xcode-select -s ${SELECT_XCODE_LOCATION}
+# Optional Xcode selection workaround
+if [[ -n "${SELECT_XCODE_LOCATION:-}" ]]; then
+  echo "Switching Xcode to ${SELECT_XCODE_LOCATION}"
+  sudo xcode-select -s "${SELECT_XCODE_LOCATION}"
 fi
 
-mkdir -p build && cd build
-cmake ../ -GXcode \
-    -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/iOS.cmake \
-    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-    -DPLATFORM=iphoneos \
-    -DOLP_SDK_ENABLE_TESTING=ON \
-    -DSIMULATOR=YES \
-    -DOLP_SDK_BUILD_EXAMPLES=ON
+echo "=== Configuring project ==="
 
+mkdir -p "${BUILD_DIR}"
+cd "${BUILD_DIR}"
+
+cmake .. \
+  -GXcode \
+  -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/iOS.cmake \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DPLATFORM=iphoneos \
+  -DSIMULATOR=YES \
+  -DOLP_SDK_ENABLE_TESTING=ON \
+  -DOLP_SDK_BUILD_EXAMPLES=ON
+
+echo "=== Building with Xcode ==="
 xcodebuild
+
+echo "iOS build completed successfully."
