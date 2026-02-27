@@ -457,8 +457,8 @@ if (OLP_SDK_USE_STD_ANY)
         PUBLIC OLP_SDK_USE_STD_ANY)
 endif()
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE BOOST_ALL_NO_LIB)
-target_compile_definitions(${PROJECT_NAME} PRIVATE BOOST_JSON_NO_LIB)
+target_compile_definitions(${PROJECT_NAME} PUBLIC BOOST_ALL_NO_LIB)
+target_compile_definitions(${PROJECT_NAME} PUBLIC BOOST_JSON_NO_LIB)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
