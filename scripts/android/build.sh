@@ -23,33 +23,56 @@
 # by using Android NDK 21.
 #
 
-# Install required NDK version (output disabled as it causes issues during page loading)
-env
-${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --list
-${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --install "ndk;21.3.6528147" --sdk_root=${ANDROID_HOME} >/dev/null
-${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-21" >/dev/null
-${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --list
-export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/21.3.6528147
-env
-# Verify content of NDK directories
-ls -la $ANDROID_NDK_HOME
-ls -la $ANDROID_NDK_HOME/platforms
+#!/usr/bin/env bash
+set -euo pipefail
 
-mkdir -p build && cd build
-cmake .. -DCMAKE_TOOLCHAIN_FILE="$ANDROID_HOME/ndk/21.3.6528147/build/cmake/android.toolchain.cmake" \
+#
+# Build HERE Data SDK for C++ for Android.
+#
+# Configuration:
+# - Android platform: android-21
+# - ABI: arm64-v8a
+# - NDK version: 21.3.6528147
+#
+
+readonly NDK_VERSION="21.3.6528147"
+readonly ANDROID_PLATFORM="android-21"
+readonly ANDROID_ABI="arm64-v8a"
+readonly BUILD_DIR="build"
+
+echo "=== Installing Android dependencies ==="
+
+"${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --install \
+  "ndk;${NDK_VERSION}" \
+  "platforms;${ANDROID_PLATFORM}" \
+  --sdk_root="${ANDROID_HOME}" >/dev/null
+
+export ANDROID_NDK_HOME="${ANDROID_HOME}/ndk/${NDK_VERSION}"
+
+echo "NDK installed at: ${ANDROID_NDK_HOME}"
+ls -la "${ANDROID_NDK_HOME}"
+
+echo "=== Configuring project ==="
+
+mkdir -p "${BUILD_DIR}"
+cd "${BUILD_DIR}"
+
+cmake .. \
+  -DCMAKE_TOOLCHAIN_FILE="${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-  -DANDROID_PLATFORM=android-21 \
-  -DANDROID_ABI=arm64-v8a \
-  -DANDROID_NDK="$ANDROID_HOME/ndk/21.3.6528147" \
-  -DOLP_SDK_ENABLE_TESTING=NO \
+  -DANDROID_PLATFORM="${ANDROID_PLATFORM}" \
+  -DANDROID_ABI="${ANDROID_ABI}" \
+  -DANDROID_NDK="${ANDROID_NDK_HOME}" \
+  -DOLP_SDK_ENABLE_TESTING=OFF \
   -DOLP_SDK_BUILD_EXAMPLES=ON
 
-#cmake --build . # this is alternative option for build
-sudo make install -j$(nproc)
+echo "=== Building project ==="
+sudo make install -j"$(nproc)"
 
-pushd examples/android
-  # check java version
-  echo "java is $(java --version)"
-  echo "sudo java is $(sudo java --version)"
-  ./gradlew assemble --stacktrace
-popd
+echo "=== Building Android examples ==="
+pushd ../examples/android > /dev/null
+echo "Java version: $(java --version)"
+./gradlew assemble --stacktrace
+popd > /dev/null
+
+echo "Android build completed successfully."
