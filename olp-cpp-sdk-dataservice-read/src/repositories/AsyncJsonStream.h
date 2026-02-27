@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2025 HERE Europe B.V.
+ * Copyright (C) 2023-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/porting/optional.h>
+#include <boost/json/string_view.hpp>
 
 namespace olp {
 namespace dataservice {
@@ -43,14 +44,11 @@ class RapidJsonByteStream {
   /// character.
   Ch Take();
 
+  /// Return the view of current read buffer until the end of first \0 character
+  boost::json::string_view ReadView();
+
   /// Get the current read cursor.
   size_t Tell() const;
-
-  /// Not needed for reading.
-  char* PutBegin();
-  void Put(char);
-  void Flush();
-  size_t PutEnd(char*);
 
   bool ReadEmpty() const;
   bool WriteEmpty() const;

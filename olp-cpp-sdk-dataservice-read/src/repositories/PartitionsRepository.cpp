@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@
 #include <olp/core/client/Condition.h>
 #include <olp/core/logging/Log.h>
 #include <boost/functional/hash.hpp>
+#include <boost/json/basic_parser_impl.hpp>
+#include <boost/json/src.hpp>
 #include "CatalogRepository.h"
 #include "generated/api/MetadataApi.h"
 #include "generated/api/QueryApi.h"
@@ -648,28 +650,36 @@ client::ApiNoResponse PartitionsRepository::ParsePartitionsStream(
     const std::shared_ptr<AsyncJsonStream>& async_stream,
     const PartitionsStreamCallback& partition_callback,
     client::CancellationContext context) {
-  rapidjson::ParseResult parse_result;
+  auto parse_result =
+      boost::json::make_error_code(boost::json::error::incomplete);
 
   // We must perform at least one attempt to parse.
   do {
-    rapidjson::Reader reader;
-    auto partitions_handler =
-        std::make_shared<repository::PartitionsSaxHandler>(partition_callback);
+    auto parser =
+        std::make_shared<boost::json::basic_parser<PartitionsSaxHandler>>(
+            boost::json::parse_options{}, partition_callback);
 
-    auto reader_cancellation_token = client::CancellationToken([=]() {
-      partitions_handler->Abort();
-      async_stream->CloseStream(client::ApiError::Cancelled());
-    });
+    auto reader_cancellation_token =
+        client::CancellationToken([parser, &async_stream]() {
+          // partitions_handler->Abort();
+          parser->handler().Abort();
+          async_stream->CloseStream(client::ApiError::Cancelled());
+        });
 
-    if (!context.ExecuteOrCancelled(
-            [=]() { return reader_cancellation_token; })) {
+    if (!context.ExecuteOrCancelled([reader_cancellation_token]() {
+          return reader_cancellation_token;
+        })) {
       return client::ApiError::Cancelled();
     }
 
     auto json_stream = async_stream->GetCurrentStream();
 
-    parse_result = reader.Parse<rapidjson::kParseIterativeFlag>(
-        *json_stream, *partitions_handler);
+    while (json_stream->Peek() != '\0') {
+      auto view = json_stream->ReadView();
+      if (parser->write_some(true, view.data(), view.size(), parse_result)) {
+        parse_result = {};
+      }
+    }
     // Retry to parse the stream until it's closed.
   } while (!async_stream->IsClosed());
 
@@ -677,8 +687,8 @@ client::ApiNoResponse PartitionsRepository::ParsePartitionsStream(
 
   if (error) {
     return {*error};
-  } else if (!parse_result) {
-    return client::ApiError(parse_result.Code(), "Parsing error");
+  } else if (parse_result.failed()) {
+    return client::ApiError(parse_result.value(), "Parsing error");
   } else {
     return client::ApiNoResult{};
   }

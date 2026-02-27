@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2025 HERE Europe B.V.
+ * Copyright (C) 2023-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,6 +80,18 @@ TEST(AsyncJsonStreamTest, NormalFlow) {
   EXPECT_TRUE(new_current_stream->ReadEmpty());
   stream.ResetStream("4", 1);
   EXPECT_TRUE(new_current_stream->ReadEmpty());
+
+  {
+    repository::AsyncJsonStream json_stream;
+    json_stream.AppendContent("123", 4);
+    auto current_json_stream = json_stream.GetCurrentStream();
+    auto view = current_json_stream->ReadView();
+    EXPECT_EQ(view.size(), 3);
+    EXPECT_FALSE(current_json_stream->ReadEmpty());
+    EXPECT_EQ(current_json_stream->Peek(), '\0');
+    EXPECT_EQ(current_json_stream->Take(), '\0');
+    EXPECT_TRUE(current_json_stream->ReadEmpty());
+  }
 }
 
 }  // namespace
