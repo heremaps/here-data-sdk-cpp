@@ -19,11 +19,34 @@
 
 # This script should run on special docker image with armhf packages installed.
 # Compiler setup for ARM
+#!/usr/bin/env bash
+set -euo pipefail
+
+#
+# Cross-compile HERE Data SDK for C++ for ARM (armhf).
+# Requires Docker image with ARM toolchain installed.
+#
+
+readonly BUILD_DIR="build"
+
+echo "=== Configuring ARM toolchain ==="
+
 export CC=arm-linux-gnueabihf-gcc-7
 export CXX=arm-linux-gnueabihf-g++-7
 export LD=arm-linux-gnueabihf-ld
 
-mkdir -p build && cd build
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_SHARED_LIBS=ON -OLP_SDK_BUILD_EXAMPLES=OFF -DOLP_SDK_ENABLE_TESTING=OFF ..
-make -j$(nproc)
-echo "ARM HF build succeeded."
+echo "=== Configuring project ==="
+
+mkdir -p "${BUILD_DIR}"
+cd "${BUILD_DIR}"
+
+cmake .. \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DBUILD_SHARED_LIBS=ON \
+  -DOLP_SDK_BUILD_EXAMPLES=OFF \
+  -DOLP_SDK_ENABLE_TESTING=OFF
+
+echo "=== Building project ==="
+make -j"$(nproc)"
+
+echo "ARM HF build completed successfully."
