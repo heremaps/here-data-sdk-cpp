@@ -18,6 +18,8 @@
 project(olp-cpp-sdk-authentication VERSION 1.24.0)
 set(DESCRIPTION "C++ API library for accessing HERE Account authentication service")
 
+find_package(Boost REQUIRED)
+
 file(GLOB_RECURSE AUTHENTICATION_INC "include/*.h*")
 file(GLOB_RECURSE AUTHENTICATION_SRC "src/*.*")
 
@@ -27,6 +29,7 @@ add_library(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
     $<INSTALL_INTERFACE:include>)
 
 # Used also in the package config file
@@ -37,8 +40,9 @@ target_link_libraries(${PROJECT_NAME}
         ${PROJECT_LIBS}
 )
 
-# On MINGW boost uses bcrypt library
-if (MINGW)
+# On MINGW and MSVC boost uses bcrypt library
+# https://github.com/boostorg/uuid/issues/122
+if (MINGW OR MSVC)
     target_link_libraries(${PROJECT_NAME} PRIVATE bcrypt )
 endif()
 
@@ -48,6 +52,11 @@ if(BUILD_SHARED_LIBS)
     target_compile_definitions(${PROJECT_NAME}
         PUBLIC AUTHENTICATION_SHARED_LIBRARY)
 endif()
+
+target_compile_definitions(${PROJECT_NAME}
+    PRIVATE
+        BOOST_ALL_NO_LIB
+        BOOST_JSON_NO_LIB)
 
 # install component
 install (FILES ${AUTHENTICATION_INC} DESTINATION ${INCLUDE_DIRECTORY}/olp/authentication)
