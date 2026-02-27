@@ -17,9 +17,29 @@
 # SPDX-License-Identifier: Apache-2.0
 # License-Filename: LICENSE
 
-env
-[[ -d "build" ]] && rm -rf build
-mkdir build && cd build
-cmake .. -G "${GENERATOR}" -A x64 \
-        -DBUILD_TYPE=$BUILD_TYPE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
-cmake --build . --config $BUILD_TYPE
+#!/usr/bin/env bash
+set -euo pipefail
+
+#
+# Build HERE Data SDK for C++ on Windows using CMake.
+#
+
+readonly BUILD_DIR="build"
+
+echo "=== Preparing build directory ==="
+
+rm -rf "${BUILD_DIR}"
+mkdir -p "${BUILD_DIR}"
+cd "${BUILD_DIR}"
+
+echo "=== Configuring project ==="
+
+cmake .. \
+  -G "${GENERATOR}" \
+  -A x64 \
+  -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
+
+echo "=== Building project ==="
+cmake --build . --config "${BUILD_TYPE}"
+
+echo "Windows build completed successfully."
