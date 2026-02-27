@@ -27,7 +27,6 @@
 #include <olp/core/logging/Log.h>
 #include <boost/functional/hash.hpp>
 #include <boost/json/basic_parser_impl.hpp>
-#include <boost/json/src.hpp>
 #include "CatalogRepository.h"
 #include "generated/api/MetadataApi.h"
 #include "generated/api/QueryApi.h"
