@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2025 HERE Europe B.V.
+ * Copyright (C) 2023-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,19 @@ RapidJsonByteStream::Ch RapidJsonByteStream::Peek() {
   return read_buffer_[count_];
 }
 
+boost::json::string_view RapidJsonByteStream::ReadView() {
+  if (ReadEmpty()) {
+    SwapBuffers();
+  }
+  auto begin = read_buffer_.begin() + count_;
+  auto terminator_it = std::find(begin, read_buffer_.end(), '\0');
+  boost::json::string_view::size_type size =
+      std::distance(begin, terminator_it);
+  count_ += size;
+  full_count_ += size;
+  return {&*begin, size};
+}
+
 RapidJsonByteStream::Ch RapidJsonByteStream::Take() {
   if (ReadEmpty()) {
     SwapBuffers();
@@ -40,12 +53,6 @@ RapidJsonByteStream::Ch RapidJsonByteStream::Take() {
 }
 
 size_t RapidJsonByteStream::Tell() const { return full_count_; }
-
-// Not implemented
-char* RapidJsonByteStream::PutBegin() { return 0; }
-void RapidJsonByteStream::Put(char) {}
-void RapidJsonByteStream::Flush() {}
-size_t RapidJsonByteStream::PutEnd(char*) { return 0; }
 
 bool RapidJsonByteStream::ReadEmpty() const {
   return count_ == read_buffer_.size();

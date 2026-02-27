@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2025 HERE Europe B.V.
+ * Copyright (C) 2023-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,46 +35,45 @@ constexpr unsigned long long int HashStringToInt(
 PartitionsSaxHandler::PartitionsSaxHandler(PartitionCallback partition_callback)
     : partition_callback_(std::move(partition_callback)) {}
 
-bool PartitionsSaxHandler::StartObject() {
+bool PartitionsSaxHandler::on_object_begin(boost::json::error_code& ec) {
   if (state_ == State::kWaitForRootObject) {
     state_ = State::kWaitForRootPartitions;
-    return continue_parsing_;
+    return CanContinue(ec);
   }
 
   if (state_ != State::kWaitForNextPartition) {
-    return false;
+    return NotSupported(ec);
   }
 
   state_ = State::kProcessingAttribute;
 
-  return continue_parsing_;
+  return CanContinue(ec);
 }
-
-bool PartitionsSaxHandler::String(const char* str, unsigned int length, bool) {
+bool PartitionsSaxHandler::String(const std::string& str, error_code& ec) {
   switch (state_) {
     case State::kProcessingAttribute:
-      state_ = ProcessNextAttribute(str, length);
-      return continue_parsing_;
+      state_ = ProcessNextAttribute(str);
+      return CanContinue(ec);
 
-    case State::kWaitForRootPartitions:
-      if (HashStringToInt("partitions") == HashStringToInt(str)) {
+    case State::kWaitForRootPartitions: {
+      if (HashStringToInt("partitions") == HashStringToInt(str.c_str())) {
         state_ = State::kWaitPartitionsArray;
-        return continue_parsing_;
-      } else {
-        return false;
+        return CanContinue(ec);
       }
+      return NotSupported(ec);
+    }
 
     case State::kParsingPartitionName:
-      partition_.SetPartition(std::string(str, length));
+      partition_.SetPartition(str);
       break;
     case State::kParsingDataHandle:
-      partition_.SetDataHandle(std::string(str, length));
+      partition_.SetDataHandle(str);
       break;
     case State::kParsingChecksum:
-      partition_.SetChecksum(std::string(str, length));
+      partition_.SetChecksum(str);
       break;
     case State::kParsingCrc:
-      partition_.SetCrc(std::string(str, length));
+      partition_.SetCrc(str);
       break;
     case State::kParsingIgnoreAttribute:
       break;
@@ -92,10 +91,11 @@ bool PartitionsSaxHandler::String(const char* str, unsigned int length, bool) {
 
   state_ = State::kProcessingAttribute;
 
-  return continue_parsing_;
+  return CanContinue(ec);
 }
 
-bool PartitionsSaxHandler::Uint(unsigned int value) {
+bool PartitionsSaxHandler::on_int64(const int64_t value, string_view,
+                                    error_code& ec) {
   if (state_ == State::kParsingVersion) {
     partition_.SetVersion(value);
   } else if (state_ == State::kParsingDataSize) {
@@ -103,61 +103,60 @@ bool PartitionsSaxHandler::Uint(unsigned int value) {
   } else if (state_ == State::kParsingCompressedDataSize) {
     partition_.SetCompressedDataSize(value);
   } else {
-    return false;
+    return NotSupported(ec);
   }
 
   state_ = State::kProcessingAttribute;
-  return continue_parsing_;
+  return CanContinue(ec);
 }
 
-bool PartitionsSaxHandler::EndObject(unsigned int) {
+bool PartitionsSaxHandler::on_object_end(std::size_t, error_code& ec) {
   if (state_ == State::kWaitForRootObjectEnd) {
     state_ = State::kParsingComplete;
-    return true;  // complete
+    return CanContinue(ec);  // complete
   }
 
   if (state_ != State::kProcessingAttribute) {
-    return false;
+    return NotSupported(ec);
   }
 
   if (partition_.GetDataHandle().empty() || partition_.GetPartition().empty()) {
-    return false;  // partition is not valid
+    return NotSupported(ec);  // partition is not valid
   }
 
   partition_callback_(std::move(partition_));
 
   state_ = State::kWaitForNextPartition;
 
-  return continue_parsing_;
+  return CanContinue(ec);
 }
 
-bool PartitionsSaxHandler::StartArray() {
+bool PartitionsSaxHandler::on_array_begin(boost::json::error_code& ec) {
   // We expect only a single array in whol response
   if (state_ != State::kWaitPartitionsArray) {
-    return false;
+    return NotSupported(ec);
   }
 
   state_ = State::kWaitForNextPartition;
 
-  return continue_parsing_;
+  return CanContinue(ec);
 }
 
-bool PartitionsSaxHandler::EndArray(unsigned int) {
+bool PartitionsSaxHandler::on_array_end(std::size_t,
+                                        boost::json::error_code& ec) {
   if (state_ != State::kWaitForNextPartition) {
-    return false;
+    return NotSupported(ec);
   }
 
   state_ = State::kWaitForRootObjectEnd;
-  return continue_parsing_;
+  return CanContinue(ec);
 }
-
-bool PartitionsSaxHandler::Default() { return false; }
 
 void PartitionsSaxHandler::Abort() { continue_parsing_.store(false); }
 
 PartitionsSaxHandler::State PartitionsSaxHandler::ProcessNextAttribute(
-    const char* name, unsigned int /*length*/) {
-  switch (HashStringToInt(name)) {
+    const std::string& name) {
+  switch (HashStringToInt(name.c_str())) {
     case HashStringToInt("dataHandle"):
       return State::kParsingDataHandle;
     case HashStringToInt("partition"):

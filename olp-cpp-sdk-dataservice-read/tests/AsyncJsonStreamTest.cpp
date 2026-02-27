@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2025 HERE Europe B.V.
+ * Copyright (C) 2023-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,15 @@ TEST(AsyncJsonStreamTest, NormalFlow) {
   EXPECT_EQ(current_stream->Take(), '2');
   EXPECT_EQ(current_stream->Tell(), 2u);
   EXPECT_EQ(current_stream->Take(), '3');
+
+  stream.ResetStream("123", 4);
+  current_stream = stream.GetCurrentStream();
+  auto view = current_stream->ReadView();
+  EXPECT_EQ(view.size(), 3);
+  EXPECT_FALSE(current_stream->ReadEmpty());
+  EXPECT_EQ(current_stream->Peek(), '\0');
+  EXPECT_EQ(current_stream->Take(), '\0');
+  EXPECT_TRUE(current_stream->ReadEmpty());
 
   stream.ResetStream("234", 3);
 
