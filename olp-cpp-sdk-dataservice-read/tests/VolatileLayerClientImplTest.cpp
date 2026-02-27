@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ namespace read = olp::dataservice::read;
 namespace model = olp::dataservice::read::model;
 using ::testing::_;
 using ::testing::Mock;
+using ::testing::Return;
 
 constexpr auto kUrlVolatileBlobData =
     R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/4eed6ed1-0d32-43b9-ae79-043cb4256432)";
@@ -79,6 +80,12 @@ constexpr auto kUrlPrefetchBlobData1 =
 constexpr auto kUrlPrefetchBlobData2 =
     R"(https://volatile-blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/e83b397a-2be5-45a8-b7fb-ad4cb3ea13b1)";
 
+constexpr auto kCacheKeyPartition269 =
+    R"(hrn:here:data::olp-here-test:hereos-internal-test-v2::testlayer::269::partition)";
+
+const std::string kNoContentPartition269Str =
+    R"({"dataHandle":"","partition":"269"})";
+
 const std::string kCatalog =
     "hrn:here:data::olp-here-test:hereos-internal-test-v2";
 const std::string kLayerId = "testlayer";
@@ -109,13 +116,14 @@ TEST(VolatileLayerClientImplTest, GetData) {
   settings.cache = cache_mock;
   read::VolatileLayerClientImpl client(kHrn, kLayerId, settings);
 
+  EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillRepeatedly(
+          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                 olp::http::HttpStatusCode::OK),
+                             kHttpResponseLookup));
+
   {
     SCOPED_TRACE("Get Data with DataHandle");
-    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
-        .WillRepeatedly(
-            ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
-                                   olp::http::HttpStatusCode::OK),
-                               kHttpResponseLookup));
 
     SetupNetworkExpectation(*network_mock, kUrlVolatileBlobData, "someData",
                             olp::http::HttpStatusCode::OK);
@@ -191,6 +199,12 @@ TEST(VolatileLayerClientImplTest, GetData) {
                             kHttpResponseNoPartition,
                             olp::http::HttpStatusCode::OK);
 
+    EXPECT_CALL(*cache_mock, Read(kCacheKeyPartition269))
+        .WillOnce(Return(olp::client::ApiError::NotFound()));
+
+    EXPECT_CALL(*cache_mock, Write(kCacheKeyPartition269, _, _))
+        .WillOnce(Return(olp::client::ApiNoResult()));
+
     std::promise<read::DataResponse> promise;
     std::future<read::DataResponse> future = promise.get_future();
 
@@ -203,7 +217,35 @@ TEST(VolatileLayerClientImplTest, GetData) {
     const auto& response = future.get();
     ASSERT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::NotFound);
+              olp::client::ErrorCode::NoContent);
+
+    Mock::VerifyAndClearExpectations(network_mock.get());
+  }
+
+  {
+    SCOPED_TRACE("Get Data from non existent partition utilizes cache");
+
+    auto expected_cached_value =
+        std::make_shared<olp::cache::KeyValueCache::ValueType>(
+            kNoContentPartition269Str.cbegin(),
+            kNoContentPartition269Str.cend());
+
+    EXPECT_CALL(*cache_mock, Read(kCacheKeyPartition269))
+        .WillOnce(Return(expected_cached_value));
+
+    std::promise<read::DataResponse> promise;
+    std::future<read::DataResponse> future = promise.get_future();
+
+    auto token = client.GetData(
+        read::DataRequest().WithPartitionId(kPartitionId),
+        [&](read::DataResponse response) { promise.set_value(response); });
+
+    EXPECT_EQ(future.wait_for(kTimeout), std::future_status::ready);
+
+    const auto& response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::NoContent);
 
     Mock::VerifyAndClearExpectations(network_mock.get());
   }
@@ -292,7 +334,7 @@ TEST(VolatileLayerClientImplTest, GetDataCancellableFuture) {
     const auto& response = future.get();
     ASSERT_FALSE(response.IsSuccessful());
     EXPECT_EQ(response.GetError().GetErrorCode(),
-              olp::client::ErrorCode::NotFound);
+              olp::client::ErrorCode::NoContent);
 
     Mock::VerifyAndClearExpectations(network_mock.get());
   }
@@ -677,7 +719,7 @@ TEST(VolatileLayerClientImplTest, PrefetchTiles) {
     for (auto& tile_result : result) {
       std::string str = tile_result->tile_key_.ToHereTile();
       ASSERT_FALSE(tile_result->IsSuccessful());
-      ASSERT_EQ(olp::client::ErrorCode::NotFound,
+      ASSERT_EQ(olp::client::ErrorCode::NoContent,
                 tile_result->GetError().GetErrorCode());
       ASSERT_TRUE(tile_result->tile_key_.IsValid());
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -251,8 +251,8 @@ client::CancellationToken VolatileLayerClientImpl::PrefetchTiles(
         auto download = [=](std::string data_handle,
                             client::CancellationContext inner_context) mutable {
           if (data_handle.empty()) {
-            return BlobApi::DataResponse(
-                client::ApiError(client::ErrorCode::NotFound, "Not found"));
+            return BlobApi::DataResponse(client::ApiError(
+                client::ErrorCode::NoContent, "Partition is empty"));
           }
           repository::DataCacheRepository data_cache_repository(
               catalog_, settings_.cache);
