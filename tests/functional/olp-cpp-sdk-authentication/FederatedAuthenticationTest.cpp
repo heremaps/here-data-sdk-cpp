@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2025 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,14 @@
  * License-Filename: LICENSE
  */
 
-#include <rapidjson/rapidjson.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
+#include <boost/json/parse.hpp>
+#include <boost/json/serialize.hpp>
 
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/porting/make_unique.h>
 #include "AuthenticationCommonTestFixture.h"
 #include "AuthenticationTestUtils.h"
 #include "TestConstants.h"
-
-using namespace ::olp::authentication;
 
 namespace {
 
@@ -65,23 +62,13 @@ class FederatedAuthenticationTest : public AuthenticationCommonTestFixture {
 
   std::string GoogleAuthenticationBody(const std::string& email,
                                        const std::string& access_token) {
-    rapidjson::StringBuffer data;
-
-    rapidjson::Writer<rapidjson::StringBuffer> writer(data);
-    writer.StartObject();
-    writer.Key("grantType");
-    writer.String("google");
-    writer.Key("accessToken");
-    writer.String(access_token.c_str());
-    writer.Key("countryCode");
-    writer.String("USA");
-    writer.Key("language");
-    writer.String("en");
-    writer.Key("email");
-    writer.String(email.c_str());
-    writer.EndObject();
-
-    return data.GetString();
+    boost::json::object object;
+    object["grantType"] = "google";
+    object["accessToken"] = access_token;
+    object["countryCode"] = "USA";
+    object["language"] = "en";
+    object["email"] = email;
+    return boost::json::serialize(object);
   }
 
  protected:
