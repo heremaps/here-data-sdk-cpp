@@ -33,7 +33,7 @@ namespace read {
 namespace repository {
 
 /// Json byte stream class. Implements rapidjson input stream concept.
-class RapidJsonByteStream {
+class JsonByteStream {
  public:
   typedef char Ch;
 
@@ -70,7 +70,7 @@ class AsyncJsonStream {
  public:
   AsyncJsonStream();
 
-  std::shared_ptr<RapidJsonByteStream> GetCurrentStream() const;
+  std::shared_ptr<JsonByteStream> GetCurrentStream() const;
 
   void AppendContent(const char* content, size_t length);
 
@@ -84,7 +84,7 @@ class AsyncJsonStream {
 
  private:
   mutable std::mutex mutex_;
-  std::shared_ptr<RapidJsonByteStream> current_stream_;
+  std::shared_ptr<JsonByteStream> current_stream_;
   porting::optional<client::ApiError> error_;
   bool closed_;
 };
