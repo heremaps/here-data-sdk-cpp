@@ -21,6 +21,9 @@ set(DESCRIPTION "C++ API library for reading OLP data")
 file(GLOB_RECURSE INC "include/*.h*")
 file(GLOB_RECURSE SRC "src/*.*")
 
+
+find_package(Boost REQUIRED)
+
 add_library(${PROJECT_NAME}
     ${SRC}
     ${INC})
@@ -35,6 +38,7 @@ target_include_directories(${PROJECT_NAME}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
     PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${Boost_INCLUDE_DIR}>
     PRIVATE ${olp-cpp-sdk-core_INCLUDE_DIRS})
 
 target_link_libraries(${PROJECT_NAME}
