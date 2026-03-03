@@ -173,6 +173,25 @@ jobs:
       run: scripts/linux/psv/build_psv.sh
       shell: bash
 
+  psv-linux-22-04-clang-hidden-build:
+    name: PSV.Linux.22.04.clang.hidden
+    runs-on: ubuntu-22.04
+    env:
+      BUILD_TYPE: RelWithDebInfo
+      CC: clang-11
+      CXX: clang++-11
+      CXXFLAGS: -Wno-deprecated-copy
+      EXTRA_CMAKE_OPTIONS: -DCMAKE_CXX_VISIBILITY_PRESET=hidden -DOLP_SDK_ENABLE_TESTING=OFF
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+    - name: Install Ubuntu dependencies
+      run: sudo apt-get update -y && sudo apt-get install clang-11 ccache libcurl4-openssl-dev -y --no-install-recommends --fix-missing
+      shell: bash
+    - name: Compile project on Clang
+      run: scripts/linux/psv/build_psv.sh
+      shell: bash
+
   psv-android-22-04-build:
     name: PSV.Linux.Android.22.04
     runs-on: ubuntu-22.04
