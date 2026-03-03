@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2026 HERE Europe B.V.
+ * Copyright (C) 2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,4 @@
  * License-Filename: LICENSE
  */
 
-#pragma once
-
-#include <ctime>
-#include <memory>
-#include <string>
-
-#include "BaseResult.h"
-
-namespace olp {
-namespace authentication {
-class SignOutResultImpl : public BaseResult {
- public:
-  SignOutResultImpl() noexcept;
-
-  SignOutResultImpl(
-      int status, std::string error,
-      std::shared_ptr<boost::json::object> json_document = nullptr) noexcept;
-
-  ~SignOutResultImpl() override;
-};
-}  // namespace authentication
-}  // namespace olp
+#include <boost/json/src.hpp>
