@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,19 @@
 
 #include "Examples.h"
 
+#include <string>
+
 /**
-  * @brief Dataservice cache example.
+ * @brief Dataservice cache example.
  *
- * Gets the partition data using the HERE Open Location Platform with mutable cache. 
- * Makes the mutable cache path
- * protected. Reads the same data from the protected cache.
+ * Gets the partition data using the HERE Open Location Platform with mutable
+ * cache. Makes the mutable cache path protected. Reads the same data from the
+ * protected cache.
  * @param access_key Your access key ID and access key secret.
- * @param The HERE Resource Name (HRN) of the catalog from which you want to read data.
+ * @param The HERE Resource Name (HRN) of the catalog from which you want to
+ * read data.
  * @return 0 if data was published successfully.
  */
-int RunExampleProtectedCache(const AccessKey& access_key, const std::string& catalog);
+EXAMPLES_API
+int RunExampleProtectedCache(const AccessKey& access_key,
+                             const std::string& catalog);
