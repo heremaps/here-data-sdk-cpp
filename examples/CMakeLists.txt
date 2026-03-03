@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2020 HERE Europe B.V.
+# Copyright (C) 2019-2026 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -80,6 +80,25 @@ else()
     target_link_libraries(${OLP_SDK_DATASERVICE_CACHE_EXAMPLE_TARGET}
         olp-cpp-sdk-authentication
         olp-cpp-sdk-dataservice-read)
+
+    target_compile_definitions(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
+        PRIVATE EXAMPLES_LIBRARY)
+    target_compile_definitions(${OLP_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET}
+        PRIVATE EXAMPLES_LIBRARY)
+    target_compile_definitions(${OLP_SDK_DATASERVICE_CACHE_EXAMPLE_TARGET}
+        PRIVATE EXAMPLES_LIBRARY)
+    target_compile_definitions(${OLP_SDK_DATASERVICE_READ_STREAM_LAYER_EXAMPLE_TARGET}
+        PRIVATE EXAMPLES_LIBRARY)
+    if(BUILD_SHARED_LIBS)
+        target_compile_definitions(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
+            PUBLIC EXAMPLES_SHARED_LIBRARY)
+        target_compile_definitions(${OLP_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET}
+            PUBLIC EXAMPLES_SHARED_LIBRARY)
+        target_compile_definitions(${OLP_SDK_DATASERVICE_CACHE_EXAMPLE_TARGET}
+            PUBLIC EXAMPLES_SHARED_LIBRARY)
+        target_compile_definitions(${OLP_SDK_DATASERVICE_READ_STREAM_LAYER_EXAMPLE_TARGET}
+            PUBLIC EXAMPLES_SHARED_LIBRARY)
+    endif()
 
     add_executable(${OLP_SDK_DATASERVICE_EXAMPLE_TARGET}
         ./main.cpp

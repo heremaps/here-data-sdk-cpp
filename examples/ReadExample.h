@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include "Examples.h"
 
 #include <olp/core/porting/optional.h>
+#include <string>
 
 /**
  * @brief Dataservice read example. Authenticate client using access key id and
@@ -33,6 +34,7 @@
  * @param catalog_version The desired version of the catalog.
  * @return result of publish data(0 - if succeed)
  */
+EXAMPLES_API
 int RunExampleRead(const AccessKey& access_key, const std::string& catalog,
                    const olp::porting::optional<int64_t>& catalog_version =
                        olp::porting::none);
