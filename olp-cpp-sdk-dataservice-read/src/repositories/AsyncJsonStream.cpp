@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2025 HERE Europe B.V.
+ * Copyright (C) 2023-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,27 @@ namespace dataservice {
 namespace read {
 namespace repository {
 
-RapidJsonByteStream::Ch RapidJsonByteStream::Peek() {
+JsonByteStream::Ch JsonByteStream::Peek() {
   if (ReadEmpty()) {
     SwapBuffers();
   }
   return read_buffer_[count_];
 }
 
-RapidJsonByteStream::Ch RapidJsonByteStream::Take() {
+boost::json::string_view JsonByteStream::ReadView() {
+  if (ReadEmpty()) {
+    SwapBuffers();
+  }
+  auto begin = read_buffer_.begin() + count_;
+  auto terminator_it = std::find(begin, read_buffer_.end(), '\0');
+  boost::json::string_view::size_type size =
+      std::distance(begin, terminator_it);
+  count_ += size;
+  full_count_ += size;
+  return {&*begin, size};
+}
+
+JsonByteStream::Ch JsonByteStream::Take() {
   if (ReadEmpty()) {
     SwapBuffers();
   }
@@ -39,23 +52,15 @@ RapidJsonByteStream::Ch RapidJsonByteStream::Take() {
   return read_buffer_[count_++];
 }
 
-size_t RapidJsonByteStream::Tell() const { return full_count_; }
+size_t JsonByteStream::Tell() const { return full_count_; }
 
-// Not implemented
-char* RapidJsonByteStream::PutBegin() { return 0; }
-void RapidJsonByteStream::Put(char) {}
-void RapidJsonByteStream::Flush() {}
-size_t RapidJsonByteStream::PutEnd(char*) { return 0; }
-
-bool RapidJsonByteStream::ReadEmpty() const {
-  return count_ == read_buffer_.size();
-}
-bool RapidJsonByteStream::WriteEmpty() const {
+bool JsonByteStream::ReadEmpty() const { return count_ == read_buffer_.size(); }
+bool JsonByteStream::WriteEmpty() const {
   std::unique_lock<std::mutex> lock(mutex_);
   return write_buffer_.empty();
 }
 
-void RapidJsonByteStream::AppendContent(const char* content, size_t length) {
+void JsonByteStream::AppendContent(const char* content, size_t length) {
   std::unique_lock<std::mutex> lock(mutex_);
 
   const auto buffer_size = write_buffer_.size();
@@ -65,7 +70,7 @@ void RapidJsonByteStream::AppendContent(const char* content, size_t length) {
   cv_.notify_one();
 }
 
-void RapidJsonByteStream::SwapBuffers() {
+void JsonByteStream::SwapBuffers() {
   std::unique_lock<std::mutex> lock(mutex_);
   cv_.wait(lock, [&]() { return !write_buffer_.empty(); });
   std::swap(read_buffer_, write_buffer_);
@@ -74,10 +79,9 @@ void RapidJsonByteStream::SwapBuffers() {
 }
 
 AsyncJsonStream::AsyncJsonStream()
-    : current_stream_(std::make_shared<RapidJsonByteStream>()),
-      closed_{false} {}
+    : current_stream_(std::make_shared<JsonByteStream>()), closed_{false} {}
 
-std::shared_ptr<RapidJsonByteStream> AsyncJsonStream::GetCurrentStream() const {
+std::shared_ptr<JsonByteStream> AsyncJsonStream::GetCurrentStream() const {
   std::unique_lock<std::mutex> lock(mutex_);
   return current_stream_;
 }
@@ -96,7 +100,7 @@ void AsyncJsonStream::ResetStream(const char* content, size_t length) {
     return;
   }
   current_stream_->AppendContent("\0", 1);
-  current_stream_ = std::make_shared<RapidJsonByteStream>();
+  current_stream_ = std::make_shared<JsonByteStream>();
   current_stream_->AppendContent(content, length);
 }
 
