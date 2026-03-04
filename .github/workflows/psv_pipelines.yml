@@ -197,14 +197,14 @@ jobs:
       shell: bash
 
   psv-linux-22-04-clang-hidden-build:
-    name: PSV.Linux.22.04.clang.hidden
+    name: PSV.Linux.22.04.clang.hidden.OLP_SDK_NO_EXCEPTION=ON
     runs-on: ubuntu-22.04
     env:
       BUILD_TYPE: RelWithDebInfo
       CC: clang-11
       CXX: clang++-11
       CXXFLAGS: -Wno-deprecated-copy
-      EXTRA_CMAKE_OPTIONS: -DCMAKE_CXX_VISIBILITY_PRESET=hidden -DOLP_SDK_ENABLE_TESTING=OFF
+      EXTRA_CMAKE_OPTIONS: -DCMAKE_CXX_VISIBILITY_PRESET=hidden -DOLP_SDK_ENABLE_TESTING=OFF -DOLP_SDK_NO_EXCEPTION=ON
     steps:
     - name: Check out repository
       uses: actions/checkout@v4
