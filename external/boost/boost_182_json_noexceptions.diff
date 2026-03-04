@@ -1,3 +1,29 @@
+diff --git a/libs/json/include/boost/json/detail/value_to.hpp b/libs/json/include/boost/json/detail/value_to.hpp
+index 7cb779e..6df1c9d 100644
+--- a/libs/json/include/boost/json/detail/value_to.hpp
++++ b/libs/json/include/boost/json/detail/value_to.hpp
+@@ -652,10 +652,13 @@ value_to_impl(
+     value const& jv,
+     user_conversion_tag)
+ {
++#ifndef BOOST_NO_EXCEPTIONS
+     try
+     {
++#endif  // BOOST_NO_EXCEPTIONS
+         return {
+             boost::system::in_place_value, tag_invoke(value_to_tag<T>(), jv)};
++#ifndef BOOST_NO_EXCEPTIONS
+     }
+     catch( std::bad_alloc const&)
+     {
+@@ -671,6 +674,7 @@ value_to_impl(
+         BOOST_JSON_FAIL(ec, error::exception);
+         return {boost::system::in_place_error, ec};
+     }
++#endif  // BOOST_NO_EXCEPTIONS
+ }
+ 
+ // no suitable conversion implementation
 diff --git a/libs/json/include/boost/json/impl/value.ipp b/libs/json/include/boost/json/impl/value.ipp
 index 7460c02..7513b38 100644
 --- a/libs/json/include/boost/json/impl/value.ipp
