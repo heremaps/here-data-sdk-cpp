@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,10 @@
  */
 
 #include "StreamLayerClientImpl.h"
+
+#include <memory>
+#include <string>
+#include <utility>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -168,7 +172,7 @@ StreamLayerClientImpl::PopFromQueue() {
   const auto publish_data_key = uuid_list.substr(0, pos);
   auto publish_data_any =
       cache_->Get(publish_data_key, [](const std::string& s) {
-        return olp::parser::parse<model::PublishDataRequest>(s);
+        return olp::parser::boost_parser::parse<model::PublishDataRequest>(s);
       });
 
   cache_->Remove(publish_data_key);

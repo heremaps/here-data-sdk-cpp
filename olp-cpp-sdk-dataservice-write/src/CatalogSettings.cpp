@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
  */
 
 #include "CatalogSettings.h"
+
+#include <utility>
 
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
@@ -102,7 +104,7 @@ CatalogSettings::LayerSettingsResult CatalogSettings::GetLayerSettings(
 
   const auto& cached_catalog =
       cache_->Get(catalog_settings_key, [](const std::string& model) {
-        return parser::parse<model::Catalog>(model);
+        return olp::parser::boost_parser::parse<model::Catalog>(model);
       });
 
   if (cached_catalog.empty()) {

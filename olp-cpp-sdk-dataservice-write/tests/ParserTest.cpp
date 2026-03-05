@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,8 @@ using olp::dataservice::write::model::ResponseOk;
 using olp::dataservice::write::model::ResponseOkSingle;
 using olp::dataservice::write::model::VersionDependency;
 
+namespace parser = olp::parser::boost_parser;
+
 TEST(ParserTest, ResponseOkSingle) {
   auto json = R"(
         {
@@ -56,7 +58,7 @@ TEST(ParserTest, ResponseOkSingle) {
         }
     )";
 
-  auto response = olp::parser::parse<ResponseOkSingle>(json);
+  auto response = parser::parse<ResponseOkSingle>(json);
 
   EXPECT_STREQ(response.GetTraceID().c_str(),
                "835eb107-7a35-478f-b41c-dd8e750affe0");
@@ -74,7 +76,7 @@ TEST(ParserTest, ResponseOkOneGeneratedId) {
         }
     )";
 
-  auto response = olp::parser::parse<ResponseOk>(json);
+  auto response = parser::parse<ResponseOk>(json);
 
   EXPECT_STREQ(response.GetTraceID().GetParentID().c_str(),
                "66cab713-4576-4eef-b01b-ad088a1e3b82");
@@ -98,7 +100,7 @@ TEST(ParserTest, ResponseOkMultipleGeneratedIds) {
         }
     )";
 
-  auto response = olp::parser::parse<ResponseOk>(json);
+  auto response = parser::parse<ResponseOk>(json);
 
   EXPECT_STREQ(response.GetTraceID().GetParentID().c_str(),
                "2e05aaee-4c02-4735-9dbf-27eba9a47639");
@@ -216,7 +218,7 @@ TEST(ParserTest, Catalog) {
 
   auto start_time = std::chrono::high_resolution_clock::now();
   auto catalog =
-      olp::parser::parse<olp::dataservice::write::model::Catalog>(json_input);
+      parser::parse<olp::dataservice::write::model::Catalog>(json_input);
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> time = end - start_time;
   std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
@@ -423,7 +425,7 @@ TEST(ParserTest, CatalogCrash) {
       "\"marketplaceReady\":false,\"version\":3}";
 
   auto catalog =
-      olp::parser::parse<olp::dataservice::write::model::Catalog>(json_input);
+      parser::parse<olp::dataservice::write::model::Catalog>(json_input);
 
   ASSERT_EQ(1, catalog.GetLayers()
                    .at(1)
@@ -450,8 +452,7 @@ TEST(ParserTest, Apis) {
     }\
     ]";
 
-  auto apis =
-      olp::parser::parse<olp::dataservice::write::model::Apis>(json_input);
+  auto apis = parser::parse<olp::dataservice::write::model::Apis>(json_input);
   ASSERT_EQ(1u, apis.size());
   ASSERT_EQ("config", apis.at(0).GetApi());
   ASSERT_EQ("v1", apis.at(0).GetVersion());
@@ -476,7 +477,7 @@ TEST(ParserTest, PublishPartition) {
       }
   )";
 
-  auto response = olp::parser::parse<PublishPartition>(json);
+  auto response = parser::parse<PublishPartition>(json);
 
   EXPECT_STREQ("314010583", response.GetPartition()->c_str());
   EXPECT_STREQ("ff7494d6f17da702862e550c907c0a91",
@@ -512,7 +513,7 @@ TEST(ParserTest, PublishPartitions) {
       }
   )";
 
-  auto response = olp::parser::parse<PublishPartitions>(json);
+  auto response = parser::parse<PublishPartitions>(json);
   ASSERT_EQ(1, response.GetPartitions()->size());
 
   auto partition = response.GetPartitions()->at(0);
@@ -545,7 +546,7 @@ TEST(ParserTest, Details) {
       }
   )";
 
-  auto response = olp::parser::parse<Details>(json);
+  auto response = parser::parse<Details>(json);
 
   EXPECT_STREQ("initialized", response.GetState().c_str());
   EXPECT_STREQ("Publication initialized", response.GetMessage().c_str());
@@ -563,7 +564,7 @@ TEST(ParserTest, VersionDependency) {
       }
 )";
 
-  auto response = olp::parser::parse<VersionDependency>(json);
+  auto response = parser::parse<VersionDependency>(json);
 
   EXPECT_TRUE(response.GetDirect());
   EXPECT_STREQ("hrn:here:data::olp-here-test:my-catalog",
@@ -596,7 +597,7 @@ TEST(ParserTest, Publication) {
       }
 )";
 
-  auto response = olp::parser::parse<Publication>(json);
+  auto response = parser::parse<Publication>(json);
 
   EXPECT_STREQ("34bc2a16-0373-4157-8ccc-19ba08a6672b",
                response.GetId()->c_str());
@@ -640,8 +641,7 @@ TEST(ParserTest, Partitions) {
 
   auto start_time = std::chrono::high_resolution_clock::now();
   auto partitions =
-      olp::parser::parse<olp::dataservice::write::model::Partitions>(
-          json_input);
+      parser::parse<olp::dataservice::write::model::Partitions>(json_input);
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> time = end - start_time;
   std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
@@ -676,8 +676,7 @@ TEST(ParserTest, LayerVersions) {
 
   auto start_time = std::chrono::high_resolution_clock::now();
   auto layer_versions =
-      olp::parser::parse<olp::dataservice::write::model::LayerVersions>(
-          json_input);
+      parser::parse<olp::dataservice::write::model::LayerVersions>(json_input);
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> time = end - start_time;
   std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
@@ -703,7 +702,7 @@ TEST(ParserTest, PublishDataRequest) {
 )";
 
   auto publish_data_request =
-      olp::parser::parse<olp::dataservice::write::model::PublishDataRequest>(
+      parser::parse<olp::dataservice::write::model::PublishDataRequest>(
           json_input);
 
   std::string data_string = "payload";
