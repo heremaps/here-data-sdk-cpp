@@ -27,10 +27,13 @@ add_library(${PROJECT_NAME}
     ${AUTHENTICATION_SRC}
     ${AUTHENTICATION_INC})
 
-target_include_directories(${PROJECT_NAME} PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
-    $<INSTALL_INTERFACE:include>)
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    PRIVATE
+        $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+)
 
 # Used also in the package config file
 set(PROJECT_LIBS olp-cpp-sdk-core)
