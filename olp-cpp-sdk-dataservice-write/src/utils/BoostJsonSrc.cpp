@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2026 HERE Europe B.V.
+ * Copyright (C) 2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,4 @@
  * License-Filename: LICENSE
  */
 
-#pragma once
-
-#include <boost/json/value.hpp>
-#include "generated/model/Partitions.h"
-
-#include <string>
-
-namespace olp {
-namespace parser {
-void from_json(const boost::json::value& value,
-               olp::dataservice::write::model::Partition& x);
-
-void from_json(const boost::json::value& value,
-               olp::dataservice::write::model::Partitions& x);
-
-}  // namespace parser
-}  // namespace olp
+#include <boost/json/src.hpp>

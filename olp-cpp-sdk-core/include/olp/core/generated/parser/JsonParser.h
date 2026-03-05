@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@
 
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
+#include <boost/json/parse.hpp>
 
 #include "ParserWrapper.h"
 
@@ -72,6 +73,53 @@ inline T parse(const std::shared_ptr<std::vector<unsigned char>>& json_bytes) {
   }
   return result;
 }
+
+namespace boost_parser {
+
+template <typename T>
+inline T parse(const std::string& json) {
+  boost::json::error_code ec;
+  auto value = boost::json::parse(json, ec);
+  T result{};
+  if (value.is_object() || value.is_array()) {
+    from_json(value, result);
+  }
+  return result;
+}
+
+template <typename T>
+inline T parse(std::stringstream& json_stream, bool& res) {
+  res = false;
+  boost::json::error_code ec;
+  auto value = boost::json::parse(json_stream, ec);
+  T result{};
+  if (value.is_object() || value.is_array()) {
+    from_json(value, result);
+    res = true;
+  }
+  return result;
+}
+
+template <typename T>
+inline T parse(std::stringstream& json_stream) {
+  bool res = true;
+  return parse<T>(json_stream, res);
+}
+
+template <typename T>
+inline T parse(const std::shared_ptr<std::vector<unsigned char>>& json_bytes) {
+  boost::json::string_view json(reinterpret_cast<char*>(json_bytes->data()),
+                                json_bytes->size());
+  boost::json::error_code ec;
+  auto value = boost::json::parse(json, ec);
+  T result{};
+  if (value.is_object() || value.is_array()) {
+    from_json(value, result);
+  }
+  return result;
+}
+
+}  // namespace boost_parser
 
 }  // namespace parser
 }  // namespace olp
