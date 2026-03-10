@@ -24,7 +24,7 @@
 #include <vector>
 
 // clang-format off
-#include <olp/core/generated/parser/ParserWrapper.h>
+#include <generated/parser/ParserWrapper.h>
 // clang-format on
 
 namespace olp {

@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include <olp/core/generated/parser/ParserWrapper.h>
+#include <generated/parser/ParserWrapper.h>
 
 namespace model = olp::dataservice::write::model;
 

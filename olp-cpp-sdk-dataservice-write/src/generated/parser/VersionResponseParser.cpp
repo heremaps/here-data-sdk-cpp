@@ -19,7 +19,7 @@
 
 #include "VersionResponseParser.h"
 
-#include <olp/core/generated/parser/ParserWrapper.h>
+#include <generated/parser/ParserWrapper.h>
 
 namespace olp {
 namespace parser {
