@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@
 #include <string>
 #include <utility>
 
+#include <json_boost/parser/JsonParser.h>
 #include <olp/core/client/ApiError.h>
-#include <olp/core/generated/parser/JsonParser.h>
 #include <olp/core/logging/Log.h>
 
 namespace olp {

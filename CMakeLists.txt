@@ -73,6 +73,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 # Save root sdk folder path
 get_filename_component(OLP_CPP_SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
 
+set(INTERNAL_INCLUDE_DIR "${OLP_CPP_SDK_ROOT}/internal/include")
+
 # Include common scripts
 include(common)
 

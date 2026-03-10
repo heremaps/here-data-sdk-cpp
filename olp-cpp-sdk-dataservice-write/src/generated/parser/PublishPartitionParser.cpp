@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-#include <olp/core/generated/parser/ParserWrapper.h>
+#include <json_boost/parser/ParserWrapper.h>
 
 namespace olp {
 namespace parser {

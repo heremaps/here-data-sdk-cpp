@@ -177,6 +177,9 @@ target_include_directories(${PROJECT_NAME}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>
         $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>)
 
+target_include_directories(${PROJECT_NAME} PRIVATE
+    $<BUILD_INTERFACE:${INTERNAL_INCLUDE_DIR}>)
+
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE DATASERVICE_WRITE_LIBRARY)
 if(BUILD_SHARED_LIBS)

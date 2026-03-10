@@ -97,12 +97,6 @@ set(OLP_SDK_CLIENT_HEADERS
     ./include/olp/core/client/TaskContext.h
 )
 
-set(OLP_SDK_GENERATED_HEADERS
-    ./include/olp/core/generated/parser/JsonParser.h
-    ./include/olp/core/generated/parser/ParserWrapper.h
-    ./include/olp/core/generated/serializer/SerializerWrapper.h
-)
-
 set(OLP_SDK_HTTP_HEADERS
     ./include/olp/core/http/adapters/HarCaptureAdapter.h
     ./include/olp/core/http/CertificateSettings.h
@@ -390,7 +384,6 @@ set(OLP_SDK_THREAD_SOURCES
 set(OLP_SDK_CORE_HEADERS
     ${OLP_SDK_CACHE_HEADERS}
     ${OLP_SDK_CLIENT_HEADERS}
-    ${OLP_SDK_GENERATED_HEADERS}
     ${OLP_SDK_HTTP_HEADERS}
     ${OLP_SDK_MODEL_HEADERS}
     ${OLP_SDK_PLATFORM_HEADERS}
@@ -469,6 +462,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${RapidJSON_INCLUDE_DIRS}/..>
 
     $<INSTALL_INTERFACE:include>)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    $<BUILD_INTERFACE:${INTERNAL_INCLUDE_DIR}>)
 
 if (ANDROID)
     set(ADDITIONAL_LIBRARIES log)

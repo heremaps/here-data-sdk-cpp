@@ -41,6 +41,9 @@ target_include_directories(${PROJECT_NAME}
     $<BUILD_INTERFACE:${Boost_INCLUDE_DIR}>
     PRIVATE ${olp-cpp-sdk-core_INCLUDE_DIRS})
 
+target_include_directories(${PROJECT_NAME} PRIVATE
+    $<BUILD_INTERFACE:${INTERNAL_INCLUDE_DIR}>)
+
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
         olp-cpp-sdk-core

@@ -21,7 +21,7 @@
 
 #include "CatalogSerializer.h"
 
-#include <olp/core/generated/serializer/SerializerWrapper.h>
+#include <json_boost/serializer/SerializerWrapper.h>
 
 namespace olp {
 namespace serializer {

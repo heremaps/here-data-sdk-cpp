@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@
 
 #include "CatalogSettings.h"
 
+#include <utility>
+
 #include <olp/core/cache/CacheSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <boost/format.hpp>
@@ -29,7 +31,7 @@
 #include <generated/serializer/CatalogSerializer.h>
 #include <generated/serializer/JsonSerializer.h>
 #include <generated/parser/CatalogParser.h>
-#include <olp/core/generated/parser/JsonParser.h>
+#include <json_boost/parser/JsonParser.h>
 // clang-format on
 
 namespace olp {
