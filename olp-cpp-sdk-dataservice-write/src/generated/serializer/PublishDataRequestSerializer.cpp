@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,32 +22,27 @@
 namespace olp {
 namespace serializer {
 void to_json(const dataservice::write::model::PublishDataRequest& x,
-             rapidjson::Value& value,
-             rapidjson::Document::AllocatorType& allocator) {
+             boost::json::value& value) {
+  auto& object = value.emplace_object();
   if (x.GetData()) {
     const auto& data = x.GetData().get();
-    auto data_stringref = rapidjson::StringRef(
+    auto data_stringref = boost::json::string_view(
         reinterpret_cast<char*>(data->data()), data->size());
-    value.AddMember("data", std::move(data_stringref), allocator);
+    object.emplace("data", data_stringref);
   }
 
-  value.AddMember("layerId", rapidjson::StringRef(x.GetLayerId().c_str()),
-                  allocator);
+  object.emplace("layerId", x.GetLayerId());
 
   if (x.GetTraceId()) {
-    value.AddMember("traceId", rapidjson::StringRef(x.GetTraceId()->c_str()),
-                    allocator);
+    object.emplace("traceId", *x.GetTraceId());
   }
 
   if (x.GetBillingTag()) {
-    value.AddMember("billingTag",
-                    rapidjson::StringRef(x.GetBillingTag()->c_str()),
-                    allocator);
+    object.emplace("billingTag", *x.GetBillingTag());
   }
 
   if (x.GetChecksum()) {
-    value.AddMember("checksum", rapidjson::StringRef(x.GetChecksum()->c_str()),
-                    allocator);
+    object.emplace("checksum", *x.GetChecksum());
   }
 }
 
