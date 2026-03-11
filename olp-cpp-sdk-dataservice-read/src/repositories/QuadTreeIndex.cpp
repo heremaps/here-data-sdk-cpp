@@ -101,9 +101,7 @@ QuadTreeIndex::QuadTreeIndex(const cache::KeyValueCache::ValueTypePtr& data) {
 
 QuadTreeIndex::QuadTreeIndex(const geo::TileKey& root, int depth,
                              std::stringstream& json_stream) {
-  thread_local rapidjson::CrtAllocator crt_allocator;
-  thread_local rapidjson::MemoryPoolAllocator<> pool_allocator;
-  rapidjson::Document doc(&pool_allocator, 4096, &crt_allocator);
+  rapidjson::Document doc;
 
   rapidjson::IStreamWrapper stream(json_stream);
   doc.ParseStream(stream);
