@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,13 @@
 
 #include "VersionResponseParser.h"
 
-#include <olp/core/generated/parser/ParserWrapper.h>
+#include <generated/parser/ParserWrapper.h>
 
 namespace olp {
 namespace parser {
-using namespace olp::dataservice::write;
+namespace model = olp::dataservice::write::model;
 
-void from_json(const rapidjson::Value& value, model::VersionResponse& x) {
+void from_json(const boost::json::value& value, model::VersionResponse& x) {
   x.SetVersion(parse<int64_t>(value, "version"));
 }
 

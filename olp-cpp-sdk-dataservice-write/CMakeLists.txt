@@ -18,6 +18,8 @@
 project(olp-cpp-sdk-dataservice-write VERSION 1.24.0)
 set(DESCRIPTION "C++ API library for writing data to OLP")
 
+find_package(Boost REQUIRED)
+
 set(OLP_SDK_DATASERVICE_WRITE_API_HEADERS
     ./include/olp/dataservice/write/DataServiceWriteApi.h
     ./include/olp/dataservice/write/IndexLayerClient.h
@@ -159,16 +161,21 @@ set(OLP_SDK_DATASERVICE_WRITE_SOURCES
     ./src/generated/serializer/PublishPartitionsSerializer.h
     ./src/generated/serializer/UpdateIndexRequestSerializer.cpp
     ./src/generated/serializer/UpdateIndexRequestSerializer.h
+
+    ./src/utils/BoostJsonSrc.cpp
 )
 
 add_library(${PROJECT_NAME}
     ${OLP_SDK_DATASERVICE_WRITE_INCLUDES}
     ${OLP_SDK_DATASERVICE_WRITE_SOURCES})
 
-target_include_directories(${PROJECT_NAME} PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-    PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>)
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>
+        $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>)
 
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE DATASERVICE_WRITE_LIBRARY)
@@ -176,6 +183,11 @@ if(BUILD_SHARED_LIBS)
     target_compile_definitions(${PROJECT_NAME}
         PUBLIC DATASERVICE_WRITE_SHARED_LIBRARY)
 endif()
+
+target_compile_definitions(${PROJECT_NAME}
+    PRIVATE
+        BOOST_ALL_NO_LIB
+        BOOST_JSON_NO_LIB)
 
 # Used also in the package config file
 set(PROJECT_LIBS olp-cpp-sdk-core)
