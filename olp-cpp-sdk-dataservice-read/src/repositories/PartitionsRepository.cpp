@@ -633,9 +633,9 @@ PartitionResponse PartitionsRepository::GetAggregatedTile(
 
   auto partition = FindPartition(quad_tree_response.GetResult(), request, true);
   if (!partition) {
-    return {
-        client::ApiError::NotFound("Tile or its closest ancestors not found"),
-        quad_tree_response.GetPayload()};
+    return {client::ApiError(client::ErrorCode::NoContent,
+                             "Tile or its closest ancestors not found"),
+            quad_tree_response.GetPayload()};
   }
   return {std::move(*partition), quad_tree_response.GetPayload()};
 }
@@ -653,9 +653,9 @@ PartitionResponse PartitionsRepository::GetTile(
   auto partition =
       FindPartition(quad_tree_response.GetResult(), request, false);
   if (!partition) {
-    return {
-        client::ApiError::NotFound("Tile or its closest ancestors not found"),
-        quad_tree_response.GetPayload()};
+    return {client::ApiError(client::ErrorCode::NoContent,
+                             "Tile or its closest ancestors not found"),
+            quad_tree_response.GetPayload()};
   }
   return {std::move(*partition), quad_tree_response.GetPayload()};
 }

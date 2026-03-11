@@ -3607,7 +3607,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
     const auto& error = response.GetError();
 
     ASSERT_FALSE(response.IsSuccessful());
-    ASSERT_EQ(error.GetErrorCode(), client::ErrorCode::NotFound);
+    ASSERT_EQ(error.GetErrorCode(), client::ErrorCode::NoContent);
     testing::Mock::VerifyAndClearExpectations(network_mock_.get());
   }
   {
@@ -3633,7 +3633,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetAggregatedData) {
     const auto& error = response.GetError();
 
     ASSERT_FALSE(response.IsSuccessful());
-    ASSERT_EQ(error.GetErrorCode(), client::ErrorCode::NotFound);
+    ASSERT_EQ(error.GetErrorCode(), client::ErrorCode::NoContent);
 
     const auto& network_stats = response.GetPayload();
     EXPECT_EQ(network_stats.GetBytesDownloaded(), 1024);
