@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -521,7 +521,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest,
   });
 
   EXPECT_FALSE(data_response.IsSuccessful());
-  ASSERT_EQ(olp::client::ErrorCode::NotFound,
+  ASSERT_EQ(olp::client::ErrorCode::NoContent,
             data_response.GetError().GetErrorCode());
 }
 
@@ -540,7 +540,7 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetDataWithEmptyField) {
   });
 
   EXPECT_FALSE(data_response.IsSuccessful());
-  ASSERT_EQ(olp::client::ErrorCode::NotFound,
+  ASSERT_EQ(olp::client::ErrorCode::NoContent,
             data_response.GetError().GetErrorCode());
 }
 
