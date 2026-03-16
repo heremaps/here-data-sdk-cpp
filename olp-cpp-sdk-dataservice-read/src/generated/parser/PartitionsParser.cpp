@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,15 @@
 
 #include "PartitionsParser.h"
 
+#include <vector>
+
 #include <olp/core/generated/parser/ParserWrapper.h>
 
 namespace olp {
 namespace parser {
-using dataservice::read::model::Partition;
-using dataservice::read::model::Partitions;
+namespace model = olp::dataservice::read::model;
 
-void from_json(const rapidjson::Value& value, Partition& x) {
+void from_json(const boost::json::value& value, model::Partition& x) {
   x.SetChecksum(parse<porting::optional<std::string>>(value, "checksum"));
   x.SetCompressedDataSize(
       parse<porting::optional<int64_t>>(value, "compressedDataSize"));
@@ -37,8 +38,8 @@ void from_json(const rapidjson::Value& value, Partition& x) {
   x.SetVersion(parse<porting::optional<int64_t>>(value, "version"));
 }
 
-void from_json(const rapidjson::Value& value, Partitions& x) {
-  x.SetPartitions(parse<std::vector<Partition>>(value, "partitions"));
+void from_json(const boost::json::value& value, model::Partitions& x) {
+  x.SetPartitions(parse<std::vector<model::Partition>>(value, "partitions"));
 }
 
 }  // namespace parser

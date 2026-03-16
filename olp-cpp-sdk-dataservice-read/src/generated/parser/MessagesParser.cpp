@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@
 
 #include "MessagesParser.h"
 
+#include <string>
+#include <vector>
+
 // clang-format off
 #include "generated/parser/StreamOffsetParser.h"
 #include <olp/core/generated/parser/ParserWrapper.h>
@@ -26,9 +29,9 @@
 
 namespace olp {
 namespace parser {
-namespace model = dataservice::read::model;
+namespace model = olp::dataservice::read::model;
 
-void from_json(const rapidjson::Value& value, model::Metadata& x) {
+void from_json(const boost::json::value& value, model::Metadata& x) {
   x.SetPartition(parse<std::string>(value, "partition"));
   x.SetChecksum(parse<porting::optional<std::string>>(value, "checksum"));
   x.SetCompressedDataSize(
@@ -39,12 +42,12 @@ void from_json(const rapidjson::Value& value, model::Metadata& x) {
   x.SetTimestamp(parse<porting::optional<int64_t>>(value, "timestamp"));
 }
 
-void from_json(const rapidjson::Value& value, model::Message& x) {
+void from_json(const boost::json::value& value, model::Message& x) {
   x.SetMetaData(parse<model::Metadata>(value, "metaData"));
   x.SetOffset(parse<model::StreamOffset>(value, "offset"));
 }
 
-void from_json(const rapidjson::Value& value, model::Messages& x) {
+void from_json(const boost::json::value& value, model::Messages& x) {
   x.SetMessages(parse<std::vector<model::Message>>(value, "messages"));
 }
 
