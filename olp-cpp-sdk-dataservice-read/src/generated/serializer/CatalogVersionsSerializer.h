@@ -22,7 +22,7 @@
 #include <utility>
 #include <vector>
 
-#include <olp/core/generated/serializer/SerializerWrapper.h>
+#include <generated/serializer/SerializerWrapper.h>
 #include <olp/dataservice/read/model/CatalogVersion.h>
 #include <boost/json/value.hpp>
 

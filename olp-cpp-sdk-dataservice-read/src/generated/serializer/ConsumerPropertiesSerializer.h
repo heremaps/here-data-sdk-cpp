@@ -21,7 +21,7 @@
 
 #include <vector>
 
-#include <olp/core/generated/serializer/SerializerWrapper.h>
+#include <generated/serializer/SerializerWrapper.h>
 #include <olp/dataservice/read/ConsumerProperties.h>
 #include <boost/json/value.hpp>
 

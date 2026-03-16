@@ -22,7 +22,7 @@
 #include <memory>
 #include <vector>
 
-#include <olp/core/generated/parser/ParserWrapper.h>
+#include <generated/parser/ParserWrapper.h>
 
 namespace olp {
 namespace parser {

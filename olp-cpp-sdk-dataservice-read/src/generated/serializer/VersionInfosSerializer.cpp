@@ -19,7 +19,7 @@
 
 #include "VersionInfosSerializer.h"
 
-#include <olp/core/generated/serializer/SerializerWrapper.h>
+#include <generated/serializer/SerializerWrapper.h>
 
 namespace olp {
 namespace serializer {

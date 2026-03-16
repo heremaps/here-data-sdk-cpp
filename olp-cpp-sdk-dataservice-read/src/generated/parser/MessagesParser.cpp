@@ -24,7 +24,7 @@
 
 // clang-format off
 #include "generated/parser/StreamOffsetParser.h"
-#include <olp/core/generated/parser/ParserWrapper.h>
+#include <generated/parser/ParserWrapper.h>
 // clang-format on
 
 namespace olp {
