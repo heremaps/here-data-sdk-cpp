@@ -20,6 +20,7 @@
 #pragma once
 
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <vector>
 
@@ -32,7 +33,7 @@ namespace dataservice {
 namespace read {
 namespace repository {
 
-/// Json byte stream class. Implements rapidjson input stream concept.
+/// Json byte stream class. Implements json input stream concept.
 class JsonByteStream {
  public:
   typedef char Ch;

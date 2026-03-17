@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 HERE Europe B.V.
+ * Copyright (C) 2022-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@
 
 #include "VersionsResponseParser.h"
 
-#include <olp/core/generated/parser/ParserWrapper.h>
+#include <vector>
+
+#include <generated/parser/ParserWrapper.h>
 
 namespace olp {
 namespace parser {
@@ -29,18 +31,18 @@ using VersionsResponseEntry =
     olp::dataservice::read::model::VersionsResponseEntry;
 using CatalogVersion = olp::dataservice::read::model::CatalogVersion;
 
-void from_json(const rapidjson::Value& value, CatalogVersion& x) {
+void from_json(const boost::json::value& value, CatalogVersion& x) {
   x.SetHrn(parse<std::string>(value, "hrn"));
   x.SetVersion(parse<int64_t>(value, "version"));
 }
 
-void from_json(const rapidjson::Value& value, VersionsResponseEntry& x) {
+void from_json(const boost::json::value& value, VersionsResponseEntry& x) {
   x.SetVersion(parse<int64_t>(value, "version"));
   x.SetCatalogVersions(
       parse<std::vector<CatalogVersion>>(value, "sharedDependencies"));
 }
 
-void from_json(const rapidjson::Value& value, VersionsResponse& x) {
+void from_json(const boost::json::value& value, VersionsResponse& x) {
   x.SetVersionResponseEntries(
       parse<std::vector<VersionsResponseEntry>>(value, "versions"));
 }

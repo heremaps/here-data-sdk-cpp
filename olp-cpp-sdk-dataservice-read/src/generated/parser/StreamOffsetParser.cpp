@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,13 @@
 
 #include "StreamOffsetParser.h"
 
-#include <olp/core/generated/parser/ParserWrapper.h>
+#include <generated/parser/ParserWrapper.h>
 
 namespace olp {
 namespace parser {
-using namespace olp::dataservice::read;
+namespace model = olp::dataservice::read::model;
 
-void from_json(const rapidjson::Value& value, model::StreamOffset& x) {
+void from_json(const boost::json::value& value, model::StreamOffset& x) {
   x.SetPartition(parse<int32_t>(value, "partition"));
   x.SetOffset(parse<int64_t>(value, "offset"));
 }
