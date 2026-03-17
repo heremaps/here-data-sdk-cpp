@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2024 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <olp/core/client/OlpClient.h>
@@ -150,17 +151,11 @@ inline void Client::Reset() {
 
 inline bool Client::RemoveMockResponse(const std::string& method_matcher,
                                        const std::string& path_matcher) {
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  boost::json::object object;
+  object.emplace("method", method_matcher);
+  object.emplace("path", path_matcher);
 
-  writer.StartObject();
-  writer.Key("method");
-  writer.String(method_matcher.c_str());
-  writer.Key("path");
-  writer.String(path_matcher.c_str());
-  writer.EndObject();
-
-  const auto data = std::string{buffer.GetString()};
+  const auto data = boost::json::serialize(object);
 
   const auto request_body =
       std::make_shared<std::vector<unsigned char>>(data.begin(), data.end());
@@ -187,21 +182,16 @@ inline void Client::CreateExpectation(const Expectation& expectation) {
 
 inline bool Client::VerifySequence(
     const std::vector<std::string>& pathes) const {
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-
-  writer.StartObject();
-  writer.Key("httpRequests");
-  writer.StartArray();
+  boost::json::array array;
   for (const auto& str : pathes) {
-    writer.StartObject();
-    writer.Key("path");
-    writer.String(str.c_str());
-    writer.EndObject();
+    boost::json::object array_value;
+    array_value.emplace("path", str);
+    array.emplace_back(std::move(array_value));
   }
-  writer.EndArray();
-  writer.EndObject();
-  const auto data = std::string{buffer.GetString()};
+  boost::json::object object;
+  object.emplace("httpRequests", std::move(array));
+
+  const auto data = boost::json::serialize(object);
 
   const auto request_body =
       std::make_shared<std::vector<unsigned char>>(data.begin(), data.end());
