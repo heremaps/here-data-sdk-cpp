@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +20,22 @@
 #include "VersionInfosParser.h"
 
 #include <map>
+#include <string>
 #include <vector>
 
-#include <olp/core/generated/parser/ParserWrapper.h>
+#include <generated/parser/ParserWrapper.h>
 
 namespace olp {
 namespace parser {
 namespace model = olp::dataservice::read::model;
 
-void from_json(const rapidjson::Value& value, model::VersionDependency& x) {
+void from_json(const boost::json::value& value, model::VersionDependency& x) {
   x.SetHrn(parse<std::string>(value, "hrn"));
   x.SetVersion(parse<int64_t>(value, "version"));
   x.SetDirect(parse<bool>(value, "direct"));
 }
 
-void from_json(const rapidjson::Value& value, model::VersionInfo& x) {
+void from_json(const boost::json::value& value, model::VersionInfo& x) {
   x.SetDependencies(
       parse<std::vector<model::VersionDependency>>(value, "dependencies"));
   x.SetTimestamp(parse<int64_t>(value, "timestamp"));
@@ -43,7 +44,7 @@ void from_json(const rapidjson::Value& value, model::VersionInfo& x) {
       parse<std::map<std::string, int64_t>>(value, "partitionCounts"));
 }
 
-void from_json(const rapidjson::Value& value, model::VersionInfos& x) {
+void from_json(const boost::json::value& value, model::VersionInfos& x) {
   x.SetVersions(parse<std::vector<model::VersionInfo>>(value, "versions"));
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@
 #include "generated/parser/MessagesParser.h"
 #include "generated/parser/SubscribeResponseParser.h"
 #include "generated/parser/VersionInfosParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include <generated/parser/JsonParser.h>
 #include "generated/serializer/VersionInfosSerializer.h"
 #include "generated/serializer/JsonSerializer.h"
 // clang-format on
