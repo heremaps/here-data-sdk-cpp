@@ -19,7 +19,6 @@
 project(olp-cpp-sdk-core VERSION 1.24.0)
 set(DESCRIPTION "Core network and utility library for the HERE OLP SDK C++")
 
-find_package(RapidJSON 1.1.0 REQUIRED)
 find_package(Boost REQUIRED)
 find_package(Threads REQUIRED)
 
@@ -95,12 +94,6 @@ set(OLP_SDK_CLIENT_HEADERS
     ./include/olp/core/client/PendingRequests.h
     ./include/olp/core/client/RetrySettings.h
     ./include/olp/core/client/TaskContext.h
-)
-
-set(OLP_SDK_GENERATED_HEADERS
-    ./include/olp/core/generated/parser/JsonParser.h
-    ./include/olp/core/generated/parser/ParserWrapper.h
-    ./include/olp/core/generated/serializer/SerializerWrapper.h
 )
 
 set(OLP_SDK_HTTP_HEADERS
@@ -227,6 +220,12 @@ set(OLP_SDK_MATH_HEADERS
 
 set(OLP_SDK_COREAPI_HEADERS
     ./include/olp/core/CoreApi.h
+)
+
+set(OLP_SDK_GENERATED_HEADERS
+    ./src/generated/parser/JsonParser.h
+    ./src/generated/parser/ParserWrapper.h
+    ./src/generated/serializer/SerializerWrapper.h
 )
 
 set(OLP_SDK_GEO_SOURCES
@@ -390,7 +389,6 @@ set(OLP_SDK_THREAD_SOURCES
 set(OLP_SDK_CORE_HEADERS
     ${OLP_SDK_CACHE_HEADERS}
     ${OLP_SDK_CLIENT_HEADERS}
-    ${OLP_SDK_GENERATED_HEADERS}
     ${OLP_SDK_HTTP_HEADERS}
     ${OLP_SDK_MODEL_HEADERS}
     ${OLP_SDK_PLATFORM_HEADERS}
@@ -408,6 +406,7 @@ set(OLP_SDK_CORE_HEADERS
 )
 
 set(OLP_SDK_CORE_SOURCES
+    ${OLP_SDK_GENERATED_HEADERS}
     ${OLP_SDK_CLIENT_SOURCES}
     ${OLP_SDK_HTTP_SOURCES}
     ${OLP_SDK_PLATFORM_SOURCES}
@@ -465,8 +464,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
     $<BUILD_INTERFACE:${Boost_INCLUDE_DIR}>
-
-    $<BUILD_INTERFACE:${RapidJSON_INCLUDE_DIRS}/..>
 
     $<INSTALL_INTERFACE:include>)
 

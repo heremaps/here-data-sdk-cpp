@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 HERE Europe B.V.
+ * Copyright (C) 2025-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,10 @@
 
 #include <olp/core/http/adapters/HarCaptureAdapter.h>
 
-#include <rapidjson/ostreamwrapper.h>
-#include <rapidjson/prettywriter.h>
+#include <boost/json/serialize.hpp>
+#include <boost/json/value.hpp>
+
+#include <generated/serializer/SerializerWrapper.h>
 
 #include <deque>
 #include <fstream>
@@ -68,56 +70,96 @@ std::string FormatTime(const std::chrono::system_clock::time_point timestamp) {
   return ss.str();
 }
 
-class JsonFileSerializer {
- public:
-  explicit JsonFileSerializer(std::ofstream& file)
-      : out_stream_(file), writer_(out_stream_) {}
+// In addition to making result easier to read formats floating point numbers
+// from `1.00281E2` to `100.281` and from `0` to `0.000`
+void PrettyPrint(std::ostream& os, boost::json::value const& jv,
+                 std::string* indent = nullptr) {
+  const auto initial_precision{os.precision()};
+  const auto initial_floatfield{os.floatfield};
+  os.precision(3);
+  os.setf(std::ios_base::fixed, std::ios_base::floatfield);
 
-  void Object(const std::function<void()>& body) {
-    writer_.StartObject();
-    body();
-    writer_.EndObject();
+  std::string indent_;
+  if (!indent)
+    indent = &indent_;
+  switch (jv.kind()) {
+    case boost::json::kind::object: {
+      os << "{\n";
+      indent->append(4, ' ');
+      auto const& obj = jv.get_object();
+      if (!obj.empty()) {
+        auto it = obj.begin();
+        for (;;) {
+          os << *indent << boost::json::serialize(it->key()) << ": ";
+          PrettyPrint(os, it->value(), indent);
+          if (++it == obj.end())
+            break;
+          os << ",\n";
+        }
+      }
+      os << "\n";
+      indent->resize(indent->size() - 4);
+      os << *indent << "}";
+      break;
+    }
+
+    case boost::json::kind::array: {
+      auto const& arr = jv.get_array();
+      if (arr.empty()) {
+        os << "[]";
+      } else {
+        os << "[\n";
+        indent->append(4, ' ');
+        auto it = arr.begin();
+        for (;;) {
+          os << *indent;
+          PrettyPrint(os, *it, indent);
+          if (++it == arr.end())
+            break;
+          os << ",\n";
+        }
+        os << "\n";
+        indent->resize(indent->size() - 4);
+        os << *indent << "]";
+      }
+      break;
+    }
+
+    case boost::json::kind::string: {
+      os << boost::json::serialize(jv.get_string());
+      break;
+    }
+
+    case boost::json::kind::uint64:
+      os << jv.get_uint64();
+      break;
+
+    case boost::json::kind::int64:
+      os << jv.get_int64();
+      break;
+
+    case boost::json::kind::double_:
+      os << jv.get_double();
+      break;
+
+    case boost::json::kind::bool_:
+      if (jv.get_bool())
+        os << "true";
+      else
+        os << "false";
+      break;
+
+    case boost::json::kind::null:
+      os << "null";
+      break;
   }
 
-  void Object(const char* key, const std::function<void()>& body) {
-    writer_.Key(key);
-    writer_.StartObject();
-    body();
-    writer_.EndObject();
-  }
+  if (indent->empty())
+    os << "\n";
 
-  void Array(const char* key, const std::function<void()>& body) {
-    writer_.Key(key);
-    writer_.StartArray();
-    body();
-    writer_.EndArray();
-  }
-
-  void String(const char* key, const std::string& value) {
-    writer_.Key(key);
-    writer_.String(value.c_str(), value.size());
-  }
-
-  void Int(const char* key, const int value) {
-    writer_.Key(key);
-    writer_.Int(value);
-  }
-
-  void Double(const char* key, const double value) {
-    writer_.Key(key);
-    writer_.Double(value);
-  }
-
-  void EmptyArray(const char* key) {
-    writer_.Key(key);
-    writer_.StartArray();
-    writer_.EndArray();
-  }
-
- private:
-  rapidjson::OStreamWrapper out_stream_;
-  rapidjson::PrettyWriter<rapidjson::OStreamWrapper> writer_{};
-};
+  os.precision(initial_precision);
+  os.setf(std::ios_base::fixed, initial_floatfield);
+}
 
 }  // namespace
 
@@ -229,6 +271,110 @@ class HarCaptureAdapter::HarCaptureAdapterImpl final : public Network {
   }
 
   void SaveSessionToFile() const {
+    boost::json::object log;
+    log["version"] = "1.2";
+    log["creator"] = boost::json::object(
+        {{"name", "DataSDK"}, {"version", OLP_SDK_VERSION_STRING}});
+
+    log["entries"] = [&]() {
+      boost::json::array entries;
+      entries.reserve(requests_.size());
+      for (auto request_index = 0u; request_index < requests_.size();
+           ++request_index) {
+        const auto& request = requests_[request_index];
+        const auto diagnostics = diagnostics_.size() > request_index
+                                     ? diagnostics_[request_index]
+                                     : Diagnostics{};
+
+        // return duration in milliseconds as float
+        auto duration = [&](const Diagnostics::Timings timing,
+                            const double default_value = -1.0) {
+          return diagnostics.available_timings[timing]
+                     ? diagnostics.timings[timing].count() / 1000.0
+                     : default_value;
+        };
+
+        const double total_time =
+            duration(Diagnostics::Total,
+                     static_cast<double>(
+                         std::chrono::duration_cast<std::chrono::microseconds>(
+                             request.end_time - request.start_time)
+                             .count()) /
+                         1000.0);
+
+        auto output_headers = [&](const uint16_t headers_offset,
+                                  const uint16_t headers_count) {
+          boost::json::array headers;
+          headers.reserve(headers_count);
+          for (auto i = 0u; i < headers_count; ++i) {
+            const auto& header = headers_[headers_offset + i];
+            headers.emplace_back(
+                boost::json::object({{"name", cache_.at(header.first)},
+                                     {"value", cache_.at(header.second)}}));
+          }
+          return headers;
+        };
+
+        boost::json::object entry;
+        entry["startedDateTime"] = FormatTime(request.start_time);
+        entry["time"] = total_time;
+
+        entry.emplace("request", [&]() {
+          boost::json::object value;
+
+          value["method"] = VerbToString(
+              static_cast<NetworkRequest::HttpVerb>(request.method));
+          value["url"] = cache_.at(request.url);
+          value["httpVersion"] = "UNSPECIFIED";
+          value["cookies"] = boost::json::array{};
+          value["headers"] = output_headers(request.request_headers_offset,
+                                            request.request_headers_count);
+          value["queryString"] = boost::json::array{};
+          value["headersSize"] = -1;
+          value["bodySize"] = -1;
+
+          return value;
+        }());
+
+        entry.emplace("response", [&]() {
+          boost::json::object value;
+          value["status"] = request.status_code;
+          value["statusText"] = "";
+          value["httpVersion"] = "UNSPECIFIED";
+          value["cookies"] = boost::json::array{};
+          value["headers"] = output_headers(request.response_headers_offset,
+                                            request.response_headers_count);
+          value["content"] =
+              boost::json::object({{"size", 0}, {"mimeType", ""}});
+          value["redirectURL"] = "";
+          value["headersSize"] = -1;
+          value["bodySize"] = -1;
+          value["_transferSize"] = static_cast<int>(request.transfer_size);
+          return value;
+        }());
+
+        entry.emplace("timings", [&]() {
+          using Timings = Diagnostics::Timings;
+          boost::json::object value;
+          value["blocked"] = duration(Timings::Queue);
+          value["dns"] = duration(Timings::NameLookup);
+          value["connect"] = duration(Timings::Connect);
+          value["ssl"] = duration(Timings::SSL_Handshake);
+          value["send"] = duration(Timings::Send, 0.0);
+          value["wait"] = duration(Timings::Wait, 0.0);
+          value["receive"] = duration(Timings::Receive, total_time);
+          return value;
+        }());
+
+        entries.emplace_back(std::move(entry));
+      }
+
+      return entries;
+    }();
+
+    boost::json::object doc;
+    doc.emplace("log", std::move(log));
+
     std::ofstream file(har_out_path_);
     if (!file.is_open()) {
       OLP_SDK_LOG_ERROR("HarCaptureAdapter::SaveSession",
@@ -236,111 +382,7 @@ class HarCaptureAdapter::HarCaptureAdapterImpl final : public Network {
       return;
     }
 
-    JsonFileSerializer serializer{file};
-
-    serializer.Object([&] {
-      serializer.Object("log", [&] {
-        serializer.String("version", "1.2");
-
-        serializer.Object("creator", [&] {
-          serializer.String("name", "DataSDK");
-          serializer.String("version", OLP_SDK_VERSION_STRING);
-        });
-
-        serializer.Array("entries", [&] {
-          for (auto request_index = 0u; request_index < requests_.size();
-               ++request_index) {
-            const auto& request = requests_[request_index];
-            const auto diagnostics = diagnostics_.size() > request_index
-                                         ? diagnostics_[request_index]
-                                         : Diagnostics{};
-
-            // return duration in milliseconds as float
-            auto duration = [&](const Diagnostics::Timings timing,
-                                const double default_value = -1.0) {
-              return diagnostics.available_timings[timing]
-                         ? diagnostics.timings[timing].count() / 1000.0
-                         : default_value;
-            };
-
-            const double total_time = duration(
-                Diagnostics::Total,
-                static_cast<double>(
-                    std::chrono::duration_cast<std::chrono::microseconds>(
-                        request.end_time - request.start_time)
-                        .count()) /
-                    1000.0);
-
-            auto output_headers = [&](const uint16_t headers_offset,
-                                      const uint16_t headers_count) {
-              serializer.Array("headers", [&] {
-                for (auto i = 0u; i < headers_count; ++i) {
-                  serializer.Object([&] {
-                    auto header = headers_[headers_offset + i];
-                    serializer.String("name", cache_.at(header.first));
-                    serializer.String("value", cache_.at(header.second));
-                  });
-                }
-              });
-            };
-
-            serializer.Object([&] {
-              serializer.String("startedDateTime",
-                                FormatTime(request.start_time));
-              serializer.Double("time", total_time);
-
-              serializer.Object("request", [&] {
-                serializer.String(
-                    "method",
-                    VerbToString(
-                        static_cast<NetworkRequest::HttpVerb>(request.method)));
-                serializer.String("url", cache_.at(request.url));
-                serializer.String("httpVersion", "UNSPECIFIED");
-                serializer.EmptyArray("cookies");
-                output_headers(request.request_headers_offset,
-                               request.request_headers_count);
-                serializer.EmptyArray("queryString");
-                serializer.Int("headersSize", -1);
-                serializer.Int("bodySize", -1);
-              });
-
-              // response
-              serializer.Object("response", [&] {
-                serializer.Int("status", request.status_code);
-                serializer.String("statusText", "");
-                serializer.String("httpVersion", "UNSPECIFIED");
-                serializer.EmptyArray("cookies");
-                output_headers(request.response_headers_offset,
-                               request.response_headers_count);
-                serializer.Object("content", [&] {
-                  serializer.Int("size", 0);
-                  serializer.String("mimeType", "");
-                });
-                serializer.String("redirectURL", "");
-                serializer.Int("headersSize", -1);
-                serializer.Int("bodySize", -1);
-                serializer.Int("_transferSize",
-                               static_cast<int>(request.transfer_size));
-              });
-
-              // timings
-              serializer.Object("timings", [&] {
-                using Timings = Diagnostics::Timings;
-                serializer.Double("blocked", duration(Timings::Queue));
-                serializer.Double("dns", duration(Timings::NameLookup));
-                serializer.Double("connect", duration(Timings::Connect));
-                serializer.Double("ssl", duration(Timings::SSL_Handshake));
-                serializer.Double("send", duration(Timings::Send, 0.0));
-                serializer.Double("wait", duration(Timings::Wait, 0.0));
-                serializer.Double("receive",
-                                  duration(Timings::Receive, total_time));
-              });
-            });
-          }
-        });
-      });
-    });
-
+    PrettyPrint(file, doc);
     file.close();
 
     OLP_SDK_LOG_INFO("HarCaptureAdapter::SaveSession",
