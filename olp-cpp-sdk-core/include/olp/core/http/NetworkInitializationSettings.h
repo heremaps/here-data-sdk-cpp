@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2025 HERE Europe B.V.
+ * Copyright (C) 2023-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
  */
 
 #pragma once
+
+#include <string>
 
 #include <olp/core/CoreApi.h>
 #include <olp/core/http/CertificateSettings.h>
@@ -48,6 +50,14 @@ struct CORE_API NetworkInitializationSettings {
    * setting.
    */
   porting::optional<std::string> diagnostic_output_path = porting::none;
+
+  /**
+   * @brief Global transfer limit in bytes per second. A value of 0 means no
+   * limit. This value is applied per connection to cURL via
+   * CURLOPT_MAX_RECV_SPEED_LARGE / CURLOPT_MAX_SEND_SPEED_LARGE where
+   * supported.
+   */
+  size_t max_transfer_bytes_per_second = 0u;
 };
 
 }  // namespace http
