@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2026 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,11 @@
 #include <utility>
 #include <vector>
 
-#include <boost/json/parse.hpp>
+#include <olp/core/porting/optional.h>
 #include <boost/json/value.hpp>
 
-namespace mockserver {
+namespace olp {
+namespace serializer {
 
 inline void to_json(const std::string& x, boost::json::value& value) {
   value.emplace_string() = x;
@@ -45,20 +46,17 @@ inline void to_json(int64_t x, boost::json::value& value) {
 inline void to_json(double x, boost::json::value& value) {
   value.emplace_double() = x;
 }
-
 inline void to_json(bool x, boost::json::value& value) {
   value.emplace_bool() = x;
 }
 
 inline void to_json(const std::shared_ptr<std::vector<unsigned char>>& x,
                     boost::json::value& value) {
-  value.emplace_string() =
-      boost::json::string_view{reinterpret_cast<char*>(x->data()), x->size()};
+  value.emplace_string().assign(x->begin(), x->end());
 }
 
 template <typename T>
-inline void to_json(const olp::porting::optional<T>& x,
-                    boost::json::value& value) {
+inline void to_json(const porting::optional<T>& x, boost::json::value& value) {
   if (x) {
     to_json(*x, value);
   } else {
@@ -70,19 +68,22 @@ template <typename T>
 inline void to_json(const std::map<std::string, T>& x,
                     boost::json::value& value) {
   auto& object = value.emplace_object();
-  for (const auto& entry : x) {
+  for (auto itr = x.begin(); itr != x.end(); ++itr) {
+    const auto& key = itr->first;
     boost::json::value item_value;
-    to_json(entry.second, item_value);
-    object.emplace(entry.first, std::move(item_value));
+    to_json(itr->second, item_value);
+    object.emplace(key, std::move(item_value));
   }
 }
 
 template <typename T>
 inline void to_json(const std::vector<T>& x, boost::json::value& value) {
   auto& array = value.emplace_array();
-  for (const auto& entry : x) {
+  array.reserve(x.size());
+  for (typename std::vector<T>::const_iterator itr = x.begin(); itr != x.end();
+       ++itr) {
     boost::json::value item_value;
-    to_json(entry, item_value);
+    to_json(*itr, item_value);
     array.emplace_back(std::move(item_value));
   }
 }
@@ -97,39 +98,5 @@ inline void serialize(const std::string& key, const T& x,
   }
 }
 
-inline void from_json(const boost::json::value& value, int32_t& x) {
-  x = static_cast<int32_t>(value.to_number<int64_t>());
-}
-
-template <typename T>
-inline void from_json(const boost::json::value& value,
-                      std::vector<T>& results) {
-  const auto& array = value.get_array();
-  for (const auto& array_value : array) {
-    T result;
-    from_json(array_value, result);
-    results.emplace_back(std::move(result));
-  }
-}
-
-template <typename T>
-inline T parse(const boost::json::value& value, const std::string& name) {
-  T result = T();
-  if (auto* found_value = value.as_object().if_contains(name)) {
-    from_json(*found_value, result);
-  }
-  return result;
-}
-
-template <typename T>
-inline T parse(std::stringstream& json_stream) {
-  boost::json::error_code ec;
-  auto doc = boost::json::parse(json_stream, ec);
-  T result{};
-  if (doc.is_object() || doc.is_array()) {
-    from_json(doc, result);
-  }
-  return result;
-}
-
-}  // namespace mockserver
+}  // namespace serializer
+}  // namespace olp
