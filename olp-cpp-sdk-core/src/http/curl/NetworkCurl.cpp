@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2025 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -406,10 +406,16 @@ NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
     : handles_(settings.max_requests_count),
       static_handle_count_(
           std::max(static_cast<size_t>(1u), settings.max_requests_count / 4u)),
-      certificate_settings_(std::move(settings.certificate_settings)) {
+      certificate_settings_(std::move(settings.certificate_settings)),
+      max_transfer_bytes_per_second_(settings.max_transfer_bytes_per_second) {
   OLP_SDK_LOG_TRACE(kLogTag, "Created NetworkCurl with address="
                                  << this << ", handles_count="
                                  << settings.max_requests_count);
+  if (max_transfer_bytes_per_second_ > 0) {
+    OLP_SDK_LOG_INFO_F(kLogTag, "max_transfer_bytes_per_second=%zu",
+                       max_transfer_bytes_per_second_);
+  }
+
   auto error = curl_global_init(CURL_GLOBAL_ALL);
   curl_initialized_ = (error == CURLE_OK);
   if (!curl_initialized_) {
@@ -856,6 +862,17 @@ ErrorCode NetworkCurl::SendImplementation(
 #else
   curl_easy_setopt(curl_handle, CURLOPT_FORBID_REUSE,
                    config.GetMaxConnectionLifetime().count() ? 1L : 0L);
+#endif
+
+#if CURL_AT_LEAST_VERSION(7, 15, 5)
+  // Refer to https://curl.se/libcurl/c/CURLOPT_MAX_RECV_SPEED_LARGE.html for
+  // the minimum supported version.
+  if (max_transfer_bytes_per_second_ > 0) {
+    curl_off_t speed_limit =
+        static_cast<curl_off_t>(max_transfer_bytes_per_second_);
+    curl_easy_setopt(curl_handle, CURLOPT_MAX_RECV_SPEED_LARGE, speed_limit);
+    curl_easy_setopt(curl_handle, CURLOPT_MAX_SEND_SPEED_LARGE, speed_limit);
+  }
 #endif
 
   {
