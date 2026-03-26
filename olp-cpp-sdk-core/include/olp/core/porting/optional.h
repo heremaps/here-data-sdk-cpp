@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 HERE Europe B.V.
+ * Copyright (C) 2025-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ namespace porting {
 template <typename T>
 using optional = boost::optional<T>;
 
-constexpr auto none = boost::none;
+BOOST_CONSTEXPR_OR_CONST auto none = boost::none;
 
 template <typename T>
 constexpr typename optional<T>::reference_const_type value_or(
