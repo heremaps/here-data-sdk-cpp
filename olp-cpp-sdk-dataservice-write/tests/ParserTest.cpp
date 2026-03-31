@@ -333,8 +333,8 @@ TEST(ParserTest, Catalog) {
 
 // TODO Test specfically for handling of OLP Backend bug:
 // Parse dataOutThroughputMbps, dataInThroughputMbps as double even though
-// OepnAPI sepcs says int64 because OLP Backend returns the value in decimal
-// format (e.g. 1.0) and this triggers an assert in RapidJSON when parsing.
+// OpenAPI sepcs says int64 because OLP Backend returns the value in decimal
+// format (e.g. 1.0).
 TEST(ParserTest, CatalogCrash) {
   std::string json_input =
       "{\"id\":\"olp-cpp-sdk-ingestion-test-catalog\",\"hrn\":\"hrn:here:data::"

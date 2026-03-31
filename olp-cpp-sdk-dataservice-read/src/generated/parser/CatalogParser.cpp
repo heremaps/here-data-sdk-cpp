@@ -63,9 +63,6 @@ void from_json(const boost::json::value& value, model::Schema& x) {
 }
 
 void from_json(const boost::json::value& value, model::StreamProperties& x) {
-  // Parsing these as double even though OepnAPI sepcs says int64 because
-  // Backend returns the value in decimal format (e.g. 1.0) and this triggers an
-  // assert in RapidJSON when parsing.
   x.SetDataInThroughputMbps(
       static_cast<int64_t>(parse<double>(value, "dataInThroughputMbps")));
   x.SetDataOutThroughputMbps(
