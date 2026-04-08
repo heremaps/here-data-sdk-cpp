@@ -182,12 +182,41 @@ jobs:
       BUILD_TYPE: RelWithDebInfo
       CC: clang-11
       CXX: clang++-11
-      CXXFLAGS: -Wno-deprecated-copy
+      CXXFLAGS: -Wno-deprecated-copy -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize=address -fsanitize-recover=address -shared-libasan
+      LD_LIBRARY_PATH: "/usr/lib/llvm-11/lib/clang/11.1.0/lib/linux/"
     steps:
     - name: Check out repository
       uses: actions/checkout@v4
     - name: Install Ubuntu dependencies
       run: sudo apt-get update -y && sudo apt-get install clang-11 ccache libcurl4-openssl-dev -y --no-install-recommends --fix-missing
+      shell: bash
+    - name: Check ASAN RT
+      run: find /usr/lib -name '*clang_rt.asan*'
+      shell: bash
+    - name: Compile project on Clang
+      run: scripts/linux/psv/build_psv.sh
+      shell: bash
+    - name: Run unit and integration tests
+      run: scripts/linux/psv/test_psv.sh
+      shell: bash
+
+  psv-linux-22-04-arm-clang-build:
+    name: PSV.Linux.22.04.ARM64.clang.Tests
+    runs-on: ubuntu-22.04
+    env:
+      BUILD_TYPE: RelWithDebInfo
+      CC: clang-11
+      CXX: clang++-11
+      CXXFLAGS: -Wno-deprecated-copy -fno-omit-frame-pointer -fno-optimize-sibling-calls -fsanitize=address -fsanitize-recover=address -shared-libasan
+      LD_LIBRARY_PATH: "/usr/lib/llvm-11/lib/clang/11.1.0/lib/linux/"
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+    - name: Install Ubuntu dependencies
+      run: sudo apt-get update -y && sudo apt-get install clang-11 ccache libcurl4-openssl-dev -y --no-install-recommends --fix-missing
+      shell: bash
+    - name: Check ASAN RT
+      run: find /usr/lib -name '*clang_rt.asan*'
       shell: bash
     - name: Compile project on Clang
       run: scripts/linux/psv/build_psv.sh
