@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +19,21 @@
 
 #include "LayerVersionsParser.h"
 
-#include <olp/core/generated/parser/ParserWrapper.h>
+#include <vector>
+
+#include <generated/parser/ParserWrapper.h>
 
 namespace olp {
 namespace parser {
-using namespace olp::dataservice::read;
+namespace model = olp::dataservice::read::model;
 
-void from_json(const rapidjson::Value& value, model::LayerVersion& x) {
+void from_json(const boost::json::value& value, model::LayerVersion& x) {
   x.SetLayer(parse<std::string>(value, "layer"));
   x.SetVersion(parse<int64_t>(value, "version"));
   x.SetTimestamp(parse<int64_t>(value, "timestamp"));
 }
 
-void from_json(const rapidjson::Value& value, model::LayerVersions& x) {
+void from_json(const boost::json::value& value, model::LayerVersions& x) {
   x.SetLayerVersions(
       parse<std::vector<model::LayerVersion>>(value, "layerVersions"));
   x.SetVersion(parse<int64_t>(value, "version"));

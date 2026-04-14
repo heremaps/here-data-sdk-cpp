@@ -39,7 +39,7 @@
 
 // clang-format off
 #include "generated/parser/PartitionsParser.h"
-#include <olp/core/generated/parser/JsonParser.h>
+#include <generated/parser/JsonParser.h>
 // clang-format on
 
 namespace {

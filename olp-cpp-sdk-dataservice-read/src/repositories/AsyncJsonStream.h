@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2025 HERE Europe B.V.
+ * Copyright (C) 2023-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,19 +20,21 @@
 #pragma once
 
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <vector>
 
 #include <olp/core/client/ApiError.h>
 #include <olp/core/porting/optional.h>
+#include <boost/json/string_view.hpp>
 
 namespace olp {
 namespace dataservice {
 namespace read {
 namespace repository {
 
-/// Json byte stream class. Implements rapidjson input stream concept.
-class RapidJsonByteStream {
+/// Json byte stream class. Implements json input stream concept.
+class JsonByteStream {
  public:
   typedef char Ch;
 
@@ -43,14 +45,11 @@ class RapidJsonByteStream {
   /// character.
   Ch Take();
 
+  /// Return the view of current read buffer until the end of first \0 character
+  boost::json::string_view ReadView();
+
   /// Get the current read cursor.
   size_t Tell() const;
-
-  /// Not needed for reading.
-  char* PutBegin();
-  void Put(char);
-  void Flush();
-  size_t PutEnd(char*);
 
   bool ReadEmpty() const;
   bool WriteEmpty() const;
@@ -72,7 +71,7 @@ class AsyncJsonStream {
  public:
   AsyncJsonStream();
 
-  std::shared_ptr<RapidJsonByteStream> GetCurrentStream() const;
+  std::shared_ptr<JsonByteStream> GetCurrentStream() const;
 
   void AppendContent(const char* content, size_t length);
 
@@ -86,7 +85,7 @@ class AsyncJsonStream {
 
  private:
   mutable std::mutex mutex_;
-  std::shared_ptr<RapidJsonByteStream> current_stream_;
+  std::shared_ptr<JsonByteStream> current_stream_;
   porting::optional<client::ApiError> error_;
   bool closed_;
 };

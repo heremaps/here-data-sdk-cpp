@@ -48,10 +48,6 @@ set(OLP_SDK_CPP_SNAPPY_TAG "1.1.7")
 set(OLP_SDK_CPP_LEVELDB_URL "https://github.com/google/leveldb.git")
 set(OLP_SDK_CPP_LEVELDB_TAG "1.21")
 
-set(OLP_SDK_CPP_RAPIDJSON_URL "https://github.com/Tencent/rapidjson.git")
-# Next commit after that breaks our build
-set(OLP_SDK_CPP_RAPIDJSON_TAG "d621dc9e9c77f81e5c8a35b8dcc16dcd63351321")
-
 set(OLP_SDK_CPP_BOOST_URL "https://github.com/boostorg/boost.git")
 set(OLP_SDK_CPP_BOOST_TAG "boost-1.82.0")
 
@@ -71,11 +67,6 @@ set(OLP_SDK_CPP_CURL_TAG "curl-7_52_1")
 find_package(GTest QUIET)
 if(NOT TARGET GTest AND NOT GTest_FOUND)
     add_subdirectory(googletest)
-endif()
-
-find_package(RapidJSON 1.1.0 QUIET)
-if(NOT TARGET RapidJSON AND NOT RapidJSON_FOUND)
-    add_subdirectory(rapidjson)
 endif()
 
 if(OLP_SDK_ENABLE_DEFAULT_CACHE)

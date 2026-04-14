@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@
 #include <algorithm>
 #include <map>
 #include <sstream>
+#include <utility>
+#include <vector>
 
 #include <olp/core/client/HttpResponse.h>
 #include <olp/core/client/OlpClient.h>
@@ -234,8 +236,6 @@ MetadataApi::CompatibleVersionsResponse MetadataApi::GetCompatibleVersions(
 
   std::multimap<std::string, std::string> query_params;
   query_params.emplace("limit", std::to_string(limit));
-
-  rapidjson::Value value;
 
   const auto serialized_dependencies = serializer::serialize(dependencies);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@
 #include <generated/parser/VersionDependencyParser.h>
 #include <generated/parser/LayerVersionsParser.h>
 #include <generated/parser/PublishDataRequestParser.h>
-#include <olp/core/generated/parser/JsonParser.h>
+#include <generated/parser/JsonParser.h>
 // clang-format on
 
 namespace {
@@ -333,8 +333,8 @@ TEST(ParserTest, Catalog) {
 
 // TODO Test specfically for handling of OLP Backend bug:
 // Parse dataOutThroughputMbps, dataInThroughputMbps as double even though
-// OepnAPI sepcs says int64 because OLP Backend returns the value in decimal
-// format (e.g. 1.0) and this triggers an assert in RapidJSON when parsing.
+// OpenAPI sepcs says int64 because OLP Backend returns the value in decimal
+// format (e.g. 1.0).
 TEST(ParserTest, CatalogCrash) {
   std::string json_input =
       "{\"id\":\"olp-cpp-sdk-ingestion-test-catalog\",\"hrn\":\"hrn:here:data::"

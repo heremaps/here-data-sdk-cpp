@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #include "Examples.h"
 
 #include <olp/dataservice/read/SubscribeRequest.h>
+#include <string>
 
 /**
  * @brief Dataservice read from stream layer example. Authenticate client using
@@ -34,6 +35,7 @@
  * @param subscription_mode The type of client subscription.
  * @return 0 on success, -1 otherwise.
  */
+EXAMPLES_API
 int RunStreamLayerExampleRead(
     const AccessKey& access_key, const std::string& catalog,
     const std::string& layer_id,

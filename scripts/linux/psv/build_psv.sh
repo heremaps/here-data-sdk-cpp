@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 #
-# Copyright (C) 2019-2020 HERE Europe B.V.
+# Copyright (C) 2019-2026 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
     -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
     -DOLP_SDK_BUILD_EXAMPLES=ON \
     -DBUILD_SHARED_LIBS=ON \
+    $EXTRA_CMAKE_OPTIONS \
     ..
 
 make -j$(nproc)

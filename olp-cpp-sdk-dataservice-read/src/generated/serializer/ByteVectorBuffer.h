@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 HERE Europe B.V.
+ * Copyright (C) 2024-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,6 @@ class ByteVectorBuffer {
   Buffer GetBuffer() { return buffer_; }
 
  private:
-  // Using the same value as rapidjson
   static constexpr auto kDefaultCapacity = 256u;
   Buffer buffer_;
 };

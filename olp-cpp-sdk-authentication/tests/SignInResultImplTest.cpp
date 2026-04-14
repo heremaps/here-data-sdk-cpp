@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2025 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 #include <gtest/gtest.h>
 #include <olp/core/http/HttpStatusCode.h>
+#include <boost/json/parse.hpp>
 #include "../src/SignInResultImpl.h"
 
 namespace {
@@ -82,8 +83,12 @@ constexpr auto kWrongFormatResponse =
 TEST(SignInResultImplTest, Constructor) {
   {
     SCOPED_TRACE("Valid token");
-    auto doc = std::make_shared<rapidjson::Document>();
-    doc->Parse(kTokenResponse);
+
+    boost::system::error_code error_code;
+    auto doc = std::make_shared<boost::json::object>(
+        boost::json::parse(kTokenResponse, error_code).as_object());
+    ASSERT_FALSE(error_code.failed());
+
     olp::authentication::SignInResultImpl result(olp::http::HttpStatusCode::OK,
                                                  std::string(), doc);
 
@@ -95,8 +100,12 @@ TEST(SignInResultImplTest, Constructor) {
 
   {
     SCOPED_TRACE("Valid token from snake case response");
-    auto doc = std::make_shared<rapidjson::Document>();
-    doc->Parse(kTokenResponseSnakeCase);
+
+    boost::system::error_code error_code;
+    auto doc = std::make_shared<boost::json::object>(
+        boost::json::parse(kTokenResponseSnakeCase, error_code).as_object());
+    ASSERT_FALSE(error_code.failed());
+
     olp::authentication::SignInResultImpl result(olp::http::HttpStatusCode::OK,
                                                  std::string(), doc);
 
@@ -108,8 +117,12 @@ TEST(SignInResultImplTest, Constructor) {
 
   {
     SCOPED_TRACE("Bad response");
-    auto doc = std::make_shared<rapidjson::Document>();
-    doc->Parse(kWrongFormatResponse);
+
+    boost::system::error_code error_code;
+    auto doc = std::make_shared<boost::json::object>(
+        boost::json::parse(kWrongFormatResponse, error_code).as_object());
+    ASSERT_FALSE(error_code.failed());
+
     olp::authentication::SignInResultImpl result(olp::http::HttpStatusCode::OK,
                                                  std::string(), doc);
 

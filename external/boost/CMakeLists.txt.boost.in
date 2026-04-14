@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2020 HERE Europe B.V.
+# Copyright (C) 2019-2026 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ ExternalProject_Add(boost-download
     GIT_REPOSITORY      @OLP_SDK_CPP_BOOST_URL@
     GIT_TAG             @OLP_SDK_CPP_BOOST_TAG@
     GIT_SUBMODULES      libs/algorithm
+                        libs/align
                         libs/any
                         libs/array
                         libs/assert
@@ -34,18 +35,20 @@ ExternalProject_Add(boost-download
                         libs/container_hash
                         libs/core
                         libs/date_time
-                        libs/detail
                         libs/describe
+                        libs/detail
                         libs/format
                         libs/function_types
                         libs/headers
                         libs/integer
+                        libs/intrusive
                         libs/io
                         libs/iterator
+                        libs/json
                         libs/lexical_cast
                         libs/move
-                        libs/mpl
                         libs/mp11
+                        libs/mpl
                         libs/numeric/conversion
                         libs/optional
                         libs/predef
@@ -55,6 +58,7 @@ ExternalProject_Add(boost-download
                         libs/serialization
                         libs/smart_ptr
                         libs/static_assert
+                        libs/system
                         libs/throw_exception
                         libs/tokenizer
                         libs/tti
@@ -62,11 +66,13 @@ ExternalProject_Add(boost-download
                         libs/type_traits
                         libs/utility
                         libs/uuid
+                        libs/variant2
                         libs/winapi
                         tools/build
                         tools/boost_install
     GIT_SHALLOW         1
     SOURCE_DIR          "@CMAKE_CURRENT_BINARY_DIR@/external_boost"
+    PATCH_COMMAND       @PATCH_BOOST_CMD@
     BUILD_IN_SOURCE     1
     UPDATE_COMMAND      ""
     CONFIGURE_COMMAND   @BOOTSTRAP_CMD@

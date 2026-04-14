@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2020 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,21 @@
 
 #pragma once
 
+#include <olp/core/porting/export.h>
+
+#ifdef EXAMPLES_SHARED_LIBRARY
+#ifdef EXAMPLES_LIBRARY
+#define EXAMPLES_API OLP_CPP_SDK_DECL_EXPORT
+#else
+#define EXAMPLES_API OLP_CPP_SDK_DECL_IMPORT
+#endif  // EXAMPLES_LIBRARY
+#else
+#define EXAMPLES_API
+#endif  // EXAMPLES_SHARED_LIBRARY
+
 #include <string>
 
-struct AccessKey
-{
+struct AccessKey {
   std::string id;      // Your here.access.key.id
   std::string secret;  // Your here.access.key.secret
 };
