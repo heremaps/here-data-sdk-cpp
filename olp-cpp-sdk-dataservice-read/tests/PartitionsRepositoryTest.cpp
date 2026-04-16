@@ -1208,7 +1208,7 @@ TEST_F(PartitionsRepositoryTest, GetAggregatedPartitionForVersionedTile) {
     const auto& error = response.GetError();
 
     ASSERT_FALSE(response.IsSuccessful());
-    ASSERT_EQ(error.GetErrorCode(), ErrorCode::NotFound);
+    ASSERT_EQ(error.GetErrorCode(), ErrorCode::NoContent);
   }
 
   {
