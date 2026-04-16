@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 #
-# Copyright (C) 2019-2025 HERE Europe B.V.
+# Copyright (C) 2019-2026 HERE Europe B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -102,14 +102,11 @@ else
     echo "OK. Full list of test reports was generated. "
 fi
 
-for failreport in $(ls ${REPO_HOME}/reports/*.xml)
+for report in $(ls ${REPO_HOME}/reports/*.xml)
 do
-    echo "Parsing ${failreport} ..."
-    if $(grep -q "<failure" "${failreport}" ) ; then
-        echo "${failreport} contains errors : "
-        echo "Printing report ##################################################################################"
-        cat ${failreport}
-        echo "End of report ####################################################################################"
+    echo "Parsing ${report} ..."
+    if $(grep -q "<failure" "${report}" ) ; then
+        echo "FAILURE: ${report} contains test failures. Check artifacts!"
     fi
 done
 
