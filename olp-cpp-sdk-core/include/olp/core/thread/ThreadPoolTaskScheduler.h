@@ -31,6 +31,9 @@ namespace thread {
  * @brief An implementation of the `TaskScheduler` instance that uses a thread
  * pool.
  *
+ * The scheduler can optionally expose a dedicated cancellation lane backed by a
+ * separate worker thread. When disabled, cancellation work falls back to the
+ * regular task queue.
  */
 class CORE_API ThreadPoolTaskScheduler final : public TaskScheduler {
  public:
@@ -38,8 +41,11 @@ class CORE_API ThreadPoolTaskScheduler final : public TaskScheduler {
    * @brief Creates the `ThreadPoolTaskScheduler` object with one thread.
    *
    * @param thread_count The number of threads initialized in the thread pool.
+   * @param enable_cancellation_lane When true, creates a dedicated worker
+   * thread for cancellation work scheduled via `ScheduleCancellationTask`.
    */
-  explicit ThreadPoolTaskScheduler(size_t thread_count = 1u);
+  explicit ThreadPoolTaskScheduler(size_t thread_count = 1u,
+                                   bool enable_cancellation_lane = false);
 
   /**
    * @brief Closes the `SyncQueue` instance and joins threads.
@@ -81,13 +87,22 @@ class CORE_API ThreadPoolTaskScheduler final : public TaskScheduler {
   void EnqueueTask(TaskScheduler::CallFuncType&& func,
                    uint32_t priority) override;
 
+  void EnqueueCancellationTask(TaskScheduler::CallFuncType&& func) override;
+
  private:
   class QueueImpl;
+  class CancellationQueueImpl;
 
   /// Thread pool created in constructor.
   std::vector<std::thread> thread_pool_;
   /// SyncQueue used to manage tasks.
   std::unique_ptr<QueueImpl> queue_;
+  /// Dedicated cancellation worker thread.
+  std::thread cancellation_thread_;
+  /// SyncQueue used to manage cancellation tasks when enabled.
+  std::unique_ptr<CancellationQueueImpl> cancellation_queue_;
+  /// Indicates whether the dedicated cancellation lane is enabled.
+  bool cancellation_lane_enabled_;
 };
 
 }  // namespace thread

@@ -251,7 +251,8 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
         if (!exec_started->load()) {
           callback(StreamLayerClient::FlushResponse{});
         }
-      });
+      },
+      client::CancellationContext(), task_scheduler_);
 
   auto pending_requests = pending_requests_;
   pending_requests->Insert(task_context);
@@ -285,7 +286,7 @@ client::CancellationToken StreamLayerClientImpl::PublishData(
   using std::placeholders::_1;
   client::TaskContext task_context = olp::client::TaskContext::Create(
       std::bind(&StreamLayerClientImpl::PublishDataTask, this, request, _1),
-      callback);
+      callback, client::CancellationContext(), task_scheduler_);
 
   auto pending_requests = pending_requests_;
   pending_requests->Insert(task_context);
@@ -474,7 +475,7 @@ client::CancellationToken StreamLayerClientImpl::PublishSdii(
   auto context = olp::client::TaskContext::Create(
       std::bind(&StreamLayerClientImpl::PublishSdiiTask, this,
                 std::move(request), _1),
-      callback);
+      callback, client::CancellationContext(), task_scheduler_);
 
   auto pending_requests = pending_requests_;
   pending_requests->Insert(context);
