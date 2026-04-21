@@ -19,6 +19,8 @@
 
 #include <olp/core/utils/Credentials.h>
 
+#include <algorithm>
+
 namespace {
 void CensorCredentialsPart(std::string& url, std::size_t arguments_start,
                            const std::string& credentials_part_name) {
