@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2025 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 #include "CatalogCacheRepository.h"
 
+#include <limits>
 #include <string>
 
 #include <olp/core/cache/KeyGenerator.h>
@@ -73,7 +74,7 @@ porting::optional<model::Catalog> CatalogCacheRepository::Get() {
     return parser::parse<model::Catalog>(value);
   });
 
-  if (cached_catalog.empty()) {
+  if (!olp::porting::has_value(cached_catalog)) {
     return olp::porting::none;
   }
 
@@ -99,7 +100,7 @@ porting::optional<model::VersionResponse> CatalogCacheRepository::GetVersion() {
     return parser::parse<model::VersionResponse>(value);
   });
 
-  if (cached_version.empty()) {
+  if (!olp::porting::has_value(cached_version)) {
     return olp::porting::none;
   }
   return olp::porting::any_cast<model::VersionResponse>(cached_version);

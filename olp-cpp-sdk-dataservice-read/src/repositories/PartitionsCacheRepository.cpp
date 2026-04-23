@@ -185,12 +185,12 @@ porting::optional<model::LayerVersions> PartitionsCacheRepository::Get(
         return parser::parse<model::LayerVersions>(serialized_object);
       });
 
-  if (cached_layer_versions.empty()) {
+  if (!olp::porting::has_value(cached_layer_versions)) {
     return olp::porting::none;
   }
 
-  return std::move(
-      olp::porting::any_cast<model::LayerVersions&&>(cached_layer_versions));
+  return std::move(olp::porting::any_cast<model::LayerVersions&&>(
+      std::move(cached_layer_versions)));
 }
 
 client::ApiNoResponse PartitionsCacheRepository::Put(

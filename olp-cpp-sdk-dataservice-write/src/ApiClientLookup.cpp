@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,10 @@
  */
 
 #include "ApiClientLookup.h"
+
+#include <map>
+#include <memory>
+#include <utility>
 
 #include <olp/core/cache/KeyValueCache.h>
 #include <olp/core/client/ApiError.h>
@@ -148,7 +152,7 @@ ApiClientLookup::ApiClientResponse ApiClientLookup::LookupApiClient(
   if (cache) {
     auto url =
         cache->Get(cache_key, [](const std::string& value) { return value; });
-    if (!url.empty()) {
+    if (olp::porting::has_value(url)) {
       auto base_url = olp::porting::any_cast<std::string>(url);
       OLP_SDK_LOG_INFO_F(kLogTag, "LookupApiClient(%s, %s) -> from cache",
                          service.c_str(), service_version.c_str());

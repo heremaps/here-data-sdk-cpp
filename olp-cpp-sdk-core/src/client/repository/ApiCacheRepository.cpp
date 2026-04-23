@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2024 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ porting::optional<std::string> ApiCacheRepository::Get(
   OLP_SDK_LOG_TRACE_F(kLogTag, "Get -> '%s'", key.c_str());
 
   auto url = cache_->Get(key, [](const std::string& value) { return value; });
-  if (url.empty()) {
+  if (!olp::porting::has_value(url)) {
     return porting::none;
   }
 
