@@ -1,48 +1,99 @@
+# Codecov configuration for here-data-sdk-cpp
+# Docs: https://docs.codecov.com/docs/codecovyml-reference
+# CI upload: codecov/codecov-action@v6 (single upload from psv-linux-22-04-gcc9-build-test-codecov)
+
+# Tell Codecov to finalise after exactly 1 upload and not wait for more.
+# This prevents PR status checks from hanging when only one coverage job exists.
+codecov:
+  notify:
+    after_n_builds: 1
+    wait_for_ci: true
+
 coverage:
-  range: 60..85
+  # Visualization band: green above 90%, red below 80%
+  range: 80..90
   round: nearest
   precision: 2
+
   status:
+    # ── Project (overall) checks ────────────────────────────────────────────
     project:
+      default:
+        # Fail if total project coverage drops by more than 0.5%
+        threshold: 0.5%
+        informational: false
+
       core:
         paths:
           - olp-cpp-sdk-core
-        threshold: 1%
+        target: 80%
+        threshold: 0.5%
+
       authentication:
         paths:
           - olp-cpp-sdk-authentication
-        threshold: 1%
+        target: 80%
+        threshold: 0.5%
+
       dataservice-read:
         paths:
           - olp-cpp-sdk-dataservice-read
-        threshold: 1%
+        target: 80%
+        threshold: 0.5%
+
       dataservice-write:
         paths:
           - olp-cpp-sdk-dataservice-write
-        threshold: 1%
-ignore:
-  - olp-cpp-sdk-authentication/tests
-  - olp-cpp-sdk-core/src/http/android
-  - olp-cpp-sdk-core/src/http/curl
-  - olp-cpp-sdk-core/src/http/ios
-  - olp-cpp-sdk-core/src/http/winhttp
-  - olp-cpp-sdk-core/src/http/Network.cpp
-  - olp-cpp-sdk-core/tests
-  - olp-cpp-sdk-dataservice-read/tests
-  - olp-cpp-sdk-dataservice-write/tests
-  - olp-cpp-sdk-dataservice-write/src/AutoFlushController.cpp
-  - olp-cpp-sdk-dataservice-write/src/AutoFlushController.h
-  - olp-cpp-sdk-dataservice-write/src/AutoFlushSettings.h
-  - olp-cpp-sdk-dataservice-write/src/BackgroundTaskCollection.cpp
-  - olp-cpp-sdk-dataservice-write/src/BackgroundTaskCollection.h
-  - olp-cpp-sdk-dataservice-write/src/DefaultFlushEventListener.cpp
-  - olp-cpp-sdk-dataservice-write/src/DefaultFlushEventListener.h
-  - olp-cpp-sdk-dataservice-write/src/FlushEventListener.h
-  - olp-cpp-sdk-dataservice-write/src/FlushMetrics.h
-  - tests
-  - scripts
-  - examples
-  - docs
-  - external
-  - build
+        target: 61%
+        threshold: 0.5%
 
+    # ── Patch checks (new/changed lines in a PR must be covered) ───────────
+    patch:
+      default:
+        target: 80%
+        threshold: 5%
+        informational: false
+
+# ── PR comment behaviour ──────────────────────────────────────────────────────
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default       # post once, update on new commits
+  require_changes: true   # don't comment if nothing changed
+  require_base: true
+  require_head: true
+  hide_project_coverage: false
+
+# ── GitHub Checks (inline PR annotations) ────────────────────────────────────
+github_checks:
+  annotations: true
+
+# ── Paths excluded from coverage reporting ───────────────────────────────────
+ignore:
+  # Test directories for every component
+  - "olp-cpp-sdk-authentication/tests"
+  - "olp-cpp-sdk-core/tests"
+  - "olp-cpp-sdk-dataservice-read/tests"
+  - "olp-cpp-sdk-dataservice-write/tests"
+  - "tests"
+
+  # Platform-specific HTTP backends (not exercised in CI coverage runs)
+  - "olp-cpp-sdk-core/src/http/android"
+  - "olp-cpp-sdk-core/src/http/curl"
+  - "olp-cpp-sdk-core/src/http/ios"
+  - "olp-cpp-sdk-core/src/http/winhttp"
+  - "olp-cpp-sdk-core/src/http/Network.cpp"
+
+  # Deprecated / flush-controller files in dataservice-write
+  - "olp-cpp-sdk-dataservice-write/src/AutoFlushController.*"
+  - "olp-cpp-sdk-dataservice-write/src/AutoFlushSettings.h"
+  - "olp-cpp-sdk-dataservice-write/src/BackgroundTaskCollection.*"
+  - "olp-cpp-sdk-dataservice-write/src/DefaultFlushEventListener.*"
+  - "olp-cpp-sdk-dataservice-write/src/FlushEventListener.h"
+  - "olp-cpp-sdk-dataservice-write/src/FlushMetrics.h"
+
+  # Non-source trees
+  - "scripts"
+  - "examples"
+  - "docs"
+  - "external"
+  - "build"
