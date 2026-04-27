@@ -107,7 +107,7 @@ CatalogSettings::LayerSettingsResult CatalogSettings::GetLayerSettings(
         return parser::parse<model::Catalog>(model);
       });
 
-  if (cached_catalog.empty()) {
+  if (!olp::porting::has_value(cached_catalog)) {
     return client::ApiError(
         client::ErrorCode::Unknown,
         (boost::format("Cached catalog '%1' is empty") % catalog_.ToString())

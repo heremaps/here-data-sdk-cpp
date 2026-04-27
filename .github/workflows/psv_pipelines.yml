@@ -88,6 +88,22 @@ jobs:
         run: ./scripts/linux/psv/test_psv.sh
         shell: bash
 
+  psv-linux-22-04-gcc11-build-porting-std:
+    name: PSV.Linux.22.04.gcc11.OLP_SDK_USE_STD_OPTIONAL.OLP_SDK_USE_STD_ANY
+    runs-on: ubuntu-22.04
+    env:
+      BUILD_TYPE: RelWithDebInfo
+      EXTRA_CMAKE_OPTIONS: -DCMAKE_CXX_STANDARD=17 -DOLP_SDK_USE_STD_OPTIONAL=ON -DOLP_SDK_USE_STD_ANY=ON -DOLP_SDK_ENABLE_TESTING=OFF
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install Ubuntu dependencies
+        run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
+        shell: bash
+      - name: Compile project with cmake and ccache
+        run: gcc --version && ./scripts/linux/psv/build_psv.sh
+        shell: bash
+
   psv-linux-latest-gcc14-build:
     name: PSV.Linux.latest.gcc14.Tests
     runs-on: ubuntu-latest

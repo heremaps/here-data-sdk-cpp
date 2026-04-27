@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,10 @@
  */
 
 #include "StreamLayerClientImpl.h"
+
+#include <memory>
+#include <string>
+#include <utility>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -93,7 +97,7 @@ size_t StreamLayerClientImpl::QueueSize() const {
   const auto uuid_list_any =
       cache_->Get(GetUuidListKey(), [](const std::string& s) { return s; });
   std::string uuid_list = "";
-  if (!uuid_list_any.empty()) {
+  if (olp::porting::has_value(uuid_list_any)) {
     uuid_list = olp::porting::any_cast<std::string>(uuid_list_any);
     return std::count(uuid_list.cbegin(), uuid_list.cend(), ',');
   }
@@ -134,7 +138,7 @@ porting::optional<std::string> StreamLayerClientImpl::Queue(
     const auto uuid_list_any =
         cache_->Get(GetUuidListKey(), [](const std::string& s) { return s; });
     std::string uuid_list = "";
-    if (!uuid_list_any.empty()) {
+    if (olp::porting::has_value(uuid_list_any)) {
       uuid_list = olp::porting::any_cast<std::string>(uuid_list_any);
     }
     uuid_list += publish_data_key + ",";
@@ -153,7 +157,7 @@ StreamLayerClientImpl::PopFromQueue() {
   const auto uuid_list_any =
       cache_->Get(GetUuidListKey(), [](const std::string& s) { return s; });
 
-  if (uuid_list_any.empty()) {
+  if (!olp::porting::has_value(uuid_list_any)) {
     OLP_SDK_LOG_ERROR(kLogTag, "Unable to Restore UUID list from Cache");
     return olp::porting::none;
   }
@@ -176,7 +180,7 @@ StreamLayerClientImpl::PopFromQueue() {
   cache_->Put(GetUuidListKey(), uuid_list,
               [&uuid_list]() { return uuid_list; });
 
-  if (publish_data_any.empty()) {
+  if (!olp::porting::has_value(publish_data_any)) {
     OLP_SDK_LOG_ERROR(kLogTag,
                       "Unable to Restore PublishData Request from Cache");
     return olp::porting::none;

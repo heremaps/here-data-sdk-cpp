@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -311,7 +311,7 @@ olp::porting::any DefaultCacheImpl::Get(const std::string& key,
 
   if (memory_cache_) {
     auto value = memory_cache_->Get(key);
-    if (!value.empty()) {
+    if (olp::porting::has_value(value)) {
       PromoteKeyLru(key);
       return value;
     }
@@ -1066,7 +1066,7 @@ OperationOutcome<KeyValueCache::ValueTypePtr> DefaultCacheImpl::Read(
 
   if (memory_cache_) {
     auto value = memory_cache_->Get(key);
-    if (!value.empty()) {
+    if (olp::porting::has_value(value)) {
       PromoteKeyLru(key);
       return olp::porting::any_cast<KeyValueCache::ValueTypePtr>(value);
     }
