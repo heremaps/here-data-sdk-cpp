@@ -1,3 +1,21 @@
+## v1.25.0 (11/05/2026)
+
+**Common**
+* Migrated from `RapidJSON` to `boost::json` throughout the codebase.
+* Converted rarely used `boost::any` cases to `olp::porting::any`.
+
+**olp-cpp-sdk-authentication**
+* Changed `Date` response header field parsing to be locale independent.
+
+**olp-cpp-sdk-core**
+* Added missing headers for compatibility with newer compilers.
+* Added `BOOST_CONSTEXPR_OR_CONST` to `olp::porting::none` declaration.
+* Added transfer rate limit support to `olp::http::NetworkCurl` class that can be set using `olp::http::NetworkInitializationSettings::max_transfer_bytes_per_second` value.
+* Added the `olp::client::ErrorCode::NoContent` error code to explicitly indicate the absence of data on the backend.
+
+**olp-cpp-sdk-dataservice-read**
+* Fixed `olp::dataservice::read::QuadTreeIndex` resource handling by removing thread local `rapidjson::MemoryPoolAllocator` that could lead to resource leaking.
+
 ## v1.24.0 (19/01/2026)
 
 **Common**
