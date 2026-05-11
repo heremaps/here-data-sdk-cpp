@@ -16,7 +16,7 @@
 # License-Filename: LICENSE
 
 
-project(olp-cpp-sdk-core VERSION 1.24.0)
+project(olp-cpp-sdk-core VERSION 1.25.0)
 set(DESCRIPTION "Core network and utility library for the HERE OLP SDK C++")
 
 find_package(Boost REQUIRED)
