@@ -3,7 +3,7 @@ var searchData=
   ['failedcallback_0',['FailedCallback',['../classolp_1_1thread_1_1internal_1_1ContinuationImpl.html#a47bde738505c48ca9266a5d196f2b242',1,'olp::thread::internal::ContinuationImpl']]],
   ['federatedproperties_1',['FederatedProperties',['../structolp_1_1authentication_1_1AuthenticationClient_1_1FederatedProperties.html',1,'olp::authentication::AuthenticationClient']]],
   ['fetchoptions_2',['FetchOptions',['../namespaceolp_1_1client.html#a10640e8b99199adda7a527790ec4f606',1,'olp::client']]],
-  ['file_3',['file',['../structolp_1_1logging_1_1LogMessage.html#a3f516029c71022e75fee27a79d4ad864',1,'olp::logging::LogMessage::file'],['../classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4a0b27918290ff5323bea1e3b78a9cf04e',1,'olp::logging::MessageFormatter::File']]],
+  ['file_3',['file',['../classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4a0b27918290ff5323bea1e3b78a9cf04e',1,'olp::logging::MessageFormatter::File'],['../structolp_1_1logging_1_1LogMessage.html#a3f516029c71022e75fee27a79d4ad864',1,'olp::logging::LogMessage::file']]],
   ['fileappender_4',['fileappender',['../classolp_1_1logging_1_1FileAppender.html',1,'olp::logging::FileAppender'],['../classolp_1_1logging_1_1FileAppender.html#a3563c522954a525992de056c1001a864',1,'olp::logging::FileAppender::FileAppender()']]],
   ['fileexists_5',['FileExists',['../classolp_1_1utils_1_1Dir.html#a49420253b5788d306b88fa17cbc746bb',1,'olp::utils::Dir']]],
   ['filterfunction_6',['FilterFunction',['../classolp_1_1utils_1_1Dir.html#ae50f402c549060696d66c4bdae94813f',1,'olp::utils::Dir']]],

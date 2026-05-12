@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">olp-cpp-sdk<span id="projectnumber">&#160;1.24.0</span>
+   <div id="projectname">olp-cpp-sdk<span id="projectnumber">&#160;1.25.0</span>
    </div>
   </td>
  </tr>
@@ -82,7 +82,7 @@ $(document).ready(function() { init_codefold(0); });
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">/*</span></div>
-<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment"> * Copyright (C) 2025 HERE Europe B.V.</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment"> * Copyright (C) 2025-2026 HERE Europe B.V.</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="comment"> *</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="comment"> * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="comment"> * you may not use this file except in compliance with the License.</span></div>
@@ -144,7 +144,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="keyword">using </span>optional = boost::optional&lt;T&gt;;</div>
 <div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="keyword">constexpr</span> <span class="keyword">auto</span> none = boost::none;</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>BOOST_CONSTEXPR_OR_CONST <span class="keyword">auto</span> none = boost::none;</div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span> </div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><span class="keyword">constexpr</span> <span class="keyword">typename</span> optional&lt;T&gt;::reference_const_type value_or(</div>

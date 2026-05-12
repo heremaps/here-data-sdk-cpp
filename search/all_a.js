@@ -9,7 +9,7 @@ var searchData=
   ['levelnamemap_6',['LevelNameMap',['../classolp_1_1logging_1_1MessageFormatter.html#a26b2623b8306380bd03f5dd19079f7a0',1,'olp::logging::MessageFormatter']]],
   ['license_7',['LICENSE',['../index.html#autotoc_md10',1,'']]],
   ['limit_8',['limit',['../structolp_1_1logging_1_1MessageFormatter_1_1Element.html#a2c4133deb5cc6490dce6ba742e07320d',1,'olp::logging::MessageFormatter::Element']]],
-  ['line_9',['line',['../classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4a4803e6b9e63dabf04de980788d6a13c4',1,'olp::logging::MessageFormatter::Line'],['../structolp_1_1logging_1_1LogMessage.html#a023c138a61ddb33cec6550131d80afdc',1,'olp::logging::LogMessage::line']]],
+  ['line_9',['line',['../structolp_1_1logging_1_1LogMessage.html#a023c138a61ddb33cec6550131d80afdc',1,'olp::logging::LogMessage::line'],['../classolp_1_1logging_1_1MessageFormatter.html#a00f34e2e9c507a76dcf3e5f058c36fe4a4803e6b9e63dabf04de980788d6a13c4',1,'olp::logging::MessageFormatter::Line']]],
   ['lineevaluator_10',['LineEvaluator',['../classolp_1_1geo_1_1detail_1_1LineEvaluator.html',1,'olp::geo::detail']]],
   ['linesliceiterator_11',['linesliceiterator',['../classolp_1_1geo_1_1LineSliceIterator.html',1,'olp::geo::LineSliceIterator&lt; InputIterator &gt;'],['../classolp_1_1geo_1_1LineSliceIterator.html#a9a0af4a78b74d1feb902dc61e773a73e',1,'olp::geo::LineSliceIterator::LineSliceIterator()']]],
   ['linux_20dependencies_12',['Linux dependencies',['../index.html#autotoc_md8',1,'']]],

@@ -10,7 +10,8 @@ var searchData=
   ['max_5ffile_5fsize_7',['max_file_size',['../structolp_1_1cache_1_1CacheSettings.html#aabc8a3a78b4843cef4118a22e6e57511',1,'olp::cache::CacheSettings']]],
   ['max_5fmemory_5fcache_5fsize_8',['max_memory_cache_size',['../structolp_1_1cache_1_1CacheSettings.html#a7df952f9f0e65b898065e884dd864e47',1,'olp::cache::CacheSettings']]],
   ['max_5frequests_5fcount_9',['max_requests_count',['../structolp_1_1http_1_1NetworkInitializationSettings.html#a553971e3e06830b08742978cd903c051',1,'olp::http::NetworkInitializationSettings']]],
-  ['maximum_5frequests_10',['maximum_requests',['../structolp_1_1dataservice_1_1write_1_1StreamLayerClientSettings.html#aa052a9a60e42e0c71ce9d3deaa849dfa',1,'olp::dataservice::write::StreamLayerClientSettings']]],
-  ['message_11',['message',['../structolp_1_1authentication_1_1ErrorResponse.html#ad72b3feae950f557985e9e7eae7f1d05',1,'olp::authentication::ErrorResponse::message'],['../structolp_1_1logging_1_1LogMessage.html#abf4d51caae855c610d5b6d8c568b44db',1,'olp::logging::LogMessage::message']]],
-  ['mutex_5f_12',['mutex_',['../classolp_1_1client_1_1TaskContext_1_1TaskContextImpl.html#a5737f2a9f06c6123128f3b08c3c88cc6',1,'olp::client::TaskContext::TaskContextImpl']]]
+  ['max_5ftransfer_5fbytes_5fper_5fsecond_10',['max_transfer_bytes_per_second',['../structolp_1_1http_1_1NetworkInitializationSettings.html#a2f68e1e2f02971ea60a4915797ab8937',1,'olp::http::NetworkInitializationSettings']]],
+  ['maximum_5frequests_11',['maximum_requests',['../structolp_1_1dataservice_1_1write_1_1StreamLayerClientSettings.html#aa052a9a60e42e0c71ce9d3deaa849dfa',1,'olp::dataservice::write::StreamLayerClientSettings']]],
+  ['message_12',['message',['../structolp_1_1authentication_1_1ErrorResponse.html#ad72b3feae950f557985e9e7eae7f1d05',1,'olp::authentication::ErrorResponse::message'],['../structolp_1_1logging_1_1LogMessage.html#abf4d51caae855c610d5b6d8c568b44db',1,'olp::logging::LogMessage::message']]],
+  ['mutex_5f_13',['mutex_',['../classolp_1_1client_1_1TaskContext_1_1TaskContextImpl.html#a5737f2a9f06c6123128f3b08c3c88cc6',1,'olp::client::TaskContext::TaskContextImpl']]]
 ];

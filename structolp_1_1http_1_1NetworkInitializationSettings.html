@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">olp-cpp-sdk<span id="projectnumber">&#160;1.24.0</span>
+   <div id="projectname">olp-cpp-sdk<span id="projectnumber">&#160;1.25.0</span>
    </div>
   </td>
  </tr>
@@ -84,16 +84,6 @@ $(function() {
  <a href="structolp_1_1http_1_1NetworkInitializationSettings.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="NetworkInitializationSettings_8h_source.html">NetworkInitializationSettings.h</a>&gt;</code></p>
-<div class="dynheader">
-Collaboration diagram for olp::http::NetworkInitializationSettings:</div>
-<div class="dyncontent">
-<div class="center"><img src="structolp_1_1http_1_1NetworkInitializationSettings__coll__graph.png" border="0" usemap="#aolp_1_1http_1_1NetworkInitializationSettings_coll__map" alt="Collaboration graph"/></div>
-<map name="aolp_1_1http_1_1NetworkInitializationSettings_coll__map" id="aolp_1_1http_1_1NetworkInitializationSettings_coll__map">
-<area shape="rect" title="Settings for network initialization." alt="" coords="5,93,225,133"/>
-<area shape="rect" href="structolp_1_1http_1_1CertificateSettings.html" title="Settings for custom network certificate." alt="" coords="13,5,217,31"/>
-<area shape="poly" title=" " alt="" coords="118,44,118,93,113,93,113,44"/>
-</map>
-<center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -108,6 +98,10 @@ size_t&#160;</td><td class="memItemRight" valign="bottom"><b>max_requests_count<
 <tr class="memitem:a31b437ec5dab3db6ecf1e817b45b131a" id="r_a31b437ec5dab3db6ecf1e817b45b131a"><td class="memItemLeft" align="right" valign="top">porting::optional&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structolp_1_1http_1_1NetworkInitializationSettings.html#a31b437ec5dab3db6ecf1e817b45b131a">diagnostic_output_path</a> = porting::none</td></tr>
 <tr class="memdesc:a31b437ec5dab3db6ecf1e817b45b131a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The path to the network diagnostic output. If not set, diagnostics will not be produced.  <br /></td></tr>
 <tr class="separator:a31b437ec5dab3db6ecf1e817b45b131a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f68e1e2f02971ea60a4915797ab8937" id="r_a2f68e1e2f02971ea60a4915797ab8937"><td class="memItemLeft" align="right" valign="top"><a id="a2f68e1e2f02971ea60a4915797ab8937" name="a2f68e1e2f02971ea60a4915797ab8937"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>max_transfer_bytes_per_second</b> = 0u</td></tr>
+<tr class="memdesc:a2f68e1e2f02971ea60a4915797ab8937"><td class="mdescLeft">&#160;</td><td class="mdescRight">Global transfer limit in bytes per second. A value of 0 means no limit. This value is applied per connection to cURL via CURLOPT_MAX_RECV_SPEED_LARGE / CURLOPT_MAX_SEND_SPEED_LARGE where supported. <br /></td></tr>
+<tr class="separator:a2f68e1e2f02971ea60a4915797ab8937"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Settings for network initialization. </p>
