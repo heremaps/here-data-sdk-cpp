@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 HERE Europe B.V.
+ * Copyright (C) 2023-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,12 @@
  */
 
 #pragma once
+
+#include <olp/core/Config.h>
+
+#ifdef OLP_SDK_ENABLE_ENVELOPE_PKEY
+#include <openssl/ossl_typ.h>
+#endif
 
 #include <string>
 
@@ -44,6 +50,13 @@ struct CORE_API CertificateSettings {
    * @brief The CA file as blob.
    */
   std::string cert_file_blob;
+
+#ifdef OLP_SDK_ENABLE_ENVELOPE_PKEY
+  /**
+   * @brief The ENV_PKEY handle as a pointer.
+   */
+  EVP_PKEY* pkey_handle = nullptr;
+#endif
 };
 
 }  // namespace http

@@ -50,6 +50,7 @@ option(OLP_SDK_ENABLE_DEFAULT_CACHE_LMDB "Enable default cache implementation ba
 option(OLP_SDK_ENABLE_ANDROID_CURL "Enable curl based network layer for Android" OFF)
 option(OLP_SDK_ENABLE_IOS_BACKGROUND_DOWNLOAD "Enable iOS network layer downloading in background. Under testing." OFF)
 option(OLP_SDK_ENABLE_OFFLINE_MODE "Enable offline mode. Network layer is excluded from the build and all network requests returned with error." OFF)
+option(OLP_SDK_ENABLE_ENVELOPE_PKEY "Enable support for envelope pkey for curl based network layer." OFF)
 
 # C++ standard version. Minimum supported version is 11.
 if (NOT CMAKE_CXX_STANDARD)

@@ -33,9 +33,13 @@
 
 #include <olp/core/porting/optional.h>
 
-#if defined(OLP_SDK_ENABLE_ANDROID_CURL) && !defined(ANDROID_HOST)
+#if (defined(OLP_SDK_ENABLE_ANDROID_CURL) && !defined(ANDROID_HOST)) || \
+    defined(OLP_SDK_ENABLE_ENVELOPE_PKEY)
 #include <openssl/ossl_typ.h>
+#endif
 
+#if defined(OLP_SDK_ENABLE_ANDROID_CURL) && !defined(ANDROID_HOST) && \
+    !defined(OLP_SDK_ENABLE_ENVELOPE_PKEY)
 #ifdef OPENSSL_NO_MD5
 #error cURL enabled network implementation for Android requires MD5 from OpenSSL
 #endif
@@ -315,6 +319,19 @@ class NetworkCurl : public Network,
    */
   static CURLcode AddMd5LookupMethod(CURL* curl, SSL_CTX* ssl_ctx,
                                      RequestHandle* handle);
+#endif
+
+#ifdef OLP_SDK_ENABLE_ENVELOPE_PKEY
+  /**
+   * @brief Injects EVP_PKEY and certificates into SSL context.
+   *
+   * @param[in] curl cURL instance.
+   * @param[in] ssl_ctx OpenSSL context.
+   * @param[in] handle Related RequestHandle.
+   * @return An error code for the operation.
+   */
+  static CURLcode InjectEnvelopeKey(CURL* curl, SSL_CTX* ssl_ctx,
+                                    RequestHandle* handle);
 #endif
 
   /// Contexts for every network request.

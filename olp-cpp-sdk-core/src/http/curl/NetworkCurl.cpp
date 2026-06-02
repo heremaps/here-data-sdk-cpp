@@ -33,8 +33,16 @@
 #include <csignal>
 #endif
 
-#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
+#if defined(OLP_SDK_ENABLE_ENVELOPE_PKEY) || \
+    defined(OLP_SDK_USE_MD5_CERT_LOOKUP)
 #include <openssl/ssl.h>
+#endif
+
+#ifdef OLP_SDK_ENABLE_ENVELOPE_PKEY
+#include <openssl/err.h>
+#endif
+
+#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
 #include <openssl/x509_vfy.h>
 #include <sys/stat.h>
 #include <cstdio>
@@ -50,7 +58,6 @@
 
 namespace olp {
 namespace http {
-
 namespace {
 
 const char* kLogTag = "CURL";
@@ -785,7 +792,18 @@ ErrorCode NetworkCurl::SendImplementation(
   }
 
 #ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
+#ifdef OLP_SDK_ENABLE_ENVELOPE_PKEY
+  // In VSM/EVP_PKEY mode the private key is injected via the
+  // InjectEnvelopeKey SSL_CTX_FUNCTION callback. Curl cannot combine
+  // CURLOPT_SSLCERT_BLOB (cert-only PEM) with a missing CURLOPT_SSLKEY_BLOB:
+  // it tries to extract the private key from the cert blob and fails with
+  // "unable to set private key file: '(memory blob)' type PEM".
+  // Therefore, skip the entire blob-based cert setup and let InjectEnvelopeKey
+  // set both the client certificate and the EVP_PKEY via SSL_CTX_*.
+  if (ssl_certificates_blobs_ && !certificate_settings_.pkey_handle) {
+#else
   if (ssl_certificates_blobs_) {
+#endif
     curl_easy_setopt(
         curl_handle, CURLOPT_SSLCERT_BLOB,
         olp::porting::get_ptr(ssl_certificates_blobs_->ssl_cert_blob));
@@ -810,7 +828,13 @@ ErrorCode NetworkCurl::SendImplementation(
   curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, 1L);
   curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2L);
 
-#ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
+#ifdef OLP_SDK_ENABLE_ENVELOPE_PKEY
+  if (certificate_settings_.pkey_handle) {
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_CTX_FUNCTION,
+                     &NetworkCurl::InjectEnvelopeKey);
+    curl_easy_setopt(curl_handle, CURLOPT_SSL_CTX_DATA, handle);
+  }
+#elif defined(OLP_SDK_USE_MD5_CERT_LOOKUP)
   curl_easy_setopt(curl_handle, CURLOPT_SSL_CTX_FUNCTION,
                    &NetworkCurl::AddMd5LookupMethod);
   curl_easy_setopt(curl_handle, CURLOPT_SSL_CTX_DATA, handle);
@@ -1458,6 +1482,91 @@ CURLcode NetworkCurl::AddMd5LookupMethod(CURL*, SSL_CTX* ssl_ctx,
   } else {
     OLP_SDK_LOG_ERROR(kLogTag, "Failed to add MD5 lookup method");
     return CURLE_ABORTED_BY_CALLBACK;
+  }
+
+  return CURLE_OK;
+}
+#endif
+
+#ifdef OLP_SDK_ENABLE_ENVELOPE_PKEY
+CURLcode NetworkCurl::InjectEnvelopeKey(CURL*, SSL_CTX* ssl_ctx,
+                                        RequestHandle* handle) {
+  auto self = handle->self.lock();
+  if (!self) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Unable to lock cURL handle");
+    return CURLE_ABORTED_BY_CALLBACK;
+  }
+
+  const auto& cert_blob = self->certificate_settings_.client_cert_file_blob;
+  if (!cert_blob.empty()) {
+    BIO* bio =
+        BIO_new_mem_buf(cert_blob.data(), static_cast<int>(cert_blob.size()));
+    if (!bio) {
+      OLP_SDK_LOG_ERROR(kLogTag, "InjectEnvelopeKey: BIO_new_mem_buf failed");
+      return CURLE_SSL_CERTPROBLEM;
+    }
+    X509* cert = PEM_read_bio_X509(bio, nullptr, nullptr, nullptr);
+    BIO_free(bio);
+    if (!cert) {
+      OLP_SDK_LOG_ERROR(kLogTag,
+                        "InjectEnvelopeKey: PEM_read_bio_X509 failed, error="
+                            << ERR_lib_error_string(ERR_get_error()));
+      return CURLE_SSL_CERTPROBLEM;
+    }
+    int rc = SSL_CTX_use_certificate(ssl_ctx, cert);
+    X509_free(cert);
+    if (rc != 1) {
+      OLP_SDK_LOG_ERROR(
+          kLogTag, "InjectEnvelopeKey: SSL_CTX_use_certificate failed, error="
+                       << ERR_lib_error_string(ERR_get_error()));
+      return CURLE_SSL_CERTPROBLEM;
+    }
+  }
+
+  const auto& ca_blob = self->certificate_settings_.cert_file_blob;
+  if (!ca_blob.empty()) {
+    BIO* bio =
+        BIO_new_mem_buf(ca_blob.data(), static_cast<int>(ca_blob.size()));
+    if (!bio) {
+      OLP_SDK_LOG_WARNING(
+          kLogTag,
+          "InjectEnvelopeKey: BIO_new_mem_buf failed for CA blob"
+          " — falling back to system CA bundle");
+    } else {
+      X509_STORE* store = SSL_CTX_get_cert_store(ssl_ctx);
+      int ca_count = 0;
+      X509* ca = nullptr;
+      while ((ca = PEM_read_bio_X509(bio, nullptr, nullptr, nullptr)) !=
+             nullptr) {
+        if (store) {
+          X509_STORE_add_cert(store, ca);
+        }
+        X509_free(ca);
+        ++ca_count;
+      }
+      BIO_free(bio);
+      // Clear EOF / "cert already in hash table" errors left by the loop
+      ERR_clear_error();
+      if (ca_count == 0) {
+        OLP_SDK_LOG_WARNING(kLogTag,
+                            "InjectEnvelopeKey: no CA certificates parsed from"
+                            " ca_blob — peer verification may fail");
+      } else {
+        OLP_SDK_LOG_DEBUG(kLogTag, "InjectEnvelopeKey: added "
+                                       << ca_count
+                                       << " CA cert(s) to trust store");
+      }
+    }
+  }
+
+  // Clear the error queue before calling SSL_CTX_use_PrivateKey so that
+  // ERR_get_error() in the error path below reflects the actual key error
+  ERR_clear_error();
+  if (SSL_CTX_use_PrivateKey(ssl_ctx,
+                             self->certificate_settings_.pkey_handle) != 1) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to use provided EVP_PKEY, error="
+                                   << ERR_lib_error_string(ERR_get_error()));
+    return CURLE_SSL_CERTPROBLEM;
   }
 
   return CURLE_OK;
