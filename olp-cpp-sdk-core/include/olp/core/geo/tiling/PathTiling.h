@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 HERE Europe B.V.
+ * Copyright (C) 2025-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,7 +98,8 @@ class LineEvaluator {
    * @return True if the iteration continues, false if it ends.
    */
   static bool Iterate(State& state) {  // NOLINT
-    if (state.x > state.x_end) {
+    if (state.x > state.x_end ||
+        (state.sliding_window_half_size == 0 && state.x == state.x_end)) {
       return false;
     }
 

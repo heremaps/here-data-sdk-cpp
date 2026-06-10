@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 HERE Europe B.V.
+ * Copyright (C) 2025-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,17 @@
 #include <olp/core/geo/tiling/PathTiling.h>
 #include <olp/core/geo/tiling/TilingSchemeRegistry.h>
 
+#include <olp/core/logging/Log.h>
+
 namespace olp {
 namespace geo {
 namespace {
 const auto kBerlin1 = GeoCoordinates::FromDegrees(52.514176, 13.339062);
 const auto kBerlin2 = GeoCoordinates::FromDegrees(52.517029, 13.387142);
 const auto kBerlin3 = GeoCoordinates::FromDegrees(52.490536, 13.397480);
+
+using testing::ElementsAre;
+using testing::ElementsAreArray;
 }  // namespace
 
 using DefaultScheme = HalfQuadTreeIdentityTilingScheme;
@@ -102,6 +107,262 @@ TEST(TiledPathRange, Iteration) {
 
   for (auto i = 0u; i < tiles.size(); ++i) {
     ASSERT_EQ(tiles[i], expected_tiles[i]);
+  }
+}
+
+TEST(TiledPathRange, Experiment) {
+  const double kLat = 52.5119019;
+  const double kLon = 13.3401489;
+  const double kTileHeight = 0.0054931;
+  const double kTileWidth = 0.0054932;
+
+  const auto GetRouteTiles = [](const std::vector<GeoCoordinates>& rotue,
+                                uint32_t width) {
+    constexpr uint32_t level = 16U;
+
+    const auto range = MakeTiledPathRange<DefaultScheme>(
+        rotue.begin(), rotue.end(), level, width);
+
+    std::vector<uint64_t> tiles;
+    std::transform(range.first, range.second, std::back_inserter(tiles),
+                   [](const TileKey& key) { return key.ToQuadKey64(); });
+    return tiles;
+  };
+
+  const auto baseTile = GeoCoordinates::FromDegrees(kLat, kLon);
+
+  {
+    SCOPED_TRACE("Within same tile. Width 1");
+    const uint32_t width = 1;
+    const std::vector<uint64_t> expected_tiles({6046300026});
+
+    EXPECT_THAT(GetRouteTiles({baseTile, baseTile}, width),
+                ElementsAreArray(expected_tiles));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat + kTileHeight / 3,
+                                             kLon + kTileWidth / 3)},
+                              width),
+                ElementsAreArray(expected_tiles));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat - kTileHeight / 3,
+                                             kLon - kTileWidth / 3)},
+                              width),
+                ElementsAreArray(expected_tiles));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat - kTileHeight / 3,
+                                             kLon + kTileWidth / 3)},
+                              width),
+                ElementsAreArray(expected_tiles));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat + kTileHeight / 3,
+                                             kLon - kTileWidth / 3)},
+                              width),
+                ElementsAreArray(expected_tiles));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat, kLon - kTileWidth / 3)},
+                              width),
+                ElementsAreArray(expected_tiles));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat + kTileHeight / 3, kLon)},
+                              width),
+                ElementsAreArray(expected_tiles));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat, kLon + kTileWidth / 3)},
+                              width),
+                ElementsAreArray(expected_tiles));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat - kTileHeight / 3, kLon)},
+                              width),
+                ElementsAreArray(expected_tiles));
+  }
+
+  {
+    SCOPED_TRACE("Within same tile. Width 2");
+    const uint32_t width = 2;
+    const std::vector<uint64_t> expected_tiles(
+        {6046300013, 6046300015, 6046300101, 6046300024, 6046300026, 6046300112,
+         6046300025, 6046300027, 6046300113, 6046300026});
+
+    EXPECT_THAT(GetRouteTiles({baseTile, baseTile}, width),
+                ElementsAreArray(expected_tiles));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat + kTileHeight / 3,
+                                             kLon + kTileWidth / 3)},
+                              width),
+                ElementsAreArray(expected_tiles));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat - kTileHeight / 3,
+                                             kLon - kTileWidth / 3)},
+                              width),
+                ElementsAreArray(expected_tiles));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat - kTileHeight / 3,
+                                             kLon + kTileWidth / 3)},
+                              width),
+                ElementsAreArray(expected_tiles));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat + kTileHeight / 3,
+                                             kLon - kTileWidth / 3)},
+                              width),
+                ElementsAreArray(expected_tiles));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat, kLon - kTileWidth / 3)},
+                              width),
+                ElementsAreArray(expected_tiles));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat + kTileHeight / 3, kLon)},
+                              width),
+                ElementsAreArray(expected_tiles));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat, kLon + kTileWidth / 3)},
+                              width),
+                ElementsAreArray(expected_tiles));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat - kTileHeight / 3, kLon)},
+                              width),
+                ElementsAreArray(expected_tiles));
+  }
+
+  {
+    SCOPED_TRACE("Next tile involved. Width 1");
+    const uint32_t width = 1;
+
+    EXPECT_THAT(
+        GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                     kLat + kTileHeight, kLon + kTileWidth)},
+                      width),
+        ElementsAre(6046300026, 6046300113));
+
+    EXPECT_THAT(
+        GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                     kLat - kTileHeight, kLon - kTileWidth)},
+                      width),
+        ElementsAre(6046300013, 6046300026));
+
+    EXPECT_THAT(
+        GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                     kLat + kTileHeight, kLon - kTileWidth)},
+                      width),
+        ElementsAre(6046300101, 6046300026));
+
+    EXPECT_THAT(
+        GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                     kLat - kTileHeight, kLon + kTileWidth)},
+                      width),
+        ElementsAre(6046300026, 6046300025));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat, kLon + kTileWidth)},
+                              width),
+                ElementsAre(6046300026, 6046300027));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat, kLon - kTileWidth)},
+                              width),
+                ElementsAre(6046300015, 6046300026));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat + kTileHeight, kLon)},
+                              width),
+                ElementsAre(6046300026, 6046300112));
+
+    EXPECT_THAT(GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                             kLat - kTileHeight, kLon)},
+                              width),
+                ElementsAre(6046300024, 6046300026));
+  }
+
+  {
+    SCOPED_TRACE("Next tile involved. Width 2");
+    const uint32_t width = 2;
+
+    EXPECT_THAT(
+        GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                     kLat + kTileHeight, kLon + kTileWidth)},
+                      width),
+        ElementsAre(6046300013, 6046300015, 6046300101, 6046300024, 6046300026,
+                    6046300112, 6046300025, 6046300027, 6046300113, 6046300026,
+                    6046300112, 6046300114, 6046300027, 6046300113, 6046300115,
+                    6046300030, 6046300116, 6046300118, 6046300113));
+
+    EXPECT_THAT(
+        GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                     kLat - kTileHeight, kLon - kTileWidth)},
+                      width),
+        ElementsAre(6046300006, 6046300012, 6046300014, 6046300007, 6046300013,
+                    6046300015, 6046300018, 6046300024, 6046300026, 6046300013,
+                    6046300015, 6046300101, 6046300024, 6046300026, 6046300112,
+                    6046300025, 6046300027, 6046300113, 6046300026));
+
+    EXPECT_THAT(
+        GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                     kLat + kTileHeight, kLon - kTileWidth)},
+                      width),
+        ElementsAre(6046300014, 6046300100, 6046300102, 6046300015, 6046300101,
+                    6046300103, 6046300026, 6046300112, 6046300114, 6046300013,
+                    6046300015, 6046300101, 6046300024, 6046300026, 6046300112,
+                    6046300025, 6046300027, 6046300113, 6046300018));
+
+    EXPECT_THAT(
+        GetRouteTiles({baseTile, GeoCoordinates::FromDegrees(
+                                     kLat - kTileHeight, kLon + kTileWidth)},
+                      width),
+        ElementsAre(6046300013, 6046300015, 6046300101, 6046300024, 6046300026,
+                    6046300112, 6046300025, 6046300027, 6046300113, 6046300018,
+                    6046300024, 6046300026, 6046300019, 6046300025, 6046300027,
+                    6046300022, 6046300028, 6046300030, 6046300017));
+
+    EXPECT_THAT(
+        GetRouteTiles(
+            {baseTile, GeoCoordinates::FromDegrees(kLat, kLon + kTileWidth)},
+            width),
+        ElementsAre(6046300013, 6046300015, 6046300101, 6046300024, 6046300026,
+                    6046300112, 6046300025, 6046300027, 6046300113, 6046300024,
+                    6046300026, 6046300112, 6046300025, 6046300027, 6046300113,
+                    6046300028, 6046300030, 6046300116, 6046300025));
+
+    EXPECT_THAT(
+        GetRouteTiles(
+            {baseTile, GeoCoordinates::FromDegrees(kLat, kLon - kTileWidth)},
+            width),
+        ElementsAre(6046300012, 6046300014, 6046300100, 6046300013, 6046300015,
+                    6046300101, 6046300024, 6046300026, 6046300112, 6046300013,
+                    6046300015, 6046300101, 6046300024, 6046300026, 6046300112,
+                    6046300025, 6046300027, 6046300113, 6046300024));
+
+    EXPECT_THAT(
+        GetRouteTiles(
+            {baseTile, GeoCoordinates::FromDegrees(kLat + kTileHeight, kLon)},
+            width),
+        ElementsAre(6046300013, 6046300024, 6046300025, 6046300015, 6046300026,
+                    6046300027, 6046300101, 6046300112, 6046300113, 6046300015,
+                    6046300026, 6046300027, 6046300101, 6046300112, 6046300113,
+                    6046300103, 6046300114, 6046300115, 6046300101));
+
+    EXPECT_THAT(
+        GetRouteTiles(
+            {baseTile, GeoCoordinates::FromDegrees(kLat - kTileHeight, kLon)},
+            width),
+        ElementsAre(6046300007, 6046300018, 6046300019, 6046300013, 6046300024,
+                    6046300025, 6046300015, 6046300026, 6046300027, 6046300013,
+                    6046300024, 6046300025, 6046300015, 6046300026, 6046300027,
+                    6046300101, 6046300112, 6046300113, 6046300015));
   }
 }
 
