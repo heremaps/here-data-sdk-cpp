@@ -53,7 +53,12 @@ struct CORE_API CertificateSettings {
 
 #ifdef OLP_SDK_ENABLE_ENVELOPE_PKEY
   /**
-   * @brief The ENV_PKEY handle as a pointer.
+   * @brief The EVP_PKEY handle as a pointer.
+   *
+   * @note The caller is responsible for the lifetime of the EVP_PKEY handle and
+   * must ensure it remains valid until the network request is completed. The
+   * handle should be properly freed by the caller after use to avoid memory
+   * leaks.
    */
   EVP_PKEY* pkey_handle = nullptr;
 #endif

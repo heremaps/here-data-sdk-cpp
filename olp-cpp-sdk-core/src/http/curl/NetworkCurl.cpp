@@ -1510,7 +1510,7 @@ CURLcode NetworkCurl::InjectEnvelopeKey(CURL*, SSL_CTX* ssl_ctx,
     if (!cert) {
       OLP_SDK_LOG_ERROR(kLogTag,
                         "InjectEnvelopeKey: PEM_read_bio_X509 failed, error="
-                            << ERR_lib_error_string(ERR_get_error()));
+                            << ERR_error_string(ERR_get_error(), nullptr));
       return CURLE_SSL_CERTPROBLEM;
     }
     int rc = SSL_CTX_use_certificate(ssl_ctx, cert);
@@ -1518,7 +1518,7 @@ CURLcode NetworkCurl::InjectEnvelopeKey(CURL*, SSL_CTX* ssl_ctx,
     if (rc != 1) {
       OLP_SDK_LOG_ERROR(
           kLogTag, "InjectEnvelopeKey: SSL_CTX_use_certificate failed, error="
-                       << ERR_lib_error_string(ERR_get_error()));
+                       << ERR_error_string(ERR_get_error(), nullptr));
       return CURLE_SSL_CERTPROBLEM;
     }
   }
@@ -1540,9 +1540,9 @@ CURLcode NetworkCurl::InjectEnvelopeKey(CURL*, SSL_CTX* ssl_ctx,
              nullptr) {
         if (store) {
           X509_STORE_add_cert(store, ca);
+          ++ca_count;
         }
         X509_free(ca);
-        ++ca_count;
       }
       BIO_free(bio);
       // Clear EOF / "cert already in hash table" errors left by the loop
@@ -1564,8 +1564,9 @@ CURLcode NetworkCurl::InjectEnvelopeKey(CURL*, SSL_CTX* ssl_ctx,
   ERR_clear_error();
   if (SSL_CTX_use_PrivateKey(ssl_ctx,
                              self->certificate_settings_.pkey_handle) != 1) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Failed to use provided EVP_PKEY, error="
-                                   << ERR_lib_error_string(ERR_get_error()));
+    OLP_SDK_LOG_ERROR(
+        kLogTag, "Failed to use provided EVP_PKEY, error=" << ERR_error_string(
+                     ERR_get_error(), nullptr));
     return CURLE_SSL_CERTPROBLEM;
   }
 
