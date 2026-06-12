@@ -34,6 +34,12 @@ endif()
 
 set(PATCH_BOOST_CMD "git apply -v ${CMAKE_CURRENT_SOURCE_DIR}/boost_182_json_noexceptions.diff")
 
+# Skip installation if boost is embedded, otherwise install it to a temporary location and use it from there.
+set(INSTALL_BOOST_CMD ${CMAKE_COMMAND} -E true)
+if (NOT OLP_SDK_EMBED_BOOST_JSON)
+    set(INSTALL_BOOST_CMD ${B2_CMD} install --with-json --prefix=${CMAKE_CURRENT_BINARY_DIR}/external_boost_install)
+endif()
+
 configure_file(CMakeLists.txt.boost.in download/CMakeLists.txt @ONLY)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
@@ -52,7 +58,13 @@ if(result)
   message(FATAL_ERROR "Build step for boost failed: ${result}")
 endif()
 
-# We are using boost header only, we don't care about libs
-set(EXTERNAL_BOOST_ROOT ${CMAKE_CURRENT_BINARY_DIR}/external_boost PARENT_SCOPE)
-set(EXTERNAL_BOOST_ROOT_INCLUDE ${CMAKE_CURRENT_BINARY_DIR}/external_boost PARENT_SCOPE)
-set(EXTERNAL_BOOST_ROOT_LIB dummy_path PARENT_SCOPE)
+if (OLP_SDK_EMBED_BOOST_JSON)
+    set(EXTERNAL_BOOST_ROOT ${CMAKE_CURRENT_BINARY_DIR}/external_boost PARENT_SCOPE)
+    set(EXTERNAL_BOOST_ROOT_INCLUDE ${CMAKE_CURRENT_BINARY_DIR}/external_boost PARENT_SCOPE)
+    # We are using boost header only, we don't care about libs
+    set(EXTERNAL_BOOST_ROOT_LIB dummy_path PARENT_SCOPE)
+else()
+    set(EXTERNAL_BOOST_ROOT ${CMAKE_CURRENT_BINARY_DIR}/external_boost_install PARENT_SCOPE)
+    set(EXTERNAL_BOOST_ROOT_INCLUDE ${CMAKE_CURRENT_BINARY_DIR}/external_boost_install/include PARENT_SCOPE)
+    set(EXTERNAL_BOOST_ROOT_LIB ${CMAKE_CURRENT_BINARY_DIR}/external_boost_install/lib PARENT_SCOPE)
+endif ()

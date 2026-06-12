@@ -22,7 +22,11 @@ file(GLOB_RECURSE INC "include/*.h*")
 file(GLOB_RECURSE SRC "src/*.*")
 
 
-find_package(Boost REQUIRED)
+if (OLP_SDK_EMBED_BOOST_JSON)
+    find_package(Boost REQUIRED)
+else ()
+    find_package(Boost COMPONENTS json REQUIRED)
+endif()
 
 add_library(${PROJECT_NAME}
     ${SRC}
@@ -51,6 +55,14 @@ target_compile_definitions(${PROJECT_NAME}
 if(BUILD_SHARED_LIBS)
     target_compile_definitions(${PROJECT_NAME}
         PUBLIC DATASERVICE_READ_SHARED_LIBRARY)
+endif()
+
+if (OLP_SDK_EMBED_BOOST_JSON)
+    target_compile_definitions(${PROJECT_NAME}
+        PRIVATE OLP_SDK_EMBED_BOOST_JSON)
+else ()
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE Boost::json)
 endif()
 
 # install component
