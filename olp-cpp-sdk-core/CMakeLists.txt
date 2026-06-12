@@ -19,7 +19,12 @@
 project(olp-cpp-sdk-core VERSION 1.25.0)
 set(DESCRIPTION "Core network and utility library for the HERE OLP SDK C++")
 
-find_package(Boost REQUIRED)
+if (OLP_SDK_EMBED_BOOST_JSON)
+    find_package(Boost REQUIRED)
+else ()
+    find_package(Boost COMPONENTS json REQUIRED)
+endif()
+
 find_package(Threads REQUIRED)
 
 if(OLP_SDK_ENABLE_DEFAULT_CACHE)
@@ -454,6 +459,14 @@ endif()
 if (OLP_SDK_USE_STD_ANY)
     target_compile_definitions(${PROJECT_NAME}
         PUBLIC OLP_SDK_USE_STD_ANY)
+endif()
+
+if (OLP_SDK_EMBED_BOOST_JSON)
+    target_compile_definitions(${PROJECT_NAME}
+        PRIVATE OLP_SDK_EMBED_BOOST_JSON)
+else ()
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE Boost::json)
 endif()
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE BOOST_ALL_NO_LIB)

@@ -17,4 +17,6 @@
  * License-Filename: LICENSE
  */
 
+#if defined(OLP_SDK_EMBED_BOOST_JSON)
 #include <boost/json/src.hpp>
+#endif

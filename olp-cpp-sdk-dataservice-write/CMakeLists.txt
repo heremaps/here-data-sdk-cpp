@@ -18,7 +18,11 @@
 project(olp-cpp-sdk-dataservice-write VERSION 1.25.0)
 set(DESCRIPTION "C++ API library for writing data to OLP")
 
-find_package(Boost REQUIRED)
+if (OLP_SDK_EMBED_BOOST_JSON)
+    find_package(Boost REQUIRED)
+else ()
+    find_package(Boost COMPONENTS json REQUIRED)
+endif()
 
 set(OLP_SDK_DATASERVICE_WRITE_API_HEADERS
     ./include/olp/dataservice/write/DataServiceWriteApi.h
@@ -188,6 +192,14 @@ target_compile_definitions(${PROJECT_NAME}
     PRIVATE
         BOOST_ALL_NO_LIB
         BOOST_JSON_NO_LIB)
+
+if (OLP_SDK_EMBED_BOOST_JSON)
+    target_compile_definitions(${PROJECT_NAME}
+        PRIVATE OLP_SDK_EMBED_BOOST_JSON)
+else ()
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE Boost::json)
+endif()
 
 # Used also in the package config file
 set(PROJECT_LIBS olp-cpp-sdk-core)

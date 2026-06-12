@@ -18,7 +18,11 @@
 project(olp-cpp-sdk-authentication VERSION 1.25.0)
 set(DESCRIPTION "C++ API library for accessing HERE Account authentication service")
 
-find_package(Boost REQUIRED)
+if (OLP_SDK_EMBED_BOOST_JSON)
+    find_package(Boost REQUIRED)
+else ()
+    find_package(Boost COMPONENTS json REQUIRED)
+endif()
 
 file(GLOB_RECURSE AUTHENTICATION_INC "include/*.h*")
 file(GLOB_RECURSE AUTHENTICATION_SRC "src/*.*")
@@ -54,6 +58,14 @@ target_compile_definitions(${PROJECT_NAME}
 if(BUILD_SHARED_LIBS)
     target_compile_definitions(${PROJECT_NAME}
         PUBLIC AUTHENTICATION_SHARED_LIBRARY)
+endif()
+
+if (OLP_SDK_EMBED_BOOST_JSON)
+    target_compile_definitions(${PROJECT_NAME}
+        PRIVATE OLP_SDK_EMBED_BOOST_JSON)
+else ()
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE Boost::json)
 endif()
 
 target_compile_definitions(${PROJECT_NAME}
