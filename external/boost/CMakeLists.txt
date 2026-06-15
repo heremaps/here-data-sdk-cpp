@@ -35,7 +35,7 @@ endif()
 set(PATCH_BOOST_CMD "git apply -v ${CMAKE_CURRENT_SOURCE_DIR}/boost_182_json_noexceptions.diff")
 
 # Skip installation if boost is embedded, otherwise install it to a temporary location and use it from there.
-set(INSTALL_BOOST_CMD ${CMAKE_COMMAND} -E true)
+set(INSTALL_BOOST_CMD ${CMAKE_COMMAND} -E echo "Skipping boost install")
 if (NOT OLP_SDK_EMBED_BOOST_JSON)
     set(INSTALL_BOOST_CMD ${B2_CMD} install --with-json --prefix=${CMAKE_CURRENT_BINARY_DIR}/external_boost_install)
 endif()
