@@ -6,7 +6,7 @@ On this page, find instructions on how to build and run the read example project
 
 1. On the [Apps & keys](https://platform.here.com/admin/apps) page, copy your application access key ID and access key secret.
 
-   For instructions on how to get the access key ID and access key secret, see [Register your application](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/plat-token.html#step-1-register-your-application-and-get-credentials) section in the Identity & Access Management Developer Guide.
+   For instructions on how to get the access key ID and access key secret, see [Register your application](https://docs.here.com/identity-and-access-management/docs/plat-using-oidc#step-2---register-your-app-and-get-credentials) section in the Identity & Access Management Developer Guide.
 
 2. In <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/examples/main.cpp" target="_blank">`examples/main.cpp`</a>, replace the placeholders with your access key ID, access key secret, and Here Resource Name (HRN) of the catalog.
 
@@ -74,7 +74,7 @@ To integrate the Data SDK libraries in the Android example project:
 2. In <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/examples/android/app/src/main/cpp/MainActivityNative.cpp.in" target="_blank">`examples/android/app/src/main/cpp/MainActivityNative.cpp.in`</a>, replace the placeholders with your application access key ID, access key secret, and catalog HRN and specify that the example should run `RunExampleRead`.
 
 > #### Note
-> To learn how to get the access key ID and access key secret, see the [Register your application](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/plat-token.html#step-1-register-your-application-and-get-credentials) section in the Identity & Access Management Developer Guide.
+> To learn how to get the access key ID and access key secret, see the [Register your application](https://docs.here.com/identity-and-access-management/docs/plat-using-oidc#step-2---register-your-app-and-get-credentials) section in the Identity & Access Management Developer Guide.
 
 ### Build the Data SDK on Android
 
@@ -124,7 +124,7 @@ To integrate the Data SDK libraries in the iOS example project written in the Ob
 3. In <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/examples/ios/ViewController.mm" target="_blank">`examples/ios/ViewController.mm`</a>, replace the placeholders with your application access key ID, access key secret, and catalog HRN and specify that the example should run `RunExampleRead`.
 
 > #### Note
-> To learn how to get the access key ID and access key secret, see the [Register your application](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/plat-token.html#step-1-register-your-application-and-get-credentials) section in the Identity & Access Management Developer Guide.
+> To learn how to get the access key ID and access key secret, see the [Register your application](https://docs.here.com/identity-and-access-management/docs/plat-using-oidc#step-2---register-your-app-and-get-credentials) section in the Identity & Access Management Developer Guide.
 
 ### Build the Data SDK on iOS
 

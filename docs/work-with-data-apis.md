@@ -17,7 +17,7 @@ The example below demonstrates how to use the `olp::client::OlpClient` class fro
     - Use a base URL:
         1. Get the base URL from the lookup API service.
 
-            For instructions, see the [API Lookup API Developer's Guide](https://www.here.com/docs/bundle/api-lookup-api-developer-guide/page/README.html)
+            For instructions, see the [API Lookup API Developer's Guide](https://docs.here.com/data-api/docs/readme-api-lookup-developer-guide)
         
         2. Create an `OlpClient` instance with the client settings from step 1 and the base URL.
 
