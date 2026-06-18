@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2025 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@
 #include "olp/core/logging/Log.h"
 
 #import "OLPHttpClient+Internal.h"
-#import "OLPHttpTask.h"
+#import "OLPHttpTask+Internal.h"
 #import "OLPNetworkConstants.h"
 
 namespace olp {
@@ -335,12 +335,19 @@ olp::http::SendOutcome OLPNetworkIOS::Send(
                              : response_data.status;
           error_str = HttpErrorToString(status);
         }
-        callback(olp::http::NetworkResponse()
-                     .WithRequestId(strong_task.requestId)
-                     .WithStatus(status)
-                     .WithError(error_str)
-                     .WithBytesDownloaded(bytesDownloaded)
-                     .WithBytesUploaded(bytesUploaded));
+        auto response = olp::http::NetworkResponse()
+                            .WithRequestId(strong_task.requestId)
+                            .WithStatus(status)
+                            .WithError(error_str)
+                            .WithBytesDownloaded(bytesDownloaded)
+                            .WithBytesUploaded(bytesUploaded);
+
+        olp::http::Diagnostics diagnostics;
+        if ([strong_task getDiagnostics:diagnostics]) {
+          response.WithDiagnostics(std::move(diagnostics));
+        }
+
+        callback(std::move(response));
       }
     };
 

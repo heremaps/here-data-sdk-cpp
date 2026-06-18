@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2025 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -438,6 +438,31 @@ class EnterBackgroundSubscriberImpl
           "didReceiveData failed - task can't be found or cancelled, "
           "task_id=%u",
           (unsigned int)dataTask.taskIdentifier);
+    }
+  }
+}
+
+- (void)URLSession:(NSURLSession*)session
+                          task:(NSURLSessionTask*)task
+    didFinishCollectingMetrics:(NSURLSessionTaskMetrics*)metrics {
+  if (!self.sharedUrlSession) {
+    OLP_SDK_LOG_WARNING_F(
+        kLogTag,
+        "didFinishCollectingMetrics failed - invalid session, task_id=%u",
+        (unsigned int)task.taskIdentifier);
+    return;
+  }
+
+  OLP_SDK_LOG_TRACE_F(
+      kLogTag,
+      "didFinishCollectingMetrics, session=%p, task_id=%u, dataTask=%p",
+      (__bridge void*)session, (unsigned int)task.taskIdentifier,
+      (__bridge void*)task);
+
+  @autoreleasepool {
+    OLPHttpTask* httpTask = [self taskWithTaskDescription:task.taskDescription];
+    if ([httpTask isValid]) {
+      [httpTask didCollectMetrics:metrics];
     }
   }
 }
