@@ -8,7 +8,7 @@ The Data SDK for C++ package contains three independent modules that focus on di
 - `olp-cpp-sdk-dataservice-read` – downloads and caches data from the platform.
 - `olp-cpp-sdk-dataservice-write` – queues and uploads data to the platform layers.
 
-For more information about the modules, see the [architectural overview](https://github.com/heremaps/here-olp-sdk-cpp/blob/master/docs/OverallArchitecture.md).
+For more information about the modules, see the [architectural overview](https://github.com/heremaps/here-data-sdk-cpp/blob/master/docs/OverallArchitecture.md).
 
 HERE is committed to respecting your privacy and to complying with applicable data protection and privacy laws. For more information, see the [HERE Privacy Charter](https://www.here.com/en-gb/here-privacy-charter).
 
@@ -37,4 +37,4 @@ For more information on Data API, see its [Developer Guide](https://docs.here.co
 
 When new API is introduced in the Data SDK for C++, the old one is not deleted straight away. The standard API deprecation time is six months. It gives you time to switch to new code. However, we do not provide ABI backward compatibility. 
 
-All of the deprecated methods, functions, and parameters are documented in the Data SDK for C++ [API Reference](https://heremaps.github.io/here-data-sdk-cpp/index.html) and [changelog](https://github.com/heremaps/here-olp-sdk-cpp/blob/master/CHANGELOG.md).
+All of the deprecated methods, functions, and parameters are documented in the Data SDK for C++ [API Reference](https://heremaps.github.io/here-data-sdk-cpp/index.html) and [changelog](https://github.com/heremaps/here-data-sdk-cpp/blob/master/CHANGELOG.md).

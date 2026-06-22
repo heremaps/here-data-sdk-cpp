@@ -39,7 +39,7 @@ You can also remove tile keys from protection.
     - If you want to remove tile keys from protection, make sure that the `Protect` method is not in progress, and then call the `Release` method with the list of tile keys that you want to remove from protection.
 
         ```cpp
-        layer_client.Protect(<vector of tile keys>);
+        layer_client.Release(<vector of tile keys>);
         ```
 
         Data and keys of the specified tiles are removed from the protected list. The keys are added to the LRU cache. Now, they can be evicted. Expiration value is restored, and keys can expire. The quadtree can be removed from the protected list if all tile keys are no longer protected.

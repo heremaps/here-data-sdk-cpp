@@ -13,7 +13,7 @@ Partition metadata consists of the following information about the partition:
 
 1. Create the `OlpClientSettings` object.
 
-   For instructions, see [Create platform client settings](../docs/create-platform-client-settings.md).
+   For instructions, see [Create platform client settings](../../create-platform-client-settings.md).
 
 2. Depending on the layer type, create a versioned or volatile layer client with the HERE Resource Name (HRN), layer ID, layer version, and platform client settings from step 1.
 
@@ -43,7 +43,7 @@ Partition metadata consists of the following information about the partition:
                olp::dataservice::read::FetchOptions::OnlineIfNotFound);
    ```
 
-4. Call `GetPartitions` method with the `PartitionRequest` parameter.
+4. Call `GetPartitions` method with the `PartitionsRequest` parameter.
 
    ```cpp
    auto future = layer_client.GetPartitions(request);

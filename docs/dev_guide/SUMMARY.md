@@ -13,7 +13,7 @@
     - [Get data from a versioned layer](../dataservice-read-catalog-example.md#get-data-from-a-versioned-layer)
     - [Get data from a versioned layer with a cache](../dataservice-cache-example.md#get-data-from-a-versioned-layer-with-a-cache)
     - [Get data from a volatile layer](topics/get-data-from-volatile-layer.md)
-    - [Get data from a stream layer](../dataservice-read-from-stream-layer-example.md#get-data-from-a-stream-layer)
+    - [Get data from a stream layer](topics/get-data-from-stream-layer.md)
   - [Publish data](topics/publish-data.md)
     - [Publish data to a versioned layer](topics/publish-data-to-versioned-layer.md)
     - [Publish data to a volatile layer](topics/publish-data-to-volatile-layer.md)

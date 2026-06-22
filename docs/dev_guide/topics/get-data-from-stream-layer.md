@@ -12,8 +12,7 @@ You can read messages from a [stream layer](https://docs.here.com/data-api/docs/
 
    ```cpp
    olp::dataservice::read::StreamLayerClient client(
-        client::HRN catalog, std::string layer_id,
-        client::OlpClientSettings settings);
+       olp::client::HRN(kCatalogHRN), layer_id, client_settings);
    ```
 
 3. Create the `SubscribeRequest` object with the `serial` or `parallel` subscription type.
@@ -24,14 +23,15 @@ You can read messages from a [stream layer](https://docs.here.com/data-api/docs/
 
    ```cpp
    auto request = olp::dataservice::read::SubscribeRequest()
-                     .WithSubscriptionMode(olp::dataservice::read::SubscribeRequest::SubscriptionMode::kSerial));
+                     .WithSubscriptionMode(olp::dataservice::read::SubscribeRequest::SubscriptionMode::kSerial);
    ```
 
 4. Call the `Subscribe` method with the `SubscribeRequest` parameter.
 
    ```cpp
-   client::CancellableFuture<SubscribeResponse> Subscribe(
-      SubscribeRequest request);
+   auto future = client.Subscribe(request);
+   auto subscribe_response = future.GetFuture().get();
+   auto subscription_id = subscribe_response.GetResult();
    ```
 
    You receive a subscription ID from the requested subscription to the selected layer.
@@ -39,7 +39,9 @@ You can read messages from a [stream layer](https://docs.here.com/data-api/docs/
 5. Call the `Poll` method.
 
    ```cpp
-   client::CancellableFuture<PollResponse> Poll();
+   auto poll_future = client.Poll();
+   auto poll_response = poll_future.GetFuture().get();
+   auto messages = poll_response.GetResult().GetMessages();
    ```
 
    You get messages with the layer data and partition metadata. The `Poll` method also commits the offsets, so you can continue polling new messages.
@@ -49,8 +51,8 @@ You can read messages from a [stream layer](https://docs.here.com/data-api/docs/
 6. If the data size is greater than 1 MB, call the `GetData` method with the `Messages` instance.
 
    ```cpp
-    client::CancellableFuture<DataResponse> GetData(
-        const model::Message& message);
+    auto data_future = client.GetData(message);
+    auto data_response = data_future.GetFuture().get();
    ```
 
 You get data from the requested partition.

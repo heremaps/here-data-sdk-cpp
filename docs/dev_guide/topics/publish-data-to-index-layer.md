@@ -35,7 +35,7 @@ You can index and store metadata and data in a way that is optimized for batch p
                                         .WithLayerId(layer_id);
    ```
 
-5. Call the `PublishIndex` method with the `DataRequest` parameter.
+5. Call the `PublishIndex` method with the `PublishIndexRequest` parameter.
 
    ```cpp
    auto future = client.PublishIndex(index_request);

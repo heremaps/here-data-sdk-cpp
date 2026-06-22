@@ -21,7 +21,7 @@ If you need to store only the current version of data, use a [volatile layer](ht
    auto request = PublishPartitionDataRequest().WithData(buffer).WithLayerId(kLayer).WithPartitionId(kPartition);
    ```
 
-4. Call the `PublishPartitionData` method with the `DataRequest` parameter.
+4. Call the `PublishPartitionData` method with the `PublishPartitionDataRequest` parameter.
 
    ```cpp
    auto futureResponse = client.PublishPartitionData(request);
@@ -33,10 +33,10 @@ If you need to store only the current version of data, use a [volatile layer](ht
    auto response = futureResponse.GetFuture().get();
    ```
 
-The `PublishDataResponse` object holds details of the completed operation and is used to determine operation success and access resultant data:
+The `PublishPartitionDataResponse` object holds details of the completed operation and is used to determine operation success and access resultant data:
 
 - `IsSuccessful()` &ndash; if the operation is successful, returns `true`. Otherwise, returns `false`.
-- `GetResult()`&ndash; if the operation is successful, returns the following resultant data: `olp::dataservice::write::PublishDataResult`
+- `GetResult()` &ndash; if the operation is successful, returns the following resultant data: `olp::dataservice::write::PublishDataResult`
 - `GetError()` &ndash; contains error information as a result of an error in the `olp::client::ApiError` object.
 
 ```cpp
