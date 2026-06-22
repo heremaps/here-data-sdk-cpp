@@ -6,7 +6,7 @@ On this page, find instructions on how to build and run the write example projec
 
 1. On the [Apps & keys](https://platform.here.com/admin/apps) page, copy your application access key ID and access key secret.
 
-   For instructions on how to get the access key ID and access key secret, see [Register your application](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/plat-token.html#step-1-register-your-application-and-get-credentials) section in the Identity & Access Management Developer Guide.
+   For instructions on how to get the access key ID and access key secret, see [Register your application](https://docs.here.com/identity-and-access-management/docs/plat-using-oidc#step-2---register-your-app-and-get-credentials)  section in the Identity & Access Management Developer Guide.
 
 2. In <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/examples/main.cpp" target="_blank">examples/main.cpp</a>, replace the placeholders with your access key ID, access key secret, Here Resource Name (HRN) of the catalog, and name of the layer to which you want to publish data.
 
@@ -64,7 +64,7 @@ To integrate the Data SDK libraries in the Android example project:
 2. In <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/examples/android/app/src/main/cpp/MainActivityNative.cpp.in" target="_blank">`examples/android/app/src/main/cpp/MainActivityNative.cpp.in`</a>, replace the placeholders with your application access key ID, access key secret, catalog HRN, and layer name and specify that the example should run `RunExampleWrite`.
 
 > #### Note
-> To learn how to get the access key ID and access key secret, see the [Register your application](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/plat-token.html#step-1-register-your-application-and-get-credentials) section in the Identity & Access Management Developer Guide.
+> To learn how to get the access key ID and access key secret, see the [Register your application](https://docs.here.com/identity-and-access-management/docs/plat-using-oidc#step-2---register-your-app-and-get-credentials)  section in the Identity & Access Management Developer Guide.
 
 
 ### Build the Data SDK on Android
@@ -114,7 +114,7 @@ To integrate the Data SDK libraries in the iOS example application written in th
 3. In <a href="https://github.com/heremaps/here-data-sdk-cpp/blob/master/examples/ios/ViewController.mm" target="_blank">`examples/ios/ViewController.mm`</a>, replace the placeholders with your application access key ID, access key secret, catalog HRN, and layer name and specify that the example should run `RunExampleWrite`.
 
 > #### Note
-> To learn how to get the access key ID and access key secret, see the [Register your application](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/plat-token.html#step-1-register-your-application-and-get-credentials) section in the Identity & Access Management Developer Guide.
+> To learn how to get the access key ID and access key secret, see the [Register your application](https://docs.here.com/identity-and-access-management/docs/plat-using-oidc#step-2---register-your-app-and-get-credentials)  section in the Identity & Access Management Developer Guide.
 > 
 ```bash
 mkdir build && cd build
@@ -159,7 +159,7 @@ If you encounter an error message, for a detailed error description, check the d
 
 ### Publish data to a stream layer
 
-You can create a queue that streams data to data consumers in real time using a [stream layer](https://www.here.com/docs/bundle/data-api-developer-guide/page/rest/layers.html#stream-layers).
+You can create a queue that streams data to data consumers in real time using a [stream layer](https://docs.here.com/data-api/docs/creating-stream-layer).
 
 **To publish data to the stream layer:**
 

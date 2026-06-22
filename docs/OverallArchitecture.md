@@ -2,7 +2,7 @@
 
 ## Outline
 
-This document describes the overall architecture of HERE Data SDK for C++ (here also referred to as SDK). For an overview of the scope and the features of the SDK, see [README.md](../README.md#why-use).
+This document describes the overall architecture of HERE Data SDK for C++ (here also referred to as SDK). For an overview of the scope and the features of the SDK, see [README.md](../README.md#use-the-sdk).
 
 ## Component overview
 
@@ -56,7 +56,7 @@ The dataservice-read module wraps a subset of the Data REST API related to readi
   * [Config API](https://www.here.com/docs/bundle/data-api-config-v1-api-reference/page/index.html)
   * [Metadata API](https://www.here.com/docs/bundle/data-api-metadata-v1-api-reference/page/index.html)
   * [Query API](https://www.here.com/docs/bundle/data-api-query-v1-api-reference/page/index.html)
-  * [Volatile API](https://www.here.com/docs/bundle/data-api-volatile-blob-v1-api-reference/page/index.html)
+  * [Volatile API](https://docs.here.com/data-api/reference/getvolatileblob)
 * Index layer (not supported yet). Used Data APIs:
   * [Index API](https://www.here.com/docs/bundle/data-api-index-v1-api-reference/page/index.html)
   * [Blob API](https://www.here.com/docs/bundle/data-api-blob-v1-api-reference/page/index.html)
