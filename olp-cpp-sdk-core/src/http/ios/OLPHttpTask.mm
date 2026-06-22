@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,106 @@
 
 #import "OLPHttpTask+Internal.h"
 
+#include <limits>
+
 #include <olp/core/http/HttpStatusCode.h>
 #include <olp/core/logging/Log.h>
+#include <olp/core/porting/optional.h>
 
 #import "OLPHttpClient+Internal.h"
 #import "OLPNetworkConstants.h"
 
 namespace {
 constexpr auto kLogTag = "OLPHttpTask";
+
+constexpr uint64_t kMicrosecondsInSecond = 1000000u;
+
+uint64_t DurationInMicroseconds(NSDate* start, NSDate* end) {
+  if (!start || !end) {
+    return 0u;
+  }
+
+  const NSTimeInterval time_interval = [end timeIntervalSinceDate:start];
+  if (time_interval <= 0.0) {
+    return 0u;
+  }
+
+  return static_cast<uint64_t>(time_interval * kMicrosecondsInSecond);
+}
+
+void AddTiming(olp::http::Diagnostics& diagnostics,
+               olp::http::Diagnostics::Timings timing,
+               const uint64_t time_in_microseconds) {
+  if (time_in_microseconds == 0u) {
+    return;
+  }
+
+  const auto previous_duration =
+      static_cast<uint64_t>(diagnostics.timings[timing].count());
+  const auto updated_duration = previous_duration + time_in_microseconds;
+  const auto clamped_duration =
+      std::min(updated_duration,
+               static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()));
+
+  diagnostics.timings[timing] = olp::http::Diagnostics::MicroSeconds(
+      static_cast<uint32_t>(clamped_duration));
+  diagnostics.available_timings.set(timing);
+}
+
+olp::http::Diagnostics BuildDiagnostics(NSURLSessionTaskMetrics* metrics) {
+  olp::http::Diagnostics diagnostics;
+  if (!metrics) {
+    return diagnostics;
+  }
+
+  NSDate* previous_response_end = metrics.taskInterval.startDate;
+  for (NSURLSessionTaskTransactionMetrics* transaction in metrics
+           .transactionMetrics) {
+    AddTiming(diagnostics, olp::http::Diagnostics::Queue,
+              DurationInMicroseconds(previous_response_end,
+                                     transaction.fetchStartDate));
+
+    AddTiming(diagnostics, olp::http::Diagnostics::NameLookup,
+              DurationInMicroseconds(transaction.domainLookupStartDate,
+                                     transaction.domainLookupEndDate));
+
+    const auto connect_duration = DurationInMicroseconds(
+        transaction.connectStartDate, transaction.connectEndDate);
+    const auto tls_duration =
+        DurationInMicroseconds(transaction.secureConnectionStartDate,
+                               transaction.secureConnectionEndDate);
+    if (connect_duration >= tls_duration) {
+      AddTiming(diagnostics, olp::http::Diagnostics::Connect,
+                connect_duration - tls_duration);
+    } else {
+      AddTiming(diagnostics, olp::http::Diagnostics::Connect, connect_duration);
+    }
+
+    AddTiming(diagnostics, olp::http::Diagnostics::SSL_Handshake, tls_duration);
+
+    AddTiming(diagnostics, olp::http::Diagnostics::Send,
+              DurationInMicroseconds(transaction.requestStartDate,
+                                     transaction.requestEndDate));
+
+    AddTiming(diagnostics, olp::http::Diagnostics::Wait,
+              DurationInMicroseconds(transaction.requestEndDate,
+                                     transaction.responseStartDate));
+
+    AddTiming(diagnostics, olp::http::Diagnostics::Receive,
+              DurationInMicroseconds(transaction.responseStartDate,
+                                     transaction.responseEndDate));
+
+    if (transaction.responseEndDate) {
+      previous_response_end = transaction.responseEndDate;
+    }
+  }
+
+  AddTiming(diagnostics, olp::http::Diagnostics::Total,
+            DurationInMicroseconds(metrics.taskInterval.startDate,
+                                   metrics.taskInterval.endDate));
+
+  return diagnostics;
+}
 }  // namespace
 
 #pragma mark - OLPHttpTaskResponseData
@@ -59,6 +151,7 @@ constexpr auto kLogTag = "OLPHttpTask";
   uint64_t _headersSizeReceived;
   uint64_t _headersSizeSent;
   uint64_t _contentLength;
+  olp::porting::optional<olp::http::Diagnostics> _diagnostics;
 }
 
 - (instancetype)initWithHttpClient:(OLPHttpClient*)client
@@ -73,6 +166,7 @@ constexpr auto kLogTag = "OLPHttpTask";
     _headersSizeReceived = 0;
     _headersSizeSent = 0;
     _contentLength = 0;
+    _diagnostics = {};
     _backgroundMode = false;
   }
   return self;
@@ -104,6 +198,8 @@ constexpr auto kLogTag = "OLPHttpTask";
     [_dataTask cancel];
     _dataTask = nil;
   }
+
+  _diagnostics = {};
 
   NSMutableURLRequest* request =
       [NSMutableURLRequest requestWithURL:[NSURL URLWithString:self.url]];
@@ -261,6 +357,27 @@ constexpr auto kLogTag = "OLPHttpTask";
 
   if (dataHandler) {
     dataHandler(data, wholeData);
+  }
+}
+
+- (void)didCollectMetrics:(NSURLSessionTaskMetrics*)metrics {
+  const auto diagnostics = BuildDiagnostics(metrics);
+  if (!diagnostics.available_timings.any()) {
+    return;
+  }
+
+  @synchronized(self) {
+    _diagnostics = diagnostics;
+  }
+}
+
+- (BOOL)getDiagnostics:(olp::http::Diagnostics&)diagnostics {
+  @synchronized(self) {
+    if (!_diagnostics) {
+      return NO;
+    }
+    diagnostics = *_diagnostics;
+    return YES;
   }
 }
 

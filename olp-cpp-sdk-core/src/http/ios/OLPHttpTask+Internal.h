@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@
 
 #import <Foundation/Foundation.h>
 
+#include <olp/core/http/NetworkResponse.h>
+
 /**
  @brief Internal category, which extends OLPHttpTask with internal methods,
  which shouldn't be exposed as public API.
@@ -32,6 +34,10 @@
 - (void)didReceiveResponse:(NSURLResponse*)response;
 
 - (void)didReceiveData:(NSData*)data withWholeData:(bool)wholeData;
+
+- (void)didCollectMetrics:(NSURLSessionTaskMetrics*)metrics;
+
+- (BOOL)getDiagnostics:(olp::http::Diagnostics&)diagnostics;
 
 - (void)didCompleteWithError:(NSError*)error;
 
