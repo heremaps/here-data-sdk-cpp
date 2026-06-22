@@ -34,7 +34,7 @@ Catalog metadata contains a list of configurations that describe the catalog and
    request.WithBillingTag("MyBillingTag");
    ```
 
-5. Call the `GetRequest` method with the `CatalogRequest` parameter.
+5. Call the `GetCatalog` method with the `CatalogRequest` parameter.
 
    ```cpp
    auto future = catalog_client.GetCatalog(request);
@@ -44,7 +44,7 @@ Catalog metadata contains a list of configurations that describe the catalog and
 
    ```cpp
    olp::dataservice::read::CatalogResponse catalog_response = future.GetFuture().get();
-   ````
+   ```
 
 The `CatalogResponse` object holds details of the completed operation and is used to determine operation success and access resultant data:
 

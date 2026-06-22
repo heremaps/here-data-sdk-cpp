@@ -61,7 +61,7 @@ If you need to store and access the history of previous data updates, publish da
 
    ```cpp
    auto complete_batch_response =
-       versioned_client->CompleteBatch(get_batch_response.GetResult())
+       versioned_client.CompleteBatch(get_batch_response.GetResult())
            .GetFuture()
            .get();
    ```
@@ -73,11 +73,11 @@ The `PublishDataResponse` object holds details of the completed operation and is
 - `GetError()` &ndash; contains error information as a result of an error in the `olp::client::ApiError` object.
 
 ```cpp
-if (response.IsSuccessful()) {
-    auto response_result = response.GetResult();
+if (complete_batch_response.IsSuccessful()) {
+    auto response_result = complete_batch_response.GetResult();
     // Handle success
 } else {
-    auto api_error = response.GetError();
+    auto api_error = complete_batch_response.GetError();
     // Handle fail
 }
 ```

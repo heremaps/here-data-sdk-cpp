@@ -12,7 +12,7 @@ You can only get the latest published data from a [volatile layer](https://docs.
 
    ```cpp
    olp::dataservice::read::VolatileLayerClient layer_client(
-   olp::client::HRN(kCatalogHRN), layer_id, client_settings);
+       olp::client::HRN(kCatalogHRN), layer_id, client_settings);
    ```
 
 3. Create the `DataRequest` object with the partition ID and one of the following fetch options:
@@ -29,7 +29,7 @@ You can only get the latest published data from a [volatile layer](https://docs.
                       .WithFetchOption(FetchOptions::OnlineIfNotFound);
    ```
 
-4. Call the `GetRequest` method with the `DataRequest` parameter.
+4. Call the `GetData` method with the `DataRequest` parameter.
 
    ```cpp
    auto future = layer_client.GetData(request);
@@ -39,7 +39,7 @@ You can only get the latest published data from a [volatile layer](https://docs.
 
    ```cpp
    olp::dataservice::read::DataResponse data_response =
-   future.GetFuture().get();
+       future.GetFuture().get();
    ```
 
 The `DataResponse` object holds details of the completed operation and is used to determine operation success and access resultant data:
