@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2023 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,12 @@ std::mutex& NamedMutexStorage::Impl::GetLockMutex(const std::string& resource) {
 
 void NamedMutexStorage::Impl::SetError(const std::string& resource,
                                        const client::ApiError& error) {
+  // Ignore cancellation since this is not an error and parallel requests should
+  // not be canceled because of it.
+  if (error.GetErrorCode() == client::ErrorCode::Cancelled) {
+    return;
+  }
+
   std::lock_guard<std::mutex> lock(mutex_);
   auto mutex_it = mutexes_.find(resource);
   if (mutex_it != mutexes_.end()) {
