@@ -274,7 +274,7 @@ jobs:
 
   psv-ios-arm64-xcode-26-build:
     name: PSV.iOS.MacOS15.Xcode26.ARM64
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Check out repository
         uses: actions/checkout@v6

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -368,6 +368,79 @@ TEST_F(DataRepositoryTest, GetBlobDataSimultaniousFailedCalls) {
         olp::dataservice::read::FetchOptions::OnlineIfNotFound,
         olp::porting::none, context, false);
     EXPECT_FALSE(response.IsSuccessful());
+  });
+
+  finish_network_request_promise.set_value();
+  first_request_thread.join();
+  second_request_thread.join();
+}
+
+TEST_F(DataRepositoryTest, GetBlobDataSimultaniousCancelCalls) {
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillRepeatedly(
+          ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                 olp::http::HttpStatusCode::OK),
+                             kUrlResponseLookup));
+
+  std::promise<void> network_request_started_promise;
+  std::promise<void> finish_network_request_promise;
+
+  auto wait = [&]() {
+    network_request_started_promise.set_value();
+    finish_network_request_promise.get_future().wait();
+  };
+
+  testing::InSequence sequence;
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlBlobData269), _, _, _, _))
+      .WillOnce(testing::DoAll(
+          testing::InvokeWithoutArgs(wait),
+          ReturnHttpResponse(
+              olp::http::NetworkResponse().WithStatus(
+                  static_cast<int>(olp::http::ErrorCode::CANCELLED_ERROR)),
+              "Cancelled")));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlBlobData269), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   "someData"));
+
+  olp::client::CancellationContext context;
+  olp::dataservice::read::repository::NamedMutexStorage storage;
+
+  olp::dataservice::read::model::Partition partition;
+  partition.SetDataHandle(kUrlBlobDataHandle);
+
+  olp::client::HRN hrn(GetTestCatalog());
+  ApiLookupClient lookup_client(hrn, *settings_);
+  DataRepository repository(hrn, *settings_, lookup_client, storage);
+
+  // Start first request in a separate thread
+  std::thread first_request_thread([&]() {
+    auto response = repository.GetBlobData(
+        kLayerId, kService, partition,
+        olp::dataservice::read::FetchOptions::OnlineIfNotFound,
+        olp::porting::none, context, false);
+    EXPECT_FALSE(response.IsSuccessful());
+    ASSERT_EQ(response.GetError().GetErrorCode(),
+              olp::client::ErrorCode::Cancelled);
+  });
+
+  // Wait until network request processing started
+  network_request_started_promise.get_future().wait();
+
+  // Get a mutex from the storage. It guarantees that when the second thread
+  // acquires the mutex, the stored error will not be cleaned up in scope of
+  // ReleaseLock call from the first thread
+  olp::dataservice::read::repository::NamedMutex mutex(
+      storage, hrn.ToString() + kService + kUrlBlobDataHandle, context);
+
+  // Start second request in a separate thread
+  std::thread second_request_thread([&]() {
+    auto response = repository.GetBlobData(
+        kLayerId, kService, partition,
+        olp::dataservice::read::FetchOptions::OnlineIfNotFound,
+        olp::porting::none, context, false);
+    EXPECT_TRUE(response.IsSuccessful());
   });
 
   finish_network_request_promise.set_value();
