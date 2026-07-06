@@ -45,6 +45,56 @@ class CORE_API OlpClient {
   using RequestBodyType = std::shared_ptr<std::vector<std::uint8_t>>;
 
   OlpClient();
+  /**
+   * @brief Abstract delegate interface for the `OlpClient` implementation.
+   *
+   * Implement this interface to inject a custom (e.g. test/mock)
+   * implementation into `OlpClient` via the
+   * `OlpClient(std::shared_ptr<Delegate>)` constructor.  The production
+   * implementation is created automatically by the other constructors.
+   */
+  class CORE_API Delegate {
+   public:
+    virtual ~Delegate() = default;
+
+    /// @copydoc OlpClient::SetBaseUrl
+    virtual void SetBaseUrl(const std::string& base_url) = 0;
+    /// @copydoc OlpClient::GetBaseUrl
+    virtual std::string GetBaseUrl() const = 0;
+    /// @copydoc OlpClient::GetMutableDefaultHeaders
+    virtual ParametersType& GetMutableDefaultHeaders() = 0;
+    /// @copydoc OlpClient::GetSettings
+    virtual const OlpClientSettings& GetSettings() const = 0;
+
+    /// @copydoc OlpClient::CallApi(const std::string&, const std::string&,
+    ///          const ParametersType&, const ParametersType&,
+    ///          const ParametersType&, const RequestBodyType&,
+    ///          const std::string&, const NetworkAsyncCallback&)
+    virtual CancellationToken CallApi(
+        const std::string& path, const std::string& method,
+        const ParametersType& query_params, const ParametersType& header_params,
+        const ParametersType& form_params, const RequestBodyType& post_body,
+        const std::string& content_type,
+        const NetworkAsyncCallback& callback) const = 0;
+
+    /// @copydoc OlpClient::CallApi(std::string, std::string, ParametersType,
+    ///          ParametersType, ParametersType, RequestBodyType, std::string,
+    ///          CancellationContext)
+    virtual HttpResponse CallApi(std::string path, std::string method,
+                                 ParametersType query_params,
+                                 ParametersType header_params,
+                                 ParametersType form_params,
+                                 RequestBodyType post_body,
+                                 std::string content_type,
+                                 CancellationContext context) const = 0;
+
+    /// @copydoc OlpClient::CallApiStream
+    virtual HttpResponse CallApiStream(
+        std::string path, std::string method, ParametersType query_params,
+        ParametersType header_params, http::Network::DataCallback data_callback,
+        RequestBodyType post_body, std::string content_type,
+        CancellationContext context) const = 0;
+  };
 
   /**
    * @brief Creates the `OlpClient` instance.
@@ -53,7 +103,19 @@ class CORE_API OlpClient {
    * @param base_url The base URL to be used for all outgoing requests.
    */
   OlpClient(const OlpClientSettings& settings, std::string base_url);
-  virtual ~OlpClient();
+
+  /**
+   * @brief Creates the `OlpClient` instance with a custom delegate.
+   *
+   * Use this constructor to inject a test or mock implementation.
+   * The supplied @p delegate must not be null.
+   *
+   * @param delegate A non-null shared pointer to a custom `Delegate`
+   *                 implementation.
+   */
+  explicit OlpClient(std::shared_ptr<Delegate> delegate);
+
+  ~OlpClient();
 
   /// A copy constructor.
   OlpClient(const OlpClient&);
@@ -180,8 +242,7 @@ class CORE_API OlpClient {
                              CancellationContext context) const;
 
  private:
-  class OlpClientImpl;
-  std::shared_ptr<OlpClientImpl> impl_;
+  std::shared_ptr<Delegate> impl_;
 };
 
 }  // namespace client
