@@ -18,6 +18,7 @@
 # Common functions that resolve Android related variables and
 # resolve Android toolchain configuration variables.
 
+
 function(get_android_sdk_root VAR)
   # If not already set, sets the given VAR output variable to point to the Android SDK's root.
   # Sends a FATAL_ERROR if VAR is not set and cannot be be resolved.
