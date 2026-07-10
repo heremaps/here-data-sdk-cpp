@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,10 @@ CancellationToken::CancellationToken(CancelFuncType func)
     : func_(std::move(func)) {}
 
 void CancellationToken::Cancel() const {
-  if (func_) {
-    func_();
+  CancelFuncType func;
+  std::swap(func_, func);
+  if (func) {
+    func();
   }
 }
 
