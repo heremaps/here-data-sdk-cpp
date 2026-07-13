@@ -72,7 +72,9 @@ class EnterBackgroundSubscriberImpl
 
 @property(nonatomic, readonly) NSURLSession* sharedUrlSession;
 
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
 @property(nonatomic, readonly) NSURLSession* sharedUrlBackgroundSession;
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
 
 @property(nonatomic, readonly) NSMutableDictionary* idTaskMap;
 
@@ -95,10 +97,14 @@ class EnterBackgroundSubscriberImpl
     _sharedUrlSession =
         [self urlSessionWithProxy:nil andHeaders:nil andBackgroundId:nil];
 
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+    OLP_SDK_LOG_DEBUG(kLogTag, "Constructing shared background URL session");
+
     _sharedUrlBackgroundSession =
         [self urlSessionWithProxy:nil
                        andHeaders:nil
                   andBackgroundId:[self generateNextSessionId]];
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
 
     _tasks = [[NSMutableDictionary alloc] init];
     _idTaskMap = [[NSMutableDictionary alloc] init];
@@ -182,17 +188,23 @@ class EnterBackgroundSubscriberImpl
 }
 
 - (NSURLSession*)pickSession:(NSDictionary*)proxyDict {
-  NSURLSession* session = _sharedUrlSession;
-
+#ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
   if (self.inBackground) {
-    session = _sharedUrlBackgroundSession;
-  }
+    NSURLSession* session = _sharedUrlBackgroundSession;
 
+    if (proxyDict) {
+      session = [self urlSessionWithProxy:proxyDict
+                               andHeaders:nil
+                          andBackgroundId:[self generateNextSessionId]];
+    }
+    return session;
+  }
+#endif  // OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
+
+  NSURLSession* session = _sharedUrlSession;
   if (proxyDict) {
-    NSString* newSessionId = [self generateNextSessionId];
-    session = [self urlSessionWithProxy:proxyDict
-                             andHeaders:nil
-                        andBackgroundId:newSessionId];
+    session =
+        [self urlSessionWithProxy:proxyDict andHeaders:nil andBackgroundId:nil];
   }
 
   return session;
