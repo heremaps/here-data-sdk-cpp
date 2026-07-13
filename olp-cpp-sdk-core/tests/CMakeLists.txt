@@ -71,6 +71,9 @@ set(OLP_CPP_SDK_CORE_TESTS_SOURCES
     ./thread/ThreadPoolTaskSchedulerTest.cpp
 
     ./http/NetworkSettingsTest.cpp
+    ./http/LoopbackHttpServer.cpp
+    ./http/LoopbackHttpServer.h
+    ./http/NetworkTest.cpp
     ./http/NetworkUtils.cpp
 
     ./utils/JsonTest.cpp
@@ -130,5 +133,9 @@ else()
     PRIVATE
         ../src/cache
     )
+
+    if (WIN32)
+        target_link_libraries(olp-cpp-sdk-core-tests PRIVATE ws2_32)
+    endif()
 
 endif()

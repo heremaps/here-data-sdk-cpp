@@ -69,8 +69,7 @@ namespace http {
 /**
  * @brief The implementation of Network based on cURL.
  */
-class NetworkCurl : public Network,
-                    public std::enable_shared_from_this<NetworkCurl> {
+class NetworkCurl : public Network {
  public:
   /**
    * @brief NetworkCurl constructor.
@@ -116,6 +115,15 @@ class NetworkCurl : public Network,
 
  private:
   /**
+   * @brief @copydoc NetworkCurl::Impl::state_
+   */
+  enum class WorkerState {
+    STOPPED,   ///< The worker thread is not started.
+    STARTED,   ///< The worker thread is running.
+    STOPPING,  ///< The worker thread will be stopped soon.
+  };
+
+  /**
    * @brief Context of each network request.
    */
   struct RequestHandle {
@@ -129,7 +137,6 @@ class NetworkCurl : public Network,
     std::uint64_t bytes_received{0};
 
     std::chrono::steady_clock::time_point send_time{};
-    std::weak_ptr<NetworkCurl> self{};
 
     std::shared_ptr<CURL> curl_handle;
     RequestId id{};
@@ -138,6 +145,9 @@ class NetworkCurl : public Network,
     bool is_cancelled{false};
     char error_text[CURL_ERROR_SIZE]{};
     std::shared_ptr<const logging::LogContext> log_context;
+    std::shared_ptr<FILE> log_file;
+    std::shared_ptr<const std::atomic<WorkerState>> network_state;
+    std::shared_ptr<const CertificateSettings> certificate_settings;
   };
 
   /**
@@ -222,84 +232,10 @@ class NetworkCurl : public Network,
   bool Initialized() const;
 
   /**
-   * @brief. Check whether NetworkCurl has resources to handle more requests.
-   * @return @c true if curl network has free network connections,
-   * @c false otherwise.
-   */
-  bool Ready();
-
-  /**
-   * @brief Return count of pending network requests.
-   * @return Number of pending network requests.
-   */
-  size_t AmountPending();
-
-  /**
-   * @brief Find a handle in handles_ by curl handle.
-   * @param[in] handle CURL handle.
-   * @return Pointer to the RequestHandle.
-   */
-  RequestHandle* FindRequestHandle(const CURL* handle);
-
-  /**
-   * @brief Allocate new handle RequestHandle.
-   * @note Must be protected by event_mutex_
-   *
-   * @return Pointer to the allocated RequestHandle.
-   */
-  RequestHandle* InitRequestHandleUnsafe();
-
-  /**
-   * @brief Reset the handle after network request is done.
-   * @param[in] handle Request handle.
-   * @param[in] cleanup_handle If true then handle is completelly release.
-   * Otherwise, a handle is reset, which preserves DNS cache, Session ID cache,
-   * cookies, and so on.
-   */
-  static void ReleaseHandleUnlocked(RequestHandle* handle, bool cleanup_handle);
-
-  /**
-   * @brief Routine that is called when the last bit of response is received.
-   *
-   * @param[in] curl_handle CURL handle associated with request.
-   * @param[in] result CURL return code.
-   */
-  void CompleteMessage(CURL* curl_handle, CURLcode result);
-
-  /**
-   * @brief CURL read callback.
-   */
-  static size_t RxFunction(void* ptr, size_t size, size_t nmemb,
-                           RequestHandle* handle);
-
-  /**
-   * @brief CURL header callback.
-   */
-  static size_t HeaderFunction(char* ptr, size_t size, size_t nmemb,
-                               RequestHandle* handle);
-
-  /**
-   * @brief The worker thread's main method.
-   */
-  void Run();
-
-  /**
-   * @brief Free resources after the thread terminates.
-   */
-  void Teardown();
-
-  /**
-   * @brief Notify worker thread on some event.
-   * @param[in] type Event type.
-   * @param[in] handle Related RequestHandle.
-   */
-  void AddEvent(EventInfo::Type type, RequestHandle* handle);
-
-  /**
    * @brief Checks whether the worker thread is started.
    * @return @c true if the thread is started, @c false otherwise.
    */
-  inline bool IsStarted() const;
+  bool IsStarted() const;
 
 #ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
   /**
@@ -334,17 +270,110 @@ class NetworkCurl : public Network,
                                     RequestHandle* handle);
 #endif
 
-  /// Contexts for every network request.
-  std::vector<RequestHandle> handles_;
+  struct Impl {
+    Impl(const NetworkInitializationSettings& settings);
+    ~Impl();
 
-  /// Number of CURL easy handles that are always opened.
-  const size_t static_handle_count_;
+    /**
+     * @brief Initialize internal data structures.
+     * @return @c true if initialized successfully, @c false otherwise.
+     */
+    bool Initialize();
 
-  /// Condition variable used to notify worker thread on event.
-  std::condition_variable event_condition_;
+    /**
+     * @brief Find a handle in handles_ by curl handle.
+     * @param[in] handle CURL handle.
+     * @return Pointer to the RequestHandle.
+     */
+    RequestHandle* FindRequestHandle(const CURL* handle);
 
-  /// Synchronization mutex used during event processing.
-  std::mutex event_mutex_;
+    /**
+     * @brief Allocate new handle RequestHandle.
+     * @note Must be protected by event_mutex_
+     *
+     * @return Pointer to the allocated RequestHandle.
+     */
+    RequestHandle* InitRequestHandleUnsafe();
+
+    /**
+     * @brief Reset the handle after network request is done.
+     * @param[in] handle Request handle.
+     * @param[in] cleanup_handle If true then handle is completelly release.
+     * Otherwise, a handle is reset, which preserves DNS cache, Session ID
+     * cache, cookies, and so on.
+     */
+    static void ReleaseHandleUnlocked(RequestHandle* handle,
+                                      bool cleanup_handle);
+
+    /**
+     * @brief Routine that is called when the last bit of response is received.
+     *
+     * @param[in] curl_handle CURL handle associated with request.
+     * @param[in] result CURL return code.
+     */
+    void CompleteMessage(CURL* curl_handle, CURLcode result);
+
+    /**
+     * @brief CURL read callback.
+     */
+    static size_t RxFunction(void* ptr, size_t size, size_t nmemb,
+                             RequestHandle* handle);
+
+    /**
+     * @brief CURL header callback.
+     */
+    static size_t HeaderFunction(char* ptr, size_t size, size_t nmemb,
+                                 RequestHandle* handle);
+
+    /**
+     * @brief The worker thread's main method.
+     */
+    void Run();
+
+    /**
+     * @brief Free resources after the thread terminates.
+     */
+    void Teardown();
+
+    /**
+     * @brief Notify worker thread on some event.
+     * @param[in] type Event type.
+     * @param[in] handle Related RequestHandle.
+     */
+    void AddEvent(EventInfo::Type type, RequestHandle* handle);
+
+    /**
+     * @brief Checks whether the worker thread is started.
+     * @return @c true if the thread is started, @c false otherwise.
+     */
+    bool IsStarted() const;
+
+    /// Contexts for every network request.
+    std::vector<RequestHandle> handles_;
+
+    /// Condition variable used to notify worker thread on event.
+    std::condition_variable event_condition_;
+
+    /// Synchronization mutex used during event processing.
+    std::mutex event_mutex_;
+
+    /// The state of the worker thread.
+    std::shared_ptr<std::atomic<WorkerState>> state_{
+        std::make_shared<std::atomic<WorkerState>>(WorkerState::STOPPED)};
+
+    /// Queue of events passed to worker thread.
+    std::deque<EventInfo> events_{};
+
+    /// CURL multi handle. Shared among all network requests.
+    CURLM* curl_{nullptr};
+
+#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
+    /// UNIX Pipe used to notify sleeping worker thread during select() call.
+    int pipe_[2]{};
+#endif
+  };
+
+  std::shared_ptr<Impl> impl_;
 
   /// Synchronization mutex prevents parallel initialization of network.
   std::mutex init_mutex_;
@@ -356,39 +385,15 @@ class NetworkCurl : public Network,
   RequestId request_id_counter_{
       static_cast<RequestId>(RequestIdConstants::RequestIdMin)};
 
-  /**
-   * @brief @copydoc NetworkCurl::state_
-   */
-  enum class WorkerState {
-    STOPPED,   ///< The worker thread is not started.
-    STARTED,   ///< The worker thread is running.
-    STOPPING,  ///< The worker thread will be stopped soon.
-  };
-
-  /// The state of the worker thread.
-  std::atomic<WorkerState> state_{WorkerState::STOPPED};
-
-  /// Queue of events passed to worker thread.
-  std::deque<EventInfo> events_{};
-
-  /// CURL multi handle. Shared among all network requests.
-  CURLM* curl_{nullptr};
-
-  /// Turn on and off verbose mode for CURL.
-  bool verbose_{false};
-
   /// Set custom stderr for CURL.
-  FILE* stderr_{nullptr};
-
-  /// UNIX Pipe used to notify sleeping worker thread during select() call.
-  int pipe_[2]{};
+  std::shared_ptr<FILE> stderr_;
 
   /// Stores value if `curl_global_init()` was successful on construction.
   bool curl_initialized_;
 
   /// Store original certificate setting in order to reference them in the SSL
   /// blobs so cURL does not need to copy them.
-  CertificateSettings certificate_settings_;
+  std::shared_ptr<const CertificateSettings> certificate_settings_;
 
   /// Maximum transfer rate in bytes per second applied per connection (0 =
   /// unlimited).
