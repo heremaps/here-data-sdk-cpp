@@ -488,13 +488,6 @@ NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
 NetworkCurl::Impl::Impl(const NetworkInitializationSettings& settings)
     : handles_(settings.max_requests_count) {}
 
-NetworkCurl::Impl::~Impl() {
-#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
-  close(pipe_[0]);
-  close(pipe_[1]);
-#endif
-}
-
 NetworkCurl::~NetworkCurl() {
   OLP_SDK_LOG_TRACE(kLogTag, "Destroyed NetworkCurl object, this=" << this);
   Deinitialize();
@@ -651,6 +644,11 @@ void NetworkCurl::Impl::Teardown() {
                       .WithError("Offline: network is deinitialized"));
     }
   }
+
+#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
+  close(pipe_[0]);
+  close(pipe_[1]);
+#endif
 }
 
 bool NetworkCurl::IsStarted() const { return impl_->IsStarted(); }

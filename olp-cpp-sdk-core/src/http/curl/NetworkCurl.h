@@ -272,7 +272,6 @@ class NetworkCurl : public Network {
 
   struct Impl {
     Impl(const NetworkInitializationSettings& settings);
-    ~Impl();
 
     /**
      * @brief Initialize internal data structures.
