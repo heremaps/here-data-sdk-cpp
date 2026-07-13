@@ -589,17 +589,21 @@ void NetworkCurl::Deinitialize() {
 
   OLP_SDK_LOG_TRACE(kLogTag, "Deinitialize NetworkCurl, this=" << this);
 
-  *impl_->state_ = WorkerState::STOPPING;
-
-  impl_->event_condition_.notify_all();
-#if defined(OLP_SDK_NETWORK_HAS_PIPE) || defined(OLP_SDK_NETWORK_HAS_PIPE2)
-  char tmp = 1;
-  if (write(impl_->pipe_[1], &tmp, 1) < 0) {
-    OLP_SDK_LOG_INFO(kLogTag, __PRETTY_FUNCTION__
-                                  << ". Failed to write pipe. Error " << errno);
+  {
+    std::lock_guard<std::mutex> lock(impl_->event_mutex_);
+    *impl_->state_ = WorkerState::STOPPING;
   }
-#endif
+
   if (thread_.get_id() != std::this_thread::get_id()) {
+    impl_->event_condition_.notify_all();
+#if defined(OLP_SDK_NETWORK_HAS_PIPE) || defined(OLP_SDK_NETWORK_HAS_PIPE2)
+    char tmp = 1;
+    if (write(impl_->pipe_[1], &tmp, 1) < 0) {
+      OLP_SDK_LOG_INFO(kLogTag, __PRETTY_FUNCTION__
+                                    << ". Failed to write pipe. Error "
+                                    << errno);
+    }
+#endif
     thread_.join();
   } else {
     // We are trying to stop the very thread we are in. This could happen if the
