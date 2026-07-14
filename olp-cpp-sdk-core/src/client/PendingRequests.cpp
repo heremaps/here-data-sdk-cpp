@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2021 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,24 @@ namespace {
 constexpr auto kLogTag = "PendingRequests";
 }
 
+PendingRequests::~PendingRequests() {
+#ifdef LOGGING_ENABLE_EXTENDED_INFO_LEVEL
+  OLP_SDK_LOG_INFO_F(kLogTag, "Destructor: pending task count=%zu, this=%p",
+                     GetTaskCount(), static_cast<void*>(this));
+#endif  // LOGGING_ENABLE_EXTENDED_INFO_LEVEL
+}
+
 bool PendingRequests::CancelAll() {
   ContextMap contexts;
   {
     std::lock_guard<std::mutex> lock(task_contexts_lock_);
     contexts = task_contexts_;
   }
+
+#ifdef LOGGING_ENABLE_EXTENDED_INFO_LEVEL
+  OLP_SDK_LOG_INFO_F(kLogTag, "CancelAll: pending task count=%zu, this=%p",
+                     contexts.size(), static_cast<void*>(this));
+#endif  // LOGGING_ENABLE_EXTENDED_INFO_LEVEL
 
   for (auto context : contexts) {
     context.CancelToken().Cancel();
@@ -52,23 +64,70 @@ bool PendingRequests::CancelAllAndWait() {
     contexts = std::move(task_contexts_);
   }
 
+#ifdef LOGGING_ENABLE_EXTENDED_INFO_LEVEL
+  OLP_SDK_LOG_INFO_F(
+      kLogTag, "CancelAllAndWait: started, pending task count=%zu, this=%p",
+      contexts.size(), static_cast<void*>(this));
+#endif  // LOGGING_ENABLE_EXTENDED_INFO_LEVEL
+
   for (auto context : contexts) {
     if (!context.BlockingCancel()) {
-      OLP_SDK_LOG_WARNING(kLogTag, "Timeout, when waiting on BlockingCancel");
+      OLP_SDK_LOG_WARNING_F(kLogTag,
+                            "Timeout, when waiting on BlockingCancel, this=%p",
+                            static_cast<void*>(this));
     }
   }
+
+#ifdef LOGGING_ENABLE_EXTENDED_INFO_LEVEL
+  OLP_SDK_LOG_INFO_F(kLogTag, "CancelAllAndWait: finished, this=%p",
+                     static_cast<void*>(this));
+#endif  // LOGGING_ENABLE_EXTENDED_INFO_LEVEL
 
   return true;
 }
 
 void PendingRequests::Insert(TaskContext task_context) {
-  std::lock_guard<std::mutex> lock(task_contexts_lock_);
-  task_contexts_.insert(task_context);
+#ifdef LOGGING_ENABLE_EXTENDED_INFO_LEVEL
+  size_t size = 0;
+#endif  // LOGGING_ENABLE_EXTENDED_INFO_LEVEL
+
+  {
+    std::lock_guard<std::mutex> lock(task_contexts_lock_);
+    task_contexts_.insert(task_context);
+
+#ifdef LOGGING_ENABLE_EXTENDED_INFO_LEVEL
+    size = task_contexts_.size();
+#endif  // LOGGING_ENABLE_EXTENDED_INFO_LEVEL
+  }
+
+#ifdef LOGGING_ENABLE_EXTENDED_INFO_LEVEL
+  OLP_SDK_LOG_INFO_F(
+      kLogTag,
+      "Insert: a new task context inserted. Pending task count=%zu, this=%p",
+      size, static_cast<void*>(this));
+#endif  // LOGGING_ENABLE_EXTENDED_INFO_LEVEL
 }
 
 void PendingRequests::Remove(TaskContext task_context) {
-  std::lock_guard<std::mutex> lock(task_contexts_lock_);
-  task_contexts_.erase(task_context);
+#ifdef LOGGING_ENABLE_EXTENDED_INFO_LEVEL
+  size_t size = 0;
+#endif  // LOGGING_ENABLE_EXTENDED_INFO_LEVEL
+
+  {
+    std::lock_guard<std::mutex> lock(task_contexts_lock_);
+    task_contexts_.erase(task_context);
+
+#ifdef LOGGING_ENABLE_EXTENDED_INFO_LEVEL
+    size = task_contexts_.size();
+#endif  // LOGGING_ENABLE_EXTENDED_INFO_LEVEL
+  }
+
+#ifdef LOGGING_ENABLE_EXTENDED_INFO_LEVEL
+  OLP_SDK_LOG_INFO_F(
+      kLogTag,
+      "Remove: a task context removed. Pending task count=%zu, this=%p", size,
+      static_cast<void*>(this));
+#endif  // LOGGING_ENABLE_EXTENDED_INFO_LEVEL
 }
 
 size_t PendingRequests::GetTaskCount() const {
