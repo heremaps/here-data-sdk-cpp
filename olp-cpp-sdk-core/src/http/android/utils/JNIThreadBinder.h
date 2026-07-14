@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 #ifdef __ANDROID__
 
 #include <jni.h>
+#include <sys/prctl.h>
 
 namespace olp {
 namespace http {
@@ -35,7 +36,9 @@ class JNIThreadBinder final {
       : attached_(false), jni_env_(nullptr), jni_vm_(vm) {
     if (jni_vm_->GetEnv(reinterpret_cast<void**>(&jni_env_), JNI_VERSION_1_6) !=
         JNI_OK) {
-      if (jni_vm_->AttachCurrentThread(&jni_env_, nullptr) == JNI_OK) {
+      captureThreadName();
+      auto attachArgs = getJvmAttachArgs();
+      if (jni_vm_->AttachCurrentThread(&jni_env_, &attachArgs) == JNI_OK) {
         attached_ = true;
       }
     }
@@ -56,9 +59,23 @@ class JNIThreadBinder final {
   JNIEnv* GetEnv() const { return jni_env_; }
 
  private:
+  void captureThreadName() {
+    if (prctl(PR_GET_NAME, threadName_) != 0) {
+      threadName_[0] = '\0';
+    }
+  }
+
+  JavaVMAttachArgs getJvmAttachArgs() const {
+    return JavaVMAttachArgs{.version = JNI_VERSION_1_6,
+                            .name = threadName_[0] ? threadName_ : nullptr,
+                            .group = nullptr};
+  }
+
   bool attached_;
   JNIEnv* jni_env_;
   JavaVM* jni_vm_;
+  constexpr static size_t kThreadNameMaxLength = 16;
+  char threadName_[kThreadNameMaxLength] = {0};
 };
 
 }  // namespace utils
