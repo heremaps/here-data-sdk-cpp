@@ -2179,3 +2179,122 @@ TEST_P(OlpClientTest, UrlWithoutProtocol) {
 }
 
 }  // namespace
+
+// ---- Delegate injection tests -----------------------------------------------
+
+namespace {
+
+/// A minimal mock of OlpClient::Delegate for testing the injection path.
+class MockDelegate : public olp::client::OlpClient::Delegate {
+ public:
+  using ParametersType = olp::client::OlpClient::ParametersType;
+  using RequestBodyType = olp::client::OlpClient::RequestBodyType;
+
+  void SetBaseUrl(const std::string& url) override { base_url_ = url; }
+  std::string GetBaseUrl() const override { return base_url_; }
+  ParametersType& GetMutableDefaultHeaders() override { return headers_; }
+  const olp::client::OlpClientSettings& GetSettings() const override {
+    return settings_;
+  }
+
+  MOCK_METHOD(olp::client::CancellationToken, CallApi,
+              (const std::string& path, const std::string& method,
+               const ParametersType& query_params,
+               const ParametersType& header_params,
+               const ParametersType& form_params, const RequestBodyType& body,
+               const std::string& content_type,
+               const olp::client::NetworkAsyncCallback& callback),
+              (const, override));
+
+  MOCK_METHOD(olp::client::HttpResponse, CallApi,
+              (std::string path, std::string method, ParametersType query,
+               ParametersType headers, ParametersType form,
+               RequestBodyType body, std::string content,
+               olp::client::CancellationContext ctx),
+              (const, override));
+
+  MOCK_METHOD(olp::client::HttpResponse, CallApiStream,
+              (std::string path, std::string method, ParametersType query,
+               ParametersType headers, olp::http::Network::DataCallback cb,
+               RequestBodyType body, std::string content,
+               olp::client::CancellationContext ctx),
+              (const, override));
+
+ private:
+  std::string base_url_;
+  ParametersType headers_;
+  olp::client::OlpClientSettings settings_;
+};
+
+/// Helper: a consumer function that accepts OlpClient by value and calls
+/// the sync overload. This validates that no slicing or vtable issues arise.
+static olp::client::HttpResponse ConsumeByValue(olp::client::OlpClient client,
+                                                const std::string& path) {
+  return client.CallApi(path, "GET", {}, {}, {}, nullptr, {},
+                        olp::client::CancellationContext{});
+}
+
+}  // namespace
+
+class OlpClientDelegateTest : public ::testing::Test {};
+
+TEST_F(OlpClientDelegateTest, DelegateInjectionTest) {
+  {
+    /// Verify that injecting a custom Delegate reaches the mock.
+    SCOPED_TRACE("Olp client with custom delegate");
+
+    auto delegate = std::make_shared<MockDelegate>();
+
+    const olp::client::HttpResponse kFakeResponse{200, "hello"};
+    EXPECT_CALL(*delegate,
+                CallApi("/test", "GET", ::testing::_, ::testing::_,
+                        ::testing::_, ::testing::_, ::testing::_,
+                        ::testing::A<olp::client::CancellationContext>()))
+        .WillOnce(::testing::Return(kFakeResponse));
+
+    olp::client::OlpClient client(delegate);
+    auto response = client.CallApi("/test", "GET", {}, {}, {}, nullptr, {},
+                                   olp::client::CancellationContext{});
+
+    EXPECT_EQ(response.GetStatus(), kFakeResponse.GetStatus());
+  }
+
+  {
+    /// Verify that the default (production) implementation is still used when
+    /// no custom delegate is injected, and the existing behaviour is preserved.
+    SCOPED_TRACE("Olp client with default delegate");
+
+    // Build a client with no network handler — the default impl should return
+    // OFFLINE_ERROR, exactly as before the refactoring.
+    olp::client::OlpClientSettings settings;
+    settings.network_request_handler = nullptr;
+    olp::client::OlpClient client(settings, "https://example.com");
+
+    auto response = client.CallApi("/ping", "GET", {}, {}, {}, nullptr, {},
+                                   olp::client::CancellationContext{});
+    EXPECT_EQ(response.GetStatus(),
+              static_cast<int>(olp::http::ErrorCode::OFFLINE_ERROR));
+  }
+
+  {
+    /// Verify that a consumer that accepts OlpClient by value still routes
+    /// calls through the injected delegate, demonstrating no need for a
+    /// separate consumer-side interface.
+    SCOPED_TRACE("Olp client with delegate passed by value");
+
+    auto delegate = std::make_shared<MockDelegate>();
+
+    const olp::client::HttpResponse kFakeResponse{201, "created"};
+    EXPECT_CALL(*delegate,
+                CallApi("/resource", "GET", ::testing::_, ::testing::_,
+                        ::testing::_, ::testing::_, ::testing::_,
+                        ::testing::A<olp::client::CancellationContext>()))
+        .WillOnce(::testing::Return(kFakeResponse));
+
+    olp::client::OlpClient client(delegate);
+    // Pass by value — shared_ptr delegate is shared, so the mock is still live.
+    auto response = ConsumeByValue(client, "/resource");
+
+    EXPECT_EQ(response.GetStatus(), kFakeResponse.GetStatus());
+  }
+}

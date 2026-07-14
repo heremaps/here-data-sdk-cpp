@@ -456,32 +456,41 @@ bool IsPending(const PendingUrlRequestPtr& request) {
 
 }  // namespace
 
-class OlpClient::OlpClientImpl {
+class OlpClientImpl : public OlpClient::Delegate {
  public:
   OlpClientImpl();
+  using ParametersType = OlpClient::ParametersType;
+  using RequestBodyType = OlpClient::RequestBodyType;
+
   OlpClientImpl(const OlpClientSettings& settings, std::string base_url);
-  ~OlpClientImpl() = default;
+  ~OlpClientImpl() override = default;
 
-  void SetBaseUrl(const std::string& base_url);
-  std::string GetBaseUrl() const;
+  void SetBaseUrl(const std::string& base_url) override;
+  std::string GetBaseUrl() const override;
 
-  ParametersType& GetMutableDefaultHeaders();
-  const OlpClientSettings& GetSettings() const { return settings_; }
+  ParametersType& GetMutableDefaultHeaders() override;
+  const OlpClientSettings& GetSettings() const override { return settings_; }
 
-  CancellationToken CallApi(const std::string& path, const std::string& method,
-                            const ParametersType& query_params,
-                            const ParametersType& header_params,
-                            const ParametersType& form_params,
-                            const RequestBodyType& post_body,
-                            const std::string& content_type,
-                            const NetworkAsyncCallback& callback) const;
+  CancellationToken CallApi(
+      const std::string& path, const std::string& method,
+      const ParametersType& query_params, const ParametersType& header_params,
+      const ParametersType& form_params, const RequestBodyType& post_body,
+      const std::string& content_type,
+      const NetworkAsyncCallback& callback) const override;
 
   HttpResponse CallApi(std::string path, std::string method,
                        ParametersType query_params,
-                       ParametersType header_params,
-                       http::Network::DataCallback data_callback,
+                       ParametersType header_params, ParametersType form_params,
                        RequestBodyType post_body, std::string content_type,
-                       CancellationContext context) const;
+                       CancellationContext context) const override;
+
+  HttpResponse CallApiStream(std::string path, std::string method,
+                             ParametersType query_params,
+                             ParametersType header_params,
+                             http::Network::DataCallback data_callback,
+                             RequestBodyType post_body,
+                             std::string content_type,
+                             CancellationContext context) const override;
 
   std::shared_ptr<http::NetworkRequest> CreateRequest(
       const std::string& path, const std::string& method,
@@ -489,8 +498,15 @@ class OlpClient::OlpClientImpl {
       const RequestBodyType& post_body, const std::string& content_type) const;
 
   porting::optional<ApiError> AddBearer(bool query_empty,
-                                      http::NetworkRequest& request,
-                                      CancellationContext& context) const;
+                                        http::NetworkRequest& request,
+                                        CancellationContext& context) const;
+
+  HttpResponse CallApiImpl(std::string path, std::string method,
+                           ParametersType query_params,
+                           ParametersType header_params,
+                           http::Network::DataCallback data_callback,
+                           RequestBodyType post_body, std::string content_type,
+                           CancellationContext context) const;
 
  private:
   using MutexType = std::shared_mutex;
@@ -504,29 +520,26 @@ class OlpClient::OlpClientImpl {
   bool ValidateBaseUrl() const;
 };
 
-OlpClient::OlpClientImpl::OlpClientImpl()
+OlpClientImpl::OlpClientImpl()
     : pending_requests_{std::make_shared<PendingUrlRequests>()} {}
 
-OlpClient::OlpClientImpl::OlpClientImpl(const OlpClientSettings& settings,
-                                        std::string base_url)
+OlpClientImpl::OlpClientImpl(const OlpClientSettings& settings,
+                             std::string base_url)
     : base_url_{std::move(base_url)},
       settings_{settings},
       pending_requests_{std::make_shared<PendingUrlRequests>()} {}
 
-void OlpClient::OlpClientImpl::SetBaseUrl(const std::string& base_url) {
+void OlpClientImpl::SetBaseUrl(const std::string& base_url) {
   base_url_.lockedAssign(base_url);
 }
 
-std::string OlpClient::OlpClientImpl::GetBaseUrl() const {
-  return base_url_.lockedCopy();
-}
+std::string OlpClientImpl::GetBaseUrl() const { return base_url_.lockedCopy(); }
 
-OlpClient::ParametersType&
-OlpClient::OlpClientImpl::GetMutableDefaultHeaders() {
+OlpClient::ParametersType& OlpClientImpl::GetMutableDefaultHeaders() {
   return default_headers_;
 }
 
-porting::optional<client::ApiError> OlpClient::OlpClientImpl::AddBearer(
+porting::optional<client::ApiError> OlpClientImpl::AddBearer(
     bool query_empty, http::NetworkRequest& request,
     CancellationContext& context) const {
   const auto& settings = settings_.authentication_settings;
@@ -566,14 +579,14 @@ porting::optional<client::ApiError> OlpClient::OlpClientImpl::AddBearer(
   return porting::none;
 }
 
-bool OlpClient::OlpClientImpl::ValidateBaseUrl() const {
+bool OlpClientImpl::ValidateBaseUrl() const {
   return base_url_.locked([](const std::string& base_url) {
     return base_url == "" || (base_url.find(kHttpPrefix) != std::string::npos ||
                               base_url.find(kHttpsPrefix) != std::string::npos);
   });
 }
 
-std::shared_ptr<http::NetworkRequest> OlpClient::OlpClientImpl::CreateRequest(
+std::shared_ptr<http::NetworkRequest> OlpClientImpl::CreateRequest(
     const std::string& path, const std::string& method,
     const OlpClient::ParametersType& query_params,
     const OlpClient::ParametersType& header_params,
@@ -612,7 +625,7 @@ std::shared_ptr<http::NetworkRequest> OlpClient::OlpClientImpl::CreateRequest(
   return network_request;
 }
 
-CancellationToken OlpClient::OlpClientImpl::CallApi(
+CancellationToken OlpClientImpl::CallApi(
     const std::string& path, const std::string& method,
     const OlpClient::ParametersType& query_params,
     const OlpClient::ParametersType& header_params,
@@ -706,7 +719,33 @@ CancellationToken OlpClient::OlpClientImpl::CallApi(
   return cancellation_token;
 }
 
-HttpResponse OlpClient::OlpClientImpl::CallApi(
+HttpResponse OlpClientImpl::CallApi(std::string path, std::string method,
+                                    OlpClient::ParametersType query_params,
+                                    OlpClient::ParametersType header_params,
+                                    OlpClient::ParametersType /*form_params*/,
+                                    OlpClient::RequestBodyType post_body,
+                                    std::string content_type,
+                                    CancellationContext context) const {
+  return CallApiImpl(std::move(path), std::move(method),
+                     std::move(query_params), std::move(header_params), nullptr,
+                     std::move(post_body), std::move(content_type),
+                     std::move(context));
+}
+
+HttpResponse OlpClientImpl::CallApiStream(
+    std::string path, std::string method,
+    OlpClient::ParametersType query_params,
+    OlpClient::ParametersType header_params,
+    http::Network::DataCallback data_callback,
+    OlpClient::RequestBodyType post_body, std::string content_type,
+    CancellationContext context) const {
+  return CallApiImpl(std::move(path), std::move(method),
+                     std::move(query_params), std::move(header_params),
+                     std::move(data_callback), std::move(post_body),
+                     std::move(content_type), std::move(context));
+}
+
+HttpResponse OlpClientImpl::CallApiImpl(
     std::string path, std::string method,
     OlpClient::ParametersType query_params,
     OlpClient::ParametersType header_params,
@@ -831,6 +870,8 @@ HttpResponse OlpClient::OlpClientImpl::CallApi(
 OlpClient::OlpClient() : impl_(std::make_shared<OlpClientImpl>()) {}
 OlpClient::OlpClient(const OlpClientSettings& settings, std::string base_url)
     : impl_(std::make_shared<OlpClientImpl>(settings, std::move(base_url))) {}
+OlpClient::OlpClient(std::shared_ptr<Delegate> delegate)
+    : impl_(std::move(delegate)) {}
 OlpClient::~OlpClient() = default;
 OlpClient::OlpClient(const OlpClient&) = default;
 OlpClient& OlpClient::operator=(const OlpClient&) = default;
@@ -864,14 +905,14 @@ CancellationToken OlpClient::CallApi(
 HttpResponse OlpClient::CallApi(std::string path, std::string method,
                                 ParametersType query_params,
                                 ParametersType header_params,
-                                ParametersType /*form_params*/,
+                                ParametersType form_params,
                                 RequestBodyType post_body,
                                 std::string content_type,
                                 CancellationContext context) const {
   return impl_->CallApi(std::move(path), std::move(method),
                         std::move(query_params), std::move(header_params),
-                        nullptr, std::move(post_body), std::move(content_type),
-                        std::move(context));
+                        std::move(form_params), std::move(post_body),
+                        std::move(content_type), std::move(context));
 }
 
 HttpResponse OlpClient::CallApiStream(std::string path, std::string method,
@@ -881,10 +922,10 @@ HttpResponse OlpClient::CallApiStream(std::string path, std::string method,
                                       RequestBodyType post_body,
                                       std::string content_type,
                                       CancellationContext context) const {
-  return impl_->CallApi(std::move(path), std::move(method),
-                        std::move(query_params), std::move(header_params),
-                        std::move(data_callback), std::move(post_body),
-                        std::move(content_type), std::move(context));
+  return impl_->CallApiStream(std::move(path), std::move(method),
+                              std::move(query_params), std::move(header_params),
+                              std::move(data_callback), std::move(post_body),
+                              std::move(content_type), std::move(context));
 }
 
 }  // namespace client
