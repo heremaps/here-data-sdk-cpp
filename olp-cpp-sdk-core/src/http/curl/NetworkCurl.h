@@ -342,6 +342,11 @@ class NetworkCurl : public Network {
     void AddEvent(EventInfo::Type type, RequestHandle* handle);
 
     /**
+     * @brief Notify worker thread to wake up on some event.
+     */
+    void NotifyEvent();
+
+    /**
      * @brief Checks whether the worker thread is started.
      * @return @c true if the thread is started, @c false otherwise.
      */
@@ -360,6 +365,7 @@ class NetworkCurl : public Network {
     std::shared_ptr<std::atomic<WorkerState>> state_{
         std::make_shared<std::atomic<WorkerState>>(WorkerState::STOPPED)};
 
+   private:
     /// Queue of events passed to worker thread.
     std::deque<EventInfo> events_{};
 

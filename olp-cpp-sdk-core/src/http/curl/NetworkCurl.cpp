@@ -588,15 +588,7 @@ void NetworkCurl::Deinitialize() {
   }
 
   if (thread_.get_id() != std::this_thread::get_id()) {
-    impl_->event_condition_.notify_all();
-#if defined(OLP_SDK_NETWORK_HAS_PIPE) || defined(OLP_SDK_NETWORK_HAS_PIPE2)
-    char tmp = 1;
-    if (write(impl_->pipe_[1], &tmp, 1) < 0) {
-      OLP_SDK_LOG_INFO(kLogTag, __PRETTY_FUNCTION__
-                                    << ". Failed to write pipe. Error "
-                                    << errno);
-    }
-#endif
+    impl_->NotifyEvent();
     thread_.join();
   } else {
     // We are trying to stop the very thread we are in. This could happen if the
@@ -922,6 +914,10 @@ void NetworkCurl::Cancel(RequestId id) {
 
 void NetworkCurl::Impl::AddEvent(EventInfo::Type type, RequestHandle* handle) {
   events_.emplace_back(type, handle);
+  NotifyEvent();
+}
+
+void NetworkCurl::Impl::NotifyEvent() {
   event_condition_.notify_all();
 
 #if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
@@ -929,12 +925,12 @@ void NetworkCurl::Impl::AddEvent(EventInfo::Type type, RequestHandle* handle) {
   // the network thread is currently blocked there.
   char tmp = 1;
   if (write(pipe_[1], &tmp, 1) < 0) {
-    OLP_SDK_LOG_WARNING(kLogTag, "AddEvent - failed for id="
-                                     << handle->id << ", err=" << errno);
+    OLP_SDK_LOG_WARNING(kLogTag, __PRETTY_FUNCTION__
+                                     << " - failed to write pipe, errno="
+                                     << errno);
   }
 #else
-  OLP_SDK_LOG_WARNING(kLogTag,
-                      "AddEvent for id=" << handle->id << " - no pipe");
+  OLP_SDK_LOG_WARNING(kLogTag, __PRETTY_FUNCTION__ << " - no pipe available");
 #endif
 }
 
