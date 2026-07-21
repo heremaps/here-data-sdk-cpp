@@ -27,7 +27,9 @@
 namespace olp {
 namespace http {
 DefaultNetwork::DefaultNetwork(std::shared_ptr<Network> network)
-    : current_statistics_bucket_{0}, network_{std::move(network)} {}
+    : current_statistics_bucket_{0},
+      buckets_{std::make_shared<thread::Atomic<BucketsContainer>>()},
+      network_{std::move(network)} {}
 
 DefaultNetwork::~DefaultNetwork() = default;
 
@@ -43,10 +45,13 @@ SendOutcome DefaultNetwork::Send(NetworkRequest request, Payload payload,
     AppendDefaultHeaders(request_headers);
   }
 
+  const auto buckets = buckets_;
   const auto bucket_id = current_statistics_bucket_.load();
 
-  auto user_callback = [=](NetworkResponse response) {
-    LockStatistics(bucket_id, [&](Statistics& stats) {
+  auto user_callback = [buckets, bucket_id,
+                        callback](NetworkResponse response) {
+    buckets->locked([&](BucketsContainer& container) {
+      auto& stats = container[bucket_id];
       const auto status = response.GetStatus();
       if (status < HttpStatusCode::OK ||
           status >= HttpStatusCode::BAD_REQUEST) {
@@ -81,10 +86,9 @@ void DefaultNetwork::SetCurrentBucket(uint8_t bucket_id) {
 }
 
 DefaultNetwork::Statistics DefaultNetwork::GetStatistics(uint8_t bucket_id) {
-  Statistics result;
-  LockStatistics(bucket_id,
-                 [&](Statistics& statistics) { result = statistics; });
-  return result;
+  return buckets_->locked([bucket_id](BucketsContainer& container) {
+    return container[bucket_id];
+  });
 }
 
 void DefaultNetwork::AppendUserAgent(Headers& request_headers) const {
@@ -108,12 +112,6 @@ void DefaultNetwork::AppendUserAgent(Headers& request_headers) const {
 void DefaultNetwork::AppendDefaultHeaders(Headers& request_headers) const {
   request_headers.insert(request_headers.end(), default_headers_.begin(),
                          default_headers_.end());
-}
-
-void DefaultNetwork::LockStatistics(uint8_t bucket_id,
-                                    std::function<void(Statistics&)> callback) {
-  buckets_.locked(
-      [&](BucketsContainer& container) { callback(container[bucket_id]); });
 }
 
 }  // namespace http
