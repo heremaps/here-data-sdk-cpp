@@ -35,8 +35,12 @@ namespace {
 
 using namespace olp::http;
 
-TEST(NetworkLifetimeTest,
-     CallbackReleasesNetworkObjectShouldStayAliveDuringCallback) {
+enum class NetworkDestroyContext { Synchronous, Asynchronous };
+
+using NetworkLifetimeTest = ::testing::TestWithParam<NetworkDestroyContext>;
+
+TEST_P(NetworkLifetimeTest,
+       CallbackReleasesNetworkObjectShouldStayAliveDuringCallback) {
   auto network = CreateDefaultNetwork({});
 
   std::promise<void> promise;
@@ -45,8 +49,18 @@ TEST(NetworkLifetimeTest,
   NetworkRequest req(test::CreateLoopbackUrl());
 
   auto callback = [&network, &promise](NetworkResponse /*resp*/) {
-    network.reset();
-    promise.set_value();
+    auto network_reset = [&network, &promise]() {
+      network.reset();
+      promise.set_value();
+    };
+    switch (GetParam()) {
+      case NetworkDestroyContext::Synchronous:
+        network_reset();
+        break;
+      case NetworkDestroyContext::Asynchronous:
+        std::thread(std::move(network_reset)).detach();
+        break;
+    }
   };
 
   auto outcome = network->Send(req, nullptr, callback, nullptr, nullptr);
@@ -58,7 +72,7 @@ TEST(NetworkLifetimeTest,
       << "Callback did not run in time";
 }
 
-TEST(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringCallback) {
+TEST_P(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringCallback) {
   auto network = CreateDefaultNetwork({});
 
   std::promise<void> promise;
@@ -67,11 +81,18 @@ TEST(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringCallback) {
   NetworkRequest req(test::CreateLoopbackUrl());
 
   auto callback = [&network, &promise](NetworkResponse /*resp*/) {
-    // Make network destroy async, from another thread.
-    std::thread([&network, &promise]() {
+    auto network_reset = [&network, &promise]() {
       network.reset();
       promise.set_value();
-    }).detach();
+    };
+    switch (GetParam()) {
+      case NetworkDestroyContext::Synchronous:
+        network_reset();
+        break;
+      case NetworkDestroyContext::Asynchronous:
+        std::thread(std::move(network_reset)).detach();
+        break;
+    }
   };
 
   auto outcome = network->Send(req, nullptr, callback, nullptr, nullptr);
@@ -83,7 +104,7 @@ TEST(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringCallback) {
       << "Callback did not run in time";
 }
 
-TEST(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringHeaderCallback) {
+TEST_P(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringHeaderCallback) {
   auto network = CreateDefaultNetwork({});
 
   std::promise<void> promise;
@@ -97,11 +118,18 @@ TEST(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringHeaderCallback) {
     if (fired->exchange(true)) {
       return;
     }
-    // Make network destroy async, from another thread.
-    std::thread([&network, &promise]() {
+    auto network_reset = [&network, &promise]() {
       network.reset();
       promise.set_value();
-    }).detach();
+    };
+    switch (GetParam()) {
+      case NetworkDestroyContext::Synchronous:
+        network_reset();
+        break;
+      case NetworkDestroyContext::Asynchronous:
+        std::thread(std::move(network_reset)).detach();
+        break;
+    }
   };
 
   auto outcome = network->Send(
@@ -114,7 +142,7 @@ TEST(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringHeaderCallback) {
       << "Callback did not run in time";
 }
 
-TEST(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringDataCallback) {
+TEST_P(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringDataCallback) {
   auto network = CreateDefaultNetwork({});
 
   std::promise<void> promise;
@@ -129,11 +157,18 @@ TEST(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringDataCallback) {
     if (fired->exchange(true)) {
       return;
     }
-    // Make network destroy async, from another thread.
-    std::thread([&network, &promise]() {
+    auto network_reset = [&network, &promise]() {
       network.reset();
       promise.set_value();
-    }).detach();
+    };
+    switch (GetParam()) {
+      case NetworkDestroyContext::Synchronous:
+        network_reset();
+        break;
+      case NetworkDestroyContext::Asynchronous:
+        std::thread(std::move(network_reset)).detach();
+        break;
+    }
   };
 
   auto outcome = network->Send(
@@ -146,7 +181,7 @@ TEST(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringDataCallback) {
       << "Callback did not run in time";
 }
 
-TEST(NetworkLifetimeTest, NoCrashIfNetworkDestroyedImmediatelyAfterSend) {
+TEST_P(NetworkLifetimeTest, NoCrashIfNetworkDestroyedImmediatelyAfterSend) {
   auto network = CreateDefaultNetwork({});
 
   NetworkRequest req(test::CreateLoopbackUrl());
@@ -159,7 +194,22 @@ TEST(NetworkLifetimeTest, NoCrashIfNetworkDestroyedImmediatelyAfterSend) {
   ASSERT_TRUE(outcome.IsSuccessful()) << "Send failed before test could run";
 
   // Destroy network immediately after send.
-  network.reset();
+  switch (GetParam()) {
+    case NetworkDestroyContext::Synchronous:
+      network.reset();
+      break;
+    case NetworkDestroyContext::Asynchronous: {
+      auto network_reset = [network]() mutable { network.reset(); };
+      network.reset();
+      std::thread(std::move(network_reset)).join();
+      break;
+    }
+  }
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    , NetworkLifetimeTest,
+    ::testing::Values(NetworkDestroyContext::Synchronous,
+                      NetworkDestroyContext::Asynchronous));
 
 }  // namespace
