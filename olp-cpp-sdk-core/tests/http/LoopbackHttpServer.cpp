@@ -34,6 +34,8 @@
 #include <unistd.h>
 #endif
 
+#include <gtest/gtest.h>
+
 namespace olp {
 namespace http {
 namespace test {
@@ -44,7 +46,7 @@ namespace {
 using SocketHandle = SOCKET;
 constexpr SocketHandle kInvalidSocket = INVALID_SOCKET;
 
-void EnsureWinSockInitialized() {
+bool EnsureWinSockInitialized() {
   static std::once_flag once;
   static bool initialized = false;
   std::call_once(once, []() {
@@ -52,9 +54,7 @@ void EnsureWinSockInitialized() {
     initialized = (WSAStartup(MAKEWORD(2, 2), &wsadata) == 0);
   });
 
-  if (!initialized) {
-    throw std::runtime_error("WSAStartup failed");
-  }
+  return initialized;
 }
 
 void CloseSocket(SocketHandle socket) {
@@ -67,8 +67,6 @@ void CloseSocket(SocketHandle socket) {
 using SocketHandle = int;
 constexpr SocketHandle kInvalidSocket = -1;
 
-void EnsureWinSockInitialized() {}
-
 void CloseSocket(SocketHandle socket) {
   if (socket != kInvalidSocket) {
     (void)::close(socket);
@@ -80,7 +78,7 @@ bool IsValidSocket(SocketHandle socket) { return socket != kInvalidSocket; }
 
 }  // namespace
 
-LoopbackHttpServer::LoopbackHttpServer() { Start(); }
+LoopbackHttpServer::LoopbackHttpServer() { EXPECT_TRUE(Start()); }
 
 LoopbackHttpServer::~LoopbackHttpServer() { Stop(); }
 
@@ -90,12 +88,18 @@ std::string LoopbackHttpServer::CreateUrl() const {
   return std::string("http://127.0.0.1:") + std::to_string(port_) + "/";
 }
 
-void LoopbackHttpServer::Start() {
-  EnsureWinSockInitialized();
+bool LoopbackHttpServer::Start() {
+#ifdef _WIN32
+  if (!EnsureWinSockInitialized()) {
+    ADD_FAILURE() << "Failed to initialize WinSock";
+    return false;
+  }
+#endif
 
   SocketHandle listen_socket = ::socket(AF_INET, SOCK_STREAM, 0);
   if (!IsValidSocket(listen_socket)) {
-    throw std::runtime_error("Failed to create loopback test socket");
+    ADD_FAILURE() << "Failed to create loopback test socket";
+    return false;
   }
 
   int reuse = 1;
@@ -104,7 +108,8 @@ void LoopbackHttpServer::Start() {
                    reinterpret_cast<const char*>(&reuse), sizeof(reuse));
   if (setopt_result != 0) {
     CloseSocket(listen_socket);
-    throw std::runtime_error("Failed to set SO_REUSEADDR on loopback socket");
+    ADD_FAILURE() << "Failed to set SO_REUSEADDR on loopback socket";
+    return false;
   }
 
   sockaddr_in address{};
@@ -114,20 +119,23 @@ void LoopbackHttpServer::Start() {
   if (::bind(listen_socket, reinterpret_cast<sockaddr*>(&address),
              sizeof(address)) != 0) {
     CloseSocket(listen_socket);
-    throw std::runtime_error("Failed to bind loopback socket");
+    ADD_FAILURE() << "Failed to bind loopback socket";
+    return false;
   }
 
   socklen_t address_length = sizeof(address);
   if (::getsockname(listen_socket, reinterpret_cast<sockaddr*>(&address),
                     &address_length) != 0) {
     CloseSocket(listen_socket);
-    throw std::runtime_error("Failed to read loopback socket port");
+    ADD_FAILURE() << "Failed to read loopback socket port";
+    return false;
   }
   port_ = ntohs(address.sin_port);
 
   if (::listen(listen_socket, 8) != 0) {
     CloseSocket(listen_socket);
-    throw std::runtime_error("Failed to listen on loopback socket");
+    ADD_FAILURE() << "Failed to listen on loopback socket";
+    return false;
   }
 
 #ifdef _WIN32
@@ -138,6 +146,7 @@ void LoopbackHttpServer::Start() {
 
   running_.store(true);
   server_thread_ = std::thread([this]() { ServeLoop(); });
+  return true;
 }
 
 void LoopbackHttpServer::Stop() {

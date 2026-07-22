@@ -37,7 +37,7 @@ class LoopbackHttpServer final {
   std::string CreateUrl() const;
 
  private:
-  void Start();
+  bool Start();
   void Stop();
   void ServeLoop();
 
