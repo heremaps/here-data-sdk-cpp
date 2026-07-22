@@ -134,8 +134,8 @@ TEST_P(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringHeaderCallback) {
     }
   };
 
-  auto outcome = network->Send(
-      req, nullptr, [](NetworkResponse /*resp*/) {}, header_callback, nullptr);
+  auto outcome = network->Send(req, nullptr, [](NetworkResponse /*resp*/) {},
+                               header_callback, nullptr);
   ASSERT_TRUE(outcome.IsSuccessful()) << "Send failed before test could run";
 
   // Wait for callback to be executed (timeout to avoid hangs in CI).
@@ -173,8 +173,8 @@ TEST_P(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringDataCallback) {
     }
   };
 
-  auto outcome = network->Send(
-      req, nullptr, [](NetworkResponse /*resp*/) {}, nullptr, data_callback);
+  auto outcome = network->Send(req, nullptr, [](NetworkResponse /*resp*/) {},
+                               nullptr, data_callback);
   ASSERT_TRUE(outcome.IsSuccessful()) << "Send failed before test could run";
 
   // Wait for callback to be executed (timeout to avoid hangs in CI).
@@ -188,11 +188,11 @@ TEST_P(NetworkLifetimeTest, NoCrashIfNetworkDestroyedImmediatelyAfterSend) {
 
   NetworkRequest req(CreateLoopbackUrl());
 
-  auto outcome = network->Send(
-      req, nullptr, [](NetworkResponse /*resp*/) {},
-      [](std::string /*key*/, std::string /*value*/) {},
-      [](const std::uint8_t* /*data*/, std::uint64_t /*offset*/,
-         std::size_t /*length*/) {});
+  auto outcome =
+      network->Send(req, nullptr, [](NetworkResponse /*resp*/) {},
+                    [](std::string /*key*/, std::string /*value*/) {},
+                    [](const std::uint8_t* /*data*/, std::uint64_t /*offset*/,
+                       std::size_t /*length*/) {});
   ASSERT_TRUE(outcome.IsSuccessful()) << "Send failed before test could run";
 
   // Destroy network immediately after send.
