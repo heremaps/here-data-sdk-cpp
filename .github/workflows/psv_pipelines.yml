@@ -21,7 +21,7 @@ jobs:
       CXX: g++-9
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: "C++ Lint checker script"
         run: ./scripts/misc/cpplint_ci.sh
         shell: bash
@@ -35,7 +35,7 @@ jobs:
       CXX: g++-9
     steps:
     - name: Check out repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Install Ubuntu dependencies
       run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-9 g++-9 --no-install-recommends
       shell: bash
@@ -46,7 +46,7 @@ jobs:
       run: ./scripts/linux/psv/test_psv.sh
       shell: bash
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v6
+      uses: codecov/codecov-action@v7
       with:
         fail_ci_if_error: true # optional (default = false)
         verbose: true # optional (default = false)
@@ -62,7 +62,7 @@ jobs:
       CXX: g++-9
     steps:
     - name: Check out repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Install Ubuntu dependencies
       run: sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-9 g++-9 --no-install-recommends
       shell: bash
@@ -77,7 +77,7 @@ jobs:
       BUILD_TYPE: RelWithDebInfo
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install Ubuntu dependencies
         run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
         shell: bash
@@ -96,7 +96,7 @@ jobs:
       EXTRA_CMAKE_OPTIONS: -DCMAKE_CXX_STANDARD=17 -DOLP_SDK_USE_STD_OPTIONAL=ON -DOLP_SDK_USE_STD_ANY=ON -DOLP_SDK_ENABLE_TESTING=OFF
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Install Ubuntu dependencies
         run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
         shell: bash
@@ -112,7 +112,7 @@ jobs:
       EXTRA_CMAKE_OPTIONS: -DOLP_SDK_EMBED_BOOST_JSON=OFF -DOLP_SDK_ENABLE_TESTING=OFF
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Install Ubuntu dependencies
         run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
         shell: bash
@@ -129,7 +129,7 @@ jobs:
       CXX: g++-14
     steps:
     - name: Check out repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Install Ubuntu dependencies
       run: sudo rm /etc/apt/sources.list.d/microsoft-prod.list && sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-14 g++-14 ccache --no-install-recommends
       shell: bash
@@ -147,7 +147,7 @@ jobs:
       BUILD_TYPE: RelWithDebInfo
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install Ubuntu dependencies
         run: sudo apt-get update && sudo apt-get install -y ccache libssl-dev libcurl4-openssl-dev --no-install-recommends
         shell: bash
@@ -164,7 +164,7 @@ jobs:
       CXX: g++-14
     steps:
     - name: Check out repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Install Ubuntu dependencies
       run: sudo rm /etc/apt/sources.list.d/microsoft-prod.list && sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-14 g++-14 --no-install-recommends
       shell: bash
@@ -181,7 +181,7 @@ jobs:
       CXX: g++-13
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install Ubuntu dependencies
         run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-13 g++-13 --no-install-recommends
         shell: bash
@@ -199,7 +199,7 @@ jobs:
       BUILD_TYPE: RelWithDebInfo
     steps:
     - name: Check out repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Install Ubuntu dependencies
       run: sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev --no-install-recommends
       shell: bash
@@ -217,7 +217,7 @@ jobs:
       CXXFLAGS: -Wno-deprecated-copy
     steps:
     - name: Check out repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Install Ubuntu dependencies
       run: sudo apt-get update -y && sudo apt-get install clang-11 ccache libcurl4-openssl-dev -y --no-install-recommends --fix-missing
       shell: bash
@@ -239,7 +239,7 @@ jobs:
       EXTRA_CMAKE_OPTIONS: -DCMAKE_CXX_VISIBILITY_PRESET=hidden -DOLP_SDK_ENABLE_TESTING=OFF
     steps:
     - name: Check out repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Install Ubuntu dependencies
       run: sudo apt-get update -y && sudo apt-get install clang-11 ccache libcurl4-openssl-dev -y --no-install-recommends --fix-missing
       shell: bash
@@ -254,7 +254,7 @@ jobs:
       BUILD_TYPE: RelWithDebInfo
     steps:
     - name: Check out repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Verification of prerequisites
       run: env && ls -la $ANDROID_HOME
       shell: bash
@@ -267,7 +267,7 @@ jobs:
     runs-on: macos-15
     steps:
     - name: Check out repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: MacOS Build Xcode16
       run: scripts/macos/psv/azure_macos_build_psv.sh
       shell: bash
@@ -277,7 +277,7 @@ jobs:
     runs-on: macos-15
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: iOS Xcode 26 Build
         run: scripts/ios/azure_ios_build_psv.sh
         shell: bash
@@ -289,7 +289,7 @@ jobs:
     runs-on: macOS-15
     steps:
     - name: Check out repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: iOS Xcode 16 Build
       run: scripts/ios/azure_ios_build_psv.sh
       shell: bash
@@ -299,7 +299,7 @@ jobs:
     runs-on: macOS-14
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: iOS Xcode 15 Build
         run: scripts/ios/azure_ios_build_psv.sh
         shell: bash
@@ -312,7 +312,7 @@ jobs:
       GENERATOR: "Visual Studio 17 2022"
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Build
         run: scripts/windows/build.sh
         shell: bash
@@ -322,7 +322,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: github.ref_name != 'master'
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Set tags env variables.
@@ -340,7 +340,7 @@ jobs:
       CLANG_FORMAT_FILE: "clang-format.diff"
     steps:
     - name: Check out repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
     - name: Setup environment
       run: |
         set +x
