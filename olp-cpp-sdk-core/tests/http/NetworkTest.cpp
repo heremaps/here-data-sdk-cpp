@@ -31,9 +31,11 @@
 
 #include "LoopbackHttpServer.h"
 
-namespace {
+namespace olp {
+namespace http {
+namespace test {
 
-using namespace olp::http;
+namespace {
 
 enum class NetworkDestroyContext { Synchronous, Asynchronous };
 
@@ -46,7 +48,7 @@ TEST_P(NetworkLifetimeTest,
   std::promise<void> promise;
   auto future = promise.get_future();
 
-  NetworkRequest req(test::CreateLoopbackUrl());
+  NetworkRequest req(CreateLoopbackUrl());
 
   auto callback = [&network, &promise](NetworkResponse /*resp*/) {
     auto network_reset = [&network, &promise]() {
@@ -78,7 +80,7 @@ TEST_P(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringCallback) {
   std::promise<void> promise;
   auto future = promise.get_future();
 
-  NetworkRequest req(test::CreateLoopbackUrl());
+  NetworkRequest req(CreateLoopbackUrl());
 
   auto callback = [&network, &promise](NetworkResponse /*resp*/) {
     auto network_reset = [&network, &promise]() {
@@ -111,7 +113,7 @@ TEST_P(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringHeaderCallback) {
   auto future = promise.get_future();
   auto fired = std::make_shared<std::atomic<bool>>(false);
 
-  NetworkRequest req(test::CreateLoopbackUrl());
+  NetworkRequest req(CreateLoopbackUrl());
 
   auto header_callback = [&network, &promise, fired](std::string /*key*/,
                                                      std::string /*value*/) {
@@ -149,7 +151,7 @@ TEST_P(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringDataCallback) {
   auto future = promise.get_future();
   auto fired = std::make_shared<std::atomic<bool>>(false);
 
-  NetworkRequest req(test::CreateLoopbackUrl());
+  NetworkRequest req(CreateLoopbackUrl());
 
   auto data_callback = [&network, &promise, fired](const std::uint8_t* /*data*/,
                                                    std::uint64_t /*offset*/,
@@ -184,7 +186,7 @@ TEST_P(NetworkLifetimeTest, NoCrashIfNetworkDestroyedDuringDataCallback) {
 TEST_P(NetworkLifetimeTest, NoCrashIfNetworkDestroyedImmediatelyAfterSend) {
   auto network = CreateDefaultNetwork({});
 
-  NetworkRequest req(test::CreateLoopbackUrl());
+  NetworkRequest req(CreateLoopbackUrl());
 
   auto outcome = network->Send(
       req, nullptr, [](NetworkResponse /*resp*/) {},
@@ -213,3 +215,7 @@ INSTANTIATE_TEST_SUITE_P(
                       NetworkDestroyContext::Asynchronous));
 
 }  // namespace
+
+}  // namespace test
+}  // namespace http
+}  // namespace olp
