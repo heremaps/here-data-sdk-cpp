@@ -68,13 +68,10 @@ class DefaultNetwork final : public Network {
   void AppendUserAgent(Headers& request_headers) const;
   void AppendDefaultHeaders(Headers& request_headers) const;
 
-  void LockStatistics(uint8_t bucket_id,
-                      std::function<void(Statistics&)> callback);
-
   std::atomic<uint8_t> current_statistics_bucket_;
 
   using BucketsContainer = std::unordered_map<uint8_t, Statistics>;
-  thread::Atomic<BucketsContainer> buckets_;
+  std::shared_ptr<thread::Atomic<BucketsContainer>> buckets_;
 
   std::mutex default_headers_mutex_;
   Headers default_headers_;

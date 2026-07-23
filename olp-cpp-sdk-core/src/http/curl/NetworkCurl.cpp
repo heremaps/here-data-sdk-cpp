@@ -410,10 +410,9 @@ void WithDiagnostics(NetworkResponse& response, CURL* handle) {
 }  // anonymous namespace
 
 NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
-    : handles_(settings.max_requests_count),
-      static_handle_count_(
-          std::max(static_cast<size_t>(1u), settings.max_requests_count / 4u)),
-      certificate_settings_(std::move(settings.certificate_settings)),
+    : impl_(std::make_shared<Impl>(settings)),
+      certificate_settings_(std::make_shared<const CertificateSettings>(
+          std::move(settings.certificate_settings))),
       max_transfer_bytes_per_second_(settings.max_transfer_bytes_per_second) {
   OLP_SDK_LOG_TRACE(kLogTag, "Created NetworkCurl with address="
                                  << this << ", handles_count="
@@ -472,7 +471,8 @@ NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
       version_data->ssl_version ? version_data->ssl_version : "<empty>");
 
   if (settings.diagnostic_output_path) {
-    stderr_ = fopen(settings.diagnostic_output_path->c_str(), "a");
+    stderr_ = std::shared_ptr<FILE>(
+        fopen(settings.diagnostic_output_path->c_str(), "a"), fclose);
     if (!stderr_) {
       const auto* path_error = strerror(errno);
       OLP_SDK_LOG_ERROR_F(
@@ -481,19 +481,18 @@ NetworkCurl::NetworkCurl(NetworkInitializationSettings settings)
     } else {
       OLP_SDK_LOG_INFO_F(kLogTag, "Using diagnostic output file, path=%s",
                          settings.diagnostic_output_path->c_str());
-      verbose_ = true;
     }
   }
 }
+
+NetworkCurl::Impl::Impl(const NetworkInitializationSettings& settings)
+    : handles_(settings.max_requests_count) {}
 
 NetworkCurl::~NetworkCurl() {
   OLP_SDK_LOG_TRACE(kLogTag, "Destroyed NetworkCurl object, this=" << this);
   Deinitialize();
   if (curl_initialized_) {
     curl_global_cleanup();
-  }
-  if (stderr_) {
-    fclose(stderr_);
   }
 }
 
@@ -504,11 +503,27 @@ bool NetworkCurl::Initialize() {
     return false;
   }
 
-  if (state_ != WorkerState::STOPPED) {
+  if (*impl_->state_ != WorkerState::STOPPED) {
     OLP_SDK_LOG_DEBUG(kLogTag, "Already initialized, this=" << this);
     return true;
   }
 
+  if (!impl_->Initialize()) {
+    return false;
+  }
+
+  std::unique_lock<std::mutex> lock(impl_->event_mutex_);
+  // start worker thread
+  // Keep `impl_` alive until the thread is finished.
+  auto impl = impl_;
+  thread_ = std::thread([impl] { impl->Run(); });
+
+  impl_->event_condition_.wait(lock, [this] { return Initialized(); });
+
+  return true;
+}
+
+bool NetworkCurl::Impl::Initialize() {
 #ifdef OLP_SDK_NETWORK_HAS_PIPE2
   if (pipe2(pipe_, O_NONBLOCK)) {
     OLP_SDK_LOG_ERROR(kLogTag, "pipe2 failed, this=" << this);
@@ -553,13 +568,6 @@ bool NetworkCurl::Initialize() {
   const auto connects_cache_size = handles_.size() * 4;
   curl_multi_setopt(curl_, CURLMOPT_MAXCONNECTS, connects_cache_size);
 
-  std::unique_lock<std::mutex> lock(event_mutex_);
-  // start worker thread
-  thread_ = std::thread(&NetworkCurl::Run, this);
-
-  event_condition_.wait(lock,
-                        [this] { return state_ == WorkerState::STARTED; });
-
   return true;
 }
 
@@ -575,37 +583,28 @@ void NetworkCurl::Deinitialize() {
   OLP_SDK_LOG_TRACE(kLogTag, "Deinitialize NetworkCurl, this=" << this);
 
   {
-    std::lock_guard<std::mutex> lock(event_mutex_);
-    state_ = WorkerState::STOPPING;
+    std::lock_guard<std::mutex> lock(impl_->event_mutex_);
+    *impl_->state_ = WorkerState::STOPPING;
   }
 
-  // We should not destroy this thread from itself
   if (thread_.get_id() != std::this_thread::get_id()) {
-    event_condition_.notify_all();
-#if defined(OLP_SDK_NETWORK_HAS_PIPE) || defined(OLP_SDK_NETWORK_HAS_PIPE2)
-    char tmp = 1;
-    if (write(pipe_[1], &tmp, 1) < 0) {
-      OLP_SDK_LOG_INFO(kLogTag, __PRETTY_FUNCTION__
-                                    << ". Failed to write pipe. Error "
-                                    << errno);
-    }
-#endif
+    impl_->NotifyEvent();
     thread_.join();
-
-#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
-    close(pipe_[0]);
-    close(pipe_[1]);
-#endif
   } else {
-    // We are trying to stop the very thread we are in. This is not recommended,
-    // but we try to handle it gracefully. This could happen by calling from one
-    // of the static functions (rxFunction or headerFunction) that was passed to
-    // the cURL as callbacks.
+    // We are trying to stop the very thread we are in. This could happen if the
+    // last instance of NetworkCurl is destroyed from one of the callbacks. For
+    // example, if caller made a callback to capture a shared_ptr to NetworkCurl
+    // and then released its own instance of NetworkCurl. That way, the captured
+    // shared_ptr will be the last one and will be destroyed in the callback
+    // from the worker thread.
+    // Since this is the last cleanup action to perform here, and the thread
+    // itself does the teardown to release resources, we can safely detach the
+    // thread and let it finish its work.
     thread_.detach();
   }
 }
 
-void NetworkCurl::Teardown() {
+void NetworkCurl::Impl::Teardown() {
   std::vector<std::pair<RequestId, Callback> > completed_messages;
   {
     std::lock_guard<std::mutex> lock(event_mutex_);
@@ -621,7 +620,6 @@ void NetworkCurl::Teardown() {
         }
         handle.curl_handle = nullptr;
       }
-      handle.self.reset();
     }
 
     // cURL teardown
@@ -638,28 +636,20 @@ void NetworkCurl::Teardown() {
                       .WithError("Offline: network is deinitialized"));
     }
   }
+
+#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
+  close(pipe_[0]);
+  close(pipe_[1]);
+#endif
 }
 
-bool NetworkCurl::IsStarted() const { return state_ == WorkerState::STARTED; }
+bool NetworkCurl::IsStarted() const { return impl_->IsStarted(); }
+
+bool NetworkCurl::Impl::IsStarted() const {
+  return *state_ == WorkerState::STARTED;
+}
 
 bool NetworkCurl::Initialized() const { return IsStarted(); }
-
-bool NetworkCurl::Ready() {
-  if (!IsStarted()) {
-    return false;
-  }
-  std::lock_guard<std::mutex> lock(event_mutex_);
-  return std::any_of(
-      std::begin(handles_), std::end(handles_),
-      [](const RequestHandle& handle) { return !handle.in_use; });
-}
-
-size_t NetworkCurl::AmountPending() {
-  std::lock_guard<std::mutex> lock(event_mutex_);
-  return static_cast<size_t>(
-      std::count_if(std::begin(handles_), std::end(handles_),
-                    [](const RequestHandle& handle) { return handle.in_use; }));
-}
 
 SendOutcome NetworkCurl::Send(NetworkRequest request,
                               std::shared_ptr<std::ostream> payload,
@@ -675,7 +665,7 @@ SendOutcome NetworkCurl::Send(NetworkRequest request,
 
   RequestId request_id{};
   {
-    std::lock_guard<std::mutex> lock(event_mutex_);
+    std::lock_guard<std::mutex> lock(impl_->event_mutex_);
 
     request_id = request_id_counter_;
     if (request_id_counter_ ==
@@ -712,9 +702,9 @@ ErrorCode NetworkCurl::SendImplementation(
   const auto& config = request.GetSettings();
 
   RequestHandle* handle = [&] {
-    std::lock_guard<std::mutex> lock(event_mutex_);
+    std::lock_guard<std::mutex> lock(impl_->event_mutex_);
 
-    auto* request_handle = InitRequestHandleUnsafe();
+    auto* request_handle = impl_->InitRequestHandleUnsafe();
 
     if (request_handle) {
       request_handle->id = id;
@@ -724,6 +714,8 @@ ErrorCode NetworkCurl::SendImplementation(
       request_handle->out_data_stream = payload;
       request_handle->request_body = request.GetBody();
       request_handle->request_headers = SetupHeaders(request.GetHeaders());
+      request_handle->log_file = stderr_;
+      request_handle->certificate_settings = certificate_settings_;
     }
 
     return request_handle;
@@ -742,11 +734,9 @@ ErrorCode NetworkCurl::SendImplementation(
 
   curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1L);
 
-  if (verbose_) {
+  if (stderr_ != nullptr) {
     curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
-    if (stderr_ != nullptr) {
-      curl_easy_setopt(curl_handle, CURLOPT_STDERR, stderr_);
-    }
+    curl_easy_setopt(curl_handle, CURLOPT_STDERR, stderr_.get());
   } else {
     curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 0L);
   }
@@ -800,7 +790,7 @@ ErrorCode NetworkCurl::SendImplementation(
   // "unable to set private key file: '(memory blob)' type PEM".
   // Therefore, skip the entire blob-based cert setup and let InjectEnvelopeKey
   // set both the client certificate and the EVP_PKEY via SSL_CTX_*.
-  if (ssl_certificates_blobs_ && !certificate_settings_.pkey_handle) {
+  if (ssl_certificates_blobs_ && !certificate_settings_->pkey_handle) {
 #else
   if (ssl_certificates_blobs_) {
 #endif
@@ -829,7 +819,7 @@ ErrorCode NetworkCurl::SendImplementation(
   curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 2L);
 
 #ifdef OLP_SDK_ENABLE_ENVELOPE_PKEY
-  if (certificate_settings_.pkey_handle) {
+  if (certificate_settings_->pkey_handle) {
     curl_easy_setopt(curl_handle, CURLOPT_SSL_CTX_FUNCTION,
                      &NetworkCurl::InjectEnvelopeKey);
     curl_easy_setopt(curl_handle, CURLOPT_SSL_CTX_DATA, handle);
@@ -853,11 +843,9 @@ ErrorCode NetworkCurl::SendImplementation(
 
   curl_easy_setopt(curl_handle, CURLOPT_CONNECTTIMEOUT_MS, connect_timeout_ms);
   curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT_MS, timeout_ms);
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION,
-                   &NetworkCurl::RxFunction);
+  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, &Impl::RxFunction);
   curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, handle);
-  curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION,
-                   &NetworkCurl::HeaderFunction);
+  curl_easy_setopt(curl_handle, CURLOPT_HEADERFUNCTION, &Impl::HeaderFunction);
   curl_easy_setopt(curl_handle, CURLOPT_HEADERDATA, handle);
   curl_easy_setopt(curl_handle, CURLOPT_FAILONERROR, 0L);
   if (stderr_ == nullptr) {
@@ -900,8 +888,8 @@ ErrorCode NetworkCurl::SendImplementation(
 #endif
 
   {
-    std::lock_guard<std::mutex> lock(event_mutex_);
-    AddEvent(EventInfo::Type::SEND_EVENT, handle);
+    std::lock_guard<std::mutex> lock(impl_->event_mutex_);
+    impl_->AddEvent(EventInfo::Type::SEND_EVENT, handle);
   }
   return ErrorCode::SUCCESS;  // NetworkProtocol::ErrorNone;
 }  // namespace http
@@ -911,11 +899,11 @@ void NetworkCurl::Cancel(RequestId id) {
     OLP_SDK_LOG_ERROR(kLogTag, "Cancel failed - network is offline, id=" << id);
     return;
   }
-  std::lock_guard<std::mutex> lock(event_mutex_);
-  for (auto& handle : handles_) {
+  std::lock_guard<std::mutex> lock(impl_->event_mutex_);
+  for (auto& handle : impl_->handles_) {
     if (handle.in_use && (handle.id == id)) {
       handle.is_cancelled = true;
-      AddEvent(EventInfo::Type::CANCEL_EVENT, &handle);
+      impl_->AddEvent(EventInfo::Type::CANCEL_EVENT, &handle);
 
       OLP_SDK_LOG_DEBUG(kLogTag, "Cancel request with id=" << id);
       return;
@@ -924,8 +912,12 @@ void NetworkCurl::Cancel(RequestId id) {
   OLP_SDK_LOG_WARNING(kLogTag, "Cancel non-existing request with id=" << id);
 }
 
-void NetworkCurl::AddEvent(EventInfo::Type type, RequestHandle* handle) {
+void NetworkCurl::Impl::AddEvent(EventInfo::Type type, RequestHandle* handle) {
   events_.emplace_back(type, handle);
+  NotifyEvent();
+}
+
+void NetworkCurl::Impl::NotifyEvent() {
   event_condition_.notify_all();
 
 #if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
@@ -933,16 +925,16 @@ void NetworkCurl::AddEvent(EventInfo::Type type, RequestHandle* handle) {
   // the network thread is currently blocked there.
   char tmp = 1;
   if (write(pipe_[1], &tmp, 1) < 0) {
-    OLP_SDK_LOG_WARNING(kLogTag, "AddEvent - failed for id="
-                                     << handle->id << ", err=" << errno);
+    OLP_SDK_LOG_WARNING(kLogTag, __PRETTY_FUNCTION__
+                                     << " - failed to write pipe, errno="
+                                     << errno);
   }
 #else
-  OLP_SDK_LOG_WARNING(kLogTag,
-                      "AddEvent for id=" << handle->id << " - no pipe");
+  OLP_SDK_LOG_WARNING(kLogTag, __PRETTY_FUNCTION__ << " - no pipe available");
 #endif
 }
 
-NetworkCurl::RequestHandle* NetworkCurl::InitRequestHandleUnsafe() {
+NetworkCurl::RequestHandle* NetworkCurl::Impl::InitRequestHandleUnsafe() {
   const auto unused_handle_it =
       std::find_if(handles_.begin(), handles_.end(),
                    [](const RequestHandle& request_handle) {
@@ -962,15 +954,15 @@ NetworkCurl::RequestHandle* NetworkCurl::InitRequestHandleUnsafe() {
   }
 
   unused_handle_it->in_use = true;
-  unused_handle_it->self = shared_from_this();
   unused_handle_it->send_time = std::chrono::steady_clock::now();
   unused_handle_it->log_context = logging::GetContext();
+  unused_handle_it->network_state = state_;
 
   return &*unused_handle_it;
 }
 
-void NetworkCurl::ReleaseHandleUnlocked(RequestHandle* handle,
-                                        bool cleanup_easy_handle) {
+void NetworkCurl::Impl::ReleaseHandleUnlocked(RequestHandle* handle,
+                                              bool cleanup_easy_handle) {
   // Reset the RequestHandle to default, but keep the curl_handle.
   std::shared_ptr<CURL> curl_handle;
   std::swap(curl_handle, handle->curl_handle);
@@ -995,19 +987,14 @@ void NetworkCurl::ReleaseHandleUnlocked(RequestHandle* handle,
   OLP_SDK_CORE_UNUSED(cleanup_easy_handle);
 }
 
-size_t NetworkCurl::RxFunction(void* ptr, size_t size, size_t nmemb,
-                               RequestHandle* handle) {
+size_t NetworkCurl::Impl::RxFunction(void* ptr, size_t size, size_t nmemb,
+                                     RequestHandle* handle) {
   const size_t len = size * nmemb;
 
   OLP_SDK_LOG_TRACE(kLogTag,
                     "Received " << len << " bytes for id=" << handle->id);
 
-  std::shared_ptr<NetworkCurl> that = handle->self.lock();
-  if (!that) {
-    return len;
-  }
-
-  if (that->IsStarted() && !handle->is_cancelled) {
+  if (*handle->network_state == WorkerState::STARTED && !handle->is_cancelled) {
     if (handle->out_data_callback) {
       handle->out_data_callback(static_cast<uint8_t*>(ptr),
                                 handle->bytes_received, len);
@@ -1032,29 +1019,30 @@ size_t NetworkCurl::RxFunction(void* ptr, size_t size, size_t nmemb,
   }
 
   // In case we have curl verbose and stderr enabled to log the error content
-  if (that->stderr_) {
+  if (handle->log_file) {
     long http_status = 0L;
     curl_easy_getinfo(handle->curl_handle.get(), CURLINFO_RESPONSE_CODE,
                       &http_status);
     if (http_status >= http::HttpStatusCode::BAD_REQUEST) {
       // Log the error content to help troubleshooting
-      fprintf(that->stderr_, "\n---ERRORCONTENT BEGIN HANDLE=%p BLOCKSIZE=%u\n",
-              handle, static_cast<uint32_t>(size * nmemb));
-      fwrite(ptr, size, nmemb, that->stderr_);
-      fprintf(that->stderr_, "\n---ERRORCONTENT END HANDLE=%p BLOCKSIZE=%u\n",
-              handle, static_cast<uint32_t>(size * nmemb));
+      fprintf(handle->log_file.get(),
+              "\n---ERRORCONTENT BEGIN HANDLE=%p BLOCKSIZE=%u\n", handle,
+              static_cast<uint32_t>(size * nmemb));
+      fwrite(ptr, size, nmemb, handle->log_file.get());
+      fprintf(handle->log_file.get(),
+              "\n---ERRORCONTENT END HANDLE=%p BLOCKSIZE=%u\n", handle,
+              static_cast<uint32_t>(size * nmemb));
     }
   }
 
   return len;
 }
 
-size_t NetworkCurl::HeaderFunction(char* ptr, size_t size, size_t nitems,
-                                   RequestHandle* handle) {
+size_t NetworkCurl::Impl::HeaderFunction(char* ptr, size_t size, size_t nitems,
+                                         RequestHandle* handle) {
   const size_t len = size * nitems;
 
-  std::shared_ptr<NetworkCurl> that = handle->self.lock();
-  if (!that || !that->IsStarted() || handle->is_cancelled) {
+  if (*handle->network_state != WorkerState::STARTED || handle->is_cancelled) {
     return len;
   }
 
@@ -1084,12 +1072,12 @@ size_t NetworkCurl::HeaderFunction(char* ptr, size_t size, size_t nitems,
   }
 
   // Callback with header key+value
-  handle->out_header_callback(key, value);
+  handle->out_header_callback(std::move(key), std::move(value));
 
   return len;
 }
 
-void NetworkCurl::CompleteMessage(CURL* curl_handle, CURLcode result) {
+void NetworkCurl::Impl::CompleteMessage(CURL* curl_handle, CURLcode result) {
   std::unique_lock<std::mutex> lock(event_mutex_);
 
   // When curl returns an error of the handle, it is possible that error
@@ -1182,7 +1170,8 @@ void NetworkCurl::CompleteMessage(CURL* curl_handle, CURLcode result) {
   callback(response);
 }
 
-NetworkCurl::RequestHandle* NetworkCurl::FindRequestHandle(const CURL* handle) {
+NetworkCurl::RequestHandle* NetworkCurl::Impl::FindRequestHandle(
+    const CURL* handle) {
   for (auto& request_handle : handles_) {
     if (request_handle.in_use && request_handle.curl_handle.get() == handle) {
       return &request_handle;
@@ -1191,12 +1180,12 @@ NetworkCurl::RequestHandle* NetworkCurl::FindRequestHandle(const CURL* handle) {
   return nullptr;
 }
 
-void NetworkCurl::Run() {
+void NetworkCurl::Impl::Run() {
   olp::utils::Thread::SetCurrentThreadName(kCurlThreadName);
 
   {
     std::lock_guard<std::mutex> lock(event_mutex_);
-    state_ = WorkerState::STARTED;
+    *state_ = WorkerState::STARTED;
     event_condition_.notify_one();
   }
 
@@ -1406,24 +1395,21 @@ void NetworkCurl::Run() {
   }
 
   Teardown();
-  {
-    std::lock_guard<std::mutex> lock(event_mutex_);
-    state_ = WorkerState::STOPPED;
-  }
+  *state_ = WorkerState::STOPPED;
   OLP_SDK_LOG_DEBUG(kLogTag, "Thread exit, this=" << this);
 }
 
 #ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
 void NetworkCurl::SetupCertificateBlobs() {
-  if (certificate_settings_.client_cert_file_blob.empty() &&
-      certificate_settings_.client_key_file_blob.empty() &&
-      certificate_settings_.cert_file_blob.empty()) {
+  if (certificate_settings_->client_cert_file_blob.empty() &&
+      certificate_settings_->client_key_file_blob.empty() &&
+      certificate_settings_->cert_file_blob.empty()) {
     OLP_SDK_LOG_INFO(kLogTag, "No certificate blobs provided");
     return;
   }
 
   auto setup_blob = [](SslCertificateBlobs::OptionalBlob& blob,
-                       std::string& src) {
+                       const std::string& src) {
     if (src.empty()) {
       blob.reset();
       return;
@@ -1437,11 +1423,11 @@ void NetworkCurl::SetupCertificateBlobs() {
   ssl_certificates_blobs_ = SslCertificateBlobs{};
 
   setup_blob(ssl_certificates_blobs_->ssl_cert_blob,
-             certificate_settings_.client_cert_file_blob);
+             certificate_settings_->client_cert_file_blob);
   setup_blob(ssl_certificates_blobs_->ssl_key_blob,
-             certificate_settings_.client_key_file_blob);
+             certificate_settings_->client_key_file_blob);
   setup_blob(ssl_certificates_blobs_->ca_info_blob,
-             certificate_settings_.cert_file_blob);
+             certificate_settings_->cert_file_blob);
 
   auto to_log_str = [](const SslCertificateBlobs::OptionalBlob& blob) {
     return blob ? "<provided>" : "<empty>";
@@ -1460,9 +1446,9 @@ void NetworkCurl::SetupCertificateBlobs() {
 #ifdef OLP_SDK_USE_MD5_CERT_LOOKUP
 CURLcode NetworkCurl::AddMd5LookupMethod(CURL*, SSL_CTX* ssl_ctx,
                                          RequestHandle* handle) {
-  auto self = handle->self.lock();
-  if (!self) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Unable to lock cURL handle");
+  if (*handle->network_state != WorkerState::STARTED || handle->is_cancelled) {
+    OLP_SDK_LOG_ERROR(kLogTag,
+                      "Network is not started or request is cancelled");
     return CURLE_ABORTED_BY_CALLBACK;
   }
 
@@ -1491,13 +1477,7 @@ CURLcode NetworkCurl::AddMd5LookupMethod(CURL*, SSL_CTX* ssl_ctx,
 #ifdef OLP_SDK_ENABLE_ENVELOPE_PKEY
 CURLcode NetworkCurl::InjectEnvelopeKey(CURL*, SSL_CTX* ssl_ctx,
                                         RequestHandle* handle) {
-  auto self = handle->self.lock();
-  if (!self) {
-    OLP_SDK_LOG_ERROR(kLogTag, "Unable to lock cURL handle");
-    return CURLE_ABORTED_BY_CALLBACK;
-  }
-
-  const auto& cert_blob = self->certificate_settings_.client_cert_file_blob;
+  const auto& cert_blob = handle->certificate_settings->client_cert_file_blob;
   if (!cert_blob.empty()) {
     BIO* bio =
         BIO_new_mem_buf(cert_blob.data(), static_cast<int>(cert_blob.size()));
@@ -1523,7 +1503,7 @@ CURLcode NetworkCurl::InjectEnvelopeKey(CURL*, SSL_CTX* ssl_ctx,
     }
   }
 
-  const auto& ca_blob = self->certificate_settings_.cert_file_blob;
+  const auto& ca_blob = handle->certificate_settings->cert_file_blob;
   if (!ca_blob.empty()) {
     BIO* bio =
         BIO_new_mem_buf(ca_blob.data(), static_cast<int>(ca_blob.size()));
@@ -1563,7 +1543,7 @@ CURLcode NetworkCurl::InjectEnvelopeKey(CURL*, SSL_CTX* ssl_ctx,
   // ERR_get_error() in the error path below reflects the actual key error
   ERR_clear_error();
   if (SSL_CTX_use_PrivateKey(ssl_ctx,
-                             self->certificate_settings_.pkey_handle) != 1) {
+                             handle->certificate_settings->pkey_handle) != 1) {
     OLP_SDK_LOG_ERROR(
         kLogTag, "Failed to use provided EVP_PKEY, error=" << ERR_error_string(
                      ERR_get_error(), nullptr));
