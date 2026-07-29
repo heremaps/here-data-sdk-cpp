@@ -575,20 +575,20 @@ void NetworkCurl::Deinitialize() {
   std::lock_guard<std::mutex> init_lock(init_mutex_);
 
   // Stop worker thread
-  if (!IsStarted()) {
+  auto expected_state = WorkerState::STARTED;
+  if (!impl_->state_->compare_exchange_strong(expected_state,
+                                              WorkerState::STOPPING)) {
     OLP_SDK_LOG_DEBUG(kLogTag, "Already deinitialized, this=" << this);
     return;
   }
 
   OLP_SDK_LOG_TRACE(kLogTag, "Deinitialize NetworkCurl, this=" << this);
 
-  {
-    std::lock_guard<std::mutex> lock(impl_->event_mutex_);
-    *impl_->state_ = WorkerState::STOPPING;
-  }
-
   if (thread_.get_id() != std::this_thread::get_id()) {
-    impl_->NotifyEvent();
+    {
+      std::lock_guard<std::mutex> lock(impl_->event_mutex_);
+      impl_->NotifyEvent();
+    }
     thread_.join();
   } else {
     // We are trying to stop the very thread we are in. This could happen if the
@@ -625,6 +625,11 @@ void NetworkCurl::Impl::Teardown() {
     // cURL teardown
     curl_multi_cleanup(curl_);
     curl_ = nullptr;
+
+#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
+    close(pipe_[0]);
+    close(pipe_[1]);
+#endif
   }
 
   // Handle completed messages
@@ -636,11 +641,6 @@ void NetworkCurl::Impl::Teardown() {
                       .WithError("Offline: network is deinitialized"));
     }
   }
-
-#if (defined OLP_SDK_NETWORK_HAS_PIPE) || (defined OLP_SDK_NETWORK_HAS_PIPE2)
-  close(pipe_[0]);
-  close(pipe_[1]);
-#endif
 }
 
 bool NetworkCurl::IsStarted() const { return impl_->IsStarted(); }
