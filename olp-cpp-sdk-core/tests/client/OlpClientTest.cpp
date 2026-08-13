@@ -584,13 +584,16 @@ TEST_P(OlpClientTest, Timeout) {
 TEST_P(OlpClientTest, Proxy) {
   auto network = network_;
   client_settings_.retry_settings.timeout = 100;
+  const auto expected_ca_info_blob =
+      "-----BEGIN CERTIFICATE-----\nproxy-ca\n-----END CERTIFICATE-----\n";
   auto expected_settings =
       olp::http::NetworkProxySettings()
           .WithHostname("somewhere")
           .WithPort(1080)
-          .WithType(olp::http::NetworkProxySettings::Type::HTTP)
+          .WithType(olp::http::NetworkProxySettings::Type::HTTPS)
           .WithUsername("username1")
-          .WithPassword("1");
+          .WithPassword("1")
+          .WithCaInfoBlob(expected_ca_info_blob);
 
   client_settings_.proxy_settings = expected_settings;
   olp::http::NetworkProxySettings result_settings;
@@ -628,7 +631,8 @@ TEST_P(OlpClientTest, Proxy) {
   ASSERT_EQ(expected_settings.GetPassword(), result_settings.GetPassword());
   ASSERT_EQ(expected_settings.GetPort(), result_settings.GetPort());
   ASSERT_EQ(expected_settings.GetUsername(), result_settings.GetUsername());
-  ASSERT_EQ(expected_settings.GetPassword(), result_settings.GetPassword());
+  ASSERT_EQ(expected_settings.GetType(), result_settings.GetType());
+  ASSERT_EQ(expected_ca_info_blob, result_settings.GetCaInfoBlob());
 
   testing::Mock::VerifyAndClearExpectations(network.get());
 }
