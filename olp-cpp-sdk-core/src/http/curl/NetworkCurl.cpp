@@ -337,6 +337,15 @@ void SetupProxy(CURL* curl_handle, const NetworkProxySettings& proxy) {
     curl_easy_setopt(curl_handle, CURLOPT_PROXYUSERNAME, username.c_str());
     curl_easy_setopt(curl_handle, CURLOPT_PROXYPASSWORD, password.c_str());
   }
+
+#ifdef OLP_SDK_CURL_HAS_SUPPORT_SSL_BLOBS
+  const auto& ca_info_blob = proxy.GetCaInfoBlob();
+  curl_blob proxy_ca_info_blob{};
+  proxy_ca_info_blob.data = const_cast<char*>(ca_info_blob.data());
+  proxy_ca_info_blob.len = ca_info_blob.size();
+  proxy_ca_info_blob.flags = CURL_BLOB_COPY;
+  curl_easy_setopt(curl_handle, CURLOPT_PROXY_CAINFO_BLOB, &proxy_ca_info_blob);
+#endif
 }
 
 void SetupRequestBody(CURL* curl_handle,
