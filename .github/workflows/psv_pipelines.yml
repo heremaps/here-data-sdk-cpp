@@ -6,7 +6,7 @@ on:
       - master
   pull_request:
     branches:
-      - '*'
+      - "*"
 
 env:
   SEGFAULT_SIGNALS: all
@@ -26,6 +26,24 @@ jobs:
         run: ./scripts/misc/cpplint_ci.sh
         shell: bash
 
+  psv-linux-24-04-clang17-build-clang-tidy:
+    name: PSV.Linux.24.04.clang17.ClangTidy
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libboost-all-dev \
+            libcurl4-openssl-dev
+        shell: bash
+      - name: Run clang-tidy
+        run: ./scripts/misc/clang-tidy-17-check.sh
+        shell: bash
+
   psv-linux-22-04-gcc9-build-test-codecov:
     name: PSV.Linux.22.04.gcc9.Tests.CodeCov
     runs-on: ubuntu-22.04
@@ -34,24 +52,24 @@ jobs:
       CC: gcc-9
       CXX: g++-9
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v7
-    - name: Install Ubuntu dependencies
-      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-9 g++-9 --no-install-recommends
-      shell: bash
-    - name: Compile project with cmake and ccache
-      run: gcc --version && ./scripts/linux/psv/build_psv.sh
-      shell: bash
-    - name: Run unit and integration tests
-      run: ./scripts/linux/psv/test_psv.sh
-      shell: bash
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v7
-      with:
-        fail_ci_if_error: true # optional (default = false)
-        verbose: true # optional (default = false)
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Install Ubuntu dependencies
+        run: sudo apt-get update && sudo apt-get install -y libboost-all-dev ccache libssl-dev libcurl4-openssl-dev gcc-9 g++-9 --no-install-recommends
+        shell: bash
+      - name: Compile project with cmake and ccache
+        run: gcc --version && ./scripts/linux/psv/build_psv.sh
+        shell: bash
+      - name: Run unit and integration tests
+        run: ./scripts/linux/psv/test_psv.sh
+        shell: bash
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v7
+        with:
+          fail_ci_if_error: true # optional (default = false)
+          verbose: true # optional (default = false)
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   psv-linux-22-04-gcc9-build-no-cache:
     name: PSV.Linux.22.04.gcc9.OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
@@ -61,14 +79,14 @@ jobs:
       CC: gcc-9
       CXX: g++-9
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v7
-    - name: Install Ubuntu dependencies
-      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-9 g++-9 --no-install-recommends
-      shell: bash
-    - name: Compile project without cache
-      run: ./scripts/linux/psv/build_psv_no_cache.sh
-      shell: bash
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Install Ubuntu dependencies
+        run: sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-9 g++-9 --no-install-recommends
+        shell: bash
+      - name: Compile project without cache
+        run: ./scripts/linux/psv/build_psv_no_cache.sh
+        shell: bash
 
   psv-linux-22-04-gcc11-build:
     name: PSV.Linux.22.04.gcc11.Tests
@@ -128,17 +146,17 @@ jobs:
       CC: gcc-14
       CXX: g++-14
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v7
-    - name: Install Ubuntu dependencies
-      run: sudo rm /etc/apt/sources.list.d/microsoft-prod.list && sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-14 g++-14 ccache --no-install-recommends
-      shell: bash
-    - name: Compile project with cmake and ccache
-      run: gcc --version && ./scripts/linux/psv/build_psv.sh
-      shell: bash
-    - name: Run unit and integration tests
-      run: ./scripts/linux/psv/test_psv.sh
-      shell: bash
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Install Ubuntu dependencies
+        run: sudo rm /etc/apt/sources.list.d/microsoft-prod.list && sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-14 g++-14 ccache --no-install-recommends
+        shell: bash
+      - name: Compile project with cmake and ccache
+        run: gcc --version && ./scripts/linux/psv/build_psv.sh
+        shell: bash
+      - name: Run unit and integration tests
+        run: ./scripts/linux/psv/test_psv.sh
+        shell: bash
 
   psv-linux-22-04-gcc11-build-no-exceptions:
     name: PSV.Linux.22.04.gcc11.OLP_SDK_NO_EXCEPTION=ON
@@ -163,14 +181,14 @@ jobs:
       CC: gcc-14
       CXX: g++-14
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v7
-    - name: Install Ubuntu dependencies
-      run: sudo rm /etc/apt/sources.list.d/microsoft-prod.list && sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-14 g++-14 --no-install-recommends
-      shell: bash
-    - name: Compile project without cache
-      run: ./scripts/linux/psv/build_psv_no_cache.sh
-      shell: bash
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Install Ubuntu dependencies
+        run: sudo rm /etc/apt/sources.list.d/microsoft-prod.list && sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev gcc-14 g++-14 --no-install-recommends
+        shell: bash
+      - name: Compile project without cache
+        run: ./scripts/linux/psv/build_psv_no_cache.sh
+        shell: bash
 
   psv-linux-24-04-gcc13-build:
     name: PSV.Linux.24.04.gcc13.Tests
@@ -198,14 +216,14 @@ jobs:
     env:
       BUILD_TYPE: RelWithDebInfo
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v7
-    - name: Install Ubuntu dependencies
-      run: sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev --no-install-recommends
-      shell: bash
-    - name: Compile project without cache
-      run: ./scripts/linux/psv/build_psv_no_cache.sh
-      shell: bash
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Install Ubuntu dependencies
+        run: sudo apt-get update && sudo apt-get install -y libboost-all-dev libssl-dev libcurl4-openssl-dev --no-install-recommends
+        shell: bash
+      - name: Compile project without cache
+        run: ./scripts/linux/psv/build_psv_no_cache.sh
+        shell: bash
 
   psv-linux-22-04-clang-build:
     name: PSV.Linux.22.04.clang.Tests
@@ -216,17 +234,17 @@ jobs:
       CXX: clang++-11
       CXXFLAGS: -Wno-deprecated-copy
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v7
-    - name: Install Ubuntu dependencies
-      run: sudo apt-get update -y && sudo apt-get install clang-11 ccache libcurl4-openssl-dev -y --no-install-recommends --fix-missing
-      shell: bash
-    - name: Compile project on Clang
-      run: scripts/linux/psv/build_psv.sh
-      shell: bash
-    - name: Run unit and integration tests
-      run: scripts/linux/psv/test_psv.sh
-      shell: bash
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Install Ubuntu dependencies
+        run: sudo apt-get update -y && sudo apt-get install clang-11 ccache libcurl4-openssl-dev -y --no-install-recommends --fix-missing
+        shell: bash
+      - name: Compile project on Clang
+        run: scripts/linux/psv/build_psv.sh
+        shell: bash
+      - name: Run unit and integration tests
+        run: scripts/linux/psv/test_psv.sh
+        shell: bash
 
   psv-linux-22-04-clang-hidden-build:
     name: PSV.Linux.22.04.clang.hidden
@@ -238,14 +256,14 @@ jobs:
       CXXFLAGS: -Wno-deprecated-copy
       EXTRA_CMAKE_OPTIONS: -DCMAKE_CXX_VISIBILITY_PRESET=hidden -DOLP_SDK_ENABLE_TESTING=OFF
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v7
-    - name: Install Ubuntu dependencies
-      run: sudo apt-get update -y && sudo apt-get install clang-11 ccache libcurl4-openssl-dev -y --no-install-recommends --fix-missing
-      shell: bash
-    - name: Compile project on Clang
-      run: scripts/linux/psv/build_psv.sh
-      shell: bash
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Install Ubuntu dependencies
+        run: sudo apt-get update -y && sudo apt-get install clang-11 ccache libcurl4-openssl-dev -y --no-install-recommends --fix-missing
+        shell: bash
+      - name: Compile project on Clang
+        run: scripts/linux/psv/build_psv.sh
+        shell: bash
 
   psv-android-22-04-build:
     name: PSV.Linux.Android.22.04
@@ -253,24 +271,24 @@ jobs:
     env:
       BUILD_TYPE: RelWithDebInfo
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v7
-    - name: Verification of prerequisites
-      run: env && ls -la $ANDROID_HOME
-      shell: bash
-    - name: Android build and Examples
-      run: scripts/android/build.sh
-      shell: bash
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Verification of prerequisites
+        run: env && ls -la $ANDROID_HOME
+        shell: bash
+      - name: Android build and Examples
+        run: scripts/android/build.sh
+        shell: bash
 
   psv-macos-15-arm64-xcode-16-build:
     name: PSV.MacOS15.Xcode16.ARM64
     runs-on: macos-15
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v7
-    - name: MacOS Build Xcode16
-      run: scripts/macos/psv/azure_macos_build_psv.sh
-      shell: bash
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: MacOS Build Xcode16
+        run: scripts/macos/psv/azure_macos_build_psv.sh
+        shell: bash
 
   psv-ios-arm64-xcode-26-build:
     name: PSV.iOS.MacOS15.Xcode26.ARM64
@@ -288,11 +306,11 @@ jobs:
     name: PSV.iOS.MacOS15.Xcode16.ARM64
     runs-on: macOS-15
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v7
-    - name: iOS Xcode 16 Build
-      run: scripts/ios/azure_ios_build_psv.sh
-      shell: bash
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: iOS Xcode 16 Build
+        run: scripts/ios/azure_ios_build_psv.sh
+        shell: bash
 
   psv-ios-os14-arm64-xcode-15-build:
     name: PSV.iOS.MacOS14.Xcode15.ARM64
@@ -322,16 +340,16 @@ jobs:
     runs-on: ubuntu-22.04
     if: github.ref_name != 'master'
     steps:
-    - uses: actions/checkout@v7
-      with:
-        fetch-depth: 0
-    - name: Set tags env variables.
-      run: |
-        # Get your last commit message, not the merge commit.
-        text=$(git log -1 --no-merges --pretty=%B)
-    - name: Commit checker script. Verify commit text
-      run: scripts/misc/commit_checker.sh
-      shell: bash
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Set tags env variables.
+        run: |
+          # Get your last commit message, not the merge commit.
+          text=$(git log -1 --no-merges --pretty=%B)
+      - name: Commit checker script. Verify commit text
+        run: scripts/misc/commit_checker.sh
+        shell: bash
 
   psv-formatting-checker:
     name: PSV.Clang.Format.Checker
@@ -339,42 +357,42 @@ jobs:
     env:
       CLANG_FORMAT_FILE: "clang-format.diff"
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v7
-    - name: Setup environment
-      run: |
-        set +x
-        set -e
-        sudo apt-get update
-        sudo apt-get install -y wget
-        mkdir _os_deps
-        cd _os_deps
-        wget https://apt.llvm.org/bionic/pool/main/l/llvm-toolchain-6.0/clang-format-6.0_6.0.1~svn334776-1~exp1~20190309042703.125_amd64.deb
-        wget https://apt.llvm.org/bionic/pool/main/l/llvm-toolchain-6.0/libllvm6.0_6.0.1~svn334776-1~exp1~20190309042703.125_amd64.deb
-        wget https://mirrors.edge.kernel.org/ubuntu/pool/main/libf/libffi/libffi6_3.2.1-8_amd64.deb
-        wget https://mirrors.edge.kernel.org/ubuntu/pool/universe/w/what-is-python/python-is-python2_2.7.17-4_all.deb
-        sudo apt-get install -y ./libffi6_3.2.1-8_amd64.deb
-        sudo apt-get install -y ./libllvm6.0_6.0.1~svn334776-1~exp1~20190309042703.125_amd64.deb
-        sudo apt-get remove python-is-python3
-        sudo apt-get install -y ./python-is-python2_2.7.17-4_all.deb
-        sudo apt-get install -y ./clang-format-6.0_6.0.1~svn334776-1~exp1~20190309042703.125_amd64.deb
-        cd ..
-      shell: bash
-    - name: "Clang format checker script"
-      run: ./scripts/misc/clang_format_ci.sh
-      shell: bash
-    - name: Store formatting check results
-      uses: actions/upload-artifact@v7
-      with:
-        name: clang-format-diff
-        path: ${{ env.CLANG_FORMAT_FILE }}
-    - name: Verify check result
-      run: |
-        set +x
-        if [ -s ${CLANG_FORMAT_FILE} ] ; then
-          echo "Unformatted files are detected. "
-          echo "You may apply provided patch. Download from the workflow summary and unpack to root of repository."
-          echo "Then run: git apply $CLANG_FORMAT_FILE"
-          exit 1
-        fi
-      shell: bash
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Setup environment
+        run: |
+          set +x
+          set -e
+          sudo apt-get update
+          sudo apt-get install -y wget
+          mkdir _os_deps
+          cd _os_deps
+          wget https://apt.llvm.org/bionic/pool/main/l/llvm-toolchain-6.0/clang-format-6.0_6.0.1~svn334776-1~exp1~20190309042703.125_amd64.deb
+          wget https://apt.llvm.org/bionic/pool/main/l/llvm-toolchain-6.0/libllvm6.0_6.0.1~svn334776-1~exp1~20190309042703.125_amd64.deb
+          wget https://mirrors.edge.kernel.org/ubuntu/pool/main/libf/libffi/libffi6_3.2.1-8_amd64.deb
+          wget https://mirrors.edge.kernel.org/ubuntu/pool/universe/w/what-is-python/python-is-python2_2.7.17-4_all.deb
+          sudo apt-get install -y ./libffi6_3.2.1-8_amd64.deb
+          sudo apt-get install -y ./libllvm6.0_6.0.1~svn334776-1~exp1~20190309042703.125_amd64.deb
+          sudo apt-get remove python-is-python3
+          sudo apt-get install -y ./python-is-python2_2.7.17-4_all.deb
+          sudo apt-get install -y ./clang-format-6.0_6.0.1~svn334776-1~exp1~20190309042703.125_amd64.deb
+          cd ..
+        shell: bash
+      - name: "Clang format checker script"
+        run: ./scripts/misc/clang_format_ci.sh
+        shell: bash
+      - name: Store formatting check results
+        uses: actions/upload-artifact@v7
+        with:
+          name: clang-format-diff
+          path: ${{ env.CLANG_FORMAT_FILE }}
+      - name: Verify check result
+        run: |
+          set +x
+          if [ -s ${CLANG_FORMAT_FILE} ] ; then
+            echo "Unformatted files are detected. "
+            echo "You may apply provided patch. Download from the workflow summary and unpack to root of repository."
+            echo "Then run: git apply $CLANG_FORMAT_FILE"
+            exit 1
+          fi
+        shell: bash
