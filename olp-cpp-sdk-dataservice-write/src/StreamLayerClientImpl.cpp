@@ -214,6 +214,7 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
   // invocation: one during execution phase and other when `Flush` is cancelled.
   auto exec_started = std::make_shared<std::atomic_bool>(false);
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto task_context = client::TaskContext::Create(
       [=](client::CancellationContext context) -> EmptyFlushApiResponse {
         exec_started->exchange(true);
@@ -249,6 +250,7 @@ olp::client::CancellationToken StreamLayerClientImpl::Flush(
         callback(responses);
         return EmptyFlushApiResponse{};
       },
+      // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
       [=](EmptyFlushApiResponse /*response*/) {
         // we don't need to notify user 2 times, cause we already invoke a
         // callback in the execution function:

@@ -168,7 +168,7 @@ Crypto::Sha256Digest ComputeSha256(const std::vector<unsigned char>& src) {
     auto v3 = (unsigned char)value;
     auto v2 = (unsigned char)(value >>= 8);
     auto v1 = (unsigned char)(value >>= 8);
-    ret[j + 0] = (unsigned char)(value >>= 8);
+    ret[j + 0] = (unsigned char)(value >> 8);
     ret[j + 1] = v1;
     ret[j + 2] = v2;
     ret[j + 3] = v3;

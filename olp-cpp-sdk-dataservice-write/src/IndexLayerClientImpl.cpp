@@ -242,6 +242,7 @@ client::CancellationToken IndexLayerClientImpl::DeleteIndexData(
   auto cancel_context = std::make_shared<client::CancellationContext>();
   auto self = shared_from_this();
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto cancel_function = [=]() {
     self->tokenList_.RemoveTask(op_id);
     callback(DeleteIndexDataResponse(client::ApiError(
@@ -302,6 +303,7 @@ client::CancellationToken IndexLayerClientImpl::UpdateIndex(
   auto self = shared_from_this();
 
   auto op_id = tokenList_.GetNextId();
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto cancel_function = [=]() {
     self->tokenList_.RemoveTask(op_id);
     callback(UpdateIndexResponse(client::ApiError(

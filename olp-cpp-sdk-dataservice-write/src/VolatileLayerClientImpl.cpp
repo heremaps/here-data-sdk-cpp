@@ -192,6 +192,7 @@ client::CancellationToken VolatileLayerClientImpl::GetBaseVersion(
                               "Operation cancelled.", true));
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto getBaseVersion_callback =
       [=](MetadataApi::CatalogVersionResponse response) {
         self->tokenList_.RemoveTask(id);
@@ -209,12 +210,14 @@ client::CancellationToken VolatileLayerClientImpl::GetBaseVersion(
         }
       };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto getBaseVersion_function = [=]() -> client::CancellationToken {
     return MetadataApi::GetLatestCatalogVersion(*self->apiclient_metadata_, -1,
                                                 olp::porting::none,
                                                 getBaseVersion_callback);
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
@@ -264,6 +267,7 @@ client::CancellationToken VolatileLayerClientImpl::StartBatch(
         }
       };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto init_publication_function = [=]() -> client::CancellationToken {
     model::Publication pub;
     pub.SetLayerIds(request.GetLayers().value_or(std::vector<std::string>()));
@@ -275,12 +279,14 @@ client::CancellationToken VolatileLayerClientImpl::StartBatch(
                                        init_publication_callback);
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto cancel_function = [=]() {
     self->tokenList_.RemoveTask(id);
     callback(client::ApiError(client::ErrorCode::Cancelled,
                               "Operation cancelled.", true));
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
@@ -425,6 +431,7 @@ client::CancellationToken VolatileLayerClientImpl::GetBatch(
                               "Operation cancelled.", true));
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto getPublication_callback =
       [=](GetPublicationResponse getPublicationResponse) {
         self->tokenList_.RemoveTask(id);
@@ -435,12 +442,14 @@ client::CancellationToken VolatileLayerClientImpl::GetBatch(
         }
       };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto getPublication_function = [=]() -> client::CancellationToken {
     return PublishApi::GetPublication(*self->apiclient_publish_, publicationId,
                                       olp::porting::none,
                                       getPublication_callback);
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
@@ -572,12 +581,14 @@ client::CancellationToken VolatileLayerClientImpl::PublishToBatch(
   auto self = shared_from_this();
   auto id = tokenList_.GetNextId();
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto cancel_function = [=]() {
     self->tokenList_.RemoveTask(id);
     callback(client::ApiError(client::ErrorCode::Cancelled,
                               "Operation cancelled.", true));
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto upload_partitions_callback =
       [=](UploadPartitionsResponse upload_partitions_response) {
         self->tokenList_.RemoveTask(id);
@@ -588,6 +599,7 @@ client::CancellationToken VolatileLayerClientImpl::PublishToBatch(
         }
       };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto upload_partitions_function = [=]() -> client::CancellationToken {
     std::vector<model::PublishPartition> pub_partition_list;
     for (const auto& partition_request : partitions) {
@@ -610,6 +622,7 @@ client::CancellationToken VolatileLayerClientImpl::PublishToBatch(
         upload_partitions_callback);
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
@@ -654,12 +667,14 @@ client::CancellationToken VolatileLayerClientImpl::CompleteBatch(
   auto self = shared_from_this();
   auto cancel_context = std::make_shared<client::CancellationContext>();
   auto id = tokenList_.GetNextId();
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto cancel_function = [=]() {
     self->tokenList_.RemoveTask(id);
     callback(client::ApiError(client::ErrorCode::Cancelled,
                               "Operation cancelled.", true));
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto completePublication_callback =
       [=](SubmitPublicationResponse submitPublicationResponse) {
         self->tokenList_.RemoveTask(id);
@@ -670,12 +685,14 @@ client::CancellationToken VolatileLayerClientImpl::CompleteBatch(
         }
       };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto completePublication_function = [=]() -> client::CancellationToken {
     return PublishApi::SubmitPublication(*self->apiclient_publish_,
                                          publicationId, olp::porting::none,
                                          completePublication_callback);
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(

@@ -192,6 +192,7 @@ client::CancellationToken TokenEndpointImpl::RequestToken(
   properties.scope = scope_;
   return auth_client_.SignInClient(
       credentials_, properties,
+      // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
       [callback](
           const AuthenticationClient::SignInClientResponse& sign_in_response) {
         if (!sign_in_response) {

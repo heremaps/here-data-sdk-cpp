@@ -224,12 +224,14 @@ olp::client::CancellationToken VersionedLayerClientImpl::GetBaseVersion(
   auto cancel_context = std::make_shared<client::CancellationContext>();
   auto id = tokenList_.GetNextId();
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto cancel_function = [=]() {
     self->tokenList_.RemoveTask(id);
     callback(client::ApiError(client::ErrorCode::Cancelled,
                               "Operation cancelled.", true));
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto getBaseVersion_callback =
       [=](MetadataApi::CatalogVersionResponse response) {
         self->tokenList_.RemoveTask(id);
@@ -247,12 +249,14 @@ olp::client::CancellationToken VersionedLayerClientImpl::GetBaseVersion(
         }
       };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto getBaseVersion_function = [=]() -> client::CancellationToken {
     return MetadataApi::GetLatestCatalogVersion(*self->apiclient_metadata_, -1,
                                                 olp::porting::none,
                                                 getBaseVersion_callback);
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
@@ -298,12 +302,14 @@ olp::client::CancellationToken VersionedLayerClientImpl::GetBatch(
   auto cancel_context = std::make_shared<client::CancellationContext>();
   auto id = tokenList_.GetNextId();
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto cancel_function = [=]() {
     self->tokenList_.RemoveTask(id);
     callback(client::ApiError(client::ErrorCode::Cancelled,
                               "Operation cancelled.", true));
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto getPublication_callback =
       [=](GetPublicationResponse getPublicationResponse) {
         self->tokenList_.RemoveTask(id);
@@ -314,12 +320,14 @@ olp::client::CancellationToken VersionedLayerClientImpl::GetBatch(
         }
       };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto getPublication_function = [=]() -> client::CancellationToken {
     return PublishApi::GetPublication(*self->apiclient_publish_, publicationId,
                                       olp::porting::none,
                                       getPublication_callback);
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
@@ -566,6 +574,7 @@ client::CancellationToken VersionedLayerClientImpl::CheckDataExists(
   auto cancel_context = std::make_shared<client::CancellationContext>();
   auto id = tokenList_.GetNextId();
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto check_data_exists_callback =
       [=](CheckDataExistsResponse check_data_exists_response) {
         self->tokenList_.RemoveTask(id);
@@ -576,17 +585,20 @@ client::CancellationToken VersionedLayerClientImpl::CheckDataExists(
         }
       };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto check_data_exists_function = [=]() -> client::CancellationToken {
     return BlobApi::checkBlobExists(*self->apiclient_blob_, layer_id,
                                     data_handle, olp::porting::none,
                                     check_data_exists_callback);
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto cancel_function = [callback]() {
     callback(client::ApiError(client::ErrorCode::Cancelled,
                               "Operation cancelled.", true));
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   cancel_context->ExecuteOrCancelled(
       [=]() -> client::CancellationToken {
         return self->InitApiClients(
