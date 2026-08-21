@@ -192,8 +192,8 @@ client::CancellationToken VolatileLayerClientImpl::GetBaseVersion(
                               "Operation cancelled.", true));
   };
 
-  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto getBaseVersion_callback =
+      // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
       [=](MetadataApi::CatalogVersionResponse response) {
         self->tokenList_.RemoveTask(id);
         if (!response.IsSuccessful()) {
@@ -431,8 +431,8 @@ client::CancellationToken VolatileLayerClientImpl::GetBatch(
                               "Operation cancelled.", true));
   };
 
-  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto getPublication_callback =
+      // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
       [=](GetPublicationResponse getPublicationResponse) {
         self->tokenList_.RemoveTask(id);
         if (!getPublicationResponse.IsSuccessful()) {
@@ -588,8 +588,8 @@ client::CancellationToken VolatileLayerClientImpl::PublishToBatch(
                               "Operation cancelled.", true));
   };
 
-  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto upload_partitions_callback =
+      // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
       [=](UploadPartitionsResponse upload_partitions_response) {
         self->tokenList_.RemoveTask(id);
         if (!upload_partitions_response.IsSuccessful()) {
@@ -674,8 +674,8 @@ client::CancellationToken VolatileLayerClientImpl::CompleteBatch(
                               "Operation cancelled.", true));
   };
 
-  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto completePublication_callback =
+      // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
       [=](SubmitPublicationResponse submitPublicationResponse) {
         self->tokenList_.RemoveTask(id);
         if (!submitPublicationResponse.IsSuccessful()) {

@@ -231,8 +231,8 @@ olp::client::CancellationToken VersionedLayerClientImpl::GetBaseVersion(
                               "Operation cancelled.", true));
   };
 
-  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto getBaseVersion_callback =
+      // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
       [=](MetadataApi::CatalogVersionResponse response) {
         self->tokenList_.RemoveTask(id);
         if (!response.IsSuccessful()) {
@@ -309,8 +309,8 @@ olp::client::CancellationToken VersionedLayerClientImpl::GetBatch(
                               "Operation cancelled.", true));
   };
 
-  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto getPublication_callback =
+      // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
       [=](GetPublicationResponse getPublicationResponse) {
         self->tokenList_.RemoveTask(id);
         if (!getPublicationResponse.IsSuccessful()) {
@@ -574,8 +574,8 @@ client::CancellationToken VersionedLayerClientImpl::CheckDataExists(
   auto cancel_context = std::make_shared<client::CancellationContext>();
   auto id = tokenList_.GetNextId();
 
-  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto check_data_exists_callback =
+      // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
       [=](CheckDataExistsResponse check_data_exists_response) {
         self->tokenList_.RemoveTask(id);
         if (!check_data_exists_response.IsSuccessful()) {

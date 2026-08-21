@@ -310,6 +310,7 @@ client::CancellationToken IndexLayerClientImpl::UpdateIndex(
         client::ErrorCode::Cancelled, "Operation cancelled.", true)));
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto updateIndex_callback = [=](UpdateIndexResponse update_index_response) {
     self->tokenList_.RemoveTask(op_id);
     if (!update_index_response.IsSuccessful()) {
