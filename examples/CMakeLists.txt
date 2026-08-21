@@ -20,6 +20,7 @@ set(OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET dataservice-read-example)
 set(OLP_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET dataservice-write-example)
 set(OLP_SDK_DATASERVICE_CACHE_EXAMPLE_TARGET dataservice-cache-example)
 set(OLP_SDK_DATASERVICE_READ_STREAM_LAYER_EXAMPLE_TARGET dataservice-read-stream-layer-example)
+set(OLP_SDK_MTLS_AUTHENTICATION_EXAMPLE_TARGET mtls-authentication-example)
 
 set(OLP_SDK_EXAMPLE_SUCCESS_STRING "Example has finished successfully")
 set(OLP_SDK_EXAMPLE_FAILURE_STRING "Example failed!")
@@ -81,6 +82,14 @@ else()
         olp-cpp-sdk-authentication
         olp-cpp-sdk-dataservice-read)
 
+    add_library(${OLP_SDK_MTLS_AUTHENTICATION_EXAMPLE_TARGET}
+        ./MtlsAuthenticationExample.cpp
+        ./Examples.h
+        ./MtlsAuthenticationExample.h)
+
+    target_link_libraries(${OLP_SDK_MTLS_AUTHENTICATION_EXAMPLE_TARGET}
+        olp-cpp-sdk-authentication)
+
     target_compile_definitions(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
         PRIVATE EXAMPLES_LIBRARY)
     target_compile_definitions(${OLP_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET}
@@ -88,6 +97,8 @@ else()
     target_compile_definitions(${OLP_SDK_DATASERVICE_CACHE_EXAMPLE_TARGET}
         PRIVATE EXAMPLES_LIBRARY)
     target_compile_definitions(${OLP_SDK_DATASERVICE_READ_STREAM_LAYER_EXAMPLE_TARGET}
+        PRIVATE EXAMPLES_LIBRARY)
+    target_compile_definitions(${OLP_SDK_MTLS_AUTHENTICATION_EXAMPLE_TARGET}
         PRIVATE EXAMPLES_LIBRARY)
     if(BUILD_SHARED_LIBS)
         target_compile_definitions(${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
@@ -97,6 +108,8 @@ else()
         target_compile_definitions(${OLP_SDK_DATASERVICE_CACHE_EXAMPLE_TARGET}
             PUBLIC EXAMPLES_SHARED_LIBRARY)
         target_compile_definitions(${OLP_SDK_DATASERVICE_READ_STREAM_LAYER_EXAMPLE_TARGET}
+            PUBLIC EXAMPLES_SHARED_LIBRARY)
+        target_compile_definitions(${OLP_SDK_MTLS_AUTHENTICATION_EXAMPLE_TARGET}
             PUBLIC EXAMPLES_SHARED_LIBRARY)
     endif()
 
@@ -109,6 +122,7 @@ else()
        ${OLP_SDK_DATASERVICE_READ_EXAMPLE_TARGET}
        ${OLP_SDK_DATASERVICE_WRITE_EXAMPLE_TARGET}
        ${OLP_SDK_DATASERVICE_CACHE_EXAMPLE_TARGET}
-       ${OLP_SDK_DATASERVICE_READ_STREAM_LAYER_EXAMPLE_TARGET})
+       ${OLP_SDK_DATASERVICE_READ_STREAM_LAYER_EXAMPLE_TARGET}
+       ${OLP_SDK_MTLS_AUTHENTICATION_EXAMPLE_TARGET})
 
 endif()

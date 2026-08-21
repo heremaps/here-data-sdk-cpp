@@ -38,8 +38,10 @@
 #include "SignInUserResultImpl.h"
 #include "SignOutResultImpl.h"
 #include "SignUpResultImpl.h"
+#include "olp/core/client/OlpClientSettingsFactory.h"
 #include "olp/core/http/Network.h"
 #include "olp/core/http/NetworkConstants.h"
+#include "olp/core/http/NetworkInitializationSettings.h"
 #include "olp/core/http/NetworkResponse.h"
 #include "olp/core/http/NetworkUtils.h"
 #include "olp/core/logging/Log.h"
@@ -88,6 +90,7 @@ constexpr auto kFacebookGrantType = "facebook";
 constexpr auto kArcgisGrantType = "arcgis";
 constexpr auto kAppleGrantType = "jwtIssNotHERE";
 constexpr auto kRefreshGrantType = "refresh_token";
+constexpr auto kMtlsGrantType = "mtls";
 
 constexpr auto kServiceId = "serviceId";
 constexpr auto kActions = "actions";
@@ -383,6 +386,68 @@ client::CancellationToken AuthenticationClientImpl::SignInClient(
 
       if (status == http::HttpStatusCode::OK) {
         StoreInCache(credentials.GetKey(), response.GetResult());
+      }
+
+      break;
+    }
+
+    return response;
+  };
+
+  return AddTask(settings_.task_scheduler, pending_requests_, std::move(task),
+                 std::move(callback));
+}
+
+client::CancellationToken AuthenticationClientImpl::SignInMtls(
+    MtlsProperties properties, SignInClientCallback callback) {
+  auto task = [=](client::CancellationContext context) -> SignInClientResponse {
+    if (context.IsCancelled()) {
+      return client::ApiError::Cancelled();
+    }
+
+    http::NetworkInitializationSettings network_settings;
+    network_settings.certificate_settings.client_cert_file_blob =
+        properties.client_cert_pem;
+    network_settings.certificate_settings.client_key_file_blob =
+        properties.client_key_pem;
+    network_settings.certificate_settings.cert_file_blob =
+        properties.ca_cert_pem;
+
+    auto network = CreateNetworkRequestHandler(network_settings);
+    if (!network) {
+      return client::ApiError::NetworkConnection(
+          "Cannot sign in while offline");
+    }
+
+    auto settings = settings_;
+    settings.network_request_handler = network;
+    auto client = CreateOlpClient(settings, {}, false);
+
+    const auto request_body = GenerateMtlsBody(properties);
+
+    SignInClientResponse response;
+
+    const auto& retry_settings = settings_.retry_settings;
+
+    for (auto retry = 0; retry < retry_settings.max_attempts; ++retry) {
+      if (context.IsCancelled()) {
+        return client::ApiError::Cancelled();
+      }
+
+      auto auth_response = client.CallApi({}, "POST", {}, {}, {}, request_body,
+                                          kApplicationJson, context);
+
+      const auto status = auth_response.GetStatus();
+      if (status < 0) {
+        response = GetSignInResponse<SignInResult>(
+            auth_response, context, settings_.token_endpoint_url);
+      } else {
+        response = ParseAuthResponse(status, auth_response.GetRawResponse());
+      }
+
+      if (retry_settings.retry_condition(auth_response)) {
+        RetryDelay(retry_settings, retry);
+        continue;
       }
 
       break;
@@ -1012,6 +1077,25 @@ AuthenticationClientImpl::GenerateAuthorizeBody(
   return std::make_shared<RequestBodyData>(content.begin(), content.end());
 }
 
+client::OlpClient::RequestBodyType AuthenticationClientImpl::GenerateMtlsBody(
+    const MtlsProperties& properties) {
+  boost::json::object object;
+
+  object[kGrantType] = kMtlsGrantType;
+
+  auto expires_in = static_cast<unsigned int>(properties.expires_in.count());
+  if (expires_in > 0) {
+    object[Constants::EXPIRES_IN] = expires_in;
+  }
+
+  if (properties.scope) {
+    object[kScope] = *properties.scope;
+  }
+
+  auto content = boost::json::serialize(object);
+  return std::make_shared<RequestBodyData>(content.begin(), content.end());
+}
+
 std::string AuthenticationClientImpl::GenerateUid() const {
   std::lock_guard<std::mutex> lock(token_mutex_);
   {
@@ -1019,6 +1103,13 @@ std::string AuthenticationClientImpl::GenerateUid() const {
 
     return boost::uuids::to_string(gen());
   }
+}
+
+std::shared_ptr<http::Network>
+AuthenticationClientImpl::CreateNetworkRequestHandler(
+    http::NetworkInitializationSettings settings) const {
+  return client::OlpClientSettingsFactory::CreateDefaultNetworkRequestHandler(
+      std::move(settings));
 }
 
 AuthenticationClientImpl::RequestTimer

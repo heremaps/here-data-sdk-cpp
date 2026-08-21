@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,11 @@ client::CancellationToken AuthenticationClient::SignInClient(
     SignInClientCallback callback) {
   return impl_->SignInClient(std::move(credentials), std::move(properties),
                              std::move(callback));
+}
+
+client::CancellationToken AuthenticationClient::SignInMtls(
+    MtlsProperties properties, SignInClientCallback callback) {
+  return impl_->SignInMtls(std::move(properties), std::move(callback));
 }
 
 client::CancellationToken AuthenticationClient::SignInHereUser(

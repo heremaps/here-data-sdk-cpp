@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,17 @@
 #include <gmock/gmock.h>
 #include <matchers/NetworkUrlMatchers.h>
 #include <mocks/NetworkMock.h>
+#include <olp/authentication/MtlsSettings.h>
+#include <olp/authentication/MtlsTokenProvider.h>
 #include <olp/authentication/Settings.h>
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/porting/make_unique.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
+#include "AuthenticationClientImplTestable.h"
 #include "AuthenticationMockedResponses.h"
+#include "MtlsTokenProviderPrivate.h"
 
 namespace http = olp::http;
 namespace client = olp::client;
@@ -50,6 +54,11 @@ constexpr auto kWaitTimeout = std::chrono::seconds(3);
 constexpr auto kMaxRetryAttempts = 5;
 constexpr auto kMinTimeout = 1;
 constexpr auto kRequestId = 42;
+constexpr auto kBlob1 = "blob n1";
+constexpr auto kBlob2 = "blob n2";
+constexpr auto kBlob3 = "blob n3";
+constexpr auto kMtlsTokenEndpointUrl =
+    "https://mtls.account.api.here.com/mtls/token";
 
 // Request defines
 static const std::string kTimestampUrl =
@@ -547,6 +556,464 @@ TEST_F(TokenProviderTest, CustomEndpoint) {
     EXPECT_EQ(token_provider.GetErrorResponse().code, 0);
 
     testing::Mock::VerifyAndClearExpectations(network_mock_.get());
+  }
+}
+
+using authentication::internal::MtlsTokenProviderPrivate;
+
+class MtlsTokenProviderPrivateTestable : public MtlsTokenProviderPrivate {
+ public:
+  explicit MtlsTokenProviderPrivateTestable(
+      authentication::MtlsSettings settings,
+      std::chrono::seconds minimum_validity)
+      : MtlsTokenProviderPrivate(std::move(settings), minimum_validity) {}
+
+  void MockSetAuthClient(
+      std::shared_ptr<authentication::AuthenticationClientImpl> client) {
+    client_ = client;
+  }
+
+  const authentication::MtlsProperties& MockGetMtlsProperties() const {
+    return mtls_properties_;
+  }
+
+  std::shared_ptr<authentication::AuthenticationClientImpl> MockGetClient() {
+    return client_;
+  }
+
+  std::chrono::seconds MockGetMinimumValidity() { return minimum_validity_; }
+};
+
+class MtlsTokenProviderTest : public ::testing::Test {
+ public:
+  MtlsTokenProviderTest() = default;
+
+  void SetUp() override {
+    network_mock_ = std::make_shared<testing::StrictMock<NetworkMock>>();
+    auth_network_mock_ = std::make_shared<testing::StrictMock<NetworkMock>>();
+
+    auth_settings_.token_endpoint_url = kMtlsTokenEndpointUrl;
+    auth_settings_.network_request_handler = network_mock_;
+    auth_settings_.task_scheduler =
+        client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1);
+
+    auth_client_ = std::make_shared<mocks::AuthenticationClientImplTestable>(
+        auth_settings_);
+
+    mtls_settings_.retry_settings.timeout = 10;
+    mtls_settings_.mtls_properties.ca_cert_pem = kBlob1;
+    mtls_settings_.mtls_properties.client_cert_pem = kBlob2;
+    mtls_settings_.mtls_properties.client_key_pem = kBlob3;
+  }
+
+  std::shared_ptr<testing::StrictMock<NetworkMock>> network_mock_;
+  std::shared_ptr<testing::StrictMock<NetworkMock>> auth_network_mock_;
+
+  std::shared_ptr<mocks::AuthenticationClientImplTestable> auth_client_;
+  authentication::AuthenticationSettings auth_settings_;
+
+  authentication::MtlsSettings mtls_settings_;
+};
+
+MATCHER_P(MtlsPropertiesEq, expected, "") {
+  return arg.client_cert_pem == expected.client_cert_pem &&
+         arg.client_key_pem == expected.client_key_pem &&
+         arg.ca_cert_pem == expected.ca_cert_pem &&
+         arg.expires_in == expected.expires_in && arg.scope == expected.scope;
+}
+
+TEST_F(MtlsTokenProviderTest, Creation) {
+  {
+    SCOPED_TRACE("MtlsTokenProviderPrivateTestable");
+
+    const auto minimum_validity =
+        std::chrono::seconds(authentication::kDefaultMinimumValidity + 1U);
+
+    MtlsTokenProviderPrivateTestable token_provider{mtls_settings_,
+                                                    minimum_validity};
+
+    EXPECT_THAT(mtls_settings_.mtls_properties,
+                MtlsPropertiesEq(token_provider.MockGetMtlsProperties()));
+    EXPECT_TRUE(token_provider.MockGetClient());
+    EXPECT_EQ(minimum_validity, token_provider.MockGetMinimumValidity());
+  }
+
+  {
+    SCOPED_TRACE("MtlsTokenProvider");
+
+    authentication::MtlsTokenProviderDefault token_provider{mtls_settings_};
+
+    EXPECT_FALSE(token_provider);
+  }
+}
+
+TEST_F(MtlsTokenProviderTest, SingleTokenMultipleUsers) {
+  EXPECT_CALL(*auth_client_, CreateNetworkRequestHandler(_))
+      .WillOnce(Return(auth_network_mock_));
+
+  MtlsTokenProviderPrivateTestable token_provider{
+      mtls_settings_, authentication::kDefaultMinimumValiditySeconds};
+  token_provider.MockSetAuthClient(auth_client_);
+
+  {
+    SCOPED_TRACE("Request token first time");
+
+    EXPECT_CALL(*auth_network_mock_, Send)
+        .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                     kResponseValidJson));
+
+    client::CancellationContext context;
+    const auto token_response = token_provider(context);
+
+    ASSERT_TRUE(token_response);
+    ASSERT_EQ(token_response.GetResult().GetAccessToken(), kResponseToken);
+  }
+
+  {
+    SCOPED_TRACE("Cached token returned until expired");
+
+    constexpr size_t kCount = 3u;
+
+    for (size_t index = 0; index < kCount; ++index) {
+      client::CancellationContext context;
+      const auto token_response = token_provider(context);
+
+      ASSERT_TRUE(token_response);
+      EXPECT_EQ(token_response.GetResult().GetAccessToken(), kResponseToken);
+    }
+  }
+}
+
+TEST_F(MtlsTokenProviderTest, ConcurrentRequests) {
+  EXPECT_CALL(*auth_client_, CreateNetworkRequestHandler(_))
+      .WillOnce(Return(auth_network_mock_));
+
+  MtlsTokenProviderPrivateTestable token_provider{
+      mtls_settings_, authentication::kDefaultMinimumValiditySeconds};
+  token_provider.MockSetAuthClient(auth_client_);
+
+  EXPECT_CALL(*auth_network_mock_, Send)
+      .WillOnce(ReturnHttpResponse(GetResponse(http::HttpStatusCode::OK),
+                                   kResponseValidJson));
+
+  const auto kRequestCount = 5;
+  std::vector<std::thread> threads;
+  std::vector<std::future<client::OauthTokenResponse>> futures;
+
+  for (auto i = 0; i < kRequestCount; ++i) {
+    auto promise = std::make_shared<std::promise<client::OauthTokenResponse>>();
+    threads.emplace_back([&, promise]() {
+      client::CancellationContext context;
+      promise->set_value(token_provider(context));
+    });
+    futures.emplace_back(promise->get_future());
+  }
+
+  for (auto i = 0; i < kRequestCount; ++i) {
+    if (threads[i].joinable()) {
+      threads[i].join();
+    }
+    auto token_response = futures[i].get();
+    ASSERT_TRUE(token_response);
+    EXPECT_EQ(token_response.GetResult().GetAccessToken(), kResponseToken);
+  }
+}
+
+TEST_F(MtlsTokenProviderTest, RetrySettings) {
+  mtls_settings_.retry_settings.max_attempts = kMaxRetryAttempts;
+  mtls_settings_.retry_settings.timeout = kMinTimeout * 2;
+  mtls_settings_.retry_settings.connection_timeout =
+      std::chrono::seconds(kMinTimeout);
+  mtls_settings_.retry_settings.transfer_timeout =
+      std::chrono::seconds(kMinTimeout);
+
+  const auto retry_predicate = testing::Property(
+      &http::NetworkRequest::GetSettings,
+      testing::AllOf(
+          testing::Property(
+              &http::NetworkSettings::GetConnectionTimeoutDuration,
+              std::chrono::seconds(kMinTimeout)),
+          testing::Property(&http::NetworkSettings::GetTransferTimeoutDuration,
+                            std::chrono::seconds(kMinTimeout))));
+
+  {
+    SCOPED_TRACE("Max attempts");
+
+    auto auth_settings = auth_settings_;
+    auth_settings.retry_settings = mtls_settings_.retry_settings;
+    auto auth_client =
+        std::make_shared<mocks::AuthenticationClientImplTestable>(
+            auth_settings);
+
+    MtlsTokenProviderPrivateTestable token_provider{
+        mtls_settings_, authentication::kDefaultMinimumValiditySeconds};
+    token_provider.MockSetAuthClient(auth_client);
+
+    EXPECT_CALL(*auth_client, CreateNetworkRequestHandler(_))
+        .WillOnce(Return(auth_network_mock_));
+
+    EXPECT_CALL(*auth_network_mock_, Send(retry_predicate, _, _, _, _))
+        .Times(kMaxRetryAttempts)
+        .WillRepeatedly(ReturnHttpResponse(
+            GetResponse(http::HttpStatusCode::TOO_MANY_REQUESTS)
+                .WithError("Too many requests"),
+            kResponseTooManyRequests));
+
+    client::CancellationContext context;
+    const auto token_response = token_provider(context);
+
+    ASSERT_FALSE(token_response);
+    EXPECT_EQ(token_response.GetError().GetHttpStatusCode(),
+              http::HttpStatusCode::TOO_MANY_REQUESTS);
+  }
+
+  {
+    SCOPED_TRACE("Timeout");
+
+    auto mtls_settings = mtls_settings_;
+    mtls_settings.retry_settings.max_attempts = 1;
+
+    auto auth_settings = auth_settings_;
+    auth_settings.retry_settings = mtls_settings.retry_settings;
+    auto auth_client =
+        std::make_shared<mocks::AuthenticationClientImplTestable>(
+            auth_settings);
+
+    MtlsTokenProviderPrivateTestable token_provider{
+        mtls_settings_, authentication::kDefaultMinimumValiditySeconds};
+    token_provider.MockSetAuthClient(auth_client);
+
+    EXPECT_CALL(*auth_client, CreateNetworkRequestHandler(_))
+        .WillOnce(Return(auth_network_mock_));
+
+    std::future<void> async_finish_future;
+    EXPECT_CALL(*auth_network_mock_,
+                Send(IsPostRequest(kMtlsTokenEndpointUrl), _, _, _, _))
+        .WillOnce(testing::WithArg<2>([&](http::Network::Callback callback) {
+          async_finish_future = std::async(std::launch::async, [=]() {
+            // Oversleep the timeout period.
+            std::this_thread::sleep_for(std::chrono::seconds(kMinTimeout * 4));
+
+            callback(http::NetworkResponse()
+                         .WithStatus(http::HttpStatusCode::OK)
+                         .WithRequestId(kRequestId));
+          });
+
+          return http::SendOutcome(kRequestId);
+        }));
+
+    EXPECT_CALL(*auth_network_mock_, Cancel(kRequestId)).Times(1);
+
+    client::CancellationContext context;
+    const auto token_response = token_provider(context);
+
+    ASSERT_EQ(async_finish_future.wait_for(kWaitTimeout),
+              std::future_status::ready);
+    ASSERT_FALSE(token_response);
+    EXPECT_EQ(token_response.GetError().GetHttpStatusCode(),
+              static_cast<int>(http::ErrorCode::TIMEOUT_ERROR));
+  }
+}
+
+TEST_F(MtlsTokenProviderTest, CancellableProvider) {
+  mtls_settings_.retry_settings.max_attempts = 1;  // Disable retries
+  auth_settings_.retry_settings = mtls_settings_.retry_settings;
+  auth_client_ =
+      std::make_shared<mocks::AuthenticationClientImplTestable>(auth_settings_);
+
+  {
+    SCOPED_TRACE("TokenResult contains token");
+
+    const int status_code = http::HttpStatusCode::OK;
+
+    EXPECT_CALL(*auth_network_mock_,
+                Send(IsPostRequest(kMtlsTokenEndpointUrl), _, _, _, _))
+        .WillOnce(
+            ReturnHttpResponse(GetResponse(status_code), kResponseValidJson));
+
+    MtlsTokenProviderPrivateTestable token_provider{
+        mtls_settings_, authentication::kDefaultMinimumValiditySeconds};
+    token_provider.MockSetAuthClient(auth_client_);
+
+    EXPECT_CALL(*auth_client_, CreateNetworkRequestHandler(_))
+        .WillOnce(Return(auth_network_mock_));
+
+    client::CancellationContext context;
+    const auto token_response = token_provider(context);
+    ASSERT_TRUE(token_response);
+    EXPECT_EQ(token_response.GetResult().GetAccessToken(), kResponseToken);
+
+    EXPECT_TRUE(token_provider.IsTokenResponseOK());
+    EXPECT_EQ(token_provider.GetHttpStatusCode(), status_code);
+    EXPECT_EQ(token_provider.GetErrorResponse().code, 0);
+  }
+
+  {
+    SCOPED_TRACE("TokenResult contains error");
+
+    const int status_code = http::HttpStatusCode::TOO_MANY_REQUESTS;
+
+    EXPECT_CALL(*auth_network_mock_,
+                Send(IsPostRequest(kMtlsTokenEndpointUrl), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            GetResponse(status_code).WithError("Too many requests"),
+            kResponseTooManyRequests));
+
+    MtlsTokenProviderPrivateTestable token_provider{
+        mtls_settings_, authentication::kDefaultMinimumValiditySeconds};
+    token_provider.MockSetAuthClient(auth_client_);
+
+    EXPECT_CALL(*auth_client_, CreateNetworkRequestHandler(_))
+        .WillOnce(Return(auth_network_mock_));
+
+    client::CancellationContext context;
+    const auto token_response = token_provider(context);
+    ASSERT_FALSE(token_response);
+    EXPECT_EQ(token_response.GetError().GetHttpStatusCode(), status_code);
+    EXPECT_EQ(token_response.GetError().GetMessage(), kResponseTooManyRequests);
+  }
+
+  {
+    SCOPED_TRACE("GetErrorResponse tries to refresh token");
+
+    const int status_code = http::HttpStatusCode::TOO_MANY_REQUESTS;
+
+    EXPECT_CALL(*auth_network_mock_,
+                Send(IsPostRequest(kMtlsTokenEndpointUrl), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            GetResponse(status_code).WithError("Too many requests"),
+            kResponseTooManyRequests));
+
+    MtlsTokenProviderPrivateTestable token_provider{
+        mtls_settings_, authentication::kDefaultMinimumValiditySeconds};
+    token_provider.MockSetAuthClient(auth_client_);
+
+    EXPECT_CALL(*auth_client_, CreateNetworkRequestHandler(_))
+        .WillOnce(Return(auth_network_mock_));
+
+    const auto error_response = token_provider.GetErrorResponse();
+    EXPECT_EQ(error_response.message, kResponseTooManyRequests);
+  }
+
+  {
+    SCOPED_TRACE("IsTokenResponseOK tries to refresh token");
+
+    const int status_code = http::HttpStatusCode::TOO_MANY_REQUESTS;
+
+    EXPECT_CALL(*auth_network_mock_,
+                Send(IsPostRequest(kMtlsTokenEndpointUrl), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            GetResponse(status_code).WithError("Too many requests"),
+            kResponseTooManyRequests));
+
+    MtlsTokenProviderPrivateTestable token_provider{
+        mtls_settings_, authentication::kDefaultMinimumValiditySeconds};
+    token_provider.MockSetAuthClient(auth_client_);
+
+    EXPECT_CALL(*auth_client_, CreateNetworkRequestHandler(_))
+        .WillOnce(Return(auth_network_mock_));
+
+    EXPECT_FALSE(token_provider.IsTokenResponseOK());
+  }
+
+  {
+    SCOPED_TRACE("GetHttpStatusCode tries to refresh token");
+
+    const int status_code = http::HttpStatusCode::TOO_MANY_REQUESTS;
+
+    EXPECT_CALL(*auth_network_mock_,
+                Send(IsPostRequest(kMtlsTokenEndpointUrl), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(
+            GetResponse(status_code).WithError("Too many requests"),
+            kResponseTooManyRequests));
+
+    MtlsTokenProviderPrivateTestable token_provider{
+        mtls_settings_, authentication::kDefaultMinimumValiditySeconds};
+    token_provider.MockSetAuthClient(auth_client_);
+
+    EXPECT_CALL(*auth_client_, CreateNetworkRequestHandler(_))
+        .WillOnce(Return(auth_network_mock_));
+
+    EXPECT_EQ(token_provider.GetHttpStatusCode(), status_code);
+  }
+
+  {
+    SCOPED_TRACE("Token request cancelled");
+
+    std::future<void> async_finish_future;
+    std::promise<void> network_wait_promise;
+
+    client::CancellationContext context;
+    EXPECT_CALL(*auth_network_mock_,
+                Send(IsPostRequest(kMtlsTokenEndpointUrl), _, _, _, _))
+        .WillOnce(testing::WithArg<2>([&](http::Network::Callback callback) {
+          async_finish_future = std::async(std::launch::async, [&, callback]() {
+            std::this_thread::sleep_for(std::chrono::seconds(kMinTimeout));
+            context.CancelOperation();
+
+            EXPECT_EQ(network_wait_promise.get_future().wait_for(kWaitTimeout),
+                      std::future_status::ready);
+
+            callback(http::NetworkResponse()
+                         .WithStatus(http::HttpStatusCode::OK)
+                         .WithRequestId(kRequestId));
+          });
+
+          return http::SendOutcome(kRequestId);
+        }));
+
+    EXPECT_CALL(*auth_network_mock_, Cancel(kRequestId)).Times(1);
+
+    MtlsTokenProviderPrivateTestable token_provider{
+        mtls_settings_, authentication::kDefaultMinimumValiditySeconds};
+    token_provider.MockSetAuthClient(auth_client_);
+
+    EXPECT_CALL(*auth_client_, CreateNetworkRequestHandler(_))
+        .WillOnce(Return(auth_network_mock_));
+
+    const auto token_response = token_provider(context);
+    network_wait_promise.set_value();
+
+    ASSERT_EQ(async_finish_future.wait_for(kWaitTimeout),
+              std::future_status::ready);
+    ASSERT_FALSE(token_response);
+    EXPECT_EQ(token_response.GetError().GetHttpStatusCode(),
+              static_cast<int>(http::ErrorCode::CANCELLED_ERROR));
+  }
+
+  {
+    SCOPED_TRACE("TokenResponse is not successful");
+
+    MtlsTokenProviderPrivateTestable token_provider{
+        mtls_settings_, authentication::kDefaultMinimumValiditySeconds};
+    token_provider.MockSetAuthClient(auth_client_);
+
+    EXPECT_CALL(*auth_client_, CreateNetworkRequestHandler(_))
+        .WillOnce(Return(std::shared_ptr<testing::StrictMock<NetworkMock>>()));
+
+    client::CancellationContext context;
+    const auto token_response = token_provider(context);
+    ASSERT_FALSE(token_response);
+    EXPECT_EQ(token_response.GetError().GetErrorCode(),
+              client::ErrorCode::NetworkConnection);
+    EXPECT_EQ(token_response.GetError().GetMessage(),
+              "Cannot sign in while offline");
+  }
+
+  {
+    SCOPED_TRACE("Already cancelled context");
+
+    MtlsTokenProviderPrivateTestable token_provider{
+        mtls_settings_, authentication::kDefaultMinimumValiditySeconds};
+    token_provider.MockSetAuthClient(auth_client_);
+
+    client::CancellationContext context;
+    context.CancelOperation();
+
+    const auto token_response = token_provider(context);
+    ASSERT_FALSE(token_response);
+    EXPECT_EQ(token_response.GetError().GetErrorCode(),
+              client::ErrorCode::Cancelled);
   }
 }
 

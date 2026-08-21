@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+#include "MtlsAuthenticationExample.h"
 #include "Options.h"
 #include "ProtectedCacheExample.h"
 #include "ReadExample.h"
@@ -37,13 +38,14 @@ enum Examples : int {
   write_example = 0b10,
   cache_example = 0b100,
   read_stream_example = 0b1000,
-  all_examples =
-      read_example | write_example | cache_example | read_stream_example
+  mtls_authentication_example = 0b10000,
+  all_examples = read_example | write_example | cache_example |
+                 read_stream_example | mtls_authentication_example
 };
 
 constexpr auto usage =
     "usage is \n -a, --all : run all examples \n "
-    "-e, --example[=read|read_stream|write|cache]  \n\tRun "
+    "-e, --example[=read|read_stream|write|cache|mtls-authentication]  \n\tRun "
     "example\n -i, --key-id \n\there.access.key.id \n -s, --key-secret "
     "\n\there.access.key.secret \n"
     " -c, --catalog \n\tCatalog HRN (HERE Resource Name). \n"
@@ -59,7 +61,13 @@ constexpr auto usage =
     "ID and access key secret, see the [Get "
     "Credentials](https://developer.here.com/olp/documentation/access-control/"
     "user-guide/topics/get-credentials.html) section in the Terms and "
-    "Permissions User Guide.";
+    "Permissions User Guide. \n"
+    " --cert \n\tPath to the client certificate PEM file (required for "
+    "mtls-authentication example). \n"
+    " --key \n\tPath to the client private key PEM file (required for "
+    "mtls-authentication example). \n"
+    " --ca \n\tPath to a CA certificate PEM file (optional). \n"
+    " --scope \n\tProject HRN scope to request (optional).";
 
 int RequiredArgumentError(const tools::Option& arg) {
   std::cout << "option requires an argument -- '" << arg.short_name << '\''
@@ -71,7 +79,9 @@ int ParseArguments(const int argc, char** argv, AccessKey& access_key,
                    olp::porting::optional<int64_t>& catalog_version,
                    std::string& layer_id,
                    olp::dataservice::read::SubscribeRequest::SubscriptionMode&
-                       subscription_mode) {
+                       subscription_mode,
+                   std::string& mtls_cert_path, std::string& mtls_key_path,
+                   std::string& mtls_ca_path, std::string& mtls_scope) {
   int examples_to_run = 0;
 
   const std::vector<std::string> arguments(argv + 1, argv + argc);
@@ -108,9 +118,12 @@ int ParseArguments(const int argc, char** argv, AccessKey& access_key,
         examples_to_run = Examples::cache_example;
       } else if (*it == "read_stream") {
         examples_to_run = Examples::read_stream_example;
+      } else if (*it == "mtls-authentication") {
+        examples_to_run = Examples::mtls_authentication_example;
       } else {
         std::cout << "Example was not found. Please use values:read, "
-                     "write, cache, read_stream"
+                     "write, cache, read_stream, authentication, "
+                     "mtls-authentication"
                   << std::endl;
         return 0;
       }
@@ -152,6 +165,26 @@ int ParseArguments(const int argc, char** argv, AccessKey& access_key,
       }
     } else if (IsMatch(*it, tools::kAllOption)) {
       examples_to_run = Examples::all_examples;
+    } else if (IsMatch(*it, tools::kMtlsCertOption)) {
+      if (++it == arguments.end()) {
+        return RequiredArgumentError(tools::kMtlsCertOption);
+      }
+      mtls_cert_path = *it;
+    } else if (IsMatch(*it, tools::kMtlsKeyOption)) {
+      if (++it == arguments.end()) {
+        return RequiredArgumentError(tools::kMtlsKeyOption);
+      }
+      mtls_key_path = *it;
+    } else if (IsMatch(*it, tools::kMtlsCaOption)) {
+      if (++it == arguments.end()) {
+        return RequiredArgumentError(tools::kMtlsCaOption);
+      }
+      mtls_ca_path = *it;
+    } else if (IsMatch(*it, tools::kMtlsScopeOption)) {
+      if (++it == arguments.end()) {
+        return RequiredArgumentError(tools::kMtlsScopeOption);
+      }
+      mtls_scope = *it;
     } else {
       fprintf(stderr, usage);
     }
@@ -171,7 +204,11 @@ int RunExamples(const AccessKey& access_key, int examples_to_run,
                 const olp::porting::optional<int64_t>& catalog_version,
                 const std::string& layer_id,
                 olp::dataservice::read::SubscribeRequest::SubscriptionMode
-                    subscription_mode) {
+                    subscription_mode,
+                const std::string& mtls_cert_path,
+                const std::string& mtls_key_path,
+                const std::string& mtls_ca_path,
+                const std::string& mtls_scope) {
   if (examples_to_run & Examples::read_example) {
     std::cout << "Read Example" << std::endl;
     if (RunExampleRead(access_key, catalog, catalog_version)) {
@@ -204,6 +241,15 @@ int RunExamples(const AccessKey& access_key, int examples_to_run,
       return -1;
     }
   }
+
+  if (examples_to_run & Examples::mtls_authentication_example) {
+    std::cout << "mTLS authentication example" << std::endl;
+    if (RunExampleMtlsAuthentication(mtls_cert_path, mtls_key_path,
+                                     mtls_ca_path, mtls_scope)) {
+      std::cout << "mTLS Authentication Example failed" << std::endl;
+      return -1;
+    }
+  }
   return 0;
 }
 
@@ -217,22 +263,31 @@ int main(int argc, char** argv) {
   auto subscription_mode =
       olp::dataservice::read::SubscribeRequest::SubscriptionMode::
           kSerial;  // subscription mode for read stream layer example
+  std::string mtls_cert_path;
+  std::string mtls_key_path;
+  std::string mtls_ca_path;
+  std::string mtls_scope;
   int examples_to_run =
       ParseArguments(argc, argv, access_key, catalog, catalog_version, layer_id,
-                     subscription_mode);
+                     subscription_mode, mtls_cert_path, mtls_key_path,
+                     mtls_ca_path, mtls_scope);
   if (examples_to_run == 0) {
     return 0;
   }
 
-  if (access_key.id.empty() || access_key.secret.empty()) {
+  if ((examples_to_run ^ Examples::mtls_authentication_example) &&
+      (access_key.id.empty() || access_key.secret.empty())) {
     std::cout << "Please specify your access key ID and access key secret. For "
                  "more information use -h [--help]"
               << std::endl;
   }
 
-  if (catalog.empty()) {
-    std::cout << "Please specify catalog. For more information use -h [--help]"
+  if ((examples_to_run & Examples::mtls_authentication_example) &&
+      (mtls_cert_path.empty() || mtls_key_path.empty())) {
+    std::cout << "Please specify --cert and --key for the mtls-authentication "
+                 "example. For more information use -h [--help]"
               << std::endl;
+    return -1;
   }
 
   if (((examples_to_run & Examples::write_example) ||
@@ -245,5 +300,6 @@ int main(int argc, char** argv) {
   }
 
   return RunExamples(access_key, examples_to_run, catalog, catalog_version,
-                     layer_id, subscription_mode);
+                     layer_id, subscription_mode, mtls_cert_path, mtls_key_path,
+                     mtls_ca_path, mtls_scope);
 }

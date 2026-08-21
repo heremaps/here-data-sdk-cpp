@@ -21,6 +21,8 @@ set(OLP_SDK_TESTS_COMMON_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks/NetworkMock.h
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks/TaskSchedulerMock.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ApiDefaultResponses.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AuthenticationClientImplTestable.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AuthenticationMockedResponses.h
     ${CMAKE_CURRENT_SOURCE_DIR}/KeyValueCacheTestable.h
     ${CMAKE_CURRENT_SOURCE_DIR}/PlatformUrlsGenerator.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ReadDefaultResponses.h
