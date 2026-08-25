@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2023 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -168,7 +168,7 @@ Crypto::Sha256Digest ComputeSha256(const std::vector<unsigned char>& src) {
     auto v3 = (unsigned char)value;
     auto v2 = (unsigned char)(value >>= 8);
     auto v1 = (unsigned char)(value >>= 8);
-    ret[j + 0] = (unsigned char)(value >>= 8);
+    ret[j + 0] = (unsigned char)(value >> 8);
     ret[j + 1] = v1;
     ret[j + 2] = v2;
     ret[j + 3] = v3;

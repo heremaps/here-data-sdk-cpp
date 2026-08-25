@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -242,6 +242,7 @@ client::CancellationToken IndexLayerClientImpl::DeleteIndexData(
   auto cancel_context = std::make_shared<client::CancellationContext>();
   auto self = shared_from_this();
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto cancel_function = [=]() {
     self->tokenList_.RemoveTask(op_id);
     callback(DeleteIndexDataResponse(client::ApiError(
@@ -302,12 +303,14 @@ client::CancellationToken IndexLayerClientImpl::UpdateIndex(
   auto self = shared_from_this();
 
   auto op_id = tokenList_.GetNextId();
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto cancel_function = [=]() {
     self->tokenList_.RemoveTask(op_id);
     callback(UpdateIndexResponse(client::ApiError(
         client::ErrorCode::Cancelled, "Operation cancelled.", true)));
   };
 
+  // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks): false
   auto updateIndex_callback = [=](UpdateIndexResponse update_index_response) {
     self->tokenList_.RemoveTask(op_id);
     if (!update_index_response.IsSuccessful()) {

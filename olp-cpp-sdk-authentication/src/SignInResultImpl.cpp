@@ -92,7 +92,7 @@ SignInResultImpl::SignInResultImpl(
 
   // Extra response data if no errors reported
   if (!HasError()) {
-    if (!IsValid()) {
+    if (!is_valid_) {
       status_ = http::HttpStatusCode::SERVICE_UNAVAILABLE;
       error_.message = Constants::ERROR_HTTP_SERVICE_UNAVAILABLE;
     } else {

@@ -26,6 +26,24 @@ jobs:
         run: ./scripts/misc/cpplint_ci.sh
         shell: bash
 
+  psv-linux-24-04-clang17-build-clang-tidy:
+    name: PSV.Linux.24.04.clang17.ClangTidy
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libboost-all-dev \
+            libcurl4-openssl-dev
+        shell: bash
+      - name: Run clang-tidy
+        run: ./scripts/misc/clang-tidy-17-check.sh
+        shell: bash
+        
   psv-linux-22-04-gcc9-build-test-codecov:
     name: PSV.Linux.22.04.gcc9.Tests.CodeCov
     runs-on: ubuntu-22.04
