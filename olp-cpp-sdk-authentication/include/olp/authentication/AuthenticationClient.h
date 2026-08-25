@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2025 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@
 #include <olp/authentication/AuthenticationCredentials.h>
 #include <olp/authentication/AuthenticationSettings.h>
 #include <olp/authentication/AuthorizeRequest.h>
+#include <olp/authentication/MtlsProperties.h>
 #include <olp/authentication/SignInResult.h>
 #include <olp/authentication/SignInUserResult.h>
 #include <olp/authentication/SignOutResult.h>
@@ -333,6 +334,22 @@ class AUTHENTICATION_API AuthenticationClient {
   client::CancellationToken SignInClient(AuthenticationCredentials credentials,
                                          SignInProperties properties,
                                          SignInClientCallback callback);
+
+  /**
+   * @brief Signs in using an mTLS client certificate.
+   *
+   * @param properties The `MtlsProperties` structure.
+   * @param callback The `SignInUserCallback` method that is called when
+   * the user sign-in request is completed. If successful, the returned HTTP
+   * status is 200. If a new account is created as a part of the sign-in
+   * request, and terms must be accepted, the returned HTTP status is 201.
+   * Otherwise, check the response error.
+   *
+   * @return The `CancellationToken` instance that can be used to cancel
+   * the request.
+   */
+  client::CancellationToken SignInMtls(MtlsProperties properties,
+                                       SignInClientCallback callback);
 
   /**
    * @brief Signs in with the email and password that you used for

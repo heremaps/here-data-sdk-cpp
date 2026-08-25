@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2025 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,49 +23,48 @@
 
 #include <gmock/gmock.h>
 
+#include <matchers/NetworkUrlMatchers.h>
 #include "AuthenticationClientImpl.h"
+#include "AuthenticationClientImplTestable.h"
 #include "AuthenticationClientUtils.h"
+#include "AuthenticationMockedResponses.h"
 #include "mocks/NetworkMock.h"
 
 namespace {
 constexpr auto kTime = "Fri, 29 May 2020 11:07:45 GMT";
 constexpr auto kEpochTime = "Thu, 1 Jan 1970 00:00:00 GMT";
 constexpr auto kSummerTime = "Tue, 18 Jun 2024 12:25:35 GMT";
+
+using std::placeholders::_1;
+using std::placeholders::_2;
+using std::placeholders::_3;
+using std::placeholders::_4;
+using std::placeholders::_5;
+using std::placeholders::_6;
+using std::placeholders::_7;
+using testing::_;
+using testing::Contains;
+using testing::DoAll;
+using testing::ElementsAreArray;
+using testing::Not;
+using testing::Pair;
+using testing::Return;
+using testing::SaveArg;
+using testing::WithArg;
+
+constexpr auto kBlob1 = "1st string blob";
+constexpr auto kBlob2 = "2nd string blob";
+constexpr auto kBlob3 = "3rd string blob";
+constexpr auto kMtlsTokenEndpointUrl =
+    "https://mtls.account.api.here.com/mtls/token";
+
 }  // namespace
 
 namespace auth = olp::authentication;
 namespace client = olp::client;
 
-class AuthenticationClientImplTestable : public auth::AuthenticationClientImpl {
- public:
-  explicit AuthenticationClientImplTestable(
-      auth::AuthenticationSettings settings)
-      : AuthenticationClientImpl(settings) {}
-
-  MOCK_METHOD(auth::TimeResponse, GetTimeFromServer,
-              (client::CancellationContext context,
-               const client::OlpClient& client),
-              (const, override));
-
-  MOCK_METHOD(client::HttpResponse, CallAuth,
-              (const client::OlpClient&, const std::string&,
-               client::CancellationContext,
-               const auth::AuthenticationCredentials&,
-               client::OlpClient::RequestBodyType, std::time_t,
-               const std::string&),
-              (override));
-
-  client::HttpResponse RealCallAuth(
-      const client::OlpClient& client, const std::string& endpoint,
-      client::CancellationContext context,
-      const auth::AuthenticationCredentials& credentials,
-      client::OlpClient::RequestBodyType body, std::time_t time,
-      const std::string& content_type) {
-    return auth::AuthenticationClientImpl::CallAuth(
-        client, endpoint, std::move(context), credentials, std::move(body),
-        time, content_type);
-  }
-};
+using AuthenticationClientImplTestable =
+    mocks::AuthenticationClientImplTestable;
 
 ACTION_P(Wait, time) { std::this_thread::sleep_for(time); }
 
@@ -277,24 +276,6 @@ TEST(AuthenticationClientTest, GenerateAuthorizationHeader) {
 }
 
 TEST(AuthenticationClientTest, SignInWithCustomUrlAndBody) {
-  // Making CPPLINT happy
-  using testing::_;
-  using testing::Contains;
-  using testing::DoAll;
-  using testing::ElementsAreArray;
-  using testing::Not;
-  using testing::Pair;
-  using testing::Return;
-  using testing::SaveArg;
-
-  using std::placeholders::_1;
-  using std::placeholders::_2;
-  using std::placeholders::_3;
-  using std::placeholders::_4;
-  using std::placeholders::_5;
-  using std::placeholders::_6;
-  using std::placeholders::_7;
-
   constexpr auto custom_url = "https://example.com/user/login";
   const auto custom_body = std::string("custom_body");
   olp::http::NetworkRequest expected_request{""};
@@ -330,4 +311,184 @@ TEST(AuthenticationClientTest, SignInWithCustomUrlAndBody) {
   EXPECT_THAT(*expected_request.GetBody(), ElementsAreArray(custom_body));
   EXPECT_THAT(expected_request.GetHeaders(),
               Not(Contains(Pair("Content-Type", _))));
+}
+
+TEST(AuthenticationClientTest, SignInMtls) {
+  auth::AuthenticationSettings settings;
+  settings.token_endpoint_url = kMtlsTokenEndpointUrl;
+  settings.network_request_handler =
+      std::make_shared<testing::StrictMock<NetworkMock>>();
+
+  {
+    SCOPED_TRACE("Failed to create network");
+
+    AuthenticationClientImplTestable auth_impl(settings);
+
+    olp::http::NetworkInitializationSettings actual_network_settings;
+    EXPECT_CALL(auth_impl, CreateNetworkRequestHandler(_))
+        .WillOnce(DoAll(SaveArg<0>(&actual_network_settings), Return(nullptr)));
+
+    auth::MtlsProperties properties;
+    properties.ca_cert_pem = kBlob1;
+    properties.client_cert_pem = kBlob2;
+    properties.client_key_pem = kBlob3;
+
+    std::promise<auth::AuthenticationClient::SignInClientResponse>
+        response_promise;
+    auth_impl.SignInMtls(
+        properties,
+        [&](const auth::AuthenticationClient::SignInClientResponse& response) {
+          response_promise.set_value(response);
+        });
+
+    auto request_future = response_promise.get_future();
+    auto response = request_future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              client::ErrorCode::NetworkConnection);
+
+    const auto& certificates = actual_network_settings.certificate_settings;
+    EXPECT_EQ(properties.ca_cert_pem, certificates.cert_file_blob);
+    EXPECT_EQ(properties.client_cert_pem, certificates.client_cert_file_blob);
+    EXPECT_EQ(properties.client_key_pem, certificates.client_key_file_blob);
+  }
+
+  {
+    SCOPED_TRACE("Failed to Send. Retriable error then non retriable");
+
+    AuthenticationClientImplTestable auth_impl(settings);
+
+    auto auth_network_mock =
+        std::make_shared<testing::StrictMock<NetworkMock>>();
+    EXPECT_CALL(auth_impl, CreateNetworkRequestHandler(_))
+        .WillOnce(Return(auth_network_mock));
+
+    std::vector<olp::http::NetworkRequest> actual_requests;
+    const std::string kScope = "random_scope";
+
+    EXPECT_CALL(*auth_network_mock, Send)
+        .WillOnce(DoAll(
+            WithArg<0>([&](olp::http::NetworkRequest request) {
+              EXPECT_THAT(request, IsPostRequest(settings.token_endpoint_url));
+              EXPECT_THAT(request,
+                          BodyContains("\"scope\":\"" + kScope + "\""));
+              actual_requests.emplace_back(std::move(request));
+            }),
+            Return(olp::http::SendOutcome(
+                olp::http::ErrorCode::NETWORK_OVERLOAD_ERROR))))
+        .WillOnce(DoAll(
+            WithArg<0>([&](olp::http::NetworkRequest request) {
+              EXPECT_THAT(request, IsPostRequest(settings.token_endpoint_url));
+              EXPECT_THAT(request,
+                          BodyContains("\"scope\":\"" + kScope + "\""));
+              actual_requests.emplace_back(request);
+            }),
+            Return(
+                olp::http::SendOutcome(olp::http::ErrorCode::UNKNOWN_ERROR))));
+
+    auth::MtlsProperties properties;
+    properties.scope = kScope;
+
+    std::promise<auth::AuthenticationClient::SignInClientResponse>
+        response_promise;
+    auth_impl.SignInMtls(
+        properties,
+        [&](const auth::AuthenticationClient::SignInClientResponse& response) {
+          response_promise.set_value(response);
+        });
+
+    auto request_future = response_promise.get_future();
+    auto response = request_future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(), client::ErrorCode::Unknown);
+
+    EXPECT_EQ(actual_requests.size(), 2U);
+  }
+
+  {
+    SCOPED_TRACE("Failed to Send. Failed all retries");
+
+    AuthenticationClientImplTestable auth_impl(settings);
+
+    auto auth_network_mock =
+        std::make_shared<testing::StrictMock<NetworkMock>>();
+    EXPECT_CALL(auth_impl, CreateNetworkRequestHandler(_))
+        .WillOnce(Return(auth_network_mock));
+
+    std::vector<olp::http::NetworkRequest> actual_requests;
+    const std::string kScope = "scope 02";
+
+    EXPECT_CALL(*auth_network_mock, Send)
+        .Times(settings.retry_settings.max_attempts)
+        .WillRepeatedly(DoAll(
+            WithArg<0>([&](olp::http::NetworkRequest request) {
+              EXPECT_THAT(request, IsPostRequest(settings.token_endpoint_url));
+              EXPECT_THAT(request,
+                          BodyContains("\"scope\":\"" + kScope + "\""));
+              actual_requests.emplace_back(std::move(request));
+            }),
+            Return(olp::http::SendOutcome(olp::http::ErrorCode::IO_ERROR))));
+
+    auth::MtlsProperties properties;
+    properties.scope = kScope;
+
+    std::promise<auth::AuthenticationClient::SignInClientResponse>
+        response_promise;
+    auth_impl.SignInMtls(
+        properties,
+        [&](const auth::AuthenticationClient::SignInClientResponse& response) {
+          response_promise.set_value(response);
+        });
+
+    auto request_future = response_promise.get_future();
+    auto response = request_future.get();
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(),
+              client::ErrorCode::NetworkConnection);
+
+    EXPECT_EQ(actual_requests.size(), settings.retry_settings.max_attempts);
+  }
+
+  {
+    SCOPED_TRACE("Success");
+
+    AuthenticationClientImplTestable auth_impl(settings);
+
+    auto auth_network_mock =
+        std::make_shared<testing::StrictMock<NetworkMock>>();
+    EXPECT_CALL(auth_impl, CreateNetworkRequestHandler(_))
+        .WillOnce(Return(auth_network_mock));
+
+    const std::string kScope = "scope";
+
+    EXPECT_CALL(*auth_network_mock, Send)
+        .WillOnce(DoAll(
+            WithArg<0>([&](olp::http::NetworkRequest request) {
+              EXPECT_THAT(request, IsPostRequest(settings.token_endpoint_url));
+              EXPECT_THAT(request,
+                          BodyContains("\"scope\":\"" + kScope + "\""));
+            }),
+            ReturnHttpResponse(GetResponse(olp::http::HttpStatusCode::OK),
+                               kResponseWithScope)));
+
+    auth::MtlsProperties properties;
+    properties.scope = kScope;
+
+    std::promise<auth::AuthenticationClient::SignInClientResponse>
+        response_promise;
+    auth_impl.SignInMtls(
+        properties,
+        [&](const auth::AuthenticationClient::SignInClientResponse& response) {
+          response_promise.set_value(response);
+        });
+
+    auto request_future = response_promise.get_future();
+    auto response = request_future.get();
+
+    EXPECT_TRUE(response.IsSuccessful());
+    EXPECT_FALSE(response.GetResult().GetAccessToken().empty());
+    EXPECT_EQ(kResponseToken, response.GetResult().GetAccessToken());
+    EXPECT_EQ("bearer", response.GetResult().GetTokenType());
+    EXPECT_EQ(response.GetResult().GetScope(), kScope);
+  }
 }

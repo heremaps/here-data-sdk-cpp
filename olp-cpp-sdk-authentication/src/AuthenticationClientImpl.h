@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2025 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 #include "olp/authentication/AuthenticationClient.h"
 #include "olp/authentication/AuthenticationSettings.h"
 #include "olp/authentication/AuthorizeRequest.h"
+#include "olp/authentication/MtlsProperties.h"
 #include "olp/authentication/Types.h"
 #include "olp/core/client/ApiError.h"
 #include "olp/core/client/CancellationToken.h"
@@ -84,6 +85,9 @@ class AuthenticationClientImpl {
   client::CancellationToken SignInClient(AuthenticationCredentials credentials,
                                          SignInProperties properties,
                                          SignInClientCallback callback);
+
+  client::CancellationToken SignInMtls(MtlsProperties properties,
+                                       SignInClientCallback callback);
 
   client::CancellationToken SignInHereUser(
       const AuthenticationCredentials& credentials,
@@ -159,6 +163,8 @@ class AuthenticationClientImpl {
       const std::string& reacceptance_token);
   client::OlpClient::RequestBodyType GenerateAuthorizeBody(
       const AuthorizeRequest& properties);
+  client::OlpClient::RequestBodyType GenerateMtlsBody(
+      const MtlsProperties& properties);
 
   virtual olp::client::HttpResponse CallAuth(
       const client::OlpClient& client, const std::string& endpoint,
@@ -192,6 +198,9 @@ class AuthenticationClientImpl {
 
   RequestTimer CreateRequestTimer(const client::OlpClient& client,
                                   client::CancellationContext context) const;
+
+  virtual std::shared_ptr<http::Network> CreateNetworkRequestHandler(
+      http::NetworkInitializationSettings settings) const;
 
   std::shared_ptr<SignInCacheType> client_token_cache_;
   std::shared_ptr<SignInUserCacheType> user_token_cache_;

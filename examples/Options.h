@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2021 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,13 +32,34 @@ struct Option {
 
 const Option kHelpOption{"-h", "--help", "Print the help message and exit."};
 
-const Option kExampleOption{"-e", "--example",
-                            "Run example [=read|read_stream|write|cache]."};
+const Option kExampleOption{
+    "-e", "--example",
+    "Run example [=read|read_stream|write|cache|mtls-authentication]."};
 
 const Option kKeyIdOption{"-i", "--key-id", "Here key ID to access OLP."};
 
 const Option kKeySecretOption{"-s", "--key-secret",
                               "Here secret key to access OLP."};
+
+const Option kMtlsCertOption{
+    "--cert", "--mtls-cert",
+    "Path to the client certificate PEM file (required for the "
+    "mtls-authentication example)."};
+
+const Option kMtlsKeyOption{
+    "--key", "--mtls-key",
+    "Path to the client private key PEM file (required for the "
+    "mtls-authentication example)."};
+
+const Option kMtlsCaOption{
+    "--ca", "--mtls-ca",
+    "Path to a CA certificate PEM file (optional, used for the "
+    "mtls-authentication example)."};
+
+const Option kMtlsScopeOption{
+    "--scope", "--mtls-scope",
+    "Project HRN scope to request (optional, used for the "
+    "mtls-authentication example)."};
 
 const Option kCatalogOption{"-c", "--catalog",
                             "Catalog HRN (HERE Resource Name)."};
