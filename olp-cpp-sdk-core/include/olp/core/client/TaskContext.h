@@ -28,6 +28,7 @@
 #include <olp/core/client/CancellationContext.h>
 #include <olp/core/client/CancellationToken.h>
 #include <olp/core/client/Condition.h>
+#include <olp/core/thread/TaskScheduler.h>
 
 namespace olp {
 namespace client {
@@ -56,10 +57,11 @@ class CORE_API TaskContext {
   template <typename Exec, typename Callback>
   static TaskContext Create(
       Exec execute_func, Callback callback,
-      client::CancellationContext context = client::CancellationContext()) {
+      client::CancellationContext context = client::CancellationContext(),
+      std::shared_ptr<thread::TaskScheduler> task_scheduler = nullptr) {
     TaskContext task;
     task.SetExecutors(std::move(execute_func), std::move(callback),
-                      std::move(context));
+                      std::move(context), std::move(task_scheduler));
     return task;
   }
 
@@ -126,9 +128,32 @@ class CORE_API TaskContext {
    * @param context The `CancellationContext` instance.
    */
   void SetExecutors(Exec execute_func, Callback callback,
-                    client::CancellationContext context) {
-    impl_ = std::make_shared<TaskContextImpl<ExecResult>>(
-        std::move(execute_func), std::move(callback), std::move(context));
+                    client::CancellationContext context,
+                    std::shared_ptr<thread::TaskScheduler> task_scheduler) {
+    auto impl = std::make_shared<TaskContextImpl<ExecResult>>(
+        std::move(execute_func), std::move(callback), context);
+
+    if (task_scheduler) {
+      std::weak_ptr<TaskContextImpl<ExecResult>> weak_impl = impl;
+      auto cancellation_scheduler = task_scheduler;
+      context.ExecuteOrCancelled(
+          [weak_impl, cancellation_scheduler]() -> CancellationToken {
+            return CancellationToken([weak_impl, cancellation_scheduler]() {
+              auto impl = weak_impl.lock();
+              if (impl && cancellation_scheduler) {
+                cancellation_scheduler->ScheduleCancellationTask([weak_impl]() {
+                  auto impl = weak_impl.lock();
+                  if (impl) {
+                    impl->PreExecuteCancel();
+                  }
+                });
+                return;
+              }
+            });
+          },
+          []() {});
+    }
+    impl_ = std::move(impl);
   }
 
   /**
@@ -249,6 +274,40 @@ class CORE_API TaskContext {
       state_.store(State::COMPLETED);
     }
 
+    void PreExecuteCancel() {
+      State expected_state = State::PENDING;
+
+      if (!state_.compare_exchange_strong(expected_state, State::IN_PROGRESS)) {
+        return;
+      }
+
+      // Moving the user callback and function guarantee that they are
+      // executed exactly once
+      ExecuteFunc function = nullptr;
+      UserCallback callback = nullptr;
+
+      {
+        std::lock_guard<std::mutex> lock(mutex_);
+        function = std::move(execute_func_);
+        callback = std::move(callback_);
+      }
+
+      Response user_response =
+          client::ApiError(client::ErrorCode::Cancelled, "Cancelled");
+
+      if (callback) {
+        callback(std::move(user_response));
+      }
+
+      // Resources need to be released before the notification, else lambas
+      // would have captured resources like network or `TaskScheduler`.
+      function = nullptr;
+      callback = nullptr;
+
+      condition_.Notify();
+      state_.store(State::COMPLETED);
+    }
+
     /**
      * @brief Cancels the operation and waits for the notification.
      *
@@ -330,8 +389,8 @@ struct CORE_API TaskContextHash {
    */
   size_t operator()(const TaskContext& task_context) const {
     return std::hash<std::shared_ptr<TaskContext::Impl>>()(task_context.impl_);
-  }
-};
+  }  // namespace client
+};   // namespace olp
 
 }  // namespace client
 }  // namespace olp

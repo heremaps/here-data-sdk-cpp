@@ -37,8 +37,10 @@ namespace olp {
 namespace client {
 
 std::unique_ptr<thread::TaskScheduler>
-OlpClientSettingsFactory::CreateDefaultTaskScheduler(size_t thread_count) {
-  return std::make_unique<thread::ThreadPoolTaskScheduler>(thread_count);
+OlpClientSettingsFactory::CreateDefaultTaskScheduler(
+    size_t thread_count, bool enable_cancellation_lane) {
+  return std::make_unique<thread::ThreadPoolTaskScheduler>(
+      thread_count, enable_cancellation_lane);
 }
 
 std::shared_ptr<http::Network>
