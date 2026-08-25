@@ -35,12 +35,12 @@ class CORE_API NetworkProxySettings final {
  public:
   /// The proxy type.
   enum class Type {
-    NONE,             ///< Don't use the proxy.
-    HTTP,             ///< HTTP proxy as in https://www.ietf.org/rfc/rfc2068.txt
-    HTTPS,            ///< HTTPS proxy as in https://www.ietf.org/rfc/rfc2818.txt
-    SOCKS4,           ///< SOCKS4 proxy.
-    SOCKS4A,          ///< SOCKS4a proxy. Proxy resolves the URL hostname.
-    SOCKS5,           ///< SOCKS5 proxy.
+    NONE,     ///< Don't use the proxy.
+    HTTP,     ///< HTTP proxy as in https://www.ietf.org/rfc/rfc2068.txt
+    HTTPS,    ///< HTTPS proxy as in https://www.ietf.org/rfc/rfc2818.txt
+    SOCKS4,   ///< SOCKS4 proxy.
+    SOCKS4A,  ///< SOCKS4a proxy. Proxy resolves the URL hostname.
+    SOCKS5,   ///< SOCKS5 proxy.
     SOCKS5_HOSTNAME,  ///< SOCKS5 Proxy. Proxy resolves the URL hostname.
   };
 
@@ -124,6 +124,28 @@ class CORE_API NetworkProxySettings final {
    */
   NetworkProxySettings& WithPassword(std::string password);
 
+  /**
+   * @brief Gets the HTTPS proxy CA certificate blob.
+   *
+   * @return The PEM-encoded CA certificates used to verify the TLS
+   * certificate presented by an HTTPS proxy.
+   */
+  const std::string& GetCaInfoBlob() const;
+
+  /**
+   * @brief Sets the HTTPS proxy CA certificate blob.
+   *
+   * The blob contains PEM-encoded CA certificates used only to verify the TLS
+   * certificate presented by an HTTPS proxy. It corresponds to libcurl
+   * `CURLOPT_PROXY_CAINFO_BLOB` and is distinct from origin-server certificate
+   * settings.
+   *
+   * @param[in] ca_info_blob The PEM-encoded HTTPS proxy CA certificates.
+   *
+   * @return A reference to *this.
+   */
+  NetworkProxySettings& WithCaInfoBlob(std::string ca_info_blob);
+
  private:
   /// The proxy type.
   Type type_{Type::NONE};
@@ -135,6 +157,8 @@ class CORE_API NetworkProxySettings final {
   std::string username_;
   /// The proxy password.
   std::string password_;
+  /// The PEM-encoded HTTPS proxy CA certificates.
+  std::string ca_info_blob_;
 };
 
 }  // namespace http
