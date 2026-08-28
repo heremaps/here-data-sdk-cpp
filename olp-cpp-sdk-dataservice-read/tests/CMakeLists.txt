@@ -18,6 +18,7 @@
 set(OLP_SDK_DATASERVICE_READ_TEST_SOURCES
     ApiClientLookupTest.cpp
     AsyncJsonStreamTest.cpp
+    BlobApiTest.cpp
     CatalogCacheRepositoryTest.cpp
     CatalogClientTest.cpp
     CatalogRepositoryTest.cpp
