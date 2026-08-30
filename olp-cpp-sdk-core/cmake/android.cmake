@@ -43,10 +43,27 @@ get_android_jar_path(CMAKE_JAVA_INCLUDE_PATH ANDROID_SDK_ROOT ANDROID_PLATFORM)
 set(OLP_SDK_NETWORK_VERSION 0.0.1)
 set(OLP_SDK_ANDROID_HTTP_CLIENT_JAR OlpHttpClient)
 
-add_jar(${OLP_SDK_ANDROID_HTTP_CLIENT_JAR}
-    SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/http/android/HttpClient.java
-    VERSION ${OLP_SDK_NETWORK_VERSION}
+set(MAVEN_DEPS_OUTPUT ${CMAKE_BINARY_DIR}/maven-deps)
+set(ALL_MAVEN_PACKAGES
+    ${MAVEN_DEPS_OUTPUT}/okhttp-4.12.0.jar
+    ${MAVEN_DEPS_OUTPUT}/okio-3.10.2.jar
 )
+
+add_custom_command(
+    OUTPUT ${ALL_MAVEN_PACKAGES}
+    COMMAND mvn -f ${CMAKE_CURRENT_LIST_DIR}/pom.xml dependency:copy-dependencies -DoutputDirectory=${MAVEN_DEPS_OUTPUT}
+    COMMENT "Downloading Maven packages"
+)
+
+add_custom_target(olp-cpp-sdk-core.maven DEPENDS ${ALL_MAVEN_PACKAGES})
+
+add_jar(${OLP_SDK_ANDROID_HTTP_CLIENT_JAR}
+    SOURCES ${CMAKE_CURRENT_LIST_DIR}/../src/http/android/OlpHttpClient.java
+    VERSION ${OLP_SDK_NETWORK_VERSION}
+    INCLUDE_JARS ${ALL_MAVEN_PACKAGES}
+)
+
+add_dependencies(${OLP_SDK_ANDROID_HTTP_CLIENT_JAR} olp-cpp-sdk-core.maven)
 
 # add_jar() doesn't add the symlink to the version automatically under Windows
 if (WIN32)
