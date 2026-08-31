@@ -50,6 +50,9 @@ constexpr auto kUrlBlobData5904591 =
 constexpr auto kUrlBlobData1476147 =
     R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/data/95c5c703-e00e-4c38-841e-e419367474f1)";
 
+constexpr auto kUrlBlobDataByKey =
+    R"(https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2/layers/testlayer/keys/1%2F1%2F2)";
+
 constexpr auto kUrlResponseLookup =
     R"jsonString([{"api":"query","version":"v1","baseURL":"https://sab.query.data.api.platform.here.com/query/v1/catalogs/hrn:here:data::olp-here-test:hereos-internal-test-v2","parameters":{}},{"api":"blob","version":"v1","baseURL":"https://blob-ireland.data.api.platform.here.com/blobstore/v1/catalogs/hereos-internal-test-v2","parameters":{}}])jsonString";
 
@@ -808,5 +811,110 @@ TEST_F(DataRepositoryTest, GetVersionedDataTileFailedToCache) {
   ASSERT_FALSE(response);
   ASSERT_EQ(response.GetError().GetErrorCode(),
             olp::client::ErrorCode::CacheIO);
+}
+
+TEST_F(DataRepositoryTest, GetBlobDataByKey) {
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kUrlResponseLookup));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlBlobDataByKey), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   "keyData"));
+
+  olp::client::CancellationContext context;
+
+  olp::client::HRN hrn(GetTestCatalog());
+  ApiLookupClient lookup_client(hrn, *settings_);
+  DataRepository repository(hrn, *settings_, lookup_client);
+
+  const auto request =
+      olp::dataservice::read::KeyDataRequest().WithKey("1/1/2");
+  auto response = repository.GetBlobDataByKey(kLayerId, request, context);
+
+  ASSERT_TRUE(response.IsSuccessful());
+  ASSERT_TRUE(response.GetResult() != nullptr);
+  ASSERT_EQ(7u, response.GetResult()->size());
+}
+
+TEST_F(DataRepositoryTest, GetBlobDataByKeyNotFound) {
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::OK),
+                                   kUrlResponseLookup));
+
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlBlobDataByKey), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::NOT_FOUND),
+                                   ""));
+
+  olp::client::CancellationContext context;
+
+  olp::client::HRN hrn(GetTestCatalog());
+  ApiLookupClient lookup_client(hrn, *settings_);
+  DataRepository repository(hrn, *settings_, lookup_client);
+
+  const auto request =
+      olp::dataservice::read::KeyDataRequest().WithKey("1/1/2");
+  auto response = repository.GetBlobDataByKey(kLayerId, request, context);
+
+  ASSERT_FALSE(response.IsSuccessful());
+  ASSERT_EQ(response.GetError().GetErrorCode(),
+            olp::client::ErrorCode::NotFound);
+}
+
+TEST_F(DataRepositoryTest, GetBlobDataByKeyApiLookupFailed403) {
+  EXPECT_CALL(*network_mock_, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+      .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                       olp::http::HttpStatusCode::FORBIDDEN),
+                                   kUrlResponse403));
+
+  olp::client::CancellationContext context;
+
+  olp::client::HRN hrn(GetTestCatalog());
+  ApiLookupClient lookup_client(hrn, *settings_);
+  DataRepository repository(hrn, *settings_, lookup_client);
+
+  const auto request =
+      olp::dataservice::read::KeyDataRequest().WithKey("1/1/2");
+  auto response = repository.GetBlobDataByKey(kLayerId, request, context);
+
+  ASSERT_FALSE(response.IsSuccessful());
+}
+
+TEST_F(DataRepositoryTest, GetBlobDataByKeyImmediateCancel) {
+  olp::client::CancellationContext context;
+
+  context.CancelOperation();
+  ASSERT_TRUE(context.IsCancelled());
+
+  olp::client::HRN hrn(GetTestCatalog());
+  ApiLookupClient lookup_client(hrn, *settings_);
+  DataRepository repository(hrn, *settings_, lookup_client);
+
+  const auto request =
+      olp::dataservice::read::KeyDataRequest().WithKey("1/1/2");
+  auto response = repository.GetBlobDataByKey(kLayerId, request, context);
+
+  ASSERT_FALSE(response.IsSuccessful());
+  ASSERT_EQ(response.GetError().GetErrorCode(),
+            olp::client::ErrorCode::Cancelled);
+}
+
+TEST_F(DataRepositoryTest, GetBlobDataByKeyMissingKey) {
+  olp::client::CancellationContext context;
+
+  olp::client::HRN hrn(GetTestCatalog());
+  ApiLookupClient lookup_client(hrn, *settings_);
+  DataRepository repository(hrn, *settings_, lookup_client);
+
+  const auto request = olp::dataservice::read::KeyDataRequest();
+  auto response = repository.GetBlobDataByKey(kLayerId, request, context);
+
+  ASSERT_FALSE(response.IsSuccessful());
+  ASSERT_EQ(response.GetError().GetErrorCode(),
+            olp::client::ErrorCode::InvalidArgument);
 }
 }  // namespace
