@@ -113,9 +113,11 @@ int Md5LookupGetBySubject(X509_LOOKUP* ctx, X509_LOOKUP_TYPE type,
   // Update return result
   auto* x509_data = X509_new();
   X509_set_subject_name(x509_data, name);
-  X509_OBJECT_set1_X509(ret, x509_data);
+  // set1 takes its own reference; release ours to avoid a per-lookup leak.
+  const auto set_ret = X509_OBJECT_set1_X509(ret, x509_data);
+  X509_free(x509_data);
 
-  return 1;
+  return set_ret;
 }
 #endif
 
