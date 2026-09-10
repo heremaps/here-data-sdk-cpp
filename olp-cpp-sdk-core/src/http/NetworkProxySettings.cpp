@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,10 @@ const std::string& NetworkProxySettings::GetPassword() const {
   return password_;
 }
 
+const std::string& NetworkProxySettings::GetCaInfoBlob() const {
+  return ca_info_blob_;
+}
+
 NetworkProxySettings& NetworkProxySettings::WithHostname(std::string hostname) {
   hostname_ = std::move(hostname);
   return *this;
@@ -62,6 +66,12 @@ NetworkProxySettings& NetworkProxySettings::WithUsername(std::string username) {
 
 NetworkProxySettings& NetworkProxySettings::WithPassword(std::string password) {
   password_ = std::move(password);
+  return *this;
+}
+
+NetworkProxySettings& NetworkProxySettings::WithCaInfoBlob(
+    std::string ca_info_blob) {
+  ca_info_blob_ = std::move(ca_info_blob);
   return *this;
 }
 
