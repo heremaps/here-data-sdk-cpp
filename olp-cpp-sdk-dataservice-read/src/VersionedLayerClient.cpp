@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,16 @@ client::CancellationToken VersionedLayerClient::GetData(
 client::CancellableFuture<DataResponse> VersionedLayerClient::GetData(
     DataRequest data_request) {
   return impl_->GetData(std::move(data_request));
+}
+
+client::CancellationToken VersionedLayerClient::GetDataByKey(
+    KeyDataRequest request, DataResponseCallback callback) {
+  return impl_->GetDataByKey(std::move(request), std::move(callback));
+}
+
+client::CancellableFuture<DataResponse> VersionedLayerClient::GetDataByKey(
+    KeyDataRequest request) {
+  return impl_->GetDataByKey(std::move(request));
 }
 
 client::CancellationToken VersionedLayerClient::GetPartitions(

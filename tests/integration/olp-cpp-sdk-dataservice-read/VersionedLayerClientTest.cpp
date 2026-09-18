@@ -38,6 +38,7 @@
 #include <olp/core/porting/warning_disable.h>
 #include <olp/core/utils/Dir.h>
 #include <olp/core/utils/Url.h>
+#include <olp/dataservice/read/PrefetchTileResult.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include <olp/dataservice/read/model/Partitions.h>
 

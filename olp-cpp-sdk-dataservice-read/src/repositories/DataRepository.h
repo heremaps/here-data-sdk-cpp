@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 #include <olp/core/client/HRN.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include "olp/dataservice/read/DataRequest.h"
+#include "olp/dataservice/read/KeyDataRequest.h"
 #include "olp/dataservice/read/Types.h"
 
 #include "NamedMutex.h"
@@ -62,6 +63,10 @@ class DataRepository final {
       const model::Partition& partition, FetchOptions fetch_option,
       const porting::optional<std::string>& billing_tag,
       client::CancellationContext context, bool fail_on_cache_error);
+
+  BlobApi::DataResponse GetBlobDataByKey(const std::string& layer_id,
+                                         const KeyDataRequest& request,
+                                         client::CancellationContext context);
 
  private:
   client::HRN catalog_;
