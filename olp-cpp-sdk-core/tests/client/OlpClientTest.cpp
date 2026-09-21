@@ -451,6 +451,116 @@ TEST_P(OlpClientTest, RetryWithExponentialBackdownStrategy) {
   testing::Mock::VerifyAndClearExpectations(network.get());
 }
 
+TEST_P(OlpClientTest, RetryAfterHeaderDelaysRetry) {
+  constexpr auto kRetryAfterDelay = std::chrono::seconds(1);
+  auto network = network_;
+  auto& retry_settings = client_settings_.retry_settings;
+  retry_settings.max_attempts = 1;
+  retry_settings.initial_backdown_period = 0;
+  retry_settings.backdown_strategy = [](std::chrono::milliseconds, size_t) {
+    return std::chrono::milliseconds::zero();
+  };
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
+  std::vector<std::chrono::steady_clock::time_point> timestamps;
+  std::vector<std::future<void>> futures;
+  olp::http::RequestId request_id = 5;
+  int attempt = 0;
+
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .Times(2)
+      .WillRepeatedly([&](olp::http::NetworkRequest /*request*/,
+                          olp::http::Network::Payload /*payload*/,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback /*data_callback*/) {
+        timestamps.push_back(std::chrono::steady_clock::now());
+        const auto current_request_id = request_id++;
+        const bool retryable_response = attempt++ == 0;
+        futures.emplace_back(std::async(std::launch::async, [=]() {
+          std::this_thread::sleep_for(kCallbackSleepTime);
+          if (retryable_response) {
+            header_callback("retry-after", "1");
+          } else {
+            header_callback("not-retry-after", "0");
+          }
+          callback(olp::http::NetworkResponse()
+                       .WithStatus(retryable_response
+                                       ? http::HttpStatusCode::TOO_MANY_REQUESTS
+                                       : http::HttpStatusCode::OK)
+                       .WithRequestId(current_request_id));
+        }));
+        return olp::http::SendOutcome(current_request_id);
+      });
+
+  auto call_wrapper = MakeCallWrapper(client);
+  const auto response =
+      call_wrapper->CallApi({}, "GET", {}, {}, {}, nullptr, {});
+
+  for (auto& future : futures) {
+    future.wait();
+  }
+
+  ASSERT_EQ(http::HttpStatusCode::OK, response.GetStatus());
+  ASSERT_EQ(2u, timestamps.size());
+  EXPECT_GE(timestamps[1] - timestamps[0], kRetryAfterDelay);
+  testing::Mock::VerifyAndClearExpectations(network.get());
+}
+
+TEST_P(OlpClientTest, InvalidRetryAfterHeaderUsesBackdownStrategy) {
+  constexpr auto kBackdownDelay = std::chrono::milliseconds(100);
+  auto network = network_;
+  auto& retry_settings = client_settings_.retry_settings;
+  retry_settings.max_attempts = 1;
+  retry_settings.initial_backdown_period = kBackdownDelay.count();
+  retry_settings.backdown_strategy = [](std::chrono::milliseconds, size_t) {
+    return std::chrono::milliseconds::zero();
+  };
+
+  olp::client::OlpClient client(client_settings_, kEmptyBaseUrl);
+  std::vector<std::chrono::steady_clock::time_point> timestamps;
+  std::vector<std::future<void>> futures;
+  olp::http::RequestId request_id = 5;
+  int attempt = 0;
+
+  EXPECT_CALL(*network, Send(_, _, _, _, _))
+      .Times(2)
+      .WillRepeatedly([&](olp::http::NetworkRequest /*request*/,
+                          olp::http::Network::Payload /*payload*/,
+                          olp::http::Network::Callback callback,
+                          olp::http::Network::HeaderCallback header_callback,
+                          olp::http::Network::DataCallback /*data_callback*/) {
+        timestamps.push_back(std::chrono::steady_clock::now());
+        const auto current_request_id = request_id++;
+        const bool retryable_response = attempt++ == 0;
+        futures.emplace_back(std::async(std::launch::async, [=]() {
+          std::this_thread::sleep_for(kCallbackSleepTime);
+          if (retryable_response) {
+            header_callback("Retry-After", "not-a-delay");
+          }
+          callback(olp::http::NetworkResponse()
+                       .WithStatus(retryable_response
+                                       ? http::HttpStatusCode::TOO_MANY_REQUESTS
+                                       : http::HttpStatusCode::OK)
+                       .WithRequestId(current_request_id));
+        }));
+        return olp::http::SendOutcome(current_request_id);
+      });
+
+  auto call_wrapper = MakeCallWrapper(client);
+  const auto response =
+      call_wrapper->CallApi({}, "GET", {}, {}, {}, nullptr, {});
+
+  for (auto& future : futures) {
+    future.wait();
+  }
+
+  ASSERT_EQ(http::HttpStatusCode::OK, response.GetStatus());
+  ASSERT_EQ(2u, timestamps.size());
+  EXPECT_GE(timestamps[1] - timestamps[0], kBackdownDelay);
+  testing::Mock::VerifyAndClearExpectations(network.get());
+}
+
 TEST_P(OlpClientTest, RetryTimeout) {
   const size_t kMaxRetries = 3;
   const size_t kSuccessfulAttempt = kMaxRetries + 1;
