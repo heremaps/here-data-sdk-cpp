@@ -21,6 +21,7 @@
 
 #include <cctype>
 #include <chrono>
+#include <climits>
 #include <future>
 #ifdef OLP_SDK_NETWORK_IOS_BACKGROUND_DOWNLOAD
 #include <list>
@@ -182,6 +183,32 @@ bool CaseInsensitiveCompare(const std::string& str1, const std::string& str2) {
                     });
 }
 
+std::chrono::seconds GetRetryAfterWaitTime(const HttpResponse& response) {
+  for (const auto& header : response.GetHeaders()) {
+    if (!CaseInsensitiveCompare(header.first, "Retry-After")) {
+      continue;
+    }
+
+    if (header.second.empty()) {
+      return std::chrono::seconds::zero();
+    }
+
+    using Rep = std::chrono::seconds::rep;
+    const Rep seconds_from_header =
+        std::strtol(header.second.c_str(), nullptr, 10);
+
+    if (seconds_from_header == std::numeric_limits<Rep>::max() ||
+        seconds_from_header == std::numeric_limits<Rep>::min()) {
+      return std::chrono::seconds::zero();
+    }
+
+    // In case of other issues with conversion - return zero seconds
+    return std::chrono::seconds(seconds_from_header);
+  }
+
+  return std::chrono::seconds::zero();
+}
+
 RequestSettingsPtr GetRequestSettings(const RetrySettings& retry_settings) {
   return std::make_shared<RequestSettings>(
       retry_settings.initial_backdown_period, retry_settings.timeout);
@@ -286,9 +313,10 @@ NetworkCallbackType GetRetryCallback(
 
     // TODO: Do not block thread but instead implement an event queue that will
     // trigger next retry once the time expired!
-    const auto actual_wait_time =
-        std::min(settings->current_backdown_period,
-                 settings->max_wait_time - settings->accumulated_wait_time);
+    auto wait_time = settings->current_backdown_period;
+    wait_time += GetRetryAfterWaitTime(response);
+    const auto actual_wait_time = std::min(
+        wait_time, settings->max_wait_time - settings->accumulated_wait_time);
     std::this_thread::sleep_for(actual_wait_time);
 
     settings->accumulated_wait_time += actual_wait_time;
@@ -843,8 +871,10 @@ HttpResponse OlpClientImpl::CallApiImpl(
     }
 
     // do the periodical sleep and check for cancellation status in between.
+    auto wait_time = backdown_period;
+    wait_time += GetRetryAfterWaitTime(response);
     auto duration_to_sleep =
-        std::min(backdown_period, max_wait_time - accumulated_wait_time);
+        std::min(wait_time, max_wait_time - accumulated_wait_time);
     accumulated_wait_time += duration_to_sleep;
 
     while (duration_to_sleep.count() > 0 && !context.IsCancelled()) {

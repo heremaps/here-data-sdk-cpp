@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2024 HERE Europe B.V.
+ * Copyright (C) 2021-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,8 +71,9 @@ struct CORE_API RetrySettings {
    *
    * The default value is 60.
    *
-   * @note Connection or data transfer will be interrupted after specified
-   * period of time ignoring `connection_timeout` and `transfer_timeout` values.
+   * @note Connection, data transfer, or retry attempts will be interrupted
+   * after specified period of time ignoring `connection_timeout` and
+   * `transfer_timeout` values.
    */
   int timeout = 60;
 
