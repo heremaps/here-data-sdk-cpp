@@ -22,6 +22,7 @@
 #include <gtest/gtest.h>
 #include <olp/core/client/ApiResponse.h>
 #include <olp/core/client/Condition.h>
+#include <olp/core/thread/ThreadPoolTaskScheduler.h>
 
 namespace {
 
@@ -32,6 +33,7 @@ using client::CancellationToken;
 using client::Condition;
 using client::ErrorCode;
 using client::TaskContext;
+using ThreadPoolTaskScheduler = olp::thread::ThreadPoolTaskScheduler;
 
 using ResponseType = std::string;
 using Response = client::ApiResponse<ResponseType, client::ApiError>;
@@ -47,21 +49,43 @@ class TaskContextTestable : public TaskContext {
   template <typename Exec, typename Callback>
   static TaskContextTestable Create(
       Exec execute_func, Callback callback,
-      CancellationContext context = CancellationContext()) {
+      CancellationContext context = CancellationContext(),
+      std::shared_ptr<olp::thread::TaskScheduler> task_scheduler = nullptr) {
     TaskContextTestable task;
     task.SetExecutors(std::move(execute_func), std::move(callback),
-                      std::move(context));
+                      std::move(context), std::move(task_scheduler));
     return task;
   }
 
   template <typename Exec, typename Callback,
             typename ExecResult = typename std::result_of<
                 Exec(olp::client::CancellationContext)>::type>
-  void SetExecutors(Exec execute_func, Callback callback,
-                    CancellationContext context) {
+  void SetExecutors(
+      Exec execute_func, Callback callback, CancellationContext context,
+      std::shared_ptr<olp::thread::TaskScheduler> task_scheduler) {
     auto impl = std::make_shared<TaskContextImpl<ExecResult>>(
-        std::move(execute_func), std::move(callback), std::move(context));
-    notify = [=]() { impl->condition_.Notify(); };
+        std::move(execute_func), std::move(callback), context);
+    std::weak_ptr<TaskContextImpl<ExecResult>> weak_impl = impl;
+    auto cancellation_scheduler = task_scheduler;
+    context.ExecuteOrCancelled(
+        [weak_impl, cancellation_scheduler]() -> CancellationToken {
+          return CancellationToken([weak_impl, cancellation_scheduler]() {
+            auto impl = weak_impl.lock();
+            if (impl && cancellation_scheduler) {
+              cancellation_scheduler->ScheduleCancellationTask(
+                  [weak_impl, cancellation_scheduler]() {
+                    OLP_SDK_CORE_UNUSED(cancellation_scheduler);
+                    if (auto impl = weak_impl.lock()) {
+                      impl->PreExecuteCancel();
+                    }
+                  });
+              return;
+            }
+            impl->PreExecuteCancel();
+          });
+        },
+        []() {});
+    notify = [impl]() { impl->condition_.Notify(); };
     impl_ = impl;
   }
 };
@@ -127,28 +151,166 @@ TEST(TaskContextTest, ExecuteSimple) {
 }
 
 TEST(TaskContextTest, BlockingCancel) {
-  ExecuteFunc func = [&](CancellationContext c) -> Response {
-    EXPECT_TRUE(c.IsCancelled());
-    return std::string("Success");
-  };
-
   Response response;
 
   Callback callback = [&](Response r) { response = std::move(r); };
 
-  TaskContext context = TaskContext::Create(func, callback);
+  {
+    SCOPED_TRACE("Pre-exec cancellation");
+    bool executed = false;
+    ExecuteFunc func = [&](CancellationContext) -> Response {
+      executed = true;
+      return std::string("Success");
+    };
 
-  EXPECT_FALSE(context.BlockingCancel(std::chrono::seconds(0)));
+    TaskContext context = TaskContext::Create(func, callback);
+    EXPECT_FALSE(context.BlockingCancel(std::chrono::seconds(0)));
+    context.Execute();
+    EXPECT_FALSE(executed);
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
+  }
 
-  std::thread cancel_thread([&]() { EXPECT_TRUE(context.BlockingCancel()); });
+  {
+    SCOPED_TRACE("Cancel during execution");
+    Condition continue_execution;
+    Condition execution_started;
+    int execution_count = 0;
+    response = Response{};
+    ExecuteFunc func = [&](CancellationContext c) -> Response {
+      ++execution_count;
+      execution_started.Notify();
+      // EXPECT_TRUE(continue_execution.Wait(kWaitTime));
+      const auto deadline = std::chrono::steady_clock::now() + kWaitTime;
+      while (!c.IsCancelled() && std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::yield();
+      }
+      EXPECT_TRUE(c.IsCancelled());
+      return std::string("Success");
+    };
+    TaskContext context = TaskContext::Create(func, callback);
 
-  std::thread execute_thread([&]() { context.Execute(); });
+    std::thread execute_thread([&]() { context.Execute(); });
+    EXPECT_TRUE(execution_started.Wait());
 
-  execute_thread.join();
-  cancel_thread.join();
+    std::thread cancel_thread([&]() { EXPECT_TRUE(context.BlockingCancel()); });
 
+    // continue_execution.Notify();
+
+    execute_thread.join();
+    cancel_thread.join();
+
+    EXPECT_EQ(execution_count, 1);
+    EXPECT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
+  }
+}
+
+TEST(TaskContextTest, PreExecuteCancelUsesCancellationLaneWhenEnabled) {
+  auto task_scheduler = std::make_shared<ThreadPoolTaskScheduler>(1u, true);
+
+  bool executed = false;
+  Response response;
+  std::promise<void> callback_promise;
+  auto callback_future = callback_promise.get_future();
+  std::thread::id callback_thread_id;
+  std::promise<std::thread::id> executor_thread_id_promise;
+  std::future<std::thread::id> executor_thread_id_future =
+      executor_thread_id_promise.get_future();
+  task_scheduler->ScheduleTask([&]() {
+    executor_thread_id_promise.set_value(std::this_thread::get_id());
+  });
+
+  ASSERT_EQ(executor_thread_id_future.wait_for(std::chrono::seconds(1)),
+            std::future_status::ready);
+
+  TaskContext context = TaskContext::Create(
+      [&](CancellationContext) -> Response {
+        executed = true;
+        return std::string("Success");
+      },
+      [&](Response r) {
+        callback_thread_id = std::this_thread::get_id();
+        response = std::move(r);
+        callback_promise.set_value();
+      },
+      CancellationContext(), task_scheduler);
+
+  EXPECT_TRUE(context.BlockingCancel(kWaitTime));
+  EXPECT_EQ(callback_future.wait_for(std::chrono::milliseconds(0)),
+            std::future_status::ready);
+  EXPECT_FALSE(executed);
   EXPECT_FALSE(response.IsSuccessful());
   EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
+  EXPECT_NE(callback_thread_id, std::this_thread::get_id());
+  EXPECT_NE(callback_thread_id, executor_thread_id_future.get());
+}
+
+TEST(TaskContextTest, PreExecuteCancelUsesRegularSchedulerWhenLaneDisabled) {
+  auto task_scheduler = std::make_shared<ThreadPoolTaskScheduler>(1u, false);
+  bool executed = false;
+  Response response;
+  std::promise<void> callback_promise;
+  auto callback_future = callback_promise.get_future();
+  std::thread::id callback_thread_id;
+
+  std::promise<std::thread::id> executor_thread_id_promise;
+  std::future<std::thread::id> executor_thread_id_future =
+      executor_thread_id_promise.get_future();
+  task_scheduler->ScheduleTask([&]() {
+    executor_thread_id_promise.set_value(std::this_thread::get_id());
+  });
+
+  ASSERT_EQ(executor_thread_id_future.wait_for(std::chrono::seconds(1)),
+            std::future_status::ready);
+
+  TaskContext context = TaskContext::Create(
+      [&](CancellationContext) -> Response {
+        executed = true;
+        return std::string("Success");
+      },
+      [&](Response r) {
+        callback_thread_id = std::this_thread::get_id();
+        response = std::move(r);
+        callback_promise.set_value();
+      },
+      CancellationContext(), task_scheduler);
+
+  EXPECT_TRUE(context.BlockingCancel(kWaitTime));
+  EXPECT_EQ(callback_future.wait_for(std::chrono::milliseconds(0)),
+            std::future_status::ready);
+  EXPECT_FALSE(executed);
+  EXPECT_FALSE(response.IsSuccessful());
+  EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::Cancelled);
+  EXPECT_NE(callback_thread_id, std::this_thread::get_id());
+  EXPECT_EQ(callback_thread_id, executor_thread_id_future.get());
+}
+
+TEST(TaskContextTest,
+     CancellationLanePreExecuteCancelRunsWhileRegularWorkerBlocked) {
+  auto scheduler = std::make_shared<ThreadPoolTaskScheduler>(1u, true);
+  std::promise<Response> response;
+  std::promise<void> scheduler_blocked_promise;
+
+  scheduler->ScheduleTask([&]() {
+    scheduler_blocked_promise.set_value();
+    auto future = response.get_future();
+    ASSERT_EQ(future.wait_for(std::chrono::seconds(1)),
+              std::future_status::ready);
+
+    EXPECT_EQ(future.get().GetError().GetErrorCode(), ErrorCode::Cancelled);
+  });
+
+  ASSERT_EQ(
+      scheduler_blocked_promise.get_future().wait_for(std::chrono::seconds(1)),
+      std::future_status::ready);
+
+  TaskContext context = TaskContext::Create(
+      [&](CancellationContext) -> Response { return std::string("Success"); },
+      [&](Response r) { response.set_value(std::move(r)); },
+      CancellationContext(), scheduler);
+
+  ASSERT_TRUE(context.BlockingCancel(kWaitTime));
 }
 
 TEST(TaskContextTest, BlockingCancelIsWaiting) {

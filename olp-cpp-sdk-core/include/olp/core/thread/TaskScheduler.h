@@ -72,6 +72,20 @@ class CORE_API TaskScheduler {
   }
 
   /**
+   * @brief Schedules cancellation work.
+   *
+   * By default, cancellation work falls back to the regular task queue. Custom
+   * schedulers can override `EnqueueCancellationTask` to dispatch cancellation
+   * work differently.
+   *
+   * @param[in] func The callable target that should be added to the scheduling
+   * pipeline for cancellation work.
+   */
+  void ScheduleCancellationTask(CallFuncType&& func) {
+    EnqueueCancellationTask(std::move(func));
+  }
+
+  /**
    * @brief Schedules the asynchronous cancellable task.
    *
    * @param[in] func The callable target that should be added to the scheduling
@@ -134,6 +148,19 @@ class CORE_API TaskScheduler {
    */
   virtual void EnqueueTask(CallFuncType&& func, uint32_t priority) {
     OLP_SDK_CORE_UNUSED(priority);
+    EnqueueTask(std::forward<CallFuncType>(func));
+  }
+
+  /**
+   * @brief The enqueue cancellation task interface that is implemented by the
+   * subclass when cancellation work should use a dedicated dispatch path.
+   *
+   * By default, cancellation work falls back to the regular task queue.
+   *
+   * @param[in] func The rvalue reference of the cancellation task that should
+   * be enqueued.
+   */
+  virtual void EnqueueCancellationTask(CallFuncType&& func) {
     EnqueueTask(std::forward<CallFuncType>(func));
   }
 };
