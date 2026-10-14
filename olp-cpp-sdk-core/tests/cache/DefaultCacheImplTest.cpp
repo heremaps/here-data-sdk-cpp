@@ -817,9 +817,9 @@ TEST_F(DefaultCacheImplTest, LruCacheEviction) {
 
     const auto not_expired_key = prefix + std::to_string(0);
 
-    // Put data that expires after 10 sec and never promoted.
+    // Put data that expires after 60 sec and never promoted.
     cache.Put(not_expired_key,
-              std::make_shared<std::vector<unsigned char>>(binary_data), 10);
+              std::make_shared<std::vector<unsigned char>>(binary_data), 60);
 
     // overflow the mutable cache
     auto count = 1u;

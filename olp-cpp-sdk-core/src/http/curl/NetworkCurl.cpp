@@ -164,6 +164,63 @@ int BlockSigpipeResult = BlockSigpipe();
 
 #endif  // IGNORE_SIGPIPE
 
+#ifdef OLP_SDK_NETWORK_HAS_PIPE2
+#ifdef __APPLE__
+// Apple SDKs declare pipe2() (so CMake detects it), but it only exists at
+// runtime starting with OS version 27; calling it on older systems crashes.
+__API_AVAILABLE(macos(27.0), ios(27.0), tvos(27.0), watchos(27.0),
+                visionos(27.0))
+#endif
+bool CreatePipeWithPipe2(int (&fds)[2]) {
+  if (pipe2(fds, O_NONBLOCK)) {
+    OLP_SDK_LOG_ERROR(kLogTag, "pipe2 failed, errno=" << errno);
+    return false;
+  }
+  return true;
+}
+#endif
+
+#if defined(OLP_SDK_NETWORK_HAS_PIPE) && \
+    (!defined(OLP_SDK_NETWORK_HAS_PIPE2) || defined(__APPLE__))
+bool CreatePipeWithFcntl(int (&fds)[2]) {
+  if (pipe(fds)) {
+    OLP_SDK_LOG_ERROR(kLogTag, "pipe failed, errno=" << errno);
+    return false;
+  }
+
+  for (int fd : fds) {
+    int flags = fcntl(fd, F_GETFL);
+    if (flags == -1) {
+      flags = 0;
+    }
+    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK)) {
+      OLP_SDK_LOG_ERROR(kLogTag, "fcntl for pipe failed, errno=" << errno);
+      close(fds[0]);
+      close(fds[1]);
+      return false;
+    }
+  }
+  return true;
+}
+#endif
+
+#if defined(OLP_SDK_NETWORK_HAS_PIPE) || defined(OLP_SDK_NETWORK_HAS_PIPE2)
+// Creates a pipe with both ends set to non-blocking mode.
+bool CreateNonBlockingPipe(int (&fds)[2]) {
+#if defined(OLP_SDK_NETWORK_HAS_PIPE2) && defined(__APPLE__)
+  if (__builtin_available(macOS 27.0, iOS 27.0, tvOS 27.0, watchOS 27.0,
+                          visionOS 27.0, *)) {
+    return CreatePipeWithPipe2(fds);
+  }
+  return CreatePipeWithFcntl(fds);
+#elif defined(OLP_SDK_NETWORK_HAS_PIPE2)
+  return CreatePipeWithPipe2(fds);
+#else
+  return CreatePipeWithFcntl(fds);
+#endif
+}
+#endif
+
 #if CURL_AT_LEAST_VERSION(8, 16, 0)
 using CurlProxyType = long;
 #else
@@ -535,28 +592,10 @@ bool NetworkCurl::Initialize() {
 }
 
 bool NetworkCurl::Impl::Initialize() {
-#ifdef OLP_SDK_NETWORK_HAS_PIPE2
-  if (pipe2(pipe_, O_NONBLOCK)) {
-    OLP_SDK_LOG_ERROR(kLogTag, "pipe2 failed, this=" << this);
+#if defined(OLP_SDK_NETWORK_HAS_PIPE) || defined(OLP_SDK_NETWORK_HAS_PIPE2)
+  if (!CreateNonBlockingPipe(pipe_)) {
+    OLP_SDK_LOG_ERROR(kLogTag, "Failed to create pipe, this=" << this);
     return false;
-  }
-#elif defined OLP_SDK_NETWORK_HAS_PIPE
-  if (pipe(pipe_)) {
-    OLP_SDK_LOG_ERROR(kLogTag, "pipe failed, this=" << this);
-    return false;
-  }
-  // Set read and write pipes non blocking
-  for (size_t i = 0u; i < 2u; ++i) {
-    int flags = fcntl(pipe_[i], F_GETFL);
-    if (flags == -1) {
-      flags = 0;
-    }
-    if (fcntl(pipe_[i], F_SETFL, flags | O_NONBLOCK)) {
-      OLP_SDK_LOG_ERROR(kLogTag, __PRETTY_FUNCTION__ << ". fcntl for pipe[" << i
-                                                     << "] failed. Error "
-                                                     << errno);
-      return false;
-    }
   }
 #endif
 
