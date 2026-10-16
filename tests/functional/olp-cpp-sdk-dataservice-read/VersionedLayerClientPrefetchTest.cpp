@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include <string>
 
 #include <gtest/gtest.h>
+#include <olp/dataservice/read/PrefetchTileResult.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include "ApiDefaultResponses.h"
 #include "ReadDefaultResponses.h"

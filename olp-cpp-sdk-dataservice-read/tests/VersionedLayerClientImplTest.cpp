@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,6 +108,72 @@ TEST(VersionedLayerClientTest, GetData) {
               ErrorCode::PreconditionFailed);
   }
   Mock::VerifyAndClearExpectations(network_mock.get());
+}
+
+TEST(VersionedLayerClientTest, GetDataByKey) {
+  std::shared_ptr<NetworkMock> network_mock = std::make_shared<NetworkMock>();
+  std::shared_ptr<CacheMock> cache_mock = std::make_shared<CacheMock>();
+  olp::client::OlpClientSettings settings;
+  settings.network_request_handler = network_mock;
+  settings.cache = cache_mock;
+
+  const auto apis = ApiDefaultResponses::GenerateResourceApisResponse(kCatalog);
+  const auto api_response = ResponseGenerator::ResourceApis(apis);
+  const std::string blob_key_url =
+      "https://tmp.blob.data.api.platform.here.com/blob/v1/catalogs/" +
+      kCatalog + "/layers/" + kLayerId + "/keys/" +
+      olp::utils::Url::Encode("1/1/2");
+
+  read::VersionedLayerClient client(kHrn, kLayerId, olp::porting::none,
+                                    settings);
+  {
+    SCOPED_TRACE("Get data by key");
+
+    EXPECT_CALL(*cache_mock, Get(_, _))
+        .WillOnce(testing::Return(olp::porting::any()));
+    EXPECT_CALL(*cache_mock, Put(_, _, _, _))
+        .WillRepeatedly(testing::Return(true));
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(kUrlLookup), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     api_response));
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(blob_key_url), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::OK),
+                                     "keyData"));
+
+    auto future = client.GetDataByKey(read::KeyDataRequest().WithKey("1/1/2"))
+                      .GetFuture();
+    const auto& response = future.get();
+    ASSERT_TRUE(response.IsSuccessful());
+    ASSERT_TRUE(response.GetResult() != nullptr);
+    ASSERT_EQ(7u, response.GetResult()->size());
+  }
+  Mock::VerifyAndClearExpectations(network_mock.get());
+  {
+    SCOPED_TRACE("Get data by not existing key");
+
+    EXPECT_CALL(*network_mock, Send(IsGetRequest(blob_key_url), _, _, _, _))
+        .WillOnce(ReturnHttpResponse(olp::http::NetworkResponse().WithStatus(
+                                         olp::http::HttpStatusCode::NOT_FOUND),
+                                     ""));
+
+    auto future = client.GetDataByKey(read::KeyDataRequest().WithKey("1/1/2"))
+                      .GetFuture();
+    const auto& response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::NotFound);
+  }
+  Mock::VerifyAndClearExpectations(network_mock.get());
+  {
+    SCOPED_TRACE("Get data by key without the key");
+
+    auto future = client.GetDataByKey(read::KeyDataRequest()).GetFuture();
+    const auto& response = future.get();
+    ASSERT_FALSE(response.IsSuccessful());
+    EXPECT_EQ(response.GetError().GetErrorCode(), ErrorCode::InvalidArgument);
+  }
 }
 
 TEST(VersionedLayerClientTest, DeleteFromCachePartition) {
