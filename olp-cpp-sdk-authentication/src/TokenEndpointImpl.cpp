@@ -101,7 +101,7 @@ void RetryDelay(const client::RetrySettings& retry_settings, size_t retry) {
 }
 
 TimeResponse ParseTimeResponse(const std::string& payload) {
-  boost::json::error_code ec;
+  boost::system::error_code ec;
   auto document = boost::json::parse(payload, ec);
 
   if (!document.is_object()) {
@@ -330,7 +330,7 @@ SignInResponse TokenEndpointImpl::SignInClient(
 
 SignInResult TokenEndpointImpl::ParseAuthResponse(
     int status, std::stringstream& auth_response) {
-  boost::json::error_code ec;
+  boost::system::error_code ec;
   auto document = boost::json::parse(auth_response, ec);
   return std::make_shared<SignInResultImpl>(
       status, http::HttpErrorToString(status),

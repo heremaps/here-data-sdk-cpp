@@ -216,7 +216,7 @@ olp::client::HttpResponse AuthenticationClientImpl::CallAuth(
 
 SignInResult AuthenticationClientImpl::ParseAuthResponse(
     int status, std::stringstream& auth_response) {
-  boost::json::error_code ec;
+  boost::system::error_code ec;
   auto document = boost::json::parse(auth_response, ec);
   return std::make_shared<SignInResultImpl>(
       status, olp::http::HttpErrorToString(status),
@@ -228,7 +228,7 @@ SignInResult AuthenticationClientImpl::ParseAuthResponse(
 
 SignInUserResult AuthenticationClientImpl::ParseUserAuthResponse(
     int status, std::stringstream& auth_response) {
-  boost::json::error_code ec;
+  boost::system::error_code ec;
   auto document = boost::json::parse(auth_response, ec);
   return std::make_shared<SignInUserResultImpl>(
       status, olp::http::HttpErrorToString(status),
@@ -462,7 +462,7 @@ client::CancellationToken AuthenticationClientImpl::SignInMtls(
 
 TimeResponse AuthenticationClientImpl::ParseTimeResponse(
     std::stringstream& payload) {
-  boost::json::error_code ec;
+  boost::system::error_code ec;
   auto json_value = boost::json::parse(payload, ec);
 
   if (ec.failed() || !json_value.is_object()) {
@@ -688,7 +688,7 @@ client::CancellationToken AuthenticationClientImpl::SignUpHereUser(
       return client::ApiError(status, response_text);
     }
 
-    boost::json::error_code ec;
+    boost::system::error_code ec;
     auto document = boost::json::parse(response_text, ec);
     return {std::make_shared<SignUpResultImpl>(
         status, olp::http::HttpErrorToString(status),
@@ -737,7 +737,7 @@ client::CancellationToken AuthenticationClientImpl::SignOut(
       return client::ApiError(status, response_text);
     }
 
-    boost::json::error_code ec;
+    boost::system::error_code ec;
     auto document = boost::json::parse(response_text, ec);
     return {std::make_shared<SignOutResultImpl>(
         status, olp::http::HttpErrorToString(status),
@@ -774,7 +774,7 @@ client::CancellationToken AuthenticationClientImpl::IntrospectApp(
     auto http_result = client.CallApi(kIntrospectAppEndpoint, "GET", {}, {}, {},
                                       nullptr, {}, context);
 
-    boost::json::error_code ec;
+    boost::system::error_code ec;
     auto document = boost::json::parse(http_result.GetRawResponse(), ec);
     if (http_result.GetStatus() != http::HttpStatusCode::OK) {
       // HttpResult response can be error message or valid json with it.
@@ -820,7 +820,7 @@ client::CancellationToken AuthenticationClientImpl::Authorize(
                                       GenerateAuthorizeBody(request),
                                       kApplicationJson, context);
 
-    boost::json::error_code ec;
+    boost::system::error_code ec;
     auto document = boost::json::parse(http_result.GetRawResponse(), ec);
     if (http_result.GetStatus() != http::HttpStatusCode::OK) {
       // HttpResult response can be error message or valid json with it.

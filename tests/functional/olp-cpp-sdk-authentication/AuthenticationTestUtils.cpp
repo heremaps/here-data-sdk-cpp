@@ -103,7 +103,7 @@ bool AuthenticationTestUtils::CreateFacebookTestUser(
          &user](const olp::http::NetworkResponse &network_response) {
           user.token.status = network_response.GetStatus();
           if (user.token.status == olp::http::HttpStatusCode::OK) {
-            boost::json::error_code ec;
+            boost::system::error_code ec;
             auto document = boost::json::parse(*payload, ec);
             const bool is_valid = !ec.failed() && document.is_object() &&
                                   document.as_object().contains(kAccessToken) &&
@@ -243,7 +243,7 @@ bool AuthenticationTestUtils::GetAccessTokenImpl(
          &token](const olp::http::NetworkResponse &network_response) {
           token.status = network_response.GetStatus();
           if (token.status == olp::http::HttpStatusCode::OK) {
-            boost::json::error_code ec;
+            boost::system::error_code ec;
             auto document = boost::json::parse(*payload, ec);
             const bool is_valid = !ec.failed() && document.is_object() &&
                                   document.as_object().contains(kAccessToken);

@@ -53,7 +53,7 @@ TEST(PartitionsSaxHandlerTest, NormalFlow) {
 
   repository::PartitionsSaxHandler handler(callback);
 
-  boost::json::error_code error_code;
+  boost::system::error_code error_code;
   ASSERT_TRUE(handler.on_object_begin(error_code));
   ASSERT_TRUE(handler.on_key(kPartitions, len(kPartitions), error_code));
   ASSERT_TRUE(handler.on_array_begin(error_code));
@@ -118,7 +118,7 @@ TEST(PartitionsSaxHandlerTest, WrongJSONStructure) {
   auto callback = [&](model::Partition) {};
 
   repository::PartitionsSaxHandler handler(callback);
-  boost::json::error_code error_code;
+  boost::system::error_code error_code;
 
   // Initial state expects an object
   ASSERT_FALSE(handler.on_key(kPartitions, len(kPartitions), error_code));

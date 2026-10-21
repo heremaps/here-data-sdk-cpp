@@ -72,7 +72,7 @@ std::string Base64Encode(const Crypto::Sha256Digest& digest) {
 }
 
 Response<boost::json::object> Parse(client::HttpResponse& http_response) {
-  boost::json::error_code ec;
+  boost::system::error_code ec;
   auto document = boost::json::parse(http_response.GetRawResponse(), ec);
   if (http_response.GetStatus() != http::HttpStatusCode::OK) {
     // HttpResult response can be error message or valid json with it.

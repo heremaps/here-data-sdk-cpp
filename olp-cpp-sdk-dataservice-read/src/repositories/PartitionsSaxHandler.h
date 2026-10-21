@@ -24,7 +24,7 @@
 
 #include <boost/json/error.hpp>
 #include <boost/json/string_view.hpp>
-#include <boost/json/system_error.hpp>
+#include <boost/system/error_code.hpp>
 
 #include <olp/dataservice/read/model/Partitions.h>
 
@@ -37,7 +37,7 @@ class PartitionsSaxHandler {
  public:
   using PartitionCallback = std::function<void(model::Partition)>;
   using string_view = boost::json::string_view;
-  using error_code = boost::json::error_code;
+  using error_code = boost::system::error_code;
 
   explicit PartitionsSaxHandler(PartitionCallback partition_callback);
 

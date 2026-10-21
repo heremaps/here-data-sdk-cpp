@@ -35,7 +35,7 @@ constexpr unsigned long long int HashStringToInt(
 PartitionsSaxHandler::PartitionsSaxHandler(PartitionCallback partition_callback)
     : partition_callback_(std::move(partition_callback)) {}
 
-bool PartitionsSaxHandler::on_object_begin(boost::json::error_code& ec) {
+bool PartitionsSaxHandler::on_object_begin(boost::system::error_code& ec) {
   if (state_ == State::kWaitForRootObject) {
     state_ = State::kWaitForRootPartitions;
     return CanContinue(ec);
@@ -131,7 +131,7 @@ bool PartitionsSaxHandler::on_object_end(std::size_t, error_code& ec) {
   return CanContinue(ec);
 }
 
-bool PartitionsSaxHandler::on_array_begin(boost::json::error_code& ec) {
+bool PartitionsSaxHandler::on_array_begin(boost::system::error_code& ec) {
   // We expect only a single array in whol response
   if (state_ != State::kWaitPartitionsArray) {
     return NotSupported(ec);
@@ -143,7 +143,7 @@ bool PartitionsSaxHandler::on_array_begin(boost::json::error_code& ec) {
 }
 
 bool PartitionsSaxHandler::on_array_end(std::size_t,
-                                        boost::json::error_code& ec) {
+                                        boost::system::error_code& ec) {
   if (state_ != State::kWaitForNextPartition) {
     return NotSupported(ec);
   }

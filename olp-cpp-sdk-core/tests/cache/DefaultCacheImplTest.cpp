@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2024 HERE Europe B.V.
+ * Copyright (C) 2020-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -817,9 +817,9 @@ TEST_F(DefaultCacheImplTest, LruCacheEviction) {
 
     const auto not_expired_key = prefix + std::to_string(0);
 
-    // Put data that expires after 10 sec and never promoted.
+    // Put data that expires after 60 sec and never promoted.
     cache.Put(not_expired_key,
-              std::make_shared<std::vector<unsigned char>>(binary_data), 10);
+              std::make_shared<std::vector<unsigned char>>(binary_data), 60);
 
     // overflow the mutable cache
     auto count = 1u;
