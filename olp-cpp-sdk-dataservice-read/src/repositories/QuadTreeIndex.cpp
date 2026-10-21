@@ -104,7 +104,7 @@ QuadTreeIndex::QuadTreeIndex(const cache::KeyValueCache::ValueTypePtr& data) {
 
 QuadTreeIndex::QuadTreeIndex(const geo::TileKey& root, int depth,
                              std::stringstream& json_stream) {
-  boost::json::error_code ec;
+  boost::system::error_code ec;
   auto parsed_value = boost::json::parse(json_stream, ec);
 
   if (!parsed_value.is_object()) {

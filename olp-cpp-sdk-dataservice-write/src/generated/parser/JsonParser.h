@@ -25,6 +25,7 @@
 #include <vector>
 
 #include <boost/json/parse.hpp>
+#include <boost/system/error_code.hpp>
 
 #include "ParserWrapper.h"
 
@@ -33,7 +34,7 @@ namespace parser {
 
 template <typename T>
 inline T parse(const std::string& json) {
-  boost::json::error_code ec;
+  boost::system::error_code ec;
   auto value = boost::json::parse(json, ec);
   T result{};
   if (value.is_object() || value.is_array()) {
@@ -45,7 +46,7 @@ inline T parse(const std::string& json) {
 template <typename T>
 inline T parse(std::stringstream& json_stream, bool& res) {
   res = false;
-  boost::json::error_code ec;
+  boost::system::error_code ec;
   auto value = boost::json::parse(json_stream, ec);
   T result{};
   if (value.is_object() || value.is_array()) {
@@ -65,7 +66,7 @@ template <typename T>
 inline T parse(const std::shared_ptr<std::vector<unsigned char>>& json_bytes) {
   boost::json::string_view json(reinterpret_cast<char*>(json_bytes->data()),
                                 json_bytes->size());
-  boost::json::error_code ec;
+  boost::system::error_code ec;
   auto value = boost::json::parse(json, ec);
   T result{};
   if (value.is_object() || value.is_array()) {

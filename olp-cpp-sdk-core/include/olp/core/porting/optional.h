@@ -53,6 +53,7 @@ optional<std::decay_t<T>> make_optional(T&& v) {
 }  // namespace olp
 
 #else
+#include <boost/move/utility.hpp>
 #include <boost/optional.hpp>
 
 namespace olp {

@@ -27,6 +27,7 @@
 
 #include <boost/json/parse.hpp>
 #include <boost/json/value.hpp>
+#include <boost/system/error_code.hpp>
 
 namespace mockserver {
 
@@ -123,7 +124,7 @@ inline T parse(const boost::json::value& value, const std::string& name) {
 
 template <typename T>
 inline T parse(std::stringstream& json_stream) {
-  boost::json::error_code ec;
+  boost::system::error_code ec;
   auto doc = boost::json::parse(json_stream, ec);
   T result{};
   if (doc.is_object() || doc.is_array()) {
