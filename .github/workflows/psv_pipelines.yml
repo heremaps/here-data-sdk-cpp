@@ -43,7 +43,7 @@ jobs:
       - name: Run clang-tidy
         run: ./scripts/misc/clang-tidy-17-check.sh
         shell: bash
-        
+
   psv-linux-22-04-gcc9-build-test-codecov:
     name: PSV.Linux.22.04.gcc9.Tests.CodeCov
     runs-on: ubuntu-22.04
@@ -138,9 +138,9 @@ jobs:
         run: gcc --version && ./scripts/linux/psv/build_psv.sh
         shell: bash
 
-  psv-linux-latest-gcc14-build:
-    name: PSV.Linux.latest.gcc14.Tests
-    runs-on: ubuntu-latest
+  psv-linux-24-04-gcc14-build:
+    name: PSV.Linux.24.04.gcc14.Tests
+    runs-on: ubuntu-24.04
     env:
       BUILD_TYPE: RelWithDebInfo
       CC: gcc-14
@@ -173,9 +173,9 @@ jobs:
         run: gcc --version && ./scripts/linux/psv/build_psv_no_exceptions.sh
         shell: bash
 
-  psv-linux-latest-gcc14-build-no-cache:
-    name: PSV.Linux.latest.gcc14.OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
-    runs-on: ubuntu-latest
+  psv-linux-24-04-gcc14-build-no-cache:
+    name: PSV.Linux.24.04.gcc14.OLP_SDK_ENABLE_DEFAULT_CACHE=OFF
+    runs-on: ubuntu-24.04
     env:
       BUILD_TYPE: RelWithDebInfo
       CC: gcc-14
