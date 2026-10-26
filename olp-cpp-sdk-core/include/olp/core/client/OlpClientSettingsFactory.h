@@ -47,12 +47,17 @@ class CORE_API OlpClientSettingsFactory final {
    * operations.
    *
    * Defaulted to `olp::thread::ThreadPoolTaskScheduler` with one worker
-   * thread spawned by default.
+   * thread spawned by default. The default scheduler can optionally create a
+   * dedicated cancellation lane backed by an extra worker thread.
+   *
+   * @param[in] thread_count The number of regular worker threads.
+   * @param[in] enable_cancellation_lane When true, enables the dedicated
+   * cancellation lane on the default `ThreadPoolTaskScheduler`.
    *
    * @return The `TaskScheduler` instance.
    */
   static std::unique_ptr<thread::TaskScheduler> CreateDefaultTaskScheduler(
-      size_t thread_count = 1u);
+      size_t thread_count = 1u, bool enable_cancellation_lane = false);
 
   /**
    * @brief Creates the `Network` instance used for all the non-local requests.

@@ -18,6 +18,8 @@
  */
 
 #include <chrono>
+#include <condition_variable>
+#include <mutex>
 #include <thread>
 #include <unordered_map>
 
@@ -25,6 +27,8 @@
 #include <gtest/gtest.h>
 
 #include <olp/core/client/CancellationContext.h>
+#include <olp/core/client/Condition.h>
+#include <olp/core/client/OlpClientSettingsFactory.h>
 #include <olp/core/thread/ThreadPoolTaskScheduler.h>
 #include "mocks/TaskSchedulerMock.h"
 
@@ -301,4 +305,88 @@ TEST(ThreadPoolTaskSchedulerTest, ExecuteOrSchedule) {
     olp::thread::ExecuteOrSchedule(nullptr, [&counter]() { counter++; });
     EXPECT_EQ(counter, 1);
   }
+}
+
+TEST(ThreadPoolTaskSchedulerTest,
+     CancellationTaskFallsBackToDefaultSchedulerQueue) {
+  auto mock_scheduler = std::make_shared<TaskSchedulerMock>();
+  SyncTaskType scheduled_task;
+  bool executed = false;
+
+  EXPECT_CALL(*mock_scheduler, EnqueueTask(testing::_))
+      .WillOnce(testing::Invoke(
+          [&](SyncTaskType&& task) { scheduled_task = std::move(task); }));
+
+  mock_scheduler->ScheduleCancellationTask([&]() { executed = true; });
+
+  ASSERT_TRUE(static_cast<bool>(scheduled_task));
+  scheduled_task();
+  EXPECT_TRUE(executed);
+}
+
+TEST(ThreadPoolTaskSchedulerTest,
+     CancellationTaskFallsBackToRegularQueueWhenLaneDisabled) {
+  auto thread_pool = std::make_shared<ThreadPool>(1u, false);
+
+  std::promise<void> completed_promise;
+  auto completed_future = completed_promise.get_future();
+
+  thread_pool->ScheduleCancellationTask(
+      [&]() { completed_promise.set_value(); });
+
+  EXPECT_EQ(completed_future.wait_for(std::chrono::milliseconds(kMaxWaitMs)),
+            std::future_status::ready);
+}
+
+TEST(ThreadPoolTaskSchedulerTest,
+     CancellationLaneRunsWhileRegularWorkerBlocked) {
+  olp::client::Condition executor_blocked;
+  olp::client::Condition cancellation_done;
+  olp::client::Condition executor_done;
+
+  auto thread_pool = std::make_shared<ThreadPool>(1u, true);
+  TaskScheduler& scheduler = *thread_pool;
+
+  scheduler.ScheduleTask([&]() {
+    executor_blocked.Notify();
+    ASSERT_TRUE(cancellation_done.Wait(std::chrono::seconds(1)));
+    executor_done.Notify();
+  });
+
+  ASSERT_TRUE(executor_blocked.Wait(std::chrono::seconds(1)));
+  scheduler.ScheduleCancellationTask([&]() { cancellation_done.Notify(); });
+  ASSERT_TRUE(executor_done.Wait(std::chrono::seconds(1)));
+}
+
+TEST(ThreadPoolTaskSchedulerTest,
+     DefaultSchedulerFactoryUsesDedicatedCancellationLaneWhenEnabled) {
+  auto scheduler =
+      olp::client::OlpClientSettingsFactory::CreateDefaultTaskScheduler(1u,
+                                                                        true);
+
+  std::promise<std::thread::id> cancellation_thread_id_promise;
+  std::promise<std::thread::id> executor_thread_id_promise;
+
+  scheduler->ScheduleTask([&]() {
+    executor_thread_id_promise.set_value(std::this_thread::get_id());
+  });
+
+  scheduler->ScheduleCancellationTask([&]() {
+    cancellation_thread_id_promise.set_value(std::this_thread::get_id());
+  });
+
+  auto cancellation_thread_id_future =
+      cancellation_thread_id_promise.get_future();
+  auto executor_thread_id_future = executor_thread_id_promise.get_future();
+  ASSERT_EQ(cancellation_thread_id_future.wait_for(std::chrono::seconds(1)),
+            std::future_status::ready);
+  ASSERT_EQ(executor_thread_id_future.wait_for(std::chrono::seconds(1)),
+            std::future_status::ready);
+
+  auto cancellation_thread_id = cancellation_thread_id_future.get();
+  auto executor_thread_id = executor_thread_id_future.get();
+
+  EXPECT_NE(cancellation_thread_id, executor_thread_id);
+  EXPECT_NE(cancellation_thread_id, std::this_thread::get_id());
+  EXPECT_NE(executor_thread_id, std::this_thread::get_id());
 }

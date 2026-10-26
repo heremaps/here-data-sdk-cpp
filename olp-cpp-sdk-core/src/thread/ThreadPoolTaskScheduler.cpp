@@ -42,6 +42,7 @@ namespace thread {
 
 namespace {
 constexpr auto kLogTag = "ThreadPoolTaskScheduler";
+constexpr auto kCancellationExecutorName = "OLPSDKCANCEL";
 
 struct PrioritizedTask {
   TaskScheduler::CallFuncType function;
@@ -61,6 +62,34 @@ void SetExecutorName(size_t idx) {
   OLP_SDK_LOG_INFO_F(kLogTag, "Starting thread '%s'", thread_name.c_str());
 }
 
+void SetCancellationExecutorName() {
+  olp::utils::Thread::SetCurrentThreadName(kCancellationExecutorName);
+  OLP_SDK_LOG_INFO_F(kLogTag, "Starting thread '%s'",
+                     kCancellationExecutorName);
+}
+
+TaskScheduler::CallFuncType WrapWithLogContext(
+    TaskScheduler::CallFuncType&& func) {
+  auto log_context = logging::GetContext();
+
+#if __cplusplus >= 201402L
+  // At least C++14, use generalized lambda capture
+  return [log_context = std::move(log_context), func = std::move(func)]() {
+    olp::logging::ScopedLogContext scoped_context(log_context);
+    func();
+  };
+#else
+  // C++11 does not support generalized lambda capture :(
+  return std::bind(
+      [](std::shared_ptr<const olp::logging::LogContext>& log_context,
+         TaskScheduler::CallFuncType& func) {
+        olp::logging::ScopedLogContext scoped_context(log_context);
+        func();
+      },
+      std::move(log_context), std::move(func));
+#endif
+}
+
 }  // namespace
 
 class ThreadPoolTaskScheduler::QueueImpl {
@@ -77,9 +106,38 @@ class ThreadPoolTaskScheduler::QueueImpl {
   SyncQueue<ElementType, PriorityQueue> sync_queue_;
 };
 
-ThreadPoolTaskScheduler::ThreadPoolTaskScheduler(size_t thread_count)
-    : queue_{std::make_unique<QueueImpl>()} {
+class ThreadPoolTaskScheduler::CancellationQueueImpl {
+ public:
+  using ElementType = TaskScheduler::CallFuncType;
+
+  bool Pull(ElementType& element) { return sync_queue_.Pull(element); }
+  void Push(ElementType&& element) { sync_queue_.Push(std::move(element)); }
+  void Close() { sync_queue_.Close(); }
+
+ private:
+  SyncQueueFifo<ElementType> sync_queue_;
+};
+
+ThreadPoolTaskScheduler::ThreadPoolTaskScheduler(size_t thread_count,
+                                                 bool enable_cancellation_lane)
+    : queue_{std::make_unique<QueueImpl>()},
+      cancellation_lane_enabled_{enable_cancellation_lane} {
   thread_pool_.reserve(thread_count);
+
+  if (cancellation_lane_enabled_) {
+    cancellation_queue_ = std::make_unique<CancellationQueueImpl>();
+    cancellation_thread_ = std::thread([this]() {
+      SetCancellationExecutorName();
+
+      for (;;) {
+        TaskScheduler::CallFuncType task;
+        if (!cancellation_queue_->Pull(task)) {
+          return;
+        }
+        task();
+      }
+    });
+  }
 
   for (size_t idx = 0; idx < thread_count; ++idx) {
     std::thread executor([this, idx]() {
@@ -100,11 +158,29 @@ ThreadPoolTaskScheduler::ThreadPoolTaskScheduler(size_t thread_count)
 }
 
 ThreadPoolTaskScheduler::~ThreadPoolTaskScheduler() {
+  if (cancellation_queue_) {
+    cancellation_queue_->Close();
+  }
   queue_->Close();
+  if (cancellation_thread_.joinable()) {
+    cancellation_thread_.join();
+  }
   for (auto& thread : thread_pool_) {
     thread.join();
   }
   thread_pool_.clear();
+}
+
+void ThreadPoolTaskScheduler::EnqueueCancellationTask(
+    TaskScheduler::CallFuncType&& func) {
+  auto task = WrapWithLogContext(std::move(func));
+
+  if (!cancellation_lane_enabled_ || !cancellation_queue_) {
+    queue_->Push({std::move(task), thread::NORMAL});
+    return;
+  }
+
+  cancellation_queue_->Push(std::move(task));
 }
 
 void ThreadPoolTaskScheduler::EnqueueTask(TaskScheduler::CallFuncType&& func) {
@@ -113,27 +189,7 @@ void ThreadPoolTaskScheduler::EnqueueTask(TaskScheduler::CallFuncType&& func) {
 
 void ThreadPoolTaskScheduler::EnqueueTask(TaskScheduler::CallFuncType&& func,
                                           uint32_t priority) {
-  auto logContext = logging::GetContext();
-
-#if __cplusplus >= 201402L
-  // At least C++14, use generalized lambda capture
-  auto funcWithCapturedLogContext = [logContext = std::move(logContext),
-                                     func = std::move(func)]() {
-    olp::logging::ScopedLogContext scopedContext(logContext);
-    func();
-  };
-#else
-  // C++11 does not support generalized lambda capture :(
-  auto funcWithCapturedLogContext = std::bind(
-      [](std::shared_ptr<const olp::logging::LogContext>& logContext,
-         TaskScheduler::CallFuncType& func) {
-        olp::logging::ScopedLogContext scopedContext(logContext);
-        func();
-      },
-      std::move(logContext), std::move(func));
-#endif
-
-  queue_->Push({std::move(funcWithCapturedLogContext), priority});
+  queue_->Push({WrapWithLogContext(std::move(func)), priority});
 }
 
 }  // namespace thread
