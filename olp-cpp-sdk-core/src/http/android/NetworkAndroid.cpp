@@ -82,9 +82,10 @@ olp::http::NetworkAndroid* GetNetworkAndroidNativePtr(JNIEnv* env,
  * Callback to be called when response headers have been received
  */
 extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
-Java_com_here_olp_network_HttpClient_headersCallback(JNIEnv* env, jobject obj,
-                                                     jlong request_id,
-                                                     jobjectArray headers) {
+Java_com_here_olp_network_OlpHttpClient_headersCallback(JNIEnv* env,
+                                                        jobject obj,
+                                                        jlong request_id,
+                                                        jobjectArray headers) {
   auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
     OLP_SDK_LOG_WARNING(
@@ -99,7 +100,7 @@ Java_com_here_olp_network_HttpClient_headersCallback(JNIEnv* env, jobject obj,
  * Callback to be called when a date header is received
  */
 extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
-Java_com_here_olp_network_HttpClient_dateAndOffsetCallback(
+Java_com_here_olp_network_OlpHttpClient_dateAndOffsetCallback(
     JNIEnv* env, jobject obj, jlong request_id, jlong date, jlong offset) {
   auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
@@ -116,9 +117,10 @@ Java_com_here_olp_network_HttpClient_dateAndOffsetCallback(
  * Callback to be called when a chunk of data is received
  */
 extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
-Java_com_here_olp_network_HttpClient_dataCallback(JNIEnv* env, jobject obj,
-                                                  jlong request_id,
-                                                  jbyteArray data, jint len) {
+Java_com_here_olp_network_OlpHttpClient_dataCallback(JNIEnv* env, jobject obj,
+                                                     jlong request_id,
+                                                     jbyteArray data,
+                                                     jint len) {
   auto network = olp::http::GetNetworkAndroidNativePtr(env, obj);
   if (!network) {
     OLP_SDK_LOG_WARNING(
@@ -133,7 +135,7 @@ Java_com_here_olp_network_HttpClient_dataCallback(JNIEnv* env, jobject obj,
  * Callback to be called when a request is completed
  */
 extern "C" OLP_SDK_NETWORK_ANDROID_EXPORT void JNICALL
-Java_com_here_olp_network_HttpClient_completeRequest(
+Java_com_here_olp_network_OlpHttpClient_completeRequest(
     JNIEnv* env, jobject obj, jlong request_id, jint status,
     jint uploaded_bytes, jint downloaded_bytes, jstring error,
     jstring content_type) {
@@ -279,7 +281,7 @@ bool NetworkAndroid::Initialize() {
 
   // Get corresponding HttpClient class
   jstring network_class_name =
-      env->NewStringUTF("com/here/olp/network/HttpClient");
+      env->NewStringUTF("com/here/olp/network/OlpHttpClient");
   if (env->ExceptionOccurred()) {
     OLP_SDK_LOG_ERROR(
         kLogTag,
@@ -338,10 +340,10 @@ bool NetworkAndroid::Initialize() {
   env->DeleteLocalRef(obj);
 
   // Get send method
-  jni_send_method_ =
-      env->GetMethodID(java_self_class_, "send",
-                       "(Ljava/lang/String;IJII[Ljava/lang/String;[BLjava/lang/"
-                       "String;II)Lcom/here/olp/network/HttpClient$HttpTask;");
+  jni_send_method_ = env->GetMethodID(
+      java_self_class_, "send",
+      "(Ljava/lang/String;IJII[Ljava/lang/String;[BLjava/lang/"
+      "String;II)Lcom/here/olp/network/OlpHttpClient$HttpTask;");
 
   if (env->ExceptionOccurred()) {
     OLP_SDK_LOG_ERROR(
@@ -371,16 +373,16 @@ bool NetworkAndroid::Initialize() {
     JNINativeMethod methods[] = {
         {"headersCallback", "(J[Ljava/lang/String;)V",
          reinterpret_cast<void*>(
-             &Java_com_here_olp_network_HttpClient_headersCallback)},
+             &Java_com_here_olp_network_OlpHttpClient_headersCallback)},
         {"dateAndOffsetCallback", "(JJJ)V",
          reinterpret_cast<void*>(
-             &Java_com_here_olp_network_HttpClient_dateAndOffsetCallback)},
+             &Java_com_here_olp_network_OlpHttpClient_dateAndOffsetCallback)},
         {"dataCallback", "(J[BI)V",
          reinterpret_cast<void*>(
-             &Java_com_here_olp_network_HttpClient_dataCallback)},
+             &Java_com_here_olp_network_OlpHttpClient_dataCallback)},
         {"completeRequest", "(JIIILjava/lang/String;Ljava/lang/String;)V",
          reinterpret_cast<void*>(
-             &Java_com_here_olp_network_HttpClient_completeRequest)}};
+             &Java_com_here_olp_network_OlpHttpClient_completeRequest)}};
 
     env->RegisterNatives(java_self_class_, methods,
                          sizeof(methods) / sizeof(methods[0]));
