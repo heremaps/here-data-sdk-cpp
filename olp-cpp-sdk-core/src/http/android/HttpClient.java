@@ -225,6 +225,8 @@ public class HttpClient {
         boolean downloadContentSizePresent = false;
 
         try {
+          checkCancelled();
+
           boolean isDone = false;
           final URL url = new URL(request.url());
 
