@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,9 @@
 #include <olp/core/porting/optional.h>
 #include <olp/dataservice/read/DataRequest.h>
 #include <olp/dataservice/read/DataServiceReadApi.h>
+#include <olp/dataservice/read/KeyDataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/PrefetchPartitionsRequest.h>
-#include <olp/dataservice/read/PrefetchTileResult.h>
 #include <olp/dataservice/read/PrefetchTilesRequest.h>
 #include <olp/dataservice/read/TileRequest.h>
 #include <olp/dataservice/read/Types.h>
@@ -186,6 +186,46 @@ class DATASERVICE_READ_API VersionedLayerClient final {
    * or an error. You can also use `CancellableFuture` to cancel this request.
    */
   client::CancellableFuture<DataResponse> GetData(DataRequest data_request);
+
+  /**
+   * @brief Fetches a plain data blob asynchronously using a key.
+   *
+   * If the specified key cannot be found in the layer, the callback is invoked
+   * with the empty `DataResponse` object (the `nullptr` result and an error).
+   * If the key is not set in the request, the callback is invoked with the
+   * following error: `ErrorCode::InvalidArgument`.
+   *
+   * @note The key-based data is not cached at the moment; every request
+   * results in a network call.
+   *
+   * @param request The `KeyDataRequest` instance that contains a complete set
+   * of request parameters.
+   * @param callback The `DataResponseCallback` object that is invoked if
+   * the `DataResult` object is available or an error is encountered.
+   *
+   * @return A token that can be used to cancel this request.
+   */
+  client::CancellationToken GetDataByKey(KeyDataRequest request,
+                                         DataResponseCallback callback);
+
+  /**
+   * @brief Fetches a plain data blob asynchronously using a key.
+   *
+   * If the specified key cannot be found in the layer, the callback is invoked
+   * with the empty `DataResponse` object (the `nullptr` result and an error).
+   * If the key is not set in the request, the callback is invoked with the
+   * following error: `ErrorCode::InvalidArgument`.
+   *
+   * @note The key-based data is not cached at the moment; every request
+   * results in a network call.
+   *
+   * @param request The `KeyDataRequest` instance that contains a complete set
+   * of request parameters.
+   *
+   * @return `CancellableFuture` that contains the `DataResponse` instance
+   * or an error. You can also use `CancellableFuture` to cancel this request.
+   */
+  client::CancellableFuture<DataResponse> GetDataByKey(KeyDataRequest request);
 
   /**
    * @brief Fetches data asynchronously using a TileKey.

@@ -251,6 +251,33 @@ client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetData(
   return {cancel_token, std::move(promise)};
 }
 
+client::CancellationToken VersionedLayerClientImpl::GetDataByKey(
+    KeyDataRequest request, DataResponseCallback callback) {
+  auto data_task =
+      [=](const client::CancellationContext& context) mutable -> DataResponse {
+    if (!request.GetKey()) {
+      return client::ApiError::InvalidArgument("Key is missing");
+    }
+
+    repository::DataRepository repository(catalog_, settings_, lookup_client_,
+                                          mutex_storage_);
+    return repository.GetBlobDataByKey(layer_id_, request, context);
+  };
+
+  return task_sink_.AddTask(std::move(data_task), std::move(callback),
+                            request.GetPriority());
+}
+
+client::CancellableFuture<DataResponse> VersionedLayerClientImpl::GetDataByKey(
+    KeyDataRequest request) {
+  auto promise = std::make_shared<std::promise<DataResponse>>();
+  auto cancel_token =
+      GetDataByKey(std::move(request), [promise](DataResponse response) {
+        promise->set_value(std::move(response));
+      });
+  return {cancel_token, std::move(promise)};
+}
+
 client::CancellationToken VersionedLayerClientImpl::PrefetchPartitions(
     PrefetchPartitionsRequest request,
     PrefetchPartitionsResponseCallback callback,

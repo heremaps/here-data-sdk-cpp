@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -285,6 +285,32 @@ TEST_F(ApiTest, GetBlob) {
   std::string data_string(data_response.GetResult()->begin(),
                           data_response.GetResult()->end());
   ASSERT_EQ("DT_2_0031", data_string);
+}
+
+TEST_F(ApiTest, DISABLED_GetBlobByKey) {
+  olp::client::HRN hrn(GetTestCatalog());
+
+  auto client_response = olp::dataservice::read::ApiClientLookup::LookupApi(
+      hrn, {}, "blob", "v1",
+      olp::dataservice::read::FetchOptions::OnlineIfNotFound, *settings_);
+
+  ASSERT_TRUE(client_response.IsSuccessful())
+      << ApiErrorToString(client_response.GetError());
+  auto blob_client = client_response.MoveResult();
+
+  olp::client::CancellationContext context;
+
+  const auto start_time = std::chrono::high_resolution_clock::now();
+  auto data_response = olp::dataservice::read::BlobApi::GetBlobByKey(
+      blob_client, "testlayer", "test-key", olp::porting::none,
+      olp::porting::none, context);
+  const auto end = std::chrono::high_resolution_clock::now();
+
+  std::chrono::duration<double> time = end - start_time;
+  std::cout << "duration: " << time.count() * 1000000 << " us" << std::endl;
+  ASSERT_TRUE(data_response.IsSuccessful())
+      << ApiErrorToString(data_response.GetError());
+  ASSERT_LT(0, data_response.GetResult()->size());
 }
 
 TEST_F(ApiTest, DISABLED_GetVolatileBlob) {

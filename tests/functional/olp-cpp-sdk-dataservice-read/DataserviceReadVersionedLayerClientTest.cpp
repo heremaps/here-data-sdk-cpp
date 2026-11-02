@@ -19,6 +19,7 @@
 
 #include <gtest/gtest.h>
 #include <chrono>
+#include <memory>
 #include <string>
 
 #include <olp/authentication/AuthenticationCredentials.h>
@@ -26,8 +27,8 @@
 #include <olp/authentication/TokenProvider.h>
 #include <olp/core/client/OlpClientSettings.h>
 #include <olp/core/client/OlpClientSettingsFactory.h>
-#include <olp/core/logging/Log.h>
 #include <olp/core/porting/make_unique.h>
+#include <olp/dataservice/read/PrefetchTileResult.h>
 #include <olp/dataservice/read/VersionedLayerClient.h>
 #include <testutils/CustomParameters.hpp>
 #include "Utils.h"
@@ -651,6 +652,29 @@ TEST_F(DataserviceReadVersionedLayerClientTest, GetTileEmptyField) {
   EXPECT_FALSE(data_response_compressed.IsSuccessful());
   ASSERT_EQ(olp::client::ErrorCode::InvalidArgument,
             data_response_compressed.GetError().GetErrorCode());
+}
+
+TEST_F(DataserviceReadVersionedLayerClientTest, DISABLED_GetDataByKey) {
+  const auto catalog =
+      olp::client::HRN::FromString(CustomParameters::getArgument(
+          "dataservice_read_test_versioned_prefetch_catalog"));
+  const auto kLayerId = CustomParameters::getArgument(
+      "dataservice_read_test_versioned_prefetch_layer");
+
+  auto client = std::make_unique<olp::dataservice::read::VersionedLayerClient>(
+      catalog, kLayerId, olp::porting::none, *settings_);
+
+  const auto request =
+      olp::dataservice::read::KeyDataRequest().WithKey("1/1/2");
+
+  auto data_response = GetExecutionTime<dataservice_read::DataResponse>([&] {
+    auto future = client->GetDataByKey(request);
+    return future.GetFuture().get();
+  });
+
+  EXPECT_SUCCESS(data_response);
+  ASSERT_TRUE(data_response.GetResult() != nullptr);
+  ASSERT_GT(data_response.GetResult()->size(), 0u);
 }
 
 }  // namespace
