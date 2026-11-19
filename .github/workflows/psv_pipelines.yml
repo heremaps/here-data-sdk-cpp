@@ -322,6 +322,16 @@ jobs:
         run: scripts/ios/azure_ios_build_psv.sh
         shell: bash
 
+  psv-ios-os15-intel-xcode-16-build:
+    name: PSV.iOS.MacOS15.Xcode16.Intel
+    runs-on: macos-15-intel
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: iOS Xcode 16 Build
+        run: scripts/ios/azure_ios_build_psv.sh
+        shell: bash
+
   psv-win-17-vc2022-build:
     name: PSV.Win.VC2022
     runs-on: windows-2022
