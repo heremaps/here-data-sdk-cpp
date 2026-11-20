@@ -1226,6 +1226,10 @@ NetworkCurl::RequestHandle* NetworkCurl::Impl::FindRequestHandle(
 
 void NetworkCurl::Impl::Run() {
 #if defined(IGNORE_SIGPIPE)
+  // With some cURL 7.35+ and OpenSSL combinations, writing to a closed socket
+  // can raise SIGPIPE and terminate the process on Linux. Block SIGPIPE on the
+  // cURL worker thread to protect SDK network operations without changing the
+  // signal mask of the thread that initializes the SDK.
   const auto block_sigpipe_result = BlockSigpipe();
   if (block_sigpipe_result != 0) {
     OLP_SDK_LOG_ERROR(kLogTag,
