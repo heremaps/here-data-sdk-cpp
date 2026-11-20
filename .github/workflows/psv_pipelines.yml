@@ -312,13 +312,13 @@ jobs:
       run: scripts/ios/azure_ios_build_psv.sh
       shell: bash
 
-  psv-ios-os14-arm64-xcode-15-build:
-    name: PSV.iOS.MacOS14.Xcode15.ARM64
-    runs-on: macOS-14
+  psv-ios-os26-arm64-xcode-26-build:
+    name: PSV.iOS.MacOS26.Xcode26.ARM64
+    runs-on: macOS-26
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
-      - name: iOS Xcode 15 Build
+      - name: iOS Xcode 26 Build
         run: scripts/ios/azure_ios_build_psv.sh
         shell: bash
 
