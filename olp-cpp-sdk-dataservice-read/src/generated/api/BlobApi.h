@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,32 @@ class BlobApi {
                               porting::optional<std::string> billing_tag,
                               porting::optional<std::string> range,
                               const client::CancellationContext& context);
+
+  /**
+   * @brief Retrieves a plain data blob for the specified layer and key.
+   * @param client Instance of OlpClient used to make REST request.
+   * @param layer_id Layer id.
+   * @param key The key of the blob to be retrieved.
+   * @param billing_tag An optional free-form tag which is used for grouping
+   * billing records together. If supplied, it must be between 4 - 16
+   * characters, contain only alpha/numeric ASCII characters  [A-Za-z0-9].
+   * @param range Use this parameter to resume download of a large response
+   * when there is a connection issue between the client and server.
+   * Specify a single byte range offset like this: Range: bytes=10-.
+   * This parameter is compliant with RFC 7233, but note that this parameter
+   * only supports a single byte range. The range parameter can also be
+   * specified as a query parameter, i.e. range=bytes=10-.
+   * @param context A CancellationContext, which can be used to cancel the
+   * pending request.
+   *
+   * @return Data response.
+   */
+  static DataResponse GetBlobByKey(const client::OlpClient& client,
+                                   const std::string& layer_id,
+                                   const std::string& key,
+                                   porting::optional<std::string> billing_tag,
+                                   porting::optional<std::string> range,
+                                   const client::CancellationContext& context);
 };
 
 }  // namespace read

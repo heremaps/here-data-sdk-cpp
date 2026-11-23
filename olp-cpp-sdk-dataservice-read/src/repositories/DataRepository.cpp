@@ -249,6 +249,25 @@ BlobApi::DataResponse DataRepository::GetBlobData(
   return storage_response;
 }
 
+BlobApi::DataResponse DataRepository::GetBlobDataByKey(
+    const std::string& layer_id, const KeyDataRequest& request,
+    client::CancellationContext context) {
+  if (!request.GetKey()) {
+    return client::ApiError::InvalidArgument("Key is missing");
+  }
+
+  auto storage_api_lookup = lookup_client_.LookupApi(
+      kBlobService, "v1", client::OnlineIfNotFound, context);
+
+  if (!storage_api_lookup.IsSuccessful()) {
+    return storage_api_lookup.GetError();
+  }
+
+  return BlobApi::GetBlobByKey(storage_api_lookup.GetResult(), layer_id,
+                               *request.GetKey(), request.GetBillingTag(),
+                               olp::porting::none, context);
+}
+
 BlobApi::DataResponse DataRepository::GetVolatileData(
     const std::string& layer_id, const DataRequest& request,
     client::CancellationContext context, const bool fail_on_cache_error) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@
 #include <olp/core/client/PendingRequests.h>
 #include <olp/core/porting/optional.h>
 #include <olp/dataservice/read/DataRequest.h>
+#include <olp/dataservice/read/KeyDataRequest.h>
 #include <olp/dataservice/read/PartitionsRequest.h>
 #include <olp/dataservice/read/PrefetchPartitionsRequest.h>
 #include <olp/dataservice/read/PrefetchTileResult.h>
@@ -65,6 +66,12 @@ class VersionedLayerClientImpl {
 
   virtual client::CancellableFuture<DataResponse> GetData(
       DataRequest data_request);
+
+  virtual client::CancellationToken GetDataByKey(KeyDataRequest request,
+                                                 DataResponseCallback callback);
+
+  virtual client::CancellableFuture<DataResponse> GetDataByKey(
+      KeyDataRequest request);
 
   virtual client::CancellationToken GetData(TileRequest request,
                                             DataResponseCallback callback);

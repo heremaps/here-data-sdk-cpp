@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019-2024 HERE Europe B.V.
+ * Copyright (C) 2019-2026 HERE Europe B.V.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,9 @@
 #include <cstring>
 #include <map>
 #include <memory>
-#include <mutex>
-#include <unordered_map>
 
 #include <olp/core/client/OlpClient.h>
+#include <olp/core/utils/Url.h>
 
 namespace olp {
 namespace dataservice {
@@ -55,7 +54,7 @@ BlobApi::DataResponse BlobApi::GetBlob(
 
   // In case we know the size in advance, we should pre-allocated a buffer.
   const auto expected_size = partition.GetDataSize();
-  const auto kPartitionPreallocateLimit = 10 * 1024 * 1024;
+  constexpr auto kPartitionPreallocateLimit = 10 * 1024 * 1024;
   if (expected_size && *expected_size > 0 &&
       *expected_size < kPartitionPreallocateLimit) {
     buffer.reserve(*expected_size);
@@ -63,6 +62,51 @@ BlobApi::DataResponse BlobApi::GetBlob(
 
   auto data_callback = [&](const std::uint8_t* data, std::uint64_t offset,
                            std::size_t length) {
+    if (!offset) {
+      buffer.clear();
+    }
+
+    const auto buffer_size = buffer.size();
+    buffer.resize(buffer_size + length);
+    std::memcpy(buffer.data() + buffer_size, data, length);
+  };
+
+  auto api_response =
+      client.CallApiStream(metadata_uri, "GET", query_params, header_params,
+                           data_callback, nullptr, "", context);
+
+  if (api_response.GetStatus() != http::HttpStatusCode::OK) {
+    return {client::ApiError(api_response.GetStatus()),
+            api_response.GetNetworkStatistics()};
+  }
+
+  return {std::make_shared<std::vector<unsigned char>>(std::move(buffer)),
+          api_response.GetNetworkStatistics()};
+}
+
+BlobApi::DataResponse BlobApi::GetBlobByKey(
+    const client::OlpClient& client, const std::string& layer_id,
+    const std::string& key, porting::optional<std::string> billing_tag,
+    porting::optional<std::string> range,
+    const client::CancellationContext& context) {
+  std::multimap<std::string, std::string> header_params;
+  header_params.emplace("Accept", "application/octet-stream");
+  if (range) {
+    header_params.emplace("Range", *range);
+  }
+
+  std::multimap<std::string, std::string> query_params;
+  if (billing_tag) {
+    query_params.emplace("billingTag", *billing_tag);
+  }
+
+  std::string metadata_uri =
+      "/layers/" + layer_id + "/keys/" + olp::utils::Url::Encode(key);
+
+  std::vector<unsigned char> buffer;
+
+  auto data_callback = [&](const std::uint8_t* data, const std::uint64_t offset,
+                           const std::size_t length) {
     if (!offset) {
       buffer.clear();
     }
