@@ -36,16 +36,20 @@ namespace write {
  * requests.
  * @param task Function that will be executed.
  * @param callback Function that will consume task output.
- * @param args Additional agrs to pass to TaskContext.
+ * @param cancellation_context Cancellation context used to cancel the
+ * operation.
  * @return CancellationToken used to cancel the operation.
  */
 template <typename Function, typename Callback, typename... Args>
 inline client::CancellationToken AddTask(
     const std::shared_ptr<thread::TaskScheduler>& task_scheduler,
     const std::shared_ptr<client::PendingRequests>& pending_requests,
-    Function task, Callback callback, Args&&... args) {
-  auto context = client::TaskContext::Create(
-      std::move(task), std::move(callback), std::forward<Args>(args)...);
+    Function task, Callback callback,
+    const client::CancellationContext& cancellation_context =
+        client::CancellationContext()) {
+  auto context =
+      client::TaskContext::Create(std::move(task), std::move(callback),
+                                  cancellation_context, task_scheduler);
   pending_requests->Insert(context);
 
   auto scheduler_func = [=] {

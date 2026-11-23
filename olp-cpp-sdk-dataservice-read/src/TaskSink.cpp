@@ -61,7 +61,7 @@ client::CancellationToken TaskSink::AddTask(
         return client::ApiError();
       },
       [=](client::ApiResponse<bool, client::ApiError>) { func(context); },
-      context);
+      context, task_scheduler_);
   AddTaskImpl(task, priority);
   return task.CancelToken();
 }

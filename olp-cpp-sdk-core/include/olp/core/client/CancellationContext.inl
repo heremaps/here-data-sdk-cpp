@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <utility>
 namespace olp {
 namespace client {
 
@@ -58,9 +59,10 @@ inline void CancellationContext::CancelOperation() {
     return;
   }
 
-  impl_->sub_operation_cancel_token_.Cancel();
-  impl_->sub_operation_cancel_token_ = CancellationToken();
+  auto token = CancellationToken();
+  std::swap(token, impl_->sub_operation_cancel_token_);
   impl_->is_cancelled_ = true;
+  token.Cancel();
 }
 
 inline bool CancellationContext::IsCancelled() const {

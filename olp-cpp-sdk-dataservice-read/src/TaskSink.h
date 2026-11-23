@@ -47,8 +47,8 @@ class TaskSink {
   template <typename Function, typename Callback, typename... Args>
   client::CancellationToken AddTask(Function task, Callback callback,
                                     uint32_t priority, Args&&... args) {
-    auto context = client::TaskContext::Create(
-        std::move(task), std::move(callback), std::forward<Args>(args)...);
+    auto context = CreateTaskContext(std::move(task), std::move(callback),
+                                     std::forward<Args>(args)...);
     AddTaskImpl(context, priority);
     return context.CancelToken();
   }
@@ -58,8 +58,8 @@ class TaskSink {
                                                               Callback callback,
                                                               uint32_t priority,
                                                               Args&&... args) {
-    auto context = client::TaskContext::Create(
-        std::move(task), std::move(callback), std::forward<Args>(args)...);
+    auto context = CreateTaskContext(std::move(task), std::move(callback),
+                                     std::forward<Args>(args)...);
     if (!AddTaskImpl(context, priority)) {
       return olp::porting::none;
     }
@@ -67,6 +67,20 @@ class TaskSink {
   }
 
  protected:
+  template <typename Function, typename Callback>
+  client::TaskContext CreateTaskContext(Function task, Callback callback) {
+    return client::TaskContext::Create(std::move(task), std::move(callback),
+                                       client::CancellationContext(),
+                                       task_scheduler_);
+  }
+
+  template <typename Function, typename Callback>
+  client::TaskContext CreateTaskContext(Function task, Callback callback,
+                                        client::CancellationContext context) {
+    return client::TaskContext::Create(std::move(task), std::move(callback),
+                                       std::move(context), task_scheduler_);
+  }
+
   bool AddTaskImpl(client::TaskContext task, uint32_t priority);
 
   bool ScheduleTask(client::TaskContext task, uint32_t priority);
