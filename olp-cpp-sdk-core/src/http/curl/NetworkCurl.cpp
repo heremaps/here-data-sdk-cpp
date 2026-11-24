@@ -137,7 +137,8 @@ std::string CaBundlePath() {
 
 #if defined(IGNORE_SIGPIPE)
 
-// Block SIGPIPE signals for the current thread and all threads it creates.
+// Block SIGPIPE on the cURL worker thread to prevent writes to closed sockets
+// from terminating the process.
 int BlockSigpipe() {
   sigset_t sigset;
   int err;
@@ -154,13 +155,6 @@ int BlockSigpipe() {
 
   return err;
 }
-
-// Curl7.35+OpenSSL can write into closed sockets sometimes which results
-// in the process being terminated with SIGPIPE on Linux. Here's
-// a workaround for that bug. It block SIGPIPE for the startup thread and
-// hence for all other threads in the application. The variable itself is
-// not used but can be examined.
-int BlockSigpipeResult = BlockSigpipe();
 
 #endif  // IGNORE_SIGPIPE
 
@@ -1231,6 +1225,19 @@ NetworkCurl::RequestHandle* NetworkCurl::Impl::FindRequestHandle(
 }
 
 void NetworkCurl::Impl::Run() {
+#if defined(IGNORE_SIGPIPE)
+  // With some cURL 7.35+ and OpenSSL combinations, writing to a closed socket
+  // can raise SIGPIPE and terminate the process on Linux. Block SIGPIPE on the
+  // cURL worker thread to protect SDK network operations without changing the
+  // signal mask of the thread that initializes the SDK.
+  const auto block_sigpipe_result = BlockSigpipe();
+  if (block_sigpipe_result != 0) {
+    OLP_SDK_LOG_ERROR(kLogTag,
+                      "Failed to block SIGPIPE on cURL worker thread, error="
+                          << block_sigpipe_result);
+  }
+#endif
+
   olp::utils::Thread::SetCurrentThreadName(kCurlThreadName);
 
   {
